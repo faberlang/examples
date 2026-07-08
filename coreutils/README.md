@@ -3,8 +3,8 @@
 Faber re-implementations of GNU coreutils for **application-lane** proof, not as
 a replacement binary distribution.
 
-**Campaign control plane (private radix tree):**
-[`../../radix/docs/factory/coreutils/CAMPAIGN.md`](../../radix/docs/factory/coreutils/CAMPAIGN.md)
+**Campaign control plane (this repo):**
+[`docs/factory/coreutils/CAMPAIGN.md`](../docs/factory/coreutils/CAMPAIGN.md)
 
 ## Purpose
 
@@ -64,10 +64,10 @@ faber build coreutils/packages/<utility>
 
 | Doc | Role |
 | --- | --- |
-| [`CAMPAIGN.md`](../../radix/docs/factory/coreutils/CAMPAIGN.md) | Routing, stages, dependencies |
-| [`ledger.md`](../../radix/docs/factory/coreutils/ledger.md) | Per-utility status |
-| [`parity-contract.md`](../../radix/docs/factory/coreutils/parity-contract.md) | Fixture format, lanes |
-| [`goals/_template.md`](../../radix/docs/factory/coreutils/goals/_template.md) | Factory goal template |
+| [`CAMPAIGN.md`](../docs/factory/coreutils/CAMPAIGN.md) | Routing, stages, dependencies |
+| [`ledger.md`](../docs/factory/coreutils/ledger.md) | Per-utility status |
+| [`parity-contract.md`](../docs/factory/coreutils/parity-contract.md) | Fixture format, lanes |
+| [`goals/_template.md`](../docs/factory/coreutils/goals/_template.md) | Factory goal template |
 
 ## Status
 
@@ -78,4 +78,4 @@ option, formatting, range, and path normalization coverage. Stage 4 has
 nullable-stdin slices for `cat`, `head`, `tail`, `wc`, `tac`, `uniq`, `fold`,
 `nl`, `expand`, `unexpand`, `sort`, `cut`, `grep`, `tr`, `tee`, and `paste`;
 continue from
-[`CAMPAIGN.md`](../../radix/docs/factory/coreutils/CAMPAIGN.md).
+[`CAMPAIGN.md`](../docs/factory/coreutils/CAMPAIGN.md).

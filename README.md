@@ -32,6 +32,8 @@ faberlang/
 
 ## Coreutils parity
 
-Parity fixtures live under `coreutils/harness/fixtures/`. The harness script
-historically lived in Radix `scripta/`; prefer invoking `faber` against packages
-here and the sibling radix script when developing compiler-side gates.
+Parity fixtures live under `coreutils/harness/fixtures/`. Campaign control plane:
+[`docs/factory/coreutils/CAMPAIGN.md`](docs/factory/coreutils/CAMPAIGN.md).
+The parity harness script lives in private Radix `scripta/`; invoke `faber`
+against packages here and the sibling radix script when developing
+compiler-side gates.
