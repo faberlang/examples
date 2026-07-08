@@ -1,0 +1,4 @@
+# GNU-style exit status constants for coreutils packages.
+
+fixum numerus EXITUS_OK ← 0
+fixum numerus EXITUS_FAIL ← 1

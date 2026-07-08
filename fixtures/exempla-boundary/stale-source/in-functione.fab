@@ -1,0 +1,72 @@
+# Error handling in functions
+#
+# Functions can use fac-cape to handle errors internally
+# or let errors propagate to callers
+
+functio safeDivide(numerus a, numerus b) → numerus {
+    fac {
+        si b ≡ 0 {
+            iace "Division by zero"
+        }
+        redde a / b
+    }
+    cape err {
+        nota "Error:", err
+        redde 0
+    }
+}
+
+functio validatePositive(numerus value) → numerus {
+    fac {
+        si value < 0 {
+            iace "Negative value not allowed"
+        }
+        redde value * 2
+    }
+    cape err {
+        nota "Validation failed:", err
+        redde 0
+    }
+}
+
+functio processWithCleanup(textus name) {
+    varia _ resource ← "pending"
+
+    fac {
+        nota "Opening:", name
+        resource ← name
+
+        si name ≡ "" {
+            iace "Empty name"
+        }
+
+        nota "Processing:", resource
+    }
+    cape err {
+        nota "Error:", err
+    }
+    nota "Closing:", resource
+}
+
+functio withReturnInHandler() → textus {
+    fac {
+        nota "Starting operation"
+        redde "success"
+    }
+    cape err {
+        redde "error"
+    }
+}
+
+incipit {
+    nota "Safe divide 10/2:", safeDivide(10, 2)
+    nota "Safe divide 10/0:", safeDivide(10, 0)
+
+    nota "Validate 5:", validatePositive(5)
+    nota "Validate -3:", validatePositive(-3)
+
+    processWithCleanup("data.txt")
+    processWithCleanup("")
+
+    nota "Result:", withReturnInHandler()
+}

@@ -1,0 +1,22 @@
+importa ex "norma:solum" privata solum
+
+functio crea_directoria(lista<textus> paths) → vacuum {
+    itera ex paths fixum path {
+        solum.crea(path)
+    }
+}
+
+probandum "mkdir operands" tag "coreutils" {
+    proba "empty operand list is accepted by helper" {
+        fixum lista<textus> paths ← vacua
+        crea_directoria(paths)
+    }
+}
+
+@ cli "mkdir"
+@ descriptio "GNU coreutils mkdir parity exemplum"
+@ optio parents typus bivalens brevis "p" longum "parents" descriptio "make parent directories as needed"
+@ operandus ceteri textus paths
+incipit argumenta args {
+    crea_directoria(args.paths)
+}

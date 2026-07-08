@@ -1,0 +1,12 @@
+[[case]]
+id = "set-variable"
+lane = "stepper"
+tier = "A"
+args = ["FABER_COREUTILS_PRINTENV"]
+stdin = ""
+env = { FABER_COREUTILS_PRINTENV = "parity-value" }
+stdout = "parity-value"
+stderr = ""
+exit = 0
+stdout_newline = true
+

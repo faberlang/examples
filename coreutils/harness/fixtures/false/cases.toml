@@ -1,0 +1,19 @@
+[[case]]
+id = "exit-one"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 1
+
+[[case]]
+id = "ignore-extra-args"
+lane = "stepper"
+tier = "A"
+args = ["--", "x"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 1

@@ -1,0 +1,105 @@
+importa ex "norma:consolum" privata consolum
+importa ex "../../../common/gnu/format" privata gnu_format
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Leading GNU echo options recognized in this slice.
+# -E is a historical no-op once escapes are off by default.
+# -n suppresses the trailing newline.
+functio optio_noop_e(textus arg) → bivalens {
+    redde arg ≡ "-E"
+}
+
+functio optio_suppressit_novam_lineam(textus arg) → bivalens {
+    redde arg ≡ "-n"
+}
+
+genus EchoOperanda {
+    lista<textus> verba
+    bivalens novam_lineam
+}
+
+functio echo_operanda(lista<textus> args) → EchoOperanda {
+    varia lista<textus> operanda ← vacua
+    varia numerus pars ← 0
+    varia bivalens novam_lineam ← verum
+
+    itera ex args fixum arg {
+        si pars ≡ 0 et optio_suppressit_novam_lineam(arg) {
+            novam_lineam ← falsum
+        }
+        sin pars ≡ 0 et optio_noop_e(arg) {
+            tacet
+        }
+        secus {
+            pars ← 1
+            operanda.appende(arg)
+        }
+    }
+
+    redde EchoOperanda { verba = operanda, novam_lineam = novam_lineam }
+}
+
+functio echo_textus(lista<textus> args) → textus {
+    redde gnu_format.inter_spatia(echo_operanda(args).verba)
+}
+
+functio echo_novam_lineam(lista<textus> args) → bivalens {
+    redde echo_operanda(args).novam_lineam
+}
+
+# Raw no-newline write. Called from the package entry so package-MIR links
+# `norma:consolum.dic` as a kernel provider (shared common/* units currently
+# leave that call as an unresolved package provider under --interpret).
+functio scribe_sine_linea(textus textus) → vacuum {
+    consolum.dic(textus)
+}
+
+probandum "echo formatting" tag "coreutils" {
+    proba "empty operands format as empty text" {
+        fixum lista<textus> words ← vacua
+        adfirma echo_textus(words) ≡ ""
+    }
+    proba "single operand is unchanged" {
+        adfirma echo_textus(["hello"]) ≡ "hello"
+    }
+    proba "operands join with one space" {
+        adfirma echo_textus(["hello", "world"]) ≡ "hello world"
+    }
+    proba "-E is a leading no-op option" {
+        adfirma echo_textus(["-E", "hello", "world"]) ≡ "hello world"
+    }
+    proba "multiple leading -E options are ignored" {
+        adfirma echo_textus(["-E", "-E", "hello"]) ≡ "hello"
+    }
+    proba "-E after operands remains an operand" {
+        adfirma echo_textus(["hello", "-E"]) ≡ "hello -E"
+    }
+    proba "-n suppresses the trailing newline flag" {
+        adfirma echo_novam_lineam(["-n", "hello"]) ≡ falsum
+    }
+    proba "-n still formats operands" {
+        adfirma echo_textus(["-n", "hello", "world"]) ≡ "hello world"
+    }
+    proba "-n after operands remains an operand" {
+        adfirma echo_textus(["hello", "-n"]) ≡ "hello -n"
+        adfirma echo_novam_lineam(["hello", "-n"]) ≡ verum
+    }
+    proba "leading -n and -E may combine" {
+        adfirma echo_textus(["-n", "-E", "x"]) ≡ "x"
+        adfirma echo_novam_lineam(["-n", "-E", "x"]) ≡ falsum
+    }
+}
+
+@ cli "echo"
+@ descriptio "GNU coreutils echo parity exemplum"
+@ operandus ceteri textus words
+incipit argumenta args {
+    fixum EchoOperanda plan ← echo_operanda(args.words)
+    fixum textus textus ← gnu_format.inter_spatia(plan.verba)
+    si plan.novam_lineam {
+        gnu_stdio.scribe_linea(textus)
+    }
+    secus {
+        scribe_sine_linea(textus)
+    }
+}

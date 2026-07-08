@@ -1,0 +1,24 @@
+importa ex "norma:solum" privata solum
+
+functio remove_path(textus path, bivalens recursive) → vacuum {
+    si recursive {
+        solum.amputa(path)
+    }
+    si non recursive {
+        solum.dele(path)
+    }
+}
+
+functio remove_paths(lista<textus> paths, bivalens recursive) → vacuum {
+    itera ex paths fixum path {
+        remove_path(path, recursive)
+    }
+}
+
+@ cli "rm"
+@ descriptio "GNU coreutils rm simple remove parity exemplum"
+@ optio recursive typus bivalens brevis "r" longum "recursive" descriptio "remove directories recursively"
+@ operandus ceteri textus paths
+incipit argumenta args {
+    remove_paths(args.paths, args.recursive)
+}

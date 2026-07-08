@@ -1,0 +1,129 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# This Stage 4 coreutils slice is stdin-only and line-oriented.
+# File operands, headers/footers, custom separators, and combined short options
+# such as GNU `-ba` are deferred until the CLI surface can model them honestly.
+functio numerare_omnesne(textus stilus_corporis) → bivalens {
+    redde stilus_corporis ≡ "a"
+}
+
+functio modus_lnne(textus modus_numeri) → bivalens {
+    redde modus_numeri ≡ "ln"
+}
+
+functio numeranda_linea(textus linea, bivalens omnes) → bivalens {
+    redde omnes aut linea.longitudo() > 0
+}
+
+functio latitudo_activa(numerus petitus) → numerus {
+    si petitus > 0 ergo redde petitus
+    redde 6
+}
+
+functio spatia(numerus copia) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < copia {
+        out ← out + " "
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio forma_numeri(numerus n, numerus latitudo, bivalens sinister) → textus {
+    fixum textus n_textus ← "§"(n)
+    fixum numerus activa ← latitudo_activa(latitudo)
+    si n_textus.longitudo() ≥ activa ergo redde n_textus
+
+    fixum numerus addenda ← activa - n_textus.longitudo()
+    si sinister ergo redde n_textus + spatia(addenda)
+    redde spatia(addenda) + n_textus
+}
+
+functio forma_lineae(textus linea, numerus numerus_lineae, bivalens omnes, numerus latitudo, bivalens sinister) → textus {
+    si numeranda_linea(linea, omnes) {
+        redde "§	§"(forma_numeri(numerus_lineae, latitudo, sinister), linea)
+    }
+
+    redde spatia(latitudo_activa(latitudo) + 1)
+}
+
+# Pure helper output lets inline proba cover numbering and blank-line formatting
+# without depending on stdin.
+functio lineae_nl(lista<textus> lineae, bivalens omnes, numerus initium, numerus incrementum, numerus latitudo, bivalens sinister) → lista<textus> {
+    varia lista<textus> out ← vacua
+    varia numerus numerus_lineae ← initium
+
+    itera ex lineae fixum linea {
+        out.appende(forma_lineae(linea, numerus_lineae, omnes, latitudo, sinister))
+        si numeranda_linea(linea, omnes) {
+            numerus_lineae ← numerus_lineae + incrementum
+        }
+    }
+
+    redde out
+}
+
+# Nullable lege drives stdin until EOF. Each returned payload is written back as
+# one newline-terminated output record by the GNU stdio helper.
+functio nl_stdin(bivalens omnes, numerus initium, numerus incrementum, numerus latitudo, bivalens sinister) → lista<textus> {
+    varia lista<textus> lineae ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae_nl(lineae, omnes, initium, incrementum, latitudo, sinister)
+        lineae.appende(linea vel "")
+    }
+
+    redde lineae_nl(lineae, omnes, initium, incrementum, latitudo, sinister)
+}
+
+probandum "nl numbering and formatting" tag "coreutils" {
+    proba "default mode numbers only non-empty lines" {
+        adfirma lineae_nl(["alpha", "", "beta"], falsum, 1, 1, 6, falsum) ≡ ["     1	alpha", "       ", "     2	beta"]
+    }
+    proba "all-lines mode numbers blank records" {
+        adfirma lineae_nl(["alpha", "", "beta"], verum, 1, 1, 6, falsum) ≡ ["     1	alpha", "     2	", "     3	beta"]
+    }
+    proba "number field is right-aligned to six columns" {
+        adfirma forma_numeri(7, 6, falsum) ≡ "     7"
+        adfirma forma_numeri(123456, 6, falsum) ≡ "123456"
+    }
+    proba "starting number and increment advance numbered records" {
+        adfirma lineae_nl(["alpha", "beta", "gamma"], falsum, 5, 2, 6, falsum) ≡ ["     5	alpha", "     7	beta", "     9	gamma"]
+    }
+    proba "positive number width controls right-aligned field" {
+        adfirma lineae_nl(["alpha", "", "beta"], falsum, 1, 1, 3, falsum) ≡ ["  1	alpha", "    ", "  2	beta"]
+    }
+    proba "non-positive number width falls back to default" {
+        adfirma forma_numeri(7, 0, falsum) ≡ "     7"
+    }
+    proba "ln format left-justifies number within active width" {
+        adfirma lineae_nl(["alpha", "beta"], falsum, 1, 1, 6, verum) ≡ ["1     	alpha", "2     	beta"]
+    }
+    proba "number format ln selects left alignment" {
+        adfirma modus_lnne("ln") ≡ verum
+        adfirma modus_lnne("") ≡ falsum
+    }
+    proba "body style a selects all-lines mode" {
+        adfirma numerare_omnesne("a") ≡ verum
+        adfirma numerare_omnesne("") ≡ falsum
+    }
+}
+
+@ cli "nl"
+@ descriptio "GNU coreutils nl stdin parity exemplum"
+@ optio stilus_corporis typus textus brevis "b" longum "body-numbering" descriptio "use BODY_STYLE for numbering body lines"
+@ optio initium typus numerus brevis "v" longum "starting-line-number" descriptio "use NUMBER as the first line number"
+@ optio incrementum typus numerus brevis "i" longum "line-increment" descriptio "use NUMBER as the line number increment"
+@ optio latitudo typus numerus brevis "w" longum "number-width" descriptio "use NUMBER columns for line numbers"
+@ optio modus_numeri typus textus brevis "n" longum "number-format" descriptio "use FORMAT for line numbers"
+incipit argumenta args {
+    # Current CLI parsing supports `-b a` and `--body-numbering=a`; GNU's
+    # combined short spelling `-ba` is documented as deferred for this slice.
+    itera ex nl_stdin(numerare_omnesne(args.stilus_corporis vel ""), args.initium vel 1, args.incrementum vel 1, args.latitudo vel 6, modus_lnne(args.modus_numeri vel "")) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

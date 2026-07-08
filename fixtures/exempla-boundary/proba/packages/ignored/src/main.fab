@@ -1,0 +1,13 @@
+proba "skipped failing case" omitte "blocked by external service" {
+    adfirma falsum
+}
+
+proba "future case" futurum "not implemented yet" {
+    adfirma falsum
+}
+
+proba "normal passing case" {
+    adfirma verum
+}
+
+incipit {}

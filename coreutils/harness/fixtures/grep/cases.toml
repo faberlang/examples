@@ -1,0 +1,109 @@
+[[case]]
+id = "positional-literal-match"
+lane = "stepper"
+tier = "A"
+args = ["alpha"]
+stdin = "alpha\nbravo\nalphabet\n"
+stdout = "alpha\nalphabet\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "option-e-literal-match"
+lane = "stepper"
+tier = "A"
+args = ["-e", "br"]
+stdin = "alpha\nbravo\nbroom\n"
+stdout = "bravo\nbroom\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "repeated-e-literal-or"
+lane = "stepper"
+tier = "A"
+args = ["-e", "alpha", "-e", "gamma"]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "alpha\ngamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "ignore-case"
+lane = "stepper"
+tier = "A"
+args = ["-i", "alpha"]
+stdin = "Alpha\nbeta\nALPHABET\n"
+stdout = "Alpha\nALPHABET\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "invert-selected-lines-exist"
+lane = "stepper"
+tier = "A"
+args = ["-v", "alpha"]
+stdin = "alpha\nbravo\nalphabet\ncharlie\n"
+stdout = "bravo\ncharlie\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "count-selected-lines"
+lane = "stepper"
+tier = "A"
+args = ["-c", "alpha"]
+stdin = "alpha\nbravo\nalphabet\n"
+stdout = "2\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "count-repeated-e-literal-or"
+lane = "stepper"
+tier = "A"
+args = ["-c", "-e", "alpha", "-e", "gamma"]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "2\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "invert-repeated-e-literal-or"
+lane = "stepper"
+tier = "A"
+args = ["-v", "-e", "alpha", "-e", "gamma"]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "beta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "line-number-prefix"
+lane = "stepper"
+tier = "A"
+args = ["-n", "alpha"]
+stdin = "bravo\nalpha\ncharlie\nalphabet\n"
+stdout = "2:alpha\n4:alphabet\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "line-number-repeated-e-literal-or"
+lane = "stepper"
+tier = "A"
+args = ["-n", "-e", "alpha", "-e", "gamma"]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "1:alpha\n3:gamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true

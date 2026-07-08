@@ -1,0 +1,275 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps unexpand in the stdin-only stepper lane.
+# This slice converts ASCII space runs with scalar-position counting only.
+# File operands, GNU edge-case tab stop modes, backspace/display-column
+# semantics, diagnostics, and help/version are deferred.
+
+genus Tabulatio {
+    bivalens finita
+    numerus amplitudo
+    numerus count
+    numerus stop1
+    numerus stop2
+    numerus stop3
+    numerus stop4
+    numerus stop5
+    numerus stop6
+    numerus stop7
+    numerus stop8
+}
+
+genus UnexpandOptiones {
+    bivalens convertit_plene
+    Tabulatio tabs
+}
+
+functio tabulatio_activa(numerus petitus) → numerus {
+    si petitus > 0 ergo redde petitus
+    redde 8
+}
+
+functio tabulatio_periodica(numerus petitus) → Tabulatio {
+    fixum numerus activus ← tabulatio_activa(petitus)
+    redde Tabulatio { finita = falsum, amplitudo = activus, count = 1, stop1 = activus, stop2 = 0, stop3 = 0, stop4 = 0, stop5 = 0, stop6 = 0, stop7 = 0, stop8 = 0 }
+}
+
+functio habet_comma(textus raw) → bivalens {
+    varia numerus i ← 0
+
+    dum i < raw.longitudo() {
+        fixum textus ch ← raw.sectio(i, i + 1)
+        si ch ≡ "," {
+            redde verum
+        }
+        i ← i + 1
+    }
+
+    redde falsum
+}
+
+# GNU comma lists are finite absolute stops. After the final listed stop this
+# slice preserves spaces instead of inventing a periodic interval.
+functio tabulatio_ex_lista(textus raw) → Tabulatio {
+    varia numerus count ← 0
+    varia numerus stop1 ← 0
+    varia numerus stop2 ← 0
+    varia numerus stop3 ← 0
+    varia numerus stop4 ← 0
+    varia numerus stop5 ← 0
+    varia numerus stop6 ← 0
+    varia numerus stop7 ← 0
+    varia numerus stop8 ← 0
+    varia numerus initium ← 0
+    varia numerus i ← 0
+
+    dum i ≤ raw.longitudo() {
+        si i ≡ raw.longitudo() aut raw.sectio(i, i + 1) ≡ "," {
+            fixum numerus finis ← raw.sectio(initium, i) ↦ numerus ⇥ 0
+            si finis > 0 {
+                count ← count + 1
+                si count ≡ 1 {
+                    stop1 ← finis
+                }
+                sin count ≡ 2 {
+                    stop2 ← finis
+                }
+                sin count ≡ 3 {
+                    stop3 ← finis
+                }
+                sin count ≡ 4 {
+                    stop4 ← finis
+                }
+                sin count ≡ 5 {
+                    stop5 ← finis
+                }
+                sin count ≡ 6 {
+                    stop6 ← finis
+                }
+                sin count ≡ 7 {
+                    stop7 ← finis
+                }
+                sin count ≡ 8 {
+                    stop8 ← finis
+                }
+            }
+            initium ← i + 1
+        }
+        i ← i + 1
+    }
+
+    si count ≡ 0 ergo redde tabulatio_periodica(8)
+
+    redde Tabulatio { finita = verum, amplitudo = 8, count = count, stop1 = stop1, stop2 = stop2, stop3 = stop3, stop4 = stop4, stop5 = stop5, stop6 = stop6, stop7 = stop7, stop8 = stop8 }
+}
+
+functio tabulatio_spec(textus raw) → Tabulatio {
+    si habet_comma(raw) ergo redde tabulatio_ex_lista(raw)
+    redde tabulatio_periodica(raw ↦ numerus ⇥ 8)
+}
+
+functio proximum_finem_cum(numerus columna, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → numerus {
+    si non finita {
+        fixum numerus stop ← tabulatio_activa(amplitudo)
+        redde columna + (stop - (columna % stop))
+    }
+
+    si count ≥ 1 et stop1 > columna ergo redde stop1
+    si count ≥ 2 et stop2 > columna ergo redde stop2
+    si count ≥ 3 et stop3 > columna ergo redde stop3
+    si count ≥ 4 et stop4 > columna ergo redde stop4
+    si count ≥ 5 et stop5 > columna ergo redde stop5
+    si count ≥ 6 et stop6 > columna ergo redde stop6
+    si count ≥ 7 et stop7 > columna ergo redde stop7
+    si count ≥ 8 et stop8 > columna ergo redde stop8
+
+    redde 0
+}
+
+functio comprime_spatia_cum(numerus initium, numerus copia, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → textus {
+    varia numerus columna ← initium
+    varia numerus restant ← copia
+    varia textus out ← ""
+
+    dum restant > 0 {
+        fixum numerus proximum ← proximum_finem_cum(columna, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8)
+        fixum numerus ad_tab ← proximum - columna
+        si (proximum > 0 et ad_tab > 1) et ad_tab ≤ restant {
+            out ← out + "\t"
+            columna ← proximum
+            restant ← restant - ad_tab
+        }
+        secus {
+            out ← out + " "
+            columna ← columna + 1
+            restant ← restant - 1
+        }
+    }
+
+    redde out
+}
+
+# Pure helper for parity fixtures. `convertit_plene` models GNU `-a`; otherwise only the
+# leading ASCII-space prefix is eligible for tab conversion.
+functio unexpand_linea(textus linea, bivalens convertit_plene, Tabulatio tabs) → textus {
+    redde unexpand_linea_cum(linea, convertit_plene, tabs.finita, tabs.amplitudo, tabs.count, tabs.stop1, tabs.stop2, tabs.stop3, tabs.stop4, tabs.stop5, tabs.stop6, tabs.stop7, tabs.stop8)
+}
+
+functio unexpand_linea_cum(textus linea, bivalens convertit_plene, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    varia numerus columna ← 0
+    varia bivalens in_principio ← verum
+
+    dum i < linea.longitudo() {
+        fixum textus ch ← linea.sectio(i, i + 1)
+        si ch ≡ " " et (convertit_plene aut in_principio) {
+            varia numerus finis ← i
+            dum finis < linea.longitudo() et linea.sectio(finis, finis + 1) ≡ " " {
+                finis ← finis + 1
+            }
+
+            fixum numerus copia ← finis - i
+            out ← out + comprime_spatia_cum(columna, copia, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8)
+            columna ← columna + copia
+            i ← finis
+        }
+        secus {
+            out ← out + ch
+            si ch ≠ " " {
+                in_principio ← falsum
+            }
+            columna ← columna + 1
+            i ← i + 1
+        }
+    }
+
+    redde out
+}
+
+# Nullable lege is the only input source in this slice; EOF ends the stream
+# without adding a synthetic final line.
+functio unexpand_stdin(bivalens convertit_plene, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        gnu_stdio.scribe_linea(unexpand_linea_cum(linea vel "", convertit_plene, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8))
+    }
+}
+
+functio unexpand_parse(lista<textus> args) → UnexpandOptiones {
+    varia numerus plene_visum ← 0
+    varia Tabulatio tabs ← tabulatio_periodica(8)
+    varia numerus i ← 0
+
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
+        si arg ≡ "-a" aut arg ≡ "--all" {
+            plene_visum ← 1
+            i ← i + 1
+        }
+        sin arg ≡ "-t" aut arg ≡ "--tabs" {
+            tabs ← tabulatio_spec(args.accipe(i + 1) vel "8")
+            i ← i + 2
+        }
+        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-t" {
+            tabs ← tabulatio_spec(arg.sectio(2, arg.longitudo()))
+            i ← i + 1
+        }
+        sin arg.longitudo() > 7 et arg.sectio(0, 7) ≡ "--tabs=" {
+            tabs ← tabulatio_spec(arg.sectio(7, arg.longitudo()))
+            i ← i + 1
+        }
+        secus {
+            i ← i + 1
+        }
+    }
+
+    redde UnexpandOptiones { convertit_plene = plene_visum > 0, tabs = tabs }
+}
+
+probandum "unexpand space compression" tag "coreutils" {
+    proba "empty and no-space lines stay unchanged" {
+        adfirma unexpand_linea("", falsum, tabulatio_periodica(8)) ≡ ""
+        adfirma unexpand_linea("abc", falsum, tabulatio_periodica(8)) ≡ "abc"
+    }
+    proba "default mode compresses leading eight spaces" {
+        adfirma unexpand_linea("        x", falsum, tabulatio_periodica(8)) ≡ "\tx"
+    }
+    proba "default mode preserves shorter leading spaces and interior spaces" {
+        adfirma unexpand_linea("    x", falsum, tabulatio_periodica(8)) ≡ "    x"
+        adfirma unexpand_linea("a        b", falsum, tabulatio_periodica(8)) ≡ "a        b"
+    }
+    proba "all-space mode compresses interior runs" {
+        adfirma unexpand_linea("a        b", verum, tabulatio_periodica(8)) ≡ "a\t b"
+    }
+    proba "custom positive tab stop is honored" {
+        adfirma unexpand_linea("    x", falsum, tabulatio_periodica(4)) ≡ "\tx"
+        adfirma unexpand_linea("a    b", verum, tabulatio_periodica(4)) ≡ "a\t b"
+        adfirma unexpand_linea("a    b", verum, tabulatio_spec("4")) ≡ "a\t b"
+    }
+    proba "non-positive tab stop falls back to eight" {
+        adfirma tabulatio_activa(0) ≡ 8
+    }
+    proba "comma tab stops are finite absolute stops" {
+        adfirma unexpand_linea("a   b   c", verum, tabulatio_spec("4,8")) ≡ "a\tb\tc"
+        adfirma unexpand_linea("        X", falsum, tabulatio_spec("4,8")) ≡ "\t\tX"
+        adfirma unexpand_linea("a   b   c   d", verum, tabulatio_spec("4,8")) ≡ "a\tb\tc   d"
+    }
+    proba "local parser extracts GNU-style raw flags" {
+        fixum UnexpandOptiones opts ← unexpand_parse(["-a", "-t4"])
+        adfirma opts.convertit_plene ≡ verum
+        adfirma unexpand_linea("a    b", opts.convertit_plene, opts.tabs) ≡ "a\t b"
+    }
+}
+
+@ cli "unexpand"
+@ descriptio "GNU coreutils unexpand stdin parity exemplum"
+@ operandus ceteri textus operands descriptio "raw GNU-style flags for the stdin slice"
+incipit argumenta args {
+    fixum UnexpandOptiones opts ← unexpand_parse(args.operands)
+    unexpand_stdin(opts.convertit_plene, opts.tabs.finita, opts.tabs.amplitudo, opts.tabs.count, opts.tabs.stop1, opts.tabs.stop2, opts.tabs.stop3, opts.tabs.stop4, opts.tabs.stop5, opts.tabs.stop6, opts.tabs.stop7, opts.tabs.stop8)
+}

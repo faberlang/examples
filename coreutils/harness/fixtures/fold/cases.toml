@@ -1,0 +1,86 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "short-line-unchanged"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "abc\n"
+stdout = "abc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "default-width-no-wrap"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "abcdefghijklmnopqrstuvwxyz\n"
+stdout = "abcdefghijklmnopqrstuvwxyz\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "width-four-wrapping"
+lane = "stepper"
+tier = "A"
+args = ["-w", "4"]
+stdin = "abcdefghi\n"
+stdout = "abcd\nefgh\ni\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "multiple-lines"
+lane = "stepper"
+tier = "A"
+args = ["-w", "4"]
+stdin = "abcdef\nxy\n12345\n"
+stdout = "abcd\nef\nxy\n1234\n5\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "spaces-simple-wrapping"
+lane = "stepper"
+tier = "A"
+args = ["-w", "8", "-s"]
+stdin = "one two three four\n"
+stdout = "one two \nthree \nfour\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "spaces-long-word-fallback"
+lane = "stepper"
+tier = "A"
+args = ["-w", "8", "--spaces"]
+stdin = "abcdefghijklmno\n"
+stdout = "abcdefgh\nijklmno\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "spaces-double-space-trailing"
+lane = "stepper"
+tier = "A"
+args = ["-w", "6", "-s"]
+stdin = "aa  bb cc\n"
+stdout = "aa  \nbb cc\n"
+stderr = ""
+exit = 0
+stdout_newline = true

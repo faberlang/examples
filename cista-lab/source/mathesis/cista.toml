@@ -1,0 +1,48 @@
+[source]
+package = "mathesis"
+version = "0.1.0"
+faber_min = "0.36.0"
+kind = "source"
+interfaces = "interfaces"
+
+[target]
+language = "rust"
+mode = "compile"
+binding_policy = "manifest"
+source = "targets/rust"
+crate = "mathesis"
+
+[target.compile]
+emit = "library"
+crate_type = "rlib"
+edition = "2021"
+
+[[bindings]]
+source_module = "mathesis"
+source_symbol = "quadratum"
+target = "mathesis::mathesis::quadratum"
+
+[[bindings]]
+source_module = "mathesis"
+source_symbol = "cubum"
+target = "mathesis::mathesis::cubum"
+
+[[bindings]]
+source_module = "mathesis"
+source_symbol = "duplicatum"
+target = "mathesis::mathesis::duplicatum"
+
+[[bindings]]
+source_module = "mathesis"
+source_symbol = "dimidium"
+target = "mathesis::mathesis::dimidium"
+
+[[bindings]]
+source_module = "mathesis"
+source_symbol = "maximus"
+target = "mathesis::mathesis::maximus"
+
+[[bindings]]
+source_module = "mathesis"
+source_symbol = "minimus"
+target = "mathesis::mathesis::minimus"

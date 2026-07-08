@@ -1,0 +1,19 @@
+importa ex "../../../common/gnu/argv" privata gnu_argv
+
+probandum "true operands" tag "coreutils" {
+    proba "empty ignored operands format as empty text" {
+        fixum lista<textus> ignored ← vacua
+        adfirma gnu_argv.linea_operandorum(ignored) ≡ ""
+    }
+
+    proba "extra ignored operands are accepted as ordinary text" {
+        adfirma gnu_argv.linea_operandorum(["--", "x"]) ≡ "-- x"
+    }
+}
+
+@ cli "true"
+@ descriptio "GNU coreutils true parity exemplum"
+@ operandus ceteri textus ignored
+incipit argumenta args exitus 0 {
+    fixum textus _ ← gnu_argv.linea_operandorum(args.ignored)
+}

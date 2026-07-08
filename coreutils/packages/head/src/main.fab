@@ -1,0 +1,88 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Pure selection logic stays testable without stdin so inline proba can cover
+# the boundary cases directly.
+functio capita_linearum(lista<textus> lineae, numerus petitus) → lista<textus> {
+    varia lista<textus> caput ← vacua
+    varia numerus finis ← petitus
+    fixum numerus copia ← lineae.longitudo()
+    varia numerus i ← 0
+
+    si petitus < 0 {
+        finis ← copia + petitus
+        si finis < 0 ergo redde caput
+    }
+
+    dum i < lineae.longitudo() et i < finis {
+        caput.appende(lineae.accipe(i) vel "")
+        i ← i + 1
+    }
+
+    redde caput
+}
+
+# Nullable lege buffers stdin only for negative counts, where GNU semantics
+# require knowing the final line window before emitting.
+functio lege_omnes_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+
+    fac {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    } dum verum
+
+    redde lineae
+}
+
+# Non-negative counts can still stop reading as soon as the requested prefix is
+# complete.
+functio lege_caput_positivum(numerus petitus) → lista<textus> {
+    varia lista<textus> caput ← vacua
+    varia numerus i ← 0
+
+    dum i < petitus {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde caput
+        caput.appende(linea vel "")
+        i ← i + 1
+    }
+
+    redde caput
+}
+
+functio lege_caput(numerus petitus) → lista<textus> {
+    si petitus < 0 ergo redde capita_linearum(lege_omnes_lineas(), petitus)
+    redde lege_caput_positivum(petitus)
+}
+
+probandum "head line selection" tag "coreutils" {
+    proba "default-sized selection keeps all short input" {
+        adfirma capita_linearum(["a", "b", "c"], 10) ≡ ["a", "b", "c"]
+    }
+    proba "line limit truncates longer input" {
+        adfirma capita_linearum(["a", "b", "c"], 2) ≡ ["a", "b"]
+    }
+    proba "zero line limit emits no lines" {
+        fixum lista<textus> empty ← vacua
+        adfirma capita_linearum(["a", "b"], 0) ≡ empty
+    }
+    proba "negative line limit drops the final records" {
+        adfirma capita_linearum(["1", "2", "3", "4", "5"], -2) ≡ ["1", "2", "3"]
+    }
+    proba "negative line limit larger than input emits no lines" {
+        fixum lista<textus> empty ← vacua
+        adfirma capita_linearum(["a", "b"], -5) ≡ empty
+    }
+}
+
+@ cli "head"
+@ descriptio "GNU coreutils head parity exemplum"
+@ optio lineae typus numerus brevis "n" descriptio "print the first N lines"
+incipit argumenta args {
+    fixum numerus finis ← args.lineae vel 10
+    # The common GNU helper centralizes newline-terminated stdout for line slices.
+    itera ex lege_caput(finis) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

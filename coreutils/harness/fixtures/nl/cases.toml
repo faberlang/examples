@@ -1,0 +1,97 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "one-non-empty-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "hello\n"
+stdout = "     1\thello"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "multiple-non-empty-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "     1\talpha\n     2\tbeta\n     3\tgamma"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "blank-lines-preserved-default"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\n\nbeta\n"
+stdout = "     1\talpha\n       \n     2\tbeta"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "body-numbering-all-short-with-value"
+lane = "stepper"
+tier = "A"
+args = ["-b", "a"]
+stdin = "alpha\n\nbeta\n"
+stdout = "     1\talpha\n     2\t\n     3\tbeta"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "starting-line-number-short"
+lane = "stepper"
+tier = "A"
+args = ["-v", "5"]
+stdin = "alpha\nbeta\n"
+stdout = "     5\talpha\n     6\tbeta"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "line-increment-short"
+lane = "stepper"
+tier = "A"
+args = ["-i", "2"]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "     1\talpha\n     3\tbeta\n     5\tgamma"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "number-width-short"
+lane = "stepper"
+tier = "A"
+args = ["-w", "3"]
+stdin = "alpha\nbeta\n"
+stdout = "  1\talpha\n  2\tbeta"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "number-format-left-justified-short"
+lane = "stepper"
+tier = "A"
+args = ["-n", "ln"]
+stdin = "alpha\nbeta\n"
+stdout = "1     \talpha\n2     \tbeta"
+stderr = ""
+exit = 0
+stdout_newline = true

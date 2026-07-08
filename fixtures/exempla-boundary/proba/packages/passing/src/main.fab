@@ -1,0 +1,13 @@
+proba "arithmetic passes" {
+    adfirma 1 + 1 ≡ 2
+    nota "nocapture-demo: this line appears only with --nocapture"
+}
+
+proba "text passes" {
+    fixum _ greeting ← "salve"
+    adfirma greeting ≡ "salve"
+}
+
+incipit {
+    nota "test fixture"
+}

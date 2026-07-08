@@ -1,0 +1,87 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = "      0       0       0"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "one-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "hello\n"
+stdout = "      1       1       6"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "multiple-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\nb\nc\n"
+stdout = "      3       3       6"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "space-separated-words"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a  bb\nccc\n"
+stdout = "      2       3      10"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "line-count"
+lane = "stepper"
+tier = "A"
+args = ["-l"]
+stdin = "a\nb\n"
+stdout = "2"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "word-count"
+lane = "stepper"
+tier = "A"
+args = ["-w"]
+stdin = "a  bb\nccc\n"
+stdout = "3"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "byte-count"
+lane = "stepper"
+tier = "A"
+args = ["-c"]
+stdin = "a\nb\n"
+stdout = "4"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "line-and-byte-count"
+lane = "stepper"
+tier = "A"
+args = ["-l", "-c"]
+stdin = "a\nb\n"
+stdout = "      2       4"
+stderr = ""
+exit = 0
+stdout_newline = true

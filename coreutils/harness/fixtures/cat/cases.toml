@@ -1,0 +1,54 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "single-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "hello\n"
+stdout = "hello"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "blank-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "\n"
+stdout = ""
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "multiple-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\nb\nc\n"
+stdout = "a\nb\nc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "file-operand"
+lane = "stepper"
+tier = "A"
+args = ["input.txt"]
+stdin = ""
+setup = "printf 'a\\nb\\n' > input.txt"
+stdout = "a\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true

@@ -1,0 +1,27 @@
+# Greet Commands Module
+#
+# Mounted at "greet" by main.fab.
+# Commands: greet hello, greet goodbye
+
+@ imperium "hello"
+@ alias "hi"
+@ descriptio "Say hello"
+@ operandus textus name descriptio "Name to greet"
+functio hello() argumenta args → vacuum {
+    nota args.verbose
+    nota "Hello, §!"(args.name)
+}
+
+@ imperium "goodbye"
+@ alias "bye"
+@ descriptio "Say goodbye"
+@ optio formal longum "formal" typus bivalens descriptio "Use a formal farewell"
+@ operandus textus name descriptio "Name to greet"
+functio goodbye() argumenta args → vacuum {
+    si args.formal {
+        nota "Farewell, §."(args.name)
+    }
+    secus {
+        nota "Bye, §!"(args.name)
+    }
+}

@@ -1,0 +1,109 @@
+[[case]]
+id = "plain-filename"
+lane = "stepper"
+tier = "A"
+args = ["file"]
+stdin = ""
+stdout = "."
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "relative-child"
+lane = "stepper"
+tier = "A"
+args = ["usr/bin"]
+stdin = ""
+stdout = "usr"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "nested-relative-child"
+lane = "stepper"
+tier = "A"
+args = ["usr/local/bin"]
+stdin = ""
+stdout = "usr/local"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "absolute-child-under-root"
+lane = "stepper"
+tier = "A"
+args = ["/bin"]
+stdin = ""
+stdout = "/"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "absolute-nested-child"
+lane = "stepper"
+tier = "A"
+args = ["/usr/bin"]
+stdin = ""
+stdout = "/usr"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "multiple-operands"
+lane = "stepper"
+tier = "A"
+args = ["usr/bin", "/bin"]
+stdin = ""
+stdout = "usr\n/"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "trailing-slash"
+lane = "stepper"
+tier = "A"
+args = ["foo/bar/"]
+stdin = ""
+stdout = "foo"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "repeated-trailing-slash"
+lane = "stepper"
+tier = "A"
+args = ["foo/bar//"]
+stdin = ""
+stdout = "foo"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "root-path"
+lane = "stepper"
+tier = "A"
+args = ["/"]
+stdin = ""
+stdout = "/"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "repeated-separator-before-basename"
+lane = "stepper"
+tier = "A"
+args = ["foo//bar"]
+stdin = ""
+stdout = "foo"
+stderr = ""
+exit = 0
+stdout_newline = true

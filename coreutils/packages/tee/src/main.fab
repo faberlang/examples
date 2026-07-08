@@ -1,0 +1,60 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps tee in the stdin-only stepper lane.
+# This slice implements GNU `tee` passthrough for declared fixtures with no file
+# operands: each nullable `lege` stdin line is emitted once to stdout through the
+# harness newline writer.
+# `-a` is accepted only as a no-op for the no-file subset because there are no
+# output files to append to in this slice.
+# File operands, append behavior with files, ignore-interrupts, diagnostics,
+# help/version, byte-exact missing-final-newline behavior, and multibyte
+# semantics are unsupported GNU surfaces.
+
+functio no_file_subsetne(lista<textus> operands) → bivalens {
+    redde operands.longitudo() ≡ 0
+}
+
+functio append_noopne(bivalens append, lista<textus> operands) → bivalens {
+    redde append et no_file_subsetne(operands)
+}
+
+functio tee_lineam(textus linea, bivalens append, lista<textus> operands) → textus {
+    # `append` intentionally does not affect stdout passthrough without files.
+    si append_noopne(append, operands) ergo redde linea
+    redde linea
+}
+
+functio tee_stdin(bivalens append, lista<textus> operands) → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        gnu_stdio.scribe_linea(tee_lineam(linea vel "", append, operands))
+    }
+}
+
+probandum "tee stdin helper subset" tag "coreutils" {
+    proba "empty operands are the no-file subset" {
+        adfirma no_file_subsetne([]) ≡ verum
+        adfirma no_file_subsetne(["out.txt"]) ≡ falsum
+    }
+    proba "append is a no-op only without files" {
+        adfirma append_noopne(verum, []) ≡ verum
+        adfirma append_noopne(falsum, []) ≡ falsum
+        adfirma append_noopne(verum, ["out.txt"]) ≡ falsum
+    }
+    proba "stdout passthrough keeps line text" {
+        adfirma tee_lineam("alpha", falsum, []) ≡ "alpha"
+        adfirma tee_lineam("", verum, []) ≡ ""
+    }
+}
+
+@ cli "tee"
+@ descriptio "GNU coreutils tee stdin parity exemplum"
+@ optio append typus bivalens brevis "a" descriptio "append to files; no-op in the no-file stdin slice"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    tee_stdin(args.append, args.operands)
+}

@@ -1,0 +1,119 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "already-sorted"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\nbravo\ncharlie\n"
+stdout = "alpha\nbravo\ncharlie\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "unsorted-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "delta\nalpha\ncharlie\nbravo\n"
+stdout = "alpha\nbravo\ncharlie\ndelta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "duplicates"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "b\na\nb\na\n"
+stdout = "a\na\nb\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "blank-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "b\n\na\n\n"
+stdout = "\n\na\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "reverse-sort"
+lane = "stepper"
+tier = "A"
+args = ["-r"]
+stdin = "alpha\ncharlie\nbravo\n"
+stdout = "charlie\nbravo\nalpha\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "unique-sort"
+lane = "stepper"
+tier = "A"
+args = ["-u"]
+stdin = "b\na\nb\na\nc\n"
+stdout = "a\nb\nc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "reverse-unique-sort"
+lane = "stepper"
+tier = "A"
+args = ["-r", "-u"]
+stdin = "b\na\nc\nb\na\n"
+stdout = "c\nb\na\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "fold-case-sort"
+lane = "stepper"
+tier = "A"
+args = ["-f"]
+stdin = "b\nA\na\nB\n"
+stdout = "A\na\nB\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "fold-case-unique-sort"
+lane = "stepper"
+tier = "A"
+args = ["-f", "-u"]
+stdin = "b\nA\na\nB\n"
+stdout = "A\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "fold-case-reverse-sort"
+lane = "stepper"
+tier = "A"
+args = ["-f", "-r"]
+stdin = "b\nA\na\nB\n"
+stdout = "b\nB\na\nA\n"
+stderr = ""
+exit = 0
+stdout_newline = true

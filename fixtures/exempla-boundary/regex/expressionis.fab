@@ -1,0 +1,23 @@
+# Regex patterns via textus ↦ regex conversio
+# Inline flags such as (?i) live inside the pattern string.
+
+incipit {
+    # Simple patterns
+    fixum _ digits ← "\d+" ↦ regex
+    fixum _ word ← "\w+" ↦ regex
+
+    # With inline flags
+    fixum _ insensitive ← "(?i)hello" ↦ regex
+    fixum _ multiline ← "(?im)^start" ↦ regex
+
+    # Complex patterns
+    fixum _ email ← "[^@]+@[^@]+" ↦ regex
+    fixum _ paths ← "/usr/local/.*" ↦ regex
+
+    nota digits
+    nota word
+    nota insensitive
+    nota multiline
+    nota email
+    nota paths
+}

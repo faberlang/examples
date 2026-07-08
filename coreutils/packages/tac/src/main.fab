@@ -1,0 +1,64 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# This Stage 4 coreutils slice is stdin-only and line-oriented.
+# File operands, separators, regex separators, before-mode, and diagnostics are
+# deferred until later slices can model GNU tac without pretending support.
+functio verte_lineas(lista<textus> lineae) → lista<textus> {
+    varia lista<textus> reversae ← vacua
+    varia numerus i ← lineae.longitudo()
+
+    dum i > 0 {
+        i ← i - 1
+        reversae.appende(lineae.accipe(i) vel "")
+    }
+
+    redde reversae
+}
+
+# Nullable lege drives the stdin loop until EOF. Each returned record is a
+# line payload; gnu_stdio.scribe_linea restores newline-terminated output.
+functio lege_omnes_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+
+    fac {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    } dum verum
+
+    redde lineae
+}
+
+# File operands are intentionally outside this stepper slice.
+functio modus_stdin(lista<textus> operands) → bivalens {
+    redde operands.longitudo() ≡ 0
+}
+
+probandum "tac line reversal" tag "coreutils" {
+    proba "empty input stays empty" {
+        fixum lista<textus> empty ← vacua
+        adfirma verte_lineas(empty) ≡ empty
+    }
+    proba "one line stays in place" {
+        adfirma verte_lineas(["solo"]) ≡ ["solo"]
+    }
+    proba "multiple lines reverse order" {
+        adfirma verte_lineas(["a", "b", "c"]) ≡ ["c", "b", "a"]
+    }
+    proba "blank and repeated lines are preserved" {
+        adfirma verte_lineas(["same", "", "same"]) ≡ ["same", "", "same"]
+    }
+}
+
+@ cli "tac"
+@ descriptio "GNU coreutils tac stdin parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    # This slice ignores file operands and flags until those routes have parity
+    # fixtures and source adapters.
+    si modus_stdin(args.operands) {
+        itera ex verte_lineas(lege_omnes_lineas()) fixum linea {
+            gnu_stdio.scribe_linea(linea)
+        }
+    }
+}

@@ -1,0 +1,40 @@
+# mathesis.fab - Small cista package math interface
+#
+# This fixture keeps the Faber interface target-neutral. Rust implementation
+# details live in cista.toml bindings and targets/rust source.
+
+# Square an integer.
+functio quadratum(numerus x) → numerus {
+    redde x * x
+}
+
+# Cube an integer.
+functio cubum(numerus x) → numerus {
+    redde x * x * x
+}
+
+# Double a floating-point value.
+functio duplicatum(fractus x) → fractus {
+    redde x * 2.0
+}
+
+# Halve a floating-point value.
+functio dimidium(fractus x) → fractus {
+    redde x / 2.0
+}
+
+# Return the greater floating-point value.
+functio maximus(fractus a, fractus b) → fractus {
+    si a > b {
+        redde a
+    }
+    redde b
+}
+
+# Return the smaller floating-point value.
+functio minimus(fractus a, fractus b) → fractus {
+    si a < b {
+        redde a
+    }
+    redde b
+}

@@ -1,0 +1,15 @@
+importa ex "norma:solum" privata solum
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio realpath_simplex(lista<textus> paths) → vacuum {
+    itera ex paths fixum path {
+        gnu_stdio.scribe_linea(solum.absolve(path))
+    }
+}
+
+@ cli "realpath"
+@ descriptio "GNU coreutils realpath simple path parity exemplum"
+@ operandus ceteri textus paths
+incipit argumenta args {
+    realpath_simplex(args.paths)
+}

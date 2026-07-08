@@ -1,0 +1,205 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps grep in the stdin-only stepper lane.
+# This slice implements literal substring matching over newline-terminated ASCII
+# lines only. Regex parsing, file operands, binary input policy, context output,
+# color, recursive search, diagnostics, help/version, and locale-sensitive case
+# folding are deferred until later slices can model those GNU surfaces honestly.
+# `-i`, `-v`, `-c`, `-n`, positional PATTERN, and repeated `-e PATTERN` are
+# supported for declared fixtures. `-e` patterns win when supplied; extra
+# operands are not opened as files in this stdin-only slice. No-match exit
+# status 1 is deferred because this stepper entry currently emits output but
+# does not model dynamic process exit.
+
+genus GrepOptiones {
+    lista<textus> patterns
+    lista<textus> operands
+    bivalens ignoreCase
+    bivalens invert
+    bivalens countOnly
+    bivalens lineNumbers
+}
+
+functio exemplaria_activa(lista<textus> e_patterns, lista<textus> operands) → lista<textus> {
+    varia lista<textus> patterns ← vacua
+
+    si e_patterns.longitudo() > 0 ergo redde e_patterns
+    si operands.longitudo() > 0 {
+        patterns.appende(operands.accipe(0) vel "")
+    }
+
+    redde patterns
+}
+
+# The generated option parser stores only one value per `-e`. Keep this package
+# on raw operands so repeated `-e PATTERN` can be parsed as GNU-style OR input.
+functio grep_parse(lista<textus> args) → GrepOptiones {
+    varia lista<textus> e_patterns ← vacua
+    varia lista<textus> operands ← vacua
+    varia numerus ignoreSeen ← 0
+    varia numerus invertSeen ← 0
+    varia numerus countSeen ← 0
+    varia numerus lineSeen ← 0
+    varia numerus i ← 0
+
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
+        varia numerus handled ← 0
+
+        si arg ≡ "-e" {
+            si args.accipe(i + 1) non est nihil {
+                e_patterns.appende(args.accipe(i + 1) vel "")
+            }
+            i ← i + 2
+            handled ← 2
+        }
+
+        si handled ≡ 0 et arg ≡ "-i" {
+            ignoreSeen ← 1
+            handled ← 1
+        }
+
+        si handled ≡ 0 et arg ≡ "-v" {
+            invertSeen ← 1
+            handled ← 1
+        }
+
+        si handled ≡ 0 et arg ≡ "-c" {
+            countSeen ← 1
+            handled ← 1
+        }
+
+        si handled ≡ 0 et arg ≡ "-n" {
+            lineSeen ← 1
+            handled ← 1
+        }
+
+        si handled ≡ 1 {
+            i ← i + 1
+        }
+        sin handled ≡ 2 {
+            tacet
+        }
+        secus {
+            operands.appende(arg)
+            i ← i + 1
+        }
+    }
+
+    redde GrepOptiones { patterns = exemplaria_activa(e_patterns, operands), operands = operands, ignoreCase = ignoreSeen > 0, invert = invertSeen > 0, countOnly = countSeen > 0, lineNumbers = lineSeen > 0 }
+}
+
+functio parat_match(textus s, bivalens ignore_case) → textus {
+    si ignore_case ergo redde s.minuscula()
+    redde s
+}
+
+functio exemplar_congruitne(textus linea, textus exemplar, bivalens ignore_case) → bivalens {
+    fixum textus linea_parata ← parat_match(linea, ignore_case)
+    fixum textus exemplar_paratum ← parat_match(exemplar, ignore_case)
+    redde linea_parata.continet(exemplar_paratum)
+}
+
+functio linea_congruitne(textus linea, lista<textus> patterns, bivalens ignore_case) → bivalens {
+    itera ex patterns fixum exemplar {
+        si exemplar_congruitne(linea, exemplar, ignore_case) ergo redde verum
+    }
+
+    redde falsum
+}
+
+functio includitne(textus linea, lista<textus> patterns, bivalens ignore_case, bivalens invert) → bivalens {
+    fixum bivalens congruit ← linea_congruitne(linea, patterns, ignore_case)
+    si invert ergo redde congruit ≡ falsum
+    redde congruit
+}
+
+functio forma_lineae(numerus index, textus linea, bivalens line_numbers) → textus {
+    si line_numbers ergo redde "§:§"(index, linea)
+    redde linea
+}
+
+functio lineae_grep(lista<textus> lineae, lista<textus> patterns, bivalens ignore_case, bivalens invert, bivalens count_only, bivalens line_numbers) → lista<textus> {
+    varia lista<textus> out ← vacua
+    varia numerus index ← 1
+    varia numerus matches ← 0
+
+    itera ex lineae fixum linea {
+        si includitne(linea, patterns, ignore_case, invert) {
+            matches ← matches + 1
+            si count_only ≡ falsum {
+                out.appende(forma_lineae(index, linea, line_numbers))
+            }
+        }
+
+        index ← index + 1
+    }
+
+    si count_only {
+        out.appende("§"(matches))
+    }
+
+    redde out
+}
+
+functio grep_stdin(lista<textus> patterns, bivalens ignore_case, bivalens invert, bivalens count_only, bivalens line_numbers) → vacuum {
+    varia lista<textus> lineae ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            itera ex lineae_grep(lineae, patterns, ignore_case, invert, count_only, line_numbers) fixum out {
+                gnu_stdio.scribe_linea(out)
+            }
+            redde
+        }
+
+        lineae.appende(linea vel "")
+    }
+}
+
+probandum "grep literal stdin helpers" tag "coreutils" {
+    proba "literal substring keeps matching lines" {
+        adfirma lineae_grep(["alpha", "bravo", "charlie"], ["ha"], falsum, falsum, falsum, falsum) ≡ ["alpha", "charlie"]
+    }
+    proba "ignore case lowercases both sides" {
+        adfirma linea_congruitne("Alpha", ["AL"], verum) ≡ verum
+        adfirma linea_congruitne("Alpha", ["AL"], falsum) ≡ falsum
+    }
+    proba "invert keeps nonmatching lines" {
+        adfirma lineae_grep(["alpha", "why", "bravo"], ["a"], falsum, verum, falsum, falsum) ≡ ["why"]
+    }
+    proba "count mode emits only the selected line count" {
+        adfirma lineae_grep(["alpha", "why", "bravo"], ["a"], falsum, falsum, verum, falsum) ≡ ["2"]
+    }
+    proba "line number mode prefixes one-based input positions" {
+        adfirma lineae_grep(["why", "alpha", "bravo"], ["a"], falsum, falsum, falsum, verum) ≡ ["2:alpha", "3:bravo"]
+    }
+    proba "multiple option patterns match as OR" {
+        adfirma lineae_grep(["alpha", "beta", "gamma"], ["alpha", "gamma"], falsum, falsum, falsum, falsum) ≡ ["alpha", "gamma"]
+    }
+    proba "multiple option patterns compose with invert" {
+        adfirma lineae_grep(["alpha", "beta", "gamma"], ["alpha", "gamma"], falsum, verum, falsum, falsum) ≡ ["beta"]
+    }
+    proba "positional pattern is active when no option patterns exist" {
+        adfirma exemplaria_activa(vacua, ["needle"]) ≡ ["needle"]
+    }
+    proba "option patterns win over positional pattern" {
+        adfirma exemplaria_activa(["alpha", "gamma"], ["beta"]) ≡ ["alpha", "gamma"]
+    }
+    proba "local option parser extracts repeated e patterns and flags" {
+        fixum GrepOptiones opts ← grep_parse(["-i", "-n", "-e", "alpha", "-e", "gamma", "beta"])
+        adfirma opts.patterns ≡ ["alpha", "gamma"]
+        adfirma opts.operands ≡ ["beta"]
+        adfirma opts.ignoreCase ≡ verum
+        adfirma opts.lineNumbers ≡ verum
+    }
+}
+
+@ cli "grep"
+@ descriptio "GNU coreutils grep stdin literal parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum GrepOptiones opts ← grep_parse(args.operands)
+    grep_stdin(opts.patterns, opts.ignoreCase, opts.invert, opts.countOnly, opts.lineNumbers)
+}

@@ -1,0 +1,4 @@
+bắtđầu {
+  hằng số lỗi_kiểu ← "lỗi"
+  in lỗi_kiểu
+}

@@ -1,0 +1,119 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "no-spaces"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "abc\n"
+stdout = "abc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "leading-eight-spaces-default"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "        x\n"
+stdout = "\tx\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "leading-shorter-spaces-default"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "    x\n"
+stdout = "    x\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "interior-spaces-default"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a        b\n"
+stdout = "a        b\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "all-blanks-interior"
+lane = "stepper"
+tier = "A"
+args = ["-a"]
+stdin = "a        b\n"
+stdout = "a\t b\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "tab-stop-four-leading"
+lane = "stepper"
+tier = "A"
+args = ["-t", "4"]
+stdin = "    x\n"
+stdout = "\tx\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "all-blanks-tab-stop-four"
+lane = "stepper"
+tier = "A"
+args = ["-a", "-t", "4"]
+stdin = "a    b\n"
+stdout = "a\t b\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "all-blanks-list-stops"
+lane = "stepper"
+tier = "A"
+args = ["-a", "-t", "4,8"]
+stdin = "a   b   c\n"
+stdout = "a\tb\tc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "leading-list-stops-default"
+lane = "stepper"
+tier = "A"
+args = ["-t", "4,8"]
+stdin = "        X\n"
+stdout = "\t\tX\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "list-stops-preserve-after-final"
+lane = "stepper"
+tier = "A"
+args = ["-a", "-t", "4,8"]
+stdin = "a   b   c   d\n"
+stdout = "a\tb\tc   d\n"
+stderr = ""
+exit = 0
+stdout_newline = true

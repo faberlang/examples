@@ -1,0 +1,23 @@
+[[case]]
+id = "default-field-one"
+lane = "stepper"
+tier = "A"
+args = ["left", "right"]
+stdin = ""
+setup = "printf '1 a\\n2 b\\n' > left && printf '2 b\\n3 c\\n' > right"
+stdout = "2 b b"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "stdin-second-file"
+lane = "stepper"
+tier = "A"
+args = ["left", "-"]
+stdin = "2 b\n3 c\n"
+setup = "printf '1 a\\n2 b\\n' > left"
+stdout = "2 b b"
+stderr = ""
+exit = 0
+stdout_newline = true

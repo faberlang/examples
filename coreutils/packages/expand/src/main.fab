@@ -1,0 +1,295 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps expand in the stdin-only stepper lane.
+# This slice implements GNU expand's default tab stop, `-t N` for a single
+# repeating positive integer tab stop, comma/list absolute tab stops such as
+# `-t 4,8`, and initial-only `-i` tab expansion.
+# File operands, backspace/display-column semantics, invalid-option
+# diagnostics, help, and version output are deferred.
+
+genus Tabulae {
+    bivalens finita
+    numerus amplitudo
+    numerus count
+    numerus stop1
+    numerus stop2
+    numerus stop3
+    numerus stop4
+    numerus stop5
+    numerus stop6
+    numerus stop7
+    numerus stop8
+}
+
+genus ExpandOptiones {
+    Tabulae tabulae
+    bivalens solum_initio
+}
+
+functio tabulae_default() → Tabulae {
+    redde Tabulae { finita = falsum, amplitudo = 8, count = 1, stop1 = 8, stop2 = 0, stop3 = 0, stop4 = 0, stop5 = 0, stop6 = 0, stop7 = 0, stop8 = 0 }
+}
+
+functio tabstop_activa(textus petitus) → numerus {
+    fixum numerus n ← petitus ↦ numerus ⇥ 0
+    si n > 0 ergo redde n
+    redde 8
+}
+
+functio discinde(textus s, textus separator) → lista<textus> {
+    varia lista<textus> partes ← vacua
+    fixum numerus sep_len ← separator.longitudo()
+    varia numerus initium ← 0
+    varia numerus i ← 0
+
+    si sep_len ≠ 1 {
+        partes.appende(s)
+        redde partes
+    }
+
+    dum i < s.longitudo() {
+        si s.sectio(i, i + sep_len) ≡ separator {
+            partes.appende(s.sectio(initium, i))
+            i ← i + sep_len
+            initium ← i
+        }
+        secus {
+            i ← i + 1
+        }
+    }
+
+    partes.appende(s.sectio(initium, s.longitudo()))
+    redde partes
+}
+
+# GNU treats a comma tab spec as a finite list of absolute column stops. A
+# single numeric `-t N` remains the repeating every-N-columns mode.
+functio tabulae_ex_spec(textus spec) → Tabulae {
+    fixum lista<textus> partes ← discinde(spec, ",")
+    fixum bivalens finita ← partes.longitudo() > 1
+    varia numerus count ← 0
+    varia numerus stop1 ← 0
+    varia numerus stop2 ← 0
+    varia numerus stop3 ← 0
+    varia numerus stop4 ← 0
+    varia numerus stop5 ← 0
+    varia numerus stop6 ← 0
+    varia numerus stop7 ← 0
+    varia numerus stop8 ← 0
+
+    itera ex partes fixum pars {
+        fixum numerus stop ← pars ↦ numerus ⇥ 0
+        si stop > 0 {
+            count ← count + 1
+            si count ≡ 1 {
+                stop1 ← stop
+            }
+            sin count ≡ 2 {
+                stop2 ← stop
+            }
+            sin count ≡ 3 {
+                stop3 ← stop
+            }
+            sin count ≡ 4 {
+                stop4 ← stop
+            }
+            sin count ≡ 5 {
+                stop5 ← stop
+            }
+            sin count ≡ 6 {
+                stop6 ← stop
+            }
+            sin count ≡ 7 {
+                stop7 ← stop
+            }
+            sin count ≡ 8 {
+                stop8 ← stop
+            }
+        }
+    }
+
+    si count ≡ 0 ergo redde tabulae_default()
+
+    si finita {
+        redde Tabulae { finita = verum, amplitudo = 8, count = count, stop1 = stop1, stop2 = stop2, stop3 = stop3, stop4 = stop4, stop5 = stop5, stop6 = stop6, stop7 = stop7, stop8 = stop8 }
+    }
+
+    fixum numerus activus ← tabstop_activa(spec)
+    redde Tabulae { finita = falsum, amplitudo = activus, count = 1, stop1 = activus, stop2 = 0, stop3 = 0, stop4 = 0, stop5 = 0, stop6 = 0, stop7 = 0, stop8 = 0 }
+}
+
+functio spatia(numerus copia) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < copia {
+        out ← out + " "
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio spatia_ad_tabstop(numerus columna, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → numerus {
+    si finita {
+        si count ≥ 1 et stop1 > columna ergo redde stop1 - columna
+        si count ≥ 2 et stop2 > columna ergo redde stop2 - columna
+        si count ≥ 3 et stop3 > columna ergo redde stop3 - columna
+        si count ≥ 4 et stop4 > columna ergo redde stop4 - columna
+        si count ≥ 5 et stop5 > columna ergo redde stop5 - columna
+        si count ≥ 6 et stop6 > columna ergo redde stop6 - columna
+        si count ≥ 7 et stop7 > columna ergo redde stop7 - columna
+        si count ≥ 8 et stop8 > columna ergo redde stop8 - columna
+
+        redde 1
+    }
+
+    fixum numerus activus ← amplitudo
+    redde activus - (columna % activus)
+}
+
+# ASCII scalar accounting only: every non-tab scalar advances by one position.
+# This intentionally does not claim GNU display-column behavior for multibyte
+# text, combining marks, backspace, carriage return, or terminal widths.
+functio expande_lineam_cum(textus linea, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8, bivalens solum_initio) → textus {
+    varia textus out ← ""
+    varia numerus columna ← 0
+    varia numerus i ← 0
+    varia bivalens in_principio ← verum
+
+    dum i < linea.longitudo() {
+        fixum textus c ← linea.sectio(i, i + 1)
+        si c ≡ "\t" et (non solum_initio aut in_principio) {
+            fixum numerus copia ← spatia_ad_tabstop(columna, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8)
+            out ← out + spatia(copia)
+            columna ← columna + copia
+        }
+        secus {
+            out ← out + c
+            columna ← columna + 1
+            si c ≠ " " et c ≠ "\t" {
+                in_principio ← falsum
+            }
+        }
+
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio expande_lineam(textus linea, Tabulae tabulae, bivalens solum_initio) → textus {
+    redde expande_lineam_cum(linea, tabulae.finita, tabulae.amplitudo, tabulae.count, tabulae.stop1, tabulae.stop2, tabulae.stop3, tabulae.stop4, tabulae.stop5, tabulae.stop6, tabulae.stop7, tabulae.stop8, solum_initio)
+}
+
+# Nullable lege is the only input source in this slice. Each stdin line is
+# expanded independently; gnu_stdio.scribe_linea restores the line delimiter.
+functio expand_stdin(bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8, bivalens solum_initio) → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        gnu_stdio.scribe_linea(expande_lineam_cum(linea vel "", finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8, solum_initio))
+    }
+}
+
+functio flag_initiale_breve() → textus {
+    redde "-" + "i"
+}
+
+functio flag_initiale_longum() → textus {
+    redde "--" + "initial"
+}
+
+functio expand_parse(lista<textus> args) → ExpandOptiones {
+    varia Tabulae tabulae ← tabulae_default()
+    varia numerus initial_seen ← 0
+    varia numerus i ← 0
+
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
+        si arg ≡ flag_initiale_breve() {
+            initial_seen ← 1
+            i ← i + 1
+        }
+        sin arg ≡ flag_initiale_longum() {
+            initial_seen ← 1
+            i ← i + 1
+        }
+        sin arg ≡ "-t" {
+            tabulae ← tabulae_ex_spec(args.accipe(i + 1) vel "8")
+            i ← i + 2
+        }
+        sin arg ≡ "--tabs" {
+            tabulae ← tabulae_ex_spec(args.accipe(i + 1) vel "8")
+            i ← i + 2
+        }
+        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-t" {
+            tabulae ← tabulae_ex_spec(arg.sectio(2, arg.longitudo()))
+            i ← i + 1
+        }
+        sin arg.longitudo() > 7 et arg.sectio(0, 7) ≡ "--tabs=" {
+            tabulae ← tabulae_ex_spec(arg.sectio(7, arg.longitudo()))
+            i ← i + 1
+        }
+        secus {
+            i ← i + 1
+        }
+    }
+
+    redde ExpandOptiones { tabulae = tabulae, solum_initio = initial_seen > 0 }
+}
+
+probandum "expand tab expansion helper" tag "coreutils" {
+    proba "line without tabs is unchanged" {
+        adfirma expande_lineam("abc", tabulae_default(), falsum) ≡ "abc"
+    }
+    proba "leading tab reaches default stop" {
+        adfirma expande_lineam("\tabc", tabulae_default(), falsum) ≡ "        abc"
+    }
+    proba "interior tab reaches next default stop" {
+        adfirma expande_lineam("abc\tz", tabulae_default(), falsum) ≡ "abc     z"
+    }
+    proba "custom positive tab stop is honored" {
+        adfirma expande_lineam("ab\tz", tabulae_ex_spec("4"), falsum) ≡ "ab  z"
+    }
+    proba "initial-only expands leading blank prefix tabs" {
+        adfirma expande_lineam("\ta\tb", tabulae_default(), verum) ≡ "        a\tb"
+        adfirma expande_lineam(" \tc", tabulae_ex_spec("4"), verum) ≡ "    c"
+    }
+    proba "initial-only preserves tabs after first nonblank" {
+        adfirma expande_lineam("a\tb", tabulae_default(), verum) ≡ "a\tb"
+    }
+    proba "non-positive tab stop falls back to default slice stop" {
+        adfirma tabstop_activa("0") ≡ 8
+    }
+    proba "comma list advances to absolute stops then single spaces" {
+        adfirma expande_lineam("a\tb\tc", tabulae_ex_spec("4,8"), falsum) ≡ "a   b   c"
+        adfirma expande_lineam("a\tb\tc\td", tabulae_ex_spec("4,8"), falsum) ≡ "a   b   c d"
+    }
+    proba "raw parser preserves list tab stops and initial-only" {
+        fixum ExpandOptiones opts ← expand_parse(["-i", "-t", "4,8"])
+        adfirma opts.solum_initio
+        adfirma opts.tabulae.finita
+        adfirma opts.tabulae.count ≡ 2
+        adfirma opts.tabulae.stop1 ≡ 4
+        adfirma opts.tabulae.stop2 ≡ 8
+    }
+    proba "raw parser preserves compact single tab stop" {
+        fixum ExpandOptiones opts ← expand_parse(["-t4"])
+        adfirma opts.tabulae.finita ≡ falsum
+        adfirma opts.tabulae.amplitudo ≡ 4
+    }
+}
+
+@ cli "expand"
+@ descriptio "GNU coreutils expand stdin parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    # Raw operands preserve comma/list tab stops such as `-t 4,8`, which the
+    # generated numeric option parser would normalize before local GNU handling.
+    fixum ExpandOptiones opts ← expand_parse(args.operands)
+    expand_stdin(opts.tabulae.finita, opts.tabulae.amplitudo, opts.tabulae.count, opts.tabulae.stop1, opts.tabulae.stop2, opts.tabulae.stop3, opts.tabulae.stop4, opts.tabulae.stop5, opts.tabulae.stop6, opts.tabulae.stop7, opts.tabulae.stop8, opts.solum_initio)
+}

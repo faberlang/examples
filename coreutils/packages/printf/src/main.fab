@@ -1,0 +1,173 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio printf_escape(textus s) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < s.longitudo() {
+        fixum textus ch ← s.sectio(i, i + 1)
+        si ch ≡ "\\" et i + 1 < s.longitudo() {
+            fixum textus next ← s.sectio(i + 1, i + 2)
+            si next ≡ "n" {
+                out ← out + "\n"
+            } secus {
+                si next ≡ "t" {
+                    out ← out + "\t"
+                } secus {
+                    si next ≡ "r" {
+                        out ← out + "\r"
+                    } secus {
+                        si next ≡ "\\" {
+                            out ← out + "\\"
+                        } secus {
+                            out ← out + next
+                        }
+                    }
+                }
+            }
+            i ← i + 2
+        } secus {
+            out ← out + ch
+            i ← i + 1
+        }
+    }
+
+    redde out
+}
+
+functio numerus_specierum(textus formatum) → numerus {
+    varia numerus n ← 0
+    varia numerus i ← 0
+
+    dum i < formatum.longitudo() {
+        fixum textus ch ← formatum.sectio(i, i + 1)
+        si ch ≡ "%" et i + 1 < formatum.longitudo() {
+            fixum textus next ← formatum.sectio(i + 1, i + 2)
+            si next ≡ "%" {
+                i ← i + 2
+            } secus {
+                si next ≡ "s" vel next ≡ "b" {
+                    n ← n + 1
+                    i ← i + 2
+                } secus {
+                    i ← i + 2
+                }
+            }
+        } secus {
+            i ← i + 1
+        }
+    }
+
+    redde n
+}
+
+functio argumentum(lista<textus> args, numerus index) → textus {
+    redde args.accipe(index) vel ""
+}
+
+functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    varia numerus arg_index ← initium
+
+    dum i < formatum.longitudo() {
+        fixum textus ch ← formatum.sectio(i, i + 1)
+        si ch ≡ "%" et i + 1 < formatum.longitudo() {
+            fixum textus next ← formatum.sectio(i + 1, i + 2)
+            si next ≡ "%" {
+                out ← out + "%"
+            } secus {
+                si next ≡ "s" {
+                    out ← out + argumentum(args, arg_index)
+                    arg_index ← arg_index + 1
+                } secus {
+                    si next ≡ "b" {
+                        out ← out + printf_escape(argumentum(args, arg_index))
+                        arg_index ← arg_index + 1
+                    } secus {
+                        out ← out + "%" + next
+                    }
+                }
+            }
+            i ← i + 2
+        } secus {
+            si ch ≡ "\\" {
+                out ← out + printf_escape(formatum.sectio(i, i + 2))
+                i ← i + 2
+            } secus {
+                out ← out + ch
+                i ← i + 1
+            }
+        }
+    }
+
+    redde out
+}
+
+functio printf_textus(lista<textus> operands) → textus {
+    si operands.longitudo() ≡ 0 ergo redde ""
+
+    fixum textus formatum ← operands[0]
+    varia lista<textus> args ← vacua
+    varia numerus i ← 1
+    dum i < operands.longitudo() {
+        args.appende(operands.accipe(i) vel "")
+        i ← i + 1
+    }
+
+    fixum numerus species ← numerus_specierum(formatum)
+    si species ≡ 0 ergo redde printf_unum(formatum, args, 0)
+    si args.longitudo() ≡ 0 ergo redde printf_unum(formatum, args, 0)
+
+    varia textus out ← ""
+    varia numerus initium ← 0
+    dum initium < args.longitudo() {
+        out ← out + printf_unum(formatum, args, initium)
+        initium ← initium + species
+    }
+
+    redde out
+}
+
+functio scribe_printf(textus out) → vacuum {
+    si out.longitudo() > 0 {
+        si out.finis("\n") {
+            gnu_stdio.scribe_linea(out.sectio(0, out.longitudo() - 1))
+        } secus {
+            gnu_stdio.scribe_linea(out)
+        }
+    }
+}
+
+probandum "printf formatting" tag "coreutils" {
+    proba "plain format text is preserved" {
+        adfirma printf_textus(["hello\n"]) ≡ "hello\n"
+    }
+
+    proba "percent escape emits one percent" {
+        adfirma printf_textus(["%%\n"]) ≡ "%\n"
+    }
+
+    proba "string substitution consumes one argument" {
+        adfirma printf_textus(["%s\n", "hello"]) ≡ "hello\n"
+    }
+
+    proba "string format repeats for extra arguments" {
+        adfirma printf_textus(["%s\n", "a", "b"]) ≡ "a\nb\n"
+    }
+
+    proba "missing string argument formats as empty text" {
+        adfirma printf_textus(["x%sy\n"]) ≡ "xy\n"
+    }
+
+    proba "percent-b expands basic escapes in argument" {
+        adfirma printf_textus(["%b\n", "a\\nb"]) ≡ "a\nb\n"
+    }
+}
+
+@ cli "printf"
+@ descriptio "GNU coreutils printf parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    scribe_printf(printf_textus(args.operands))
+}

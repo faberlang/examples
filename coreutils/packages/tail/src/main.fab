@@ -1,0 +1,165 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+genus TailOptiones {
+    numerus lineae
+    bivalens ab_initio
+}
+
+# This Stage 4 coreutils slice is stdin-only and line-oriented.
+# File operands, byte counts, follow mode, diagnostics, and headers are
+# deferred until later slices can model them honestly.
+functio numerus_caudae(numerus petitus) → numerus {
+    si petitus < 0 ergo redde 0
+    redde petitus
+}
+
+functio abs_numerus(numerus n) → numerus {
+    si n < 0 ergo redde 0 - n
+    redde n
+}
+
+# Pure selection keeps the last requested records so inline proba can cover the
+# boundary behavior without depending on stdin.
+functio cauda_linearum(lista<textus> lineae, numerus petitus) → lista<textus> {
+    varia lista<textus> cauda ← vacua
+    fixum numerus finis ← numerus_caudae(petitus)
+    fixum numerus copia ← lineae.longitudo()
+    varia numerus initium ← 0
+
+    si finis ≡ 0 ergo redde cauda
+    si copia > finis {
+        initium ← copia - finis
+    }
+
+    varia numerus i ← initium
+    dum i < copia {
+        cauda.appende(lineae.accipe(i) vel "")
+        i ← i + 1
+    }
+
+    redde cauda
+}
+
+# GNU `tail -n +N` starts at one-based input line N. `+1` emits every line, and
+# positions beyond EOF naturally emit nothing.
+functio cauda_ab_linea(lista<textus> lineae, numerus initium_unum) → lista<textus> {
+    varia lista<textus> cauda ← vacua
+    varia numerus initium ← initium_unum - 1
+
+    si initium < 0 {
+        initium ← 0
+    }
+
+    varia numerus i ← initium
+    dum i < lineae.longitudo() {
+        cauda.appende(lineae.accipe(i) vel "")
+        i ← i + 1
+    }
+
+    redde cauda
+}
+
+functio cauda_selecta(lista<textus> lineae, TailOptiones opts) → lista<textus> {
+    si opts.ab_initio ergo redde cauda_ab_linea(lineae, opts.lineae)
+    redde cauda_linearum(lineae, opts.lineae)
+}
+
+# Nullable lege drives the stdin loop until EOF, then the pure helper selects
+# the final window.
+functio lege_omnes_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+
+    fac {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    } dum verum
+
+    redde lineae
+}
+
+functio lege_caudam(TailOptiones opts) → lista<textus> {
+    redde cauda_selecta(lege_omnes_lineas(), opts)
+}
+
+functio tail_spec(textus raw) → TailOptiones {
+    si raw.longitudo() > 0 et raw.sectio(0, 1) ≡ "+" {
+        redde TailOptiones { lineae = raw.sectio(1, raw.longitudo()) ↦ numerus ⇥ 1, ab_initio = verum }
+    }
+
+    redde TailOptiones { lineae = abs_numerus(raw ↦ numerus ⇥ 10), ab_initio = falsum }
+}
+
+# Raw rest operands preserve the sign on `-n +N`; the generated numeric option
+# normalizes it away before this package can choose GNU's start-line mode.
+functio tail_parse(lista<textus> args) → TailOptiones {
+    varia TailOptiones opts ← TailOptiones { lineae = 10, ab_initio = falsum }
+    varia numerus i ← 0
+
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
+        si arg ≡ "-n" {
+            opts ← tail_spec(args.accipe(i + 1) vel "10")
+            i ← i + 2
+        }
+        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-n" {
+            opts ← tail_spec(arg.sectio(2, arg.longitudo()))
+            i ← i + 1
+        }
+        secus {
+            i ← i + 1
+        }
+    }
+
+    redde opts
+}
+
+probandum "tail line selection" tag "coreutils" {
+    proba "default-sized selection keeps all short input" {
+        adfirma cauda_linearum(["a", "b", "c"], 10) ≡ ["a", "b", "c"]
+    }
+    proba "default-sized selection keeps the last ten lines" {
+        adfirma cauda_linearum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"], 10) ≡ ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    }
+    proba "line limit keeps the final records" {
+        adfirma cauda_linearum(["a", "b", "c"], 2) ≡ ["b", "c"]
+    }
+    proba "zero line limit emits no lines" {
+        fixum lista<textus> empty ← vacua
+        adfirma cauda_linearum(["a", "b"], 0) ≡ empty
+    }
+    proba "start-line selection uses one-based positions" {
+        adfirma cauda_ab_linea(["1", "2", "3", "4", "5"], 3) ≡ ["3", "4", "5"]
+    }
+    proba "start-line one emits all input" {
+        adfirma cauda_ab_linea(["1", "2", "3"], 1) ≡ ["1", "2", "3"]
+    }
+    proba "start-line beyond input emits no lines" {
+        fixum lista<textus> empty ← vacua
+        adfirma cauda_ab_linea(["1", "2"], 5) ≡ empty
+    }
+    proba "local parser preserves plus-count start-line mode" {
+        fixum TailOptiones opts ← tail_parse(["-n", "+3"])
+        adfirma opts.lineae ≡ 3
+        adfirma opts.ab_initio ≡ verum
+    }
+    proba "local parser keeps unsigned counts as last-line mode" {
+        fixum TailOptiones opts ← tail_parse(["-n", "2"])
+        adfirma cauda_selecta(["1", "2", "3", "4", "5"], opts) ≡ ["4", "5"]
+    }
+    proba "local parser treats negative counts as last-line mode" {
+        fixum TailOptiones opts ← tail_parse(["-n", "-2"])
+        adfirma cauda_selecta(["1", "2", "3", "4", "5"], opts) ≡ ["4", "5"]
+    }
+}
+
+@ cli "tail"
+@ descriptio "GNU coreutils tail parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum TailOptiones opts ← tail_parse(args.operands)
+    # The common GNU helper centralizes newline-terminated stdout for line slices.
+    itera ex lege_caudam(opts) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

@@ -1,0 +1,142 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps fold in the stdin-only stepper lane.
+# The supported `-s` subset is line-oriented ASCII stdin: break at the last
+# literal space before/at the scalar width when possible, preserving that space
+# on the emitted line. File operands, byte-exact column accounting, tabs,
+# backspaces, diagnostics, help/version, and `-b` are deferred.
+
+functio latitudo_activa(numerus petitus) → numerus {
+    si petitus > 0 ergo redde petitus
+    redde 80
+}
+
+# This helper is intentionally textus/scalar-counted. It matches the declared
+# ASCII stdin fixtures, but it is not GNU's byte/column-exact implementation.
+functio plica_lineam(textus linea, numerus latitudo) → lista<textus> {
+    varia lista<textus> lineae ← vacua
+    fixum numerus finis ← latitudo_activa(latitudo)
+
+    si linea.longitudo() ≡ 0 {
+        lineae.appende("")
+        redde lineae
+    }
+
+    varia numerus initium ← 0
+    dum initium < linea.longitudo() {
+        varia numerus terminus ← initium + finis
+        si terminus > linea.longitudo() {
+            terminus ← linea.longitudo()
+        }
+
+        lineae.appende(linea.sectio(initium, terminus))
+        initium ← terminus
+    }
+
+    redde lineae
+}
+
+functio spatium_fractus(textus linea, numerus initium, numerus terminus) → numerus {
+    varia numerus i ← initium
+    varia numerus fractus ← -1
+
+    dum i < terminus {
+        si linea.sectio(i, i + 1) ≡ " " {
+            fractus ← i + 1
+        }
+        i ← i + 1
+    }
+
+    redde fractus
+}
+
+functio plica_lineam_spatiis(textus linea, numerus latitudo) → lista<textus> {
+    varia lista<textus> lineae ← vacua
+    fixum numerus finis ← latitudo_activa(latitudo)
+
+    si linea.longitudo() ≡ 0 {
+        lineae.appende("")
+        redde lineae
+    }
+
+    varia numerus initium ← 0
+    dum initium < linea.longitudo() {
+        varia numerus terminus ← initium + finis
+        si terminus > linea.longitudo() {
+            terminus ← linea.longitudo()
+        }
+
+        si terminus ≡ linea.longitudo() {
+            lineae.appende(linea.sectio(initium, terminus))
+            initium ← terminus
+        }
+        secus {
+            fixum numerus fractus ← spatium_fractus(linea, initium, terminus)
+            si fractus > initium {
+                lineae.appende(linea.sectio(initium, fractus))
+                initium ← fractus
+            }
+            secus {
+                lineae.appende(linea.sectio(initium, terminus))
+                initium ← terminus
+            }
+        }
+    }
+
+    redde lineae
+}
+
+# Nullable lege is the only input source in this slice. Each returned stdin
+# record is folded independently and emitted with GNU-style line termination.
+functio plica_stdin(numerus latitudo, bivalens spatiis) → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        fixum textus secura ← linea vel ""
+        fixum lista<textus> partes ← spatiis sic plica_lineam_spatiis(secura, latitudo) secus plica_lineam(secura, latitudo)
+        itera ex partes fixum pars {
+            gnu_stdio.scribe_linea(pars)
+        }
+    }
+}
+
+probandum "fold line wrapping" tag "coreutils" {
+    proba "short line stays unchanged" {
+        adfirma plica_lineam("abc", 4) ≡ ["abc"]
+    }
+    proba "exact width line stays one line" {
+        adfirma plica_lineam("abcd", 4) ≡ ["abcd"]
+    }
+    proba "long line wraps at requested width" {
+        adfirma plica_lineam("abcdefghi", 4) ≡ ["abcd", "efgh", "i"]
+    }
+    proba "empty input line remains an empty output line" {
+        adfirma plica_lineam("", 4) ≡ [""]
+    }
+    proba "spaces mode breaks after last space in width" {
+        adfirma plica_lineam_spatiis("one two three four", 8) ≡ ["one two ", "three ", "four"]
+    }
+    proba "spaces mode falls back for long word" {
+        adfirma plica_lineam_spatiis("abcdefghijklmno", 8) ≡ ["abcdefgh", "ijklmno"]
+    }
+    proba "spaces mode preserves double-space trailing break" {
+        adfirma plica_lineam_spatiis("aa  bb cc", 6) ≡ ["aa  ", "bb cc"]
+    }
+    proba "spaces mode keeps blank input line" {
+        adfirma plica_lineam_spatiis("", 4) ≡ [""]
+    }
+    proba "non-positive width falls back to default slice width" {
+        adfirma latitudo_activa(0) ≡ 80
+    }
+}
+
+@ cli "fold"
+@ descriptio "GNU coreutils fold stdin parity exemplum"
+@ optio latitudo typus numerus brevis "w" descriptio "use WIDTH columns instead of 80"
+@ optio spaces typus bivalens brevis "s" longum "spaces" descriptio "break at spaces when possible"
+incipit argumenta args {
+    plica_stdin(args.latitudo vel 80, args.spaces)
+}

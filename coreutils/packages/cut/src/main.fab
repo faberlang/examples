@@ -1,0 +1,198 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps cut in the stdin-only stepper lane.
+# This slice implements field mode only: GNU `cut -f LIST` with the default
+# tab delimiter and `cut -d DELIM -f LIST` for one-scalar ASCII delimiter
+# strings. Field lists are limited to positive numeric selectors and ranges
+# such as `1`, `2`, `1,3`, `1-2`, and `2-`; `-s` / `--only-delimited`
+# suppresses no-delimiter records, and `--complement` emits the unselected
+# field subset in input order. Byte mode, character mode, file operands, output
+# delimiter rewriting, zero-terminated mode, diagnostics, help/version, and
+# multibyte/display semantics are deferred.
+
+functio discinde(textus s, textus separator) → lista<textus> {
+    varia lista<textus> partes ← vacua
+    fixum numerus sep_len ← separator.longitudo()
+    varia numerus initium ← 0
+    varia numerus i ← 0
+
+    si sep_len ≠ 1 {
+        partes.appende(s)
+        redde partes
+    }
+
+    dum i < s.longitudo() {
+        si s.sectio(i, i + sep_len) ≡ separator {
+            partes.appende(s.sectio(initium, i))
+            i ← i + sep_len
+            initium ← i
+        }
+        secus {
+            i ← i + 1
+        }
+    }
+
+    partes.appende(s.sectio(initium, s.longitudo()))
+    redde partes
+}
+
+functio habet_finitorem(textus linea, textus finitor) → bivalens {
+    si finitor.longitudo() ≠ 1 ergo redde falsum
+
+    varia numerus i ← 0
+    dum i < linea.longitudo() {
+        si linea.sectio(i, i + 1) ≡ finitor {
+            redde verum
+        }
+        i ← i + 1
+    }
+
+    redde falsum
+}
+
+functio dash_pos(textus spec) → numerus {
+    varia numerus i ← 0
+    dum i < spec.longitudo() {
+        si spec.sectio(i, i + 1) ≡ "-" ergo redde i
+        i ← i + 1
+    }
+
+    redde 0 - 1
+}
+
+functio selectum_specne(textus spec, numerus index) → bivalens {
+    fixum numerus dash ← dash_pos(spec)
+
+    si dash < 0 {
+        fixum numerus unum ← spec ↦ numerus ⇥ 0
+        redde unum > 0 et index ≡ unum
+    }
+
+    fixum textus initium_textus ← spec.sectio(0, dash)
+    fixum textus finis_textus ← spec.sectio(dash + 1, spec.longitudo())
+    fixum numerus initium ← initium_textus ↦ numerus ⇥ 0
+    si initium ≤ 0 ergo redde falsum
+
+    si finis_textus.longitudo() ≡ 0 {
+        redde index ≥ initium
+    }
+
+    fixum numerus finis ← finis_textus ↦ numerus ⇥ 0
+    redde (finis ≥ initium et index ≥ initium) et index ≤ finis
+}
+
+functio selectumne(textus index_list, numerus index) → bivalens {
+    fixum lista<textus> specs ← discinde(index_list, ",")
+
+    itera ex specs fixum spec {
+        si selectum_specne(spec, index) {
+            redde verum
+        }
+    }
+
+    redde falsum
+}
+
+functio iunge_finitore(lista<textus> partes, textus finitor) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    itera ex partes fixum pars {
+        si i > 0 {
+            out ← out + finitor
+        }
+
+        out ← out + pars
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio selectio_servandane(textus index_list, numerus index, bivalens complementum) → bivalens {
+    fixum bivalens selecta ← selectumne(index_list, index)
+
+    si complementum {
+        redde selecta ≡ falsum
+    }
+
+    redde selecta
+}
+
+functio omittenda_lineane(textus linea, textus finitor, bivalens solum_finitas) → bivalens {
+    si solum_finitas ≡ falsum ergo redde falsum
+    redde habet_finitorem(linea, finitor) ≡ falsum
+}
+
+functio secat_lineam(textus linea, textus finitor, textus index_list, bivalens complementum) → textus {
+    si habet_finitorem(linea, finitor) ≡ falsum {
+        redde linea
+    }
+
+    fixum lista<textus> fields ← discinde(linea, finitor)
+    varia lista<textus> kept ← vacua
+    varia numerus index ← 1
+
+    itera ex fields fixum field {
+        si selectio_servandane(index_list, index, complementum) {
+            kept.appende(field)
+        }
+
+        index ← index + 1
+    }
+
+    redde iunge_finitore(kept, finitor)
+}
+
+# Nullable lege is the only input source in this slice. GNU `cut -f` passes
+# lines without the delimiter through unchanged by default; `-s` suppresses
+# those records. Selected or complemented fields are joined with the active
+# input delimiter because output delimiter rewriting remains deferred.
+functio cut_stdin(textus finitor, textus index_list, bivalens solum_finitas, bivalens complementum) → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        fixum textus actualis ← linea vel ""
+        si omittenda_lineane(actualis, finitor, solum_finitas) ≡ falsum {
+            gnu_stdio.scribe_linea(secat_lineam(actualis, finitor, index_list, complementum))
+        }
+    }
+}
+
+probandum "cut field selection helpers" tag "coreutils" {
+    proba "split keeps empty fields" {
+        adfirma discinde("a,,c", ",") ≡ ["a", "", "c"]
+    }
+    proba "single fields and comma lists select by input order" {
+        adfirma secat_lineam("a,b,c", ",", "2", falsum) ≡ "b"
+        adfirma secat_lineam("a,b,c", ",", "1,3", falsum) ≡ "a,c"
+    }
+    proba "closed and open ranges select fields" {
+        adfirma secat_lineam("a,b,c", ",", "1-2", falsum) ≡ "a,b"
+        adfirma secat_lineam("a,b,c", ",", "2-", falsum) ≡ "b,c"
+    }
+    proba "lines without delimiter pass through unchanged" {
+        adfirma secat_lineam("plain", ",", "2", falsum) ≡ "plain"
+    }
+    proba "only-delimited suppresses lines without delimiter" {
+        adfirma omittenda_lineane("plain", ",", verum)
+        adfirma omittenda_lineane("a,b", ",", verum) ≡ falsum
+    }
+    proba "complement keeps unselected fields in input order" {
+        adfirma secat_lineam("a,b,c", ",", "2", verum) ≡ "a,c"
+        adfirma secat_lineam("a,b,c,d", ",", "2-3", verum) ≡ "a,d"
+    }
+}
+
+@ cli "cut"
+@ descriptio "GNU coreutils cut stdin field parity exemplum"
+@ optio finitor typus textus brevis "d" descriptio "use DELIM instead of TAB for the field delimiter"
+@ optio fields typus textus brevis "f" descriptio "select only these fields"
+@ optio solum_finitas typus bivalens brevis "s" longum "only-delimited" descriptio "suppress lines without field delimiter"
+@ optio complementum typus bivalens longum "complement" descriptio "complement the selected set of fields"
+incipit argumenta args {
+    cut_stdin(args.finitor vel "\t", args.fields vel "1", args.solum_finitas, args.complementum)
+}

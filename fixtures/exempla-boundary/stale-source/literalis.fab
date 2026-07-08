@@ -1,0 +1,34 @@
+# Literal expressions: numbers, strings, booleans, null, templates
+
+incipit {
+    # Numbers
+    fixum _ integer ← 42
+    fixum _ decimal ← 3.14
+    fixum _ negative ← -100
+
+    # Strings
+    fixum _ greeting ← "hello"
+    fixum _ block ← «block "quotes"»
+
+    # Booleans
+    fixum _ yes ← verum
+    fixum _ no ← falsum
+
+    # Null
+    fixum _ nothing ← nihil
+
+    # Template application
+    fixum _ name ← "Mundus"
+    fixum _ message ← "Hello §"(name)
+
+    nota integer
+    nota decimal
+    nota block
+    nota negative
+    nota greeting
+    nota single
+    nota yes
+    nota no
+    nota nothing
+    nota message
+}

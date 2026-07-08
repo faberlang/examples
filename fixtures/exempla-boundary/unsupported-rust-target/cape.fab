@@ -1,0 +1,22 @@
+# Fac blocks with error handling (cape)
+#
+# fac { <body> } cape <error> { <handler> }
+
+incipit {
+    # Basic fac with cape for error handling
+    fac {
+        fixum _ x ← 10
+        nota x
+    } cape err {
+        nota err
+    }
+
+    # Scope block that might throw
+    fac {
+        fixum _ value ← 42
+        nota value
+    } cape error {
+        nota "Error occurred:"
+        nota error
+    }
+}

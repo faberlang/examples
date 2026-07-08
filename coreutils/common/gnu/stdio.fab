@@ -1,0 +1,12 @@
+# Stdout helpers for GNU-style CLI utilities.
+#
+# Line output uses language `nota` (implicit newline).
+#
+# Raw no-newline writes: package-MIR currently bridges `norma:consolum.dic`
+# only when the call lives in a package unit whose providers are rewritten
+# (see echo `scribe_sine_linea`). Prefer importing `norma:consolum` in the
+# package entry until shared `common/*` library providers rewrite correctly.
+
+functio scribe_linea(textus linea) → vacuum {
+    nota linea
+}

@@ -1,0 +1,12 @@
+[package]
+name = "mathesis"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "mathesis"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[workspace]

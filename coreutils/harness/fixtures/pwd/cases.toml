@@ -1,0 +1,12 @@
+[[case]]
+id = "logical-cwd"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+setup = "mkdir -p deep"
+cwd = "deep"
+stdout = "$CWD"
+stderr = ""
+exit = 0
+stdout_newline = true

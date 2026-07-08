@@ -1,0 +1,21 @@
+[[case]]
+id = "default-three-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = "y\ny\ny\n"
+stderr = ""
+exit = -9
+max_stdout_lines = 3
+
+[[case]]
+id = "operand-three-lines"
+lane = "stepper"
+tier = "A"
+args = ["hello"]
+stdin = ""
+stdout = "hello\nhello\nhello\n"
+stderr = ""
+exit = -9
+max_stdout_lines = 3

@@ -1,0 +1,10 @@
+[[case]]
+id = "create-empty-file"
+lane = "stepper"
+tier = "A"
+args = ["created.txt"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+files = { "created.txt" = "" }

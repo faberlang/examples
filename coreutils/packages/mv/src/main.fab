@@ -1,0 +1,14 @@
+importa ex "norma:solum" privata solum
+
+functio move_simplex(lista<textus> paths) → vacuum {
+    si paths.longitudo() > 1 {
+        solum.renomina(paths.accipe(0) vel "", paths.accipe(1) vel "")
+    }
+}
+
+@ cli "mv"
+@ descriptio "GNU coreutils mv simple rename parity exemplum"
+@ operandus ceteri textus paths
+incipit argumenta args {
+    move_simplex(args.paths)
+}

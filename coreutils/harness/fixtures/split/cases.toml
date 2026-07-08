@@ -1,0 +1,10 @@
+[[case]]
+id = "stdin-two-lines"
+lane = "stepper"
+tier = "A"
+args = ["-l", "2"]
+stdin = "a\nb\nc\nd\ne\n"
+stdout = ""
+stderr = ""
+exit = 0
+files = { xaa = "a\nb\n", xab = "c\nd\n", xac = "e\n" }

@@ -1,0 +1,11 @@
+[[case]]
+id = "copy-file"
+lane = "stepper"
+tier = "A"
+args = ["source.txt", "copy.txt"]
+stdin = ""
+setup = "printf 'alpha\\n' > source.txt"
+stdout = ""
+stderr = ""
+exit = 0
+files = { "source.txt" = "alpha\n", "copy.txt" = "alpha\n" }

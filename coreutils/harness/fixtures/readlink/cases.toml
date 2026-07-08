@@ -1,0 +1,11 @@
+[[case]]
+id = "simple-symlink"
+lane = "stepper"
+tier = "A"
+args = ["link.txt"]
+stdin = ""
+setup = "ln -s target.txt link.txt"
+stdout = "target.txt"
+stderr = ""
+exit = 0
+stdout_newline = true

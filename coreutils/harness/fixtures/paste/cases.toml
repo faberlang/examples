@@ -1,0 +1,76 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "default-single-stream-passthrough"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "alpha\nbeta\ngamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "blank-line-preservation"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\n\nbeta\n"
+stdout = "alpha\n\nbeta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "serial-tab-join"
+lane = "stepper"
+tier = "A"
+args = ["-s"]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "alpha\tbeta\tgamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "serial-comma-join"
+lane = "stepper"
+tier = "A"
+args = ["-s", "-d", ","]
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "alpha,beta,gamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "serial-delimiter-cycle"
+lane = "stepper"
+tier = "A"
+args = ["-s", "-d", ",;"]
+stdin = "a\nb\nc\nd\n"
+stdout = "a,b;c,d\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "serial-empty-delimiter"
+lane = "stepper"
+tier = "A"
+args = ["-s", "-d", ""]
+stdin = "a\nb\nc\n"
+stdout = "abc\n"
+stderr = ""
+exit = 0
+stdout_newline = true

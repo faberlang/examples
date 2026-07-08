@@ -1,0 +1,54 @@
+[[case]]
+id = "plain-newline-format"
+lane = "stepper"
+tier = "A"
+args = ["hello\\n"]
+stdin = ""
+stdout = "hello\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "percent-escape-newline"
+lane = "stepper"
+tier = "A"
+args = ["%%\\n"]
+stdin = ""
+stdout = "%\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "string-substitution-newline"
+lane = "stepper"
+tier = "A"
+args = ["%s\\n", "hello"]
+stdin = ""
+stdout = "hello\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "string-format-repeats"
+lane = "stepper"
+tier = "A"
+args = ["%s\\n", "a", "b"]
+stdin = ""
+stdout = "a\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "percent-b-basic-escape"
+lane = "stepper"
+tier = "A"
+args = ["%b\\n", "a\\nb"]
+stdin = ""
+stdout = "a\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true

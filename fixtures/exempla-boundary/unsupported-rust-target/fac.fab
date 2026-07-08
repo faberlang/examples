@@ -1,0 +1,55 @@
+# Fac statement - explicit scoping with optional do-while and error handling
+#
+# fac { <body> }                              - basic scope block
+# fac { <body> } dum <condition>             - do-while scope
+# fac { <body> } cape <err> { <handler> }    - scope with error handling
+
+incipit {
+    # Basic scope block (explicit scoping)
+    fac {
+        fixum _ x ← 42
+        nota x
+    }
+
+    # Scope block isolates variables
+    fac {
+        fixum _ message ← "Hello from fac block"
+        nota message
+    }
+
+    # Multiple statements in scope
+    fac {
+        fixum _ a ← 10
+        fixum _ b ← 20
+        fixum _ sum ← a + b
+        nota sum
+    }
+
+    # Fac with do-while condition (repeats until condition is false)
+    varia _ counter ← 0
+    fac {
+        counter ← counter + 1
+        nota "Iteration §"(counter)
+    } dum counter < 3
+
+    # Fac with error handling
+    fac {
+        # This would normally throw an error
+        # iace "Test error"
+        nota "Block executed successfully"
+    } cape err {
+        nota "Caught error: §"(err.nuntius)
+    }
+
+    # Fac with both do-while and error handling
+    varia _ attempts ← 0
+    fac {
+        attempts ← attempts + 1
+        nota "Attempt §"(attempts)
+        si attempts ≡ 2 {
+            iace "Simulated failure"
+        }
+    } cape err {
+        nota "Failed on attempt §: §"(attempts, err.nuntius)
+    } dum attempts < 5
+}

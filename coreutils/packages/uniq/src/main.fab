@@ -1,0 +1,174 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+genus GrexUniq {
+    textus linea
+    numerus copia
+}
+
+# Stage 4 keeps uniq in the stdin-only stepper lane.
+# `-i` compares adjacent groups with textus.minuscula(), which is sufficient for
+# declared ASCII fixtures while preserving the first input line spelling. `-s`
+# and `-w` affect only the comparison key, so output still preserves the first
+# full input line in each group. File operands, field skipping,
+# locale-sensitive case folding, all-repeated/all-unique variants, and
+# diagnostics are deferred until later slices can model those GNU surfaces
+# honestly.
+functio lege_omnes_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    }
+
+    redde lineae
+}
+
+functio clavis_uniqui(textus linea, numerus skip_chars, numerus check_chars, bivalens ignore_case) → textus {
+    varia textus clavis ← linea
+
+    si skip_chars > 0 {
+        si skip_chars ≥ clavis.longitudo() {
+            clavis ← ""
+        }
+        secus {
+            clavis ← clavis.sectio(skip_chars, clavis.longitudo())
+        }
+    }
+
+    si check_chars > 0 {
+        si check_chars < clavis.longitudo() {
+            clavis ← clavis.sectio(0, check_chars)
+        }
+    }
+
+    si ignore_case ergo redde clavis.minuscula()
+    redde clavis
+}
+
+# GNU uniq groups only adjacent equal lines; separated repeats remain distinct
+# runs and are emitted independently. The stored line is the first input spelling
+# for the group even when comparison ignores ASCII case.
+functio greges_uniqui(lista<textus> lineae, numerus skip_chars, numerus check_chars, bivalens ignore_case) → lista<GrexUniq> {
+    varia lista<GrexUniq> greges ← vacua
+    si lineae.longitudo() ≡ 0 ergo redde greges
+
+    varia textus currens ← lineae.accipe(0) vel ""
+    varia textus currens_clavis ← clavis_uniqui(currens, skip_chars, check_chars, ignore_case)
+    varia numerus copia ← 1
+    varia numerus i ← 1
+
+    dum i < lineae.longitudo() {
+        fixum textus linea ← lineae.accipe(i) vel ""
+        fixum textus clavis ← clavis_uniqui(linea, skip_chars, check_chars, ignore_case)
+        si clavis ≡ currens_clavis {
+            copia ← copia + 1
+        }
+        secus {
+            greges.appende(GrexUniq { linea = currens, copia = copia })
+            currens ← linea
+            currens_clavis ← clavis
+            copia ← 1
+        }
+        i ← i + 1
+    }
+
+    greges.appende(GrexUniq { linea = currens, copia = copia })
+    redde greges
+}
+
+functio forma_comitis(numerus n) → textus {
+    si n < 10 ergo redde "      §"(n)
+    si n < 100 ergo redde "     §"(n)
+    si n < 1000 ergo redde "    §"(n)
+    redde "§"(n)
+}
+
+# Output formatting is pure so inline proba can cover default, count,
+# duplicate-only, and unique-only modes without depending on stdin.
+functio lineae_uniquae(lista<textus> lineae, bivalens comites, bivalens duplicata, bivalens unica, numerus skip_chars, numerus check_chars, bivalens ignore_case) → lista<textus> {
+    varia lista<textus> out ← vacua
+    itera ex greges_uniqui(lineae, skip_chars, check_chars, ignore_case) fixum grex {
+        varia bivalens include ← verum
+        si duplicata {
+            include ← grex.copia > 1
+        }
+        si unica {
+            include ← grex.copia ≡ 1
+        }
+
+        si include {
+            si comites {
+                out.appende("§ §"(forma_comitis(grex.copia), grex.linea))
+            }
+            secus {
+                out.appende(grex.linea)
+            }
+        }
+    }
+
+    redde out
+}
+
+probandum "uniq adjacent grouping and output" tag "coreutils" {
+    proba "empty input emits no groups" {
+        fixum lista<textus> empty ← vacua
+        adfirma lineae_uniquae(empty, falsum, falsum, falsum, 0, 0, falsum) ≡ empty
+    }
+    proba "adjacent duplicates collapse by default" {
+        adfirma lineae_uniquae(["a", "a", "b", "a"], falsum, falsum, falsum, 0, 0, falsum) ≡ ["a", "b", "a"]
+    }
+    proba "counts render in GNU uniq count shape" {
+        adfirma lineae_uniquae(["a", "a", "b"], verum, falsum, falsum, 0, 0, falsum) ≡ ["      2 a", "      1 b"]
+    }
+    proba "duplicate mode emits repeated groups only once" {
+        adfirma lineae_uniquae(["a", "a", "b", "c", "c"], falsum, verum, falsum, 0, 0, falsum) ≡ ["a", "c"]
+    }
+    proba "unique mode emits singleton groups" {
+        adfirma lineae_uniquae(["a", "a", "b", "a"], falsum, falsum, verum, 0, 0, falsum) ≡ ["b", "a"]
+    }
+    proba "ignore case groups adjacent ASCII variants and preserves first spelling" {
+        adfirma lineae_uniquae(["Alpha", "alpha", "BETA", "beta", "Alpha"], falsum, falsum, falsum, 0, 0, verum) ≡ ["Alpha", "BETA", "Alpha"]
+    }
+    proba "ignore case counts adjacent ASCII variants" {
+        adfirma lineae_uniquae(["Alpha", "alpha", "ALPHA", "Beta"], verum, falsum, falsum, 0, 0, verum) ≡ ["      3 Alpha", "      1 Beta"]
+    }
+    proba "ignore case duplicate mode uses folded grouping" {
+        adfirma lineae_uniquae(["A", "a", "b", "B", "c"], falsum, verum, falsum, 0, 0, verum) ≡ ["A", "b"]
+    }
+    proba "skip characters modifies only the comparison key" {
+        adfirma clavis_uniqui("xxAlpha", 2, 0, falsum) ≡ "Alpha"
+        adfirma lineae_uniquae(["xxA", "yyA", "zzB", "qB"], falsum, falsum, falsum, 2, 0, falsum) ≡ ["xxA", "zzB", "qB"]
+    }
+    proba "check width compares only leading key characters after skip" {
+        adfirma clavis_uniqui("abc", 0, 2, falsum) ≡ "ab"
+        adfirma lineae_uniquae(["abc", "abd", "xyz", "xya"], falsum, falsum, falsum, 0, 2, falsum) ≡ ["abc", "xyz"]
+    }
+    proba "skip and ignore case compose after key slicing" {
+        adfirma clavis_uniqui("xxAlpha", 2, 0, verum) ≡ "alpha"
+        adfirma lineae_uniquae(["xxAlpha", "yyalpha", "zzBeta"], falsum, falsum, falsum, 2, 0, verum) ≡ ["xxAlpha", "zzBeta"]
+    }
+    proba "width-limited counts use comparison key groups" {
+        adfirma lineae_uniquae(["abc", "abd", "xyz", "xya"], verum, falsum, falsum, 0, 2, falsum) ≡ ["      2 abc", "      2 xyz"]
+    }
+    proba "non-positive width leaves key unlimited" {
+        adfirma clavis_uniqui("abc", 0, 0, falsum) ≡ "abc"
+        adfirma clavis_uniqui("abc", 0, -1, falsum) ≡ "abc"
+    }
+}
+
+@ cli "uniq"
+@ descriptio "GNU coreutils uniq stdin parity exemplum"
+@ optio comites typus bivalens brevis "c" descriptio "prefix lines by the number of occurrences"
+@ optio duplicata typus bivalens brevis "d" descriptio "only print duplicate lines, one for each group"
+@ optio unica typus bivalens brevis "u" descriptio "only print unique lines"
+@ optio ignore_case typus bivalens brevis "i" longum "ignore-case" descriptio "ignore ASCII case distinctions when comparing adjacent lines"
+@ optio skip_chars typus numerus brevis "s" descriptio "skip N leading characters before comparing"
+@ optio check_chars typus numerus brevis "w" descriptio "compare no more than N characters after skipping"
+incipit argumenta args {
+    # Nullable lege is the only input source in this slice; EOF ends the stream.
+    itera ex lineae_uniquae(lege_omnes_lineas(), args.comites, args.duplicata, args.unica, args.skip_chars vel 0, args.check_chars vel 0, args.ignore_case) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

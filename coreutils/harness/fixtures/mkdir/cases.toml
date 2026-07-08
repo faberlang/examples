@@ -1,0 +1,21 @@
+[[case]]
+id = "single-directory"
+lane = "stepper"
+tier = "A"
+args = ["alpha"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+dirs = ["alpha"]
+
+[[case]]
+id = "parents"
+lane = "stepper"
+tier = "A"
+args = ["-p", "alpha/beta"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+dirs = ["alpha", "alpha/beta"]

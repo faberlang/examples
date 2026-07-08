@@ -1,0 +1,120 @@
+importa ex "norma:solum" privata solum
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+genus JoinOptiones {
+    numerus field1
+    numerus field2
+}
+
+functio compara_textus(textus a, textus b) → numerus {
+    si a ≡ b ergo redde 0
+
+    varia lista<textus> duo ← ["" + a, "" + b]
+    duo.ordina()
+
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
+    redde 1
+}
+
+functio lege_stdin_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    }
+    redde lineae
+}
+
+functio lege_lineas(textus via) → lista<textus> {
+    si via ≡ "-" ergo redde lege_stdin_lineas()
+    redde solum.carpe(via)
+}
+
+functio campi_lineae(textus linea) → lista<textus> {
+    redde linea.divide(" ")
+}
+
+functio clavis_campi(lista<textus> campi, numerus index) → textus {
+    si index < 1 ergo redde ""
+    si campi.longitudo() < index ergo redde ""
+    redde campi.accipe(index - 1) vel ""
+}
+
+functio rest_campi(lista<textus> campi, numerus index) → lista<textus> {
+    varia lista<textus> rest ← vacua
+    varia numerus i ← index
+    dum i < campi.longitudo() {
+        rest.appende(campi.accipe(i) vel "")
+        i ← i + 1
+    }
+    redde rest
+}
+
+functio inter_spatia_campi(lista<textus> campi) → textus {
+    si campi.longitudo() ≡ 0 ergo redde ""
+    varia textus out ← campi[0]
+    varia numerus i ← 1
+    dum i < campi.longitudo() {
+        out ← out + " " + campi[i]
+        i ← i + 1
+    }
+    redde out
+}
+
+functio forma_join_linea(lista<textus> left, lista<textus> right, JoinOptiones opts) → textus {
+    varia lista<textus> out ← vacua
+    varia numerus i ← 0
+    dum i < left.longitudo() {
+        out.appende(left.accipe(i) vel "")
+        i ← i + 1
+    }
+    itera ex rest_campi(right, opts.field2) fixum campum {
+        out.appende(campum)
+    }
+    redde inter_spatia_campi(out)
+}
+
+functio join_lineae(lista<textus> left_lines, lista<textus> right_lines, JoinOptiones opts) → vacuum {
+    varia numerus i ← 0
+    varia numerus j ← 0
+
+    dum i < left_lines.longitudo() et j < right_lines.longitudo() {
+        fixum lista<textus> left_fields ← campi_lineae(left_lines.accipe(i) vel "")
+        fixum lista<textus> right_fields ← campi_lineae(right_lines.accipe(j) vel "")
+        fixum textus left_key ← clavis_campi(left_fields, opts.field1)
+        fixum textus right_key ← clavis_campi(right_fields, opts.field2)
+
+        si compara_textus(left_key, right_key) < 0 {
+            i ← i + 1
+        }
+        sin compara_textus(right_key, left_key) < 0 {
+            j ← j + 1
+        }
+        secus {
+            gnu_stdio.scribe_linea(forma_join_linea(left_fields, right_fields, opts))
+            i ← i + 1
+            j ← j + 1
+        }
+    }
+}
+
+probandum "join field helpers" tag "coreutils" {
+    proba "default join field is the first token" {
+        adfirma clavis_campi(campi_lineae("2 b"), 1) ≡ "2"
+    }
+    proba "joined line keeps both tails" {
+        fixum JoinOptiones opts ← JoinOptiones { field1 = 1, field2 = 1 }
+        adfirma forma_join_linea(campi_lineae("2 b"), campi_lineae("2 b"), opts) ≡ "2 b b"
+    }
+}
+
+@ cli "join"
+@ descriptio "GNU coreutils join parity exemplum"
+@ operandus ceteri textus paths
+incipit argumenta args {
+    fixum JoinOptiones opts ← JoinOptiones { field1 = 1, field2 = 1 }
+    fixum lista<textus> left ← lege_lineas(args.paths[0])
+    fixum lista<textus> right ← lege_lineas(args.paths[1])
+    join_lineae(left, right, opts)
+}

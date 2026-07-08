@@ -1,0 +1,207 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps tr in the stdin-only stepper lane.
+# This slice implements a declared ASCII subset of GNU `tr`: transliteration
+# from SET1 to SET2, deletion with `-d SET1`, and repeat squeezing with
+# `-s SET1`. Input comes only from nullable `lege`; each stdin line is
+# transformed independently and emitted through the harness newline writer.
+# Set parsing is deliberately small: literal one-scalar text and the ASCII
+# ranges `a-z`, `A-Z`, and `0-9`. Transliteration supports GNU `-t` truncation
+# by ignoring the expanded SET1 tail that has no matching SET2 character.
+# Complement sets, character classes, escaped forms, zero-terminated records,
+# diagnostics, help/version, file inputs, and multibyte semantics are
+# unsupported GNU surfaces.
+
+functio range_fragment(textus range) → textus {
+    si range ≡ "a-z" ergo redde "abcdefghijklmnopqrstuvwxyz"
+    si range ≡ "A-Z" ergo redde "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    si range ≡ "0-9" ergo redde "0123456789"
+    redde range
+}
+
+functio range_declaratumne(textus range) → bivalens {
+    si range ≡ "a-z" ergo redde verum
+    si range ≡ "A-Z" ergo redde verum
+    si range ≡ "0-9" ergo redde verum
+    redde falsum
+}
+
+functio expande_set(textus spec) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < spec.longitudo() {
+        si i + 2 < spec.longitudo() {
+            fixum textus triplet ← spec.sectio(i, i + 3)
+            si range_declaratumne(triplet) {
+                out ← out + range_fragment(triplet)
+                i ← i + 3
+            }
+            secus {
+                out ← out + spec.sectio(i, i + 1)
+                i ← i + 1
+            }
+        }
+        secus {
+            out ← out + spec.sectio(i, i + 1)
+            i ← i + 1
+        }
+    }
+
+    redde out
+}
+
+functio index_in_set(textus set, textus c) → numerus {
+    varia numerus i ← 0
+
+    dum i < set.longitudo() {
+        si set.sectio(i, i + 1) ≡ c ergo redde i
+        i ← i + 1
+    }
+
+    redde 0 - 1
+}
+
+# GNU `tr -t SET1 SET2` truncates SET1 to SET2 length before mapping.
+functio set1_transliterationis(textus set1_spec, textus set2, bivalens truncat) → textus {
+    fixum textus set1 ← expande_set(set1_spec)
+
+    si truncat et set2.longitudo() < set1.longitudo() {
+        redde set1.sectio(0, set2.longitudo())
+    }
+
+    redde set1
+}
+
+functio translitera_lineam(textus linea, textus set1_spec, textus set2_spec, bivalens truncat) → textus {
+    fixum textus set2 ← expande_set(set2_spec)
+    fixum textus set1 ← set1_transliterationis(set1_spec, set2, truncat)
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < linea.longitudo() {
+        fixum textus c ← linea.sectio(i, i + 1)
+        fixum numerus idx ← index_in_set(set1, c)
+
+        si idx < 0 {
+            out ← out + c
+        }
+        secus {
+            si set2.longitudo() ≡ 0 {
+                out ← out + c
+            }
+            secus {
+                si idx < set2.longitudo() {
+                    out ← out + set2.sectio(idx, idx + 1)
+                }
+                secus {
+                    out ← out + set2.sectio(set2.longitudo() - 1, set2.longitudo())
+                }
+            }
+        }
+
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio dele_lineam(textus linea, textus set_spec) → textus {
+    fixum textus set ← expande_set(set_spec)
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < linea.longitudo() {
+        fixum textus c ← linea.sectio(i, i + 1)
+        si index_in_set(set, c) < 0 {
+            out ← out + c
+        }
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio comprime_lineam(textus linea, textus set_spec) → textus {
+    fixum textus set ← expande_set(set_spec)
+    varia textus out ← ""
+    varia textus prior ← ""
+    varia numerus i ← 0
+
+    dum i < linea.longitudo() {
+        fixum textus c ← linea.sectio(i, i + 1)
+        fixum bivalens comprimitur ← index_in_set(set, c) ≥ 0 et c ≡ prior
+
+        si comprimitur ≡ falsum {
+            out ← out + c
+        }
+
+        prior ← c
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio operandum(lista<textus> operands, numerus index) → textus {
+    redde operands.accipe(index) vel ""
+}
+
+functio tr_lineam(lista<textus> operands, textus linea) → textus {
+    fixum textus modus ← operandum(operands, 0)
+
+    si modus ≡ "-d" {
+        redde dele_lineam(linea, operandum(operands, 1))
+    }
+
+    si modus ≡ "-s" {
+        redde comprime_lineam(linea, operandum(operands, 1))
+    }
+
+    si modus ≡ "-t" {
+        redde translitera_lineam(linea, operandum(operands, 1), operandum(operands, 2), verum)
+    }
+
+    redde translitera_lineam(linea, operandum(operands, 0), operandum(operands, 1), falsum)
+}
+
+functio tr_stdin(lista<textus> operands) → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        gnu_stdio.scribe_linea(tr_lineam(operands, linea vel ""))
+    }
+}
+
+probandum "tr stdin helper subset" tag "coreutils" {
+    proba "declared ranges expand" {
+        adfirma expande_set("a-z") ≡ "abcdefghijklmnopqrstuvwxyz"
+        adfirma expande_set("A-Z") ≡ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        adfirma expande_set("0-9") ≡ "0123456789"
+    }
+    proba "lowercase transliterates to uppercase" {
+        adfirma translitera_lineam("abc xyz", "a-z", "A-Z", falsum) ≡ "ABC XYZ"
+    }
+    proba "single replacement repeats for longer set" {
+        adfirma translitera_lineam("a1b23", "0-9", "#", falsum) ≡ "a#b##"
+    }
+    proba "truncate leaves unmatched set1 tail unchanged" {
+        adfirma translitera_lineam("abc xyz", "a-z", "A", verum) ≡ "Abc xyz"
+    }
+    proba "delete removes only selected characters" {
+        adfirma dele_lineam("banana", "a") ≡ "bnn"
+    }
+    proba "squeeze collapses repeated selected characters" {
+        adfirma comprime_lineam("baaalloon", "a") ≡ "balloon"
+    }
+}
+
+@ cli "tr"
+@ descriptio "GNU coreutils tr stdin parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    tr_stdin(args.operands)
+}

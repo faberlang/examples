@@ -1,0 +1,84 @@
+[[case]]
+id = "default-first-ten-short-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\nb\nc\n"
+stdout = "a\nb\nc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "default-first-ten-truncates"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n"
+stdout = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "short-count"
+lane = "stepper"
+tier = "A"
+args = ["-n", "2"]
+stdin = "a\nb\nc\n"
+stdout = "a\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "zero-count"
+lane = "stepper"
+tier = "A"
+args = ["-n", "0"]
+stdin = "a\nb\n"
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "count-larger-than-input"
+lane = "stepper"
+tier = "A"
+args = ["-n", "5"]
+stdin = "a\nb\n"
+stdout = "a\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "negative-count-drops-final-lines"
+lane = "stepper"
+tier = "A"
+args = ["-n", "-2"]
+stdin = "1\n2\n3\n4\n5\n"
+stdout = "1\n2\n3\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "negative-count-larger-than-input"
+lane = "stepper"
+tier = "A"
+args = ["-n", "-5"]
+stdin = "a\nb\n"
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0

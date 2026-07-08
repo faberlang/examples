@@ -1,0 +1,115 @@
+# ASCII byte helpers and POSIX/GNU cksum CRC-32 for Tier A stdin fixtures.
+
+functio index_in(textus haystack, textus needle) → numerus {
+    varia numerus i ← 0
+    dum i < haystack.longitudo() {
+        si haystack.sectio(i, i + 1) ≡ needle ergo redde i
+        i ← i + 1
+    }
+    redde -1
+}
+
+functio octet_ascius(textus c) → numerus {
+    varia numerus idx ← index_in("0123456789", c)
+    si idx ≥ 0 ergo redde 48 + idx
+
+    idx ← index_in("ABCDEFGHIJKLMNOPQRSTUVWXYZ", c)
+    si idx ≥ 0 ergo redde 65 + idx
+
+    idx ← index_in("abcdefghijklmnopqrstuvwxyz", c)
+    si idx ≥ 0 ergo redde 97 + idx
+
+    elige c {
+        casu " " { redde 32 }
+        casu "\t" { redde 9 }
+        casu "\n" { redde 10 }
+        casu "\r" { redde 13 }
+        casu "!" { redde 33 }
+        casu "\"" { redde 34 }
+        casu "#" { redde 35 }
+        casu "$" { redde 36 }
+        casu "%" { redde 37 }
+        casu "&" { redde 38 }
+        casu "'" { redde 39 }
+        casu "(" { redde 40 }
+        casu ")" { redde 41 }
+        casu "*" { redde 42 }
+        casu "+" { redde 43 }
+        casu "," { redde 44 }
+        casu "-" { redde 45 }
+        casu "." { redde 46 }
+        casu "/" { redde 47 }
+        casu ":" { redde 58 }
+        casu ";" { redde 59 }
+        casu "<" { redde 60 }
+        casu "=" { redde 61 }
+        casu ">" { redde 62 }
+        casu "?" { redde 63 }
+        casu "@" { redde 64 }
+        casu "[" { redde 91 }
+        casu "\\" { redde 92 }
+        casu "]" { redde 93 }
+        casu "^" { redde 94 }
+        casu "_" { redde 95 }
+        casu "`" { redde 96 }
+        casu "{" { redde 123 }
+        casu "|" { redde 124 }
+        casu "}" { redde 125 }
+        casu "~" { redde 126 }
+        ceterum { redde 0 }
+    }
+}
+
+functio octeti_textus(textus s) → lista<numerus> {
+    varia lista<numerus> bytes ← vacua
+    varia numerus i ← 0
+    dum i < s.longitudo() {
+        bytes.appende(octet_ascius(s.sectio(i, i + 1)))
+        i ← i + 1
+    }
+    redde bytes
+}
+
+functio crc32_tabula() → lista<numerus> {
+    varia lista<numerus> tabula ← vacua
+    varia numerus i ← 0
+
+    dum i < 256 {
+        varia numerus t ← i ⇐ 24
+        varia numerus j ← 0
+        dum j < 8 {
+            si (t ∧ 2147483648) ≠ 0 {
+                t ← ((t ⇐ 1) ⊻ 79764919) ∧ 4294967295
+            } secus {
+                t ← (t ⇐ 1) ∧ 4294967295
+            }
+            j ← j + 1
+        }
+        tabula.appende(t ∧ 4294967295)
+        i ← i + 1
+    }
+
+    redde tabula
+}
+
+functio crc32_octeti(lista<numerus> bytes) → numerus {
+    fixum lista<numerus> tabula ← crc32_tabula()
+    varia numerus crc ← 0
+    varia numerus i ← 0
+
+    dum i < bytes.longitudo() {
+        fixum numerus octet ← bytes.accipe(i) vel 0
+        fixum numerus idx ← ((crc ⇒ 24) ⊻ octet) ∧ 255
+        crc ← ((crc ⇐ 8) ⊻ (tabula.accipe(idx) vel 0)) ∧ 4294967295
+        i ← i + 1
+    }
+
+    varia numerus length ← bytes.longitudo()
+    dum length > 0 {
+        fixum numerus idx ← ((crc ⇒ 24) ⊻ (length ∧ 255)) ∧ 255
+        crc ← ((crc ⇐ 8) ⊻ (tabula.accipe(idx) vel 0)) ∧ 4294967295
+        length ← length ⇒ 8
+    }
+
+    redde (¬crc) ∧ 4294967295
+}

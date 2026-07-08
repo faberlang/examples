@@ -1,0 +1,9 @@
+hàm chào(vănbản tên) → vănbản {
+  hằng vănbản lời_chào ← "Xin chào, §!"(tên)
+  trả lời_chào
+}
+
+bắtđầu {
+  hằng vănbản thông_điệp ← chào("thế giới")
+  in thông_điệp
+}

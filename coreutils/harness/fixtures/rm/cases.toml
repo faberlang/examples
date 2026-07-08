@@ -1,0 +1,23 @@
+[[case]]
+id = "remove-file"
+lane = "stepper"
+tier = "A"
+args = ["gone.txt"]
+stdin = ""
+setup = "printf 'alpha\\n' > gone.txt"
+stdout = ""
+stderr = ""
+exit = 0
+missing = ["gone.txt"]
+
+[[case]]
+id = "recursive-directory"
+lane = "stepper"
+tier = "A"
+args = ["-r", "tree"]
+stdin = ""
+setup = "mkdir -p tree/child && printf 'alpha\\n' > tree/child/file.txt"
+stdout = ""
+stderr = ""
+exit = 0
+missing = ["tree"]

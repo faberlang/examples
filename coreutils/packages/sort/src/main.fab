@@ -1,0 +1,229 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps sort in the stdin-only stepper lane.
+# This slice implements GNU sort's default keyless lexicographic ordering for
+# newline-terminated ASCII lines. `-f` compares ASCII fold-case keys, `-r`
+# reverses the active ordering, and `-u` removes duplicate active comparison
+# keys. Blank lines are data and sort with the rest of stdin. File operands,
+# key fields, numeric/month/version sorts, locale collation, stable/merge/check
+# modes, diagnostics, help, and version output are deferred until later slices
+# can model those GNU surfaces honestly.
+
+functio lege_omnes_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    }
+
+    redde lineae
+}
+
+# Pure helper for parity fixtures. The built-in lista sort uses the compiler's
+# default textus ordering; the declared Stage 4 input contract is ASCII only.
+functio lineae_ordinatae(lista<textus> lineae) → lista<textus> {
+    varia lista<textus> out ← lineae
+    out.ordina()
+    redde out
+}
+
+functio ascii_minuscula(textus c) → textus {
+    fixum textus upper ← "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    fixum textus lower ← "abcdefghijklmnopqrstuvwxyz"
+    varia numerus i ← 0
+
+    dum i < upper.longitudo() {
+        si upper.sectio(i, i + 1) ≡ c ergo redde lower.sectio(i, i + 1)
+        i ← i + 1
+    }
+
+    redde c
+}
+
+functio clavis_fold_ascii(textus linea) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < linea.longitudo() {
+        out ← out + ascii_minuscula(linea.sectio(i, i + 1))
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio compara_textus(textus a, textus b) → numerus {
+    si a ≡ b ergo redde 0
+
+    varia lista<textus> duo ← ["" + a, "" + b]
+    duo.ordina()
+
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
+    redde 1
+}
+
+functio compara_lineas(textus a, textus b, bivalens fold_case) → numerus {
+    si fold_case {
+        fixum textus key_a ← clavis_fold_ascii(a)
+        fixum textus key_b ← clavis_fold_ascii(b)
+        fixum numerus key_order ← compara_textus(key_a, key_b)
+
+        si key_order ≠ 0 ergo redde key_order
+    }
+
+    redde compara_textus(a, b)
+}
+
+functio inserta_ordinata(lista<textus> lineae, textus nova, bivalens fold_case) → lista<textus> {
+    varia lista<textus> out ← vacua
+    varia bivalens inserta ← falsum
+    varia numerus i ← 0
+
+    dum i < lineae.longitudo() {
+        fixum textus current ← lineae.accipe(i) vel ""
+        si inserta ≡ falsum et compara_lineas(nova, current, fold_case) < 0 {
+            out.appende("" + nova)
+            inserta ← verum
+        }
+
+        out.appende(current)
+        i ← i + 1
+    }
+
+    si inserta ≡ falsum {
+        out.appende("" + nova)
+    }
+
+    redde out
+}
+
+functio lineae_ordinatae_fold_ascii(lista<textus> lineae) → lista<textus> {
+    varia lista<textus> out ← vacua
+
+    itera ex lineae fixum linea {
+        out ← inserta_ordinata(out, linea, verum)
+    }
+
+    redde out
+}
+
+functio clavis_fold_extat(lista<textus> lineae, textus key) → bivalens {
+    itera ex lineae fixum linea {
+        si clavis_fold_ascii(linea) ≡ key ergo redde verum
+    }
+
+    redde falsum
+}
+
+functio primae_lineae_per_fold_key(lista<textus> lineae) → lista<textus> {
+    varia lista<textus> out ← vacua
+
+    # GNU `sort -f -u` selects one representative for each folded key. For the
+    # declared ASCII stdin slice, keep the first input line for that key before
+    # sorting representatives by the folded comparison.
+    itera ex lineae fixum linea {
+        fixum textus key ← clavis_fold_ascii(linea)
+        si clavis_fold_extat(out, key) ≡ falsum {
+            out.appende(linea)
+        }
+    }
+
+    redde out
+}
+
+functio lineae_unicae_ordinatae(lista<textus> lineae, bivalens fold_case) → lista<textus> {
+    varia lista<textus> out ← vacua
+    si lineae.longitudo() ≡ 0 ergo redde out
+
+    out.appende(lineae.accipe(0) vel "")
+    varia numerus i ← 1
+
+    dum i < lineae.longitudo() {
+        fixum textus prior ← lineae.accipe(i - 1) vel ""
+        fixum textus linea ← lineae.accipe(i) vel ""
+        si compara_lineas(linea, prior, fold_case) ≠ 0 {
+            out.appende(linea)
+        }
+        i ← i + 1
+    }
+
+    redde out
+}
+
+functio lineae_sort(lista<textus> lineae, bivalens reverse, bivalens unique, bivalens fold_case) → lista<textus> {
+    varia lista<textus> out ← vacua
+
+    si fold_case et unique {
+        out ← lineae_ordinatae_fold_ascii(primae_lineae_per_fold_key(lineae))
+    }
+    secus {
+        si fold_case {
+            out ← lineae_ordinatae_fold_ascii(lineae)
+        }
+        secus {
+            out ← lineae_ordinatae(lineae)
+        }
+
+        si unique {
+            out ← lineae_unicae_ordinatae(out, fold_case)
+        }
+    }
+
+    si reverse {
+        out.inverte()
+    }
+
+    redde out
+}
+
+probandum "sort keyless stdin helpers" tag "coreutils" {
+    proba "empty input emits no lines" {
+        fixum lista<textus> empty ← vacua
+        adfirma lineae_sort(empty, falsum, falsum, falsum) ≡ empty
+    }
+    proba "already sorted lines stay sorted" {
+        adfirma lineae_sort(["alpha", "bravo", "charlie"], falsum, falsum, falsum) ≡ ["alpha", "bravo", "charlie"]
+    }
+    proba "unsorted ASCII lines sort lexicographically" {
+        adfirma lineae_sort(["delta", "alpha", "charlie", "bravo"], falsum, falsum, falsum) ≡ ["alpha", "bravo", "charlie", "delta"]
+    }
+    proba "duplicates are preserved" {
+        adfirma lineae_sort(["b", "a", "b", "a"], falsum, falsum, falsum) ≡ ["a", "a", "b", "b"]
+    }
+    proba "blank lines sort before nonblank lines" {
+        adfirma lineae_sort(["b", "", "a"], falsum, falsum, falsum) ≡ ["", "a", "b"]
+    }
+    proba "reverse flag emits descending sorted lines" {
+        adfirma lineae_sort(["alpha", "charlie", "bravo"], verum, falsum, falsum) ≡ ["charlie", "bravo", "alpha"]
+    }
+    proba "unique flag removes duplicate sorted lines" {
+        adfirma lineae_sort(["b", "a", "b", "a"], falsum, verum, falsum) ≡ ["a", "b"]
+    }
+    proba "reverse and unique combine" {
+        adfirma lineae_sort(["b", "a", "c", "b", "a"], verum, verum, falsum) ≡ ["c", "b", "a"]
+    }
+    proba "fold case sorts by ASCII lowercase key with original tie-breaker" {
+        adfirma lineae_sort(["b", "A", "a", "B"], falsum, falsum, verum) ≡ ["A", "a", "B", "b"]
+    }
+    proba "fold case unique keeps GNU representative for declared ASCII fixture" {
+        adfirma lineae_sort(["b", "A", "a", "B"], falsum, verum, verum) ≡ ["A", "b"]
+    }
+    proba "fold case reverse emits descending folded order" {
+        adfirma lineae_sort(["b", "A", "a", "B"], verum, falsum, verum) ≡ ["b", "B", "a", "A"]
+    }
+}
+
+@ cli "sort"
+@ descriptio "GNU coreutils sort stdin parity exemplum"
+@ optio reverse typus bivalens brevis "r" descriptio "reverse the result of comparisons"
+@ optio unique typus bivalens brevis "u" descriptio "output only the first of an equal run"
+@ optio fold_case typus bivalens brevis "f" descriptio "fold lower case to upper case characters"
+incipit argumenta args {
+    # Nullable lege is the only input source in this slice; EOF ends collection
+    # and each stored line is emitted with the harness newline writer.
+    itera ex lineae_sort(lege_omnes_lineas(), args.reverse, args.unique, args.fold_case) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

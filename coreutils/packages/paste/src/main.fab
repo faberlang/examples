@@ -1,0 +1,119 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps paste in the stdin-only stepper lane.
+# Default mode treats stdin as the only stream and passes each nullable `lege`
+# line through unchanged with the harness newline writer.
+# Serial mode implements only `-s`: all stdin lines are collected and emitted as
+# one line joined by the active delimiter sequence.
+# The delimiter subset implements `-s -d DELIMS` as ASCII scalar cycling between
+# stdin records. Empty DELIMS means no separator; absent DELIMS falls back to tab.
+# Multiple files or streams, delimiter escapes, `-z`, diagnostics,
+# help/version, byte-exact missing-final-newline behavior, and
+# multibyte/display semantics are unsupported GNU surfaces.
+
+functio tabulator() → textus {
+    redde "	"
+}
+
+functio delim_scala(textus delimiters, numerus separator_index) → textus {
+    si delimiters.longitudo() ≡ 0 ergo redde ""
+
+    fixum numerus scalar_index ← separator_index % delimiters.longitudo()
+    redde delimiters.sectio(scalar_index, scalar_index + 1)
+}
+
+functio delimiters_activi(textus ∪ nihil delimiter) → textus {
+    si delimiter est nihil ergo redde tabulator()
+    redde delimiter vel ""
+}
+
+functio iunge_serialiter(lista<textus> lineae, textus delimiters) → textus {
+    varia textus out ← ""
+    varia numerus index ← 0
+
+    itera ex lineae fixum linea {
+        si index > 0 {
+            out ← out + delim_scala(delimiters, index - 1)
+        }
+
+        out ← out + linea
+        index ← index + 1
+    }
+
+    redde out
+}
+
+functio paste_default_stdin() → vacuum {
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            redde
+        }
+
+        gnu_stdio.scribe_linea(linea vel "")
+    }
+}
+
+functio paste_serial_stdin(textus delimiter) → vacuum {
+    varia lista<textus> lineae ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil {
+            si lineae.longitudo() > 0 {
+                gnu_stdio.scribe_linea(iunge_serialiter(lineae, delimiter))
+            }
+            redde
+        }
+
+        lineae.appende(linea vel "")
+    }
+}
+
+functio modus_stdin(lista<textus> operands) → bivalens {
+    redde operands.longitudo() ≡ 0
+}
+
+probandum "paste stdin helper subset" tag "coreutils" {
+    proba "missing delimiter defaults to tab" {
+        adfirma delimiters_activi(nihil) ≡ tabulator()
+    }
+    proba "delimiter scalar cycles by separator index" {
+        adfirma delim_scala("", 0) ≡ ""
+        adfirma delim_scala(",;", 0) ≡ ","
+        adfirma delim_scala(",;", 1) ≡ ";"
+        adfirma delim_scala(",;", 2) ≡ ","
+    }
+    proba "serial join cycles active delimiters" {
+        adfirma iunge_serialiter(["alpha", "beta", "gamma", "delta"], ",;") ≡ "alpha,beta;gamma,delta"
+    }
+    proba "serial join uses single active delimiter repeatedly" {
+        adfirma iunge_serialiter(["alpha", "beta", "gamma"], ",") ≡ "alpha,beta,gamma"
+    }
+    proba "serial join accepts empty delimiter sequence" {
+        adfirma iunge_serialiter(["alpha", "beta", "gamma"], "") ≡ "alphabetagamma"
+    }
+    proba "serial join preserves blank records" {
+        adfirma iunge_serialiter(["alpha", "", "gamma"], tabulator()) ≡ "alpha		gamma"
+    }
+    proba "file operands are outside this stdin slice" {
+        adfirma modus_stdin([]) ≡ verum
+        adfirma modus_stdin(["left.txt"]) ≡ falsum
+    }
+}
+
+@ cli "paste"
+@ descriptio "GNU coreutils paste stdin parity exemplum"
+@ optio serial typus bivalens brevis "s" descriptio "paste one file at a time instead of in parallel"
+@ optio delimiter typus textus brevis "d" descriptio "reuse one ASCII delimiter in serial mode"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    si modus_stdin(args.operands) {
+        si args.serial {
+            paste_serial_stdin(delimiters_activi(args.delimiter))
+        }
+        secus {
+            paste_default_stdin()
+        }
+    }
+}

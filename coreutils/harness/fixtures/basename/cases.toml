@@ -1,0 +1,120 @@
+[[case]]
+id = "plain-path"
+lane = "stepper"
+tier = "A"
+args = ["/usr/bin/sort"]
+stdin = ""
+stdout = "sort"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "relative-path"
+lane = "stepper"
+tier = "A"
+args = ["src/main.fab"]
+stdin = ""
+stdout = "main.fab"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "trailing-slash"
+lane = "stepper"
+tier = "A"
+args = ["/usr/bin/"]
+stdin = ""
+stdout = "bin"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "root-path"
+lane = "stepper"
+tier = "A"
+args = ["/"]
+stdin = ""
+stdout = "/"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "empty-path"
+lane = "stepper"
+tier = "A"
+args = [""]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "repeated-trailing-slashes"
+lane = "stepper"
+tier = "A"
+args = ["//usr//bin//"]
+stdin = ""
+stdout = "bin"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "proper-suffix"
+lane = "stepper"
+tier = "A"
+args = ["/usr/bin/sort", "rt"]
+stdin = ""
+stdout = "so"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "short-suffix-option"
+lane = "stepper"
+tier = "A"
+args = ["-s", "rt", "/usr/bin/sort"]
+stdin = ""
+stdout = "so"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "long-suffix-option-inline"
+lane = "stepper"
+tier = "A"
+args = ["--suffix=rt", "/usr/bin/sort"]
+stdin = ""
+stdout = "so"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "suffix-option-multiple-paths"
+lane = "stepper"
+tier = "A"
+args = ["-s", ".c", "src/foo.c", "src/bar.c"]
+stdin = ""
+stdout = "foo\nbar"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "whole-name-suffix"
+lane = "stepper"
+tier = "A"
+args = ["/usr/bin/sort", "sort"]
+stdin = ""
+stdout = "sort"
+stderr = ""
+exit = 0
+stdout_newline = true

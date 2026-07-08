@@ -1,0 +1,135 @@
+importa ex "../../../common/gnu/format" privata gnu_format
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 4 keeps wc in the stdin-only stepper lane. File operands and multibyte
+# byte accounting belong to later coreutils slices.
+functio spatiumne(textus c) → bivalens {
+    redde c ≡ " " aut c ≡ "\t"
+}
+
+# Word counting follows GNU's transition rule for the ASCII whitespace covered
+# by this stdin slice.
+functio verba_lineae(textus linea) → numerus {
+    varia numerus verba ← 0
+    varia bivalens in_verbo ← falsum
+    varia numerus i ← 0
+
+    dum i < linea.longitudo() {
+        fixum textus c ← linea.sectio(i, i + 1)
+        si spatiumne(c) {
+            in_verbo ← falsum
+        }
+        secus {
+            si in_verbo ≡ falsum {
+                verba ← verba + 1
+                in_verbo ← verum
+            }
+        }
+
+        i ← i + 1
+    }
+
+    redde verba
+}
+
+# lege returns line text without the delimiter; GNU parity fixtures are
+# newline-terminated, so the stepper slice counts one delimiter byte per line.
+functio octeti_lineae(textus linea) → numerus {
+    redde linea.longitudo() + 1
+}
+
+functio forma_comitis(numerus n) → textus {
+    si n < 10 ergo redde "      §"(n)
+    si n < 100 ergo redde "     §"(n)
+    si n < 1000 ergo redde "    §"(n)
+    redde "§"(n)
+}
+
+functio forma_nuda(numerus n) → textus {
+    redde "§"(n)
+}
+
+functio numerus_selectorum(bivalens lineae, bivalens verba, bivalens octeti) → numerus {
+    varia numerus selected ← 0
+    si lineae {
+        selected ← selected + 1
+    }
+    si verba {
+        selected ← selected + 1
+    }
+    si octeti {
+        selected ← selected + 1
+    }
+    redde selected
+}
+
+# Output ordering follows GNU wc: lines, words, bytes regardless of flag order.
+functio forma_wc(numerus lineae, numerus verba, numerus octeti, bivalens ostende_lineas, bivalens ostende_verba, bivalens ostende_octeti) → textus {
+    fixum numerus selected ← numerus_selectorum(ostende_lineas, ostende_verba, ostende_octeti)
+    si selected ≡ 0 ergo redde gnu_format.inter_spatia([forma_comitis(lineae), forma_comitis(verba), forma_comitis(octeti)])
+    si selected ≡ 1 {
+        si ostende_lineas ergo redde forma_nuda(lineae)
+        si ostende_verba ergo redde forma_nuda(verba)
+        redde forma_nuda(octeti)
+    }
+
+    varia lista<textus> partes ← vacua
+    si ostende_lineas {
+        partes.appende(forma_comitis(lineae))
+    }
+    si ostende_verba {
+        partes.appende(forma_comitis(verba))
+    }
+    si ostende_octeti {
+        partes.appende(forma_comitis(octeti))
+    }
+    redde gnu_format.inter_spatia(partes)
+}
+
+# Runtime stdin handling uses nullable lege until EOF and accumulates only the
+# counters claimed by this stepper slice.
+functio wc_stdin(bivalens ostende_lineas, bivalens ostende_verba, bivalens ostende_octeti) → textus {
+    varia numerus lineae ← 0
+    varia numerus verba ← 0
+    varia numerus octeti ← 0
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde forma_wc(lineae, verba, octeti, ostende_lineas, ostende_verba, ostende_octeti)
+
+        fixum textus actualis ← linea vel ""
+        lineae ← lineae + 1
+        verba ← verba + verba_lineae(actualis)
+        octeti ← octeti + octeti_lineae(actualis)
+    }
+
+    redde forma_wc(lineae, verba, octeti, ostende_lineas, ostende_verba, ostende_octeti)
+}
+
+probandum "wc counting and formatting" tag "coreutils" {
+    proba "empty line has no words and one delimiter byte" {
+        adfirma verba_lineae("") ≡ 0
+        adfirma octeti_lineae("") ≡ 1
+    }
+    proba "space-separated words count by transition" {
+        adfirma verba_lineae("alpha  beta gamma") ≡ 3
+    }
+    proba "default output shows all counts in GNU order" {
+        adfirma forma_wc(2, 3, 10, falsum, falsum, falsum) ≡ "      2       3      10"
+    }
+    proba "single selected count is bare" {
+        adfirma forma_wc(2, 3, 10, verum, falsum, falsum) ≡ "2"
+    }
+    proba "multiple selected counts stay padded" {
+        adfirma forma_wc(2, 3, 10, verum, falsum, verum) ≡ "      2      10"
+    }
+}
+
+@ cli "wc"
+@ descriptio "GNU coreutils wc stdin parity exemplum"
+@ optio lineae typus bivalens brevis "l" descriptio "print the newline counts"
+@ optio verba typus bivalens brevis "w" descriptio "print the word counts"
+@ optio octeti typus bivalens brevis "c" descriptio "print the byte counts"
+incipit argumenta args {
+    gnu_stdio.scribe_linea(wc_stdin(args.lineae, args.verba, args.octeti))
+}

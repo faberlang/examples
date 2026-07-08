@@ -1,0 +1,120 @@
+[[case]]
+id = "empty-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "single-operand"
+lane = "stepper"
+tier = "A"
+args = ["hello"]
+stdin = ""
+stdout = "hello"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "join-operands"
+lane = "stepper"
+tier = "A"
+args = ["hello", "world"]
+stdin = ""
+stdout = "hello world"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "leading-E-noop"
+lane = "stepper"
+tier = "A"
+args = ["-E", "hello", "world"]
+stdin = ""
+stdout = "hello world"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "repeated-leading-E-noop"
+lane = "stepper"
+tier = "A"
+args = ["-E", "-E", "hello"]
+stdin = ""
+stdout = "hello"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "non-leading-E-operand"
+lane = "stepper"
+tier = "A"
+args = ["hello", "-E"]
+stdin = ""
+stdout = "hello -E"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "n-suppress-newline"
+lane = "stepper"
+tier = "A"
+args = ["-n", "hello"]
+stdin = ""
+stdout = "hello"
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "n-empty"
+lane = "stepper"
+tier = "A"
+args = ["-n"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "n-join-operands"
+lane = "stepper"
+tier = "A"
+args = ["-n", "hello", "world"]
+stdin = ""
+stdout = "hello world"
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "n-with-leading-E"
+lane = "stepper"
+tier = "A"
+args = ["-n", "-E", "x"]
+stdin = ""
+stdout = "x"
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "non-leading-n-operand"
+lane = "stepper"
+tier = "A"
+args = ["hello", "-n"]
+stdin = ""
+stdout = "hello -n"
+stderr = ""
+exit = 0
+stdout_newline = true

@@ -1,0 +1,12 @@
+[[case]]
+id = "rename-file"
+lane = "stepper"
+tier = "A"
+args = ["source.txt", "moved.txt"]
+stdin = ""
+setup = "printf 'alpha\\n' > source.txt"
+stdout = ""
+stderr = ""
+exit = 0
+files = { "moved.txt" = "alpha\n" }
+missing = ["source.txt"]

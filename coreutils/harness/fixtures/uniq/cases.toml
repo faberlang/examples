@@ -1,0 +1,174 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "no-duplicates"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\nb\nc\n"
+stdout = "a\nb\nc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "adjacent-duplicates"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\na\nb\nb\nb\nc\n"
+stdout = "a\nb\nc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "separated-non-adjacent-repeats"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\na\nb\na\na\n"
+stdout = "a\nb\na\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "count-adjacent-groups"
+lane = "stepper"
+tier = "A"
+args = ["-c"]
+stdin = "a\na\nb\na\n"
+stdout = "      2 a\n      1 b\n      1 a\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "duplicates-only"
+lane = "stepper"
+tier = "A"
+args = ["-d"]
+stdin = "a\na\nb\nc\nc\na\n"
+stdout = "a\nc\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "unique-only"
+lane = "stepper"
+tier = "A"
+args = ["-u"]
+stdin = "a\na\nb\nc\nc\na\n"
+stdout = "b\na\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "ignore-case-adjacent-groups"
+lane = "stepper"
+tier = "A"
+args = ["-i"]
+stdin = "Alpha\nalpha\nBETA\nbeta\nAlpha\n"
+stdout = "Alpha\nBETA\nAlpha\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "ignore-case-counts"
+lane = "stepper"
+tier = "A"
+args = ["-i", "-c"]
+stdin = "Alpha\nalpha\nALPHA\nBeta\n"
+stdout = "      3 Alpha\n      1 Beta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "ignore-case-duplicates-only"
+lane = "stepper"
+tier = "A"
+args = ["-i", "-d"]
+stdin = "A\na\nb\nB\nc\n"
+stdout = "A\nb\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "skip-leading-characters"
+lane = "stepper"
+tier = "A"
+args = ["-s", "2"]
+stdin = "xxA\nyyA\nzzB\nqB\n"
+stdout = "xxA\nzzB\nqB\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "check-width"
+lane = "stepper"
+tier = "A"
+args = ["-w", "2"]
+stdin = "abc\nabd\nxyz\nxya\n"
+stdout = "abc\nxyz\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "ignore-case-with-skip"
+lane = "stepper"
+tier = "A"
+args = ["-i", "-s", "2"]
+stdin = "xxAlpha\nyyalpha\nzzBeta\n"
+stdout = "xxAlpha\nzzBeta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "count-with-check-width"
+lane = "stepper"
+tier = "A"
+args = ["-c", "-w", "2"]
+stdin = "abc\nabd\nxyz\nxya\n"
+stdout = "      2 abc\n      2 xyz\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "duplicates-only-with-skip"
+lane = "stepper"
+tier = "A"
+args = ["-d", "-s", "2"]
+stdin = "xxA\nyyA\nzzB\nqB\n"
+stdout = "xxA\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "unique-only-with-check-width"
+lane = "stepper"
+tier = "A"
+args = ["-u", "-w", "2"]
+stdin = "abc\nabd\nxy\nzz\n"
+stdout = "xy\nzz\n"
+stderr = ""
+exit = 0
+stdout_newline = true

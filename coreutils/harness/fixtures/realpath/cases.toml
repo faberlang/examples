@@ -1,0 +1,10 @@
+[[case]]
+id = "existing-file"
+lane = "stepper"
+tier = "A"
+args = ["."]
+stdin = ""
+stdout = "$CWD"
+stderr = ""
+exit = 0
+stdout_newline = true

@@ -1,0 +1,53 @@
+# Basic fac-cape with iace (throw)
+#
+# fac { <body> }
+# cape <errorName> { <handler> }
+# iace <expression>
+
+incipit {
+    # Basic local recoverable-error boundary
+    fac {
+        nota "Attempting operation..."
+        iace "Something went wrong"
+        nota "This line never runs"
+    }
+    cape err {
+        nota "Caught error:", err
+    }
+
+    # Cleanup after a handled boundary
+    fac {
+        nota "Opening resource..."
+        iace "Failed to open"
+    }
+    cape err {
+        nota "Error occurred:", err
+    }
+    nota "Cleanup after handled error"
+
+    # Successful boundary
+    fac {
+        nota "Operation succeeds"
+    }
+    cape err {
+        nota "Unexpected error:", err
+    }
+
+    # Nested fac blocks
+    fac {
+        nota "Outer try"
+
+        fac {
+            nota "Inner try"
+            iace "Inner error"
+        }
+        cape inner {
+            nota "Caught inner:", inner
+        }
+
+        nota "Continues after inner catch"
+    }
+    cape outer {
+        nota "Outer catch:", outer
+    }
+}

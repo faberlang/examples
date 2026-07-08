@@ -1,0 +1,125 @@
+importa ex "../../../common/gnu/bytes" privata gnu_bytes
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio lege_octeti_stdin() → lista<numerus> {
+    varia lista<numerus> bytes ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde bytes
+        fixum lista<numerus> payload ← gnu_bytes.octeti_textus(linea vel "")
+        itera ex payload fixum octet {
+            bytes.appende(octet)
+        }
+        bytes.appende(10)
+    }
+
+    redde bytes
+}
+
+functio zeroes(numerus count) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < count {
+        out ← out + "0"
+        i ← i + 1
+    }
+    redde out
+}
+
+functio octal_digit(numerus n) → textus {
+    elige n {
+        casu 0 { redde "0" }
+        casu 1 { redde "1" }
+        casu 2 { redde "2" }
+        casu 3 { redde "3" }
+        casu 4 { redde "4" }
+        casu 5 { redde "5" }
+        casu 6 { redde "6" }
+        casu 7 { redde "7" }
+        ceterum { redde "0" }
+    }
+}
+
+functio octal_padded(numerus n, numerus width) → textus {
+    varia textus raw ← ""
+    varia numerus value ← n
+    si value ≡ 0 ergo raw ← "0"
+
+    dum value > 0 {
+        raw ← octal_digit(value ∧ 7) + raw
+        value ← value ⇒ 3
+    }
+
+    si raw.longitudo() ≥ width ergo redde raw
+    redde zeroes(width - raw.longitudo()) + raw
+}
+
+functio word_le(lista<numerus> bytes, numerus index) → numerus {
+    fixum numerus b0 ← bytes.accipe(index) vel 0
+    varia numerus b1 ← 0
+    si index + 1 < bytes.longitudo() {
+        b1 ← bytes.accipe(index + 1) vel 0
+    }
+    redde b0 ∨ (b1 ⇐ 8)
+}
+
+functio od_linea(numerus address, lista<numerus> bytes, numerus start) → textus {
+    varia textus linea ← octal_padded(address, 7)
+    varia numerus i ← start
+    varia numerus groups ← 0
+
+    dum i + 1 < bytes.longitudo() et groups < 8 {
+        linea ← linea + " " + octal_padded(word_le(bytes, i), 6)
+        i ← i + 2
+        groups ← groups + 1
+    }
+
+    si i < bytes.longitudo() {
+        linea ← linea + " " + octal_padded(bytes.accipe(i) vel 0, 6)
+    }
+
+    redde linea
+}
+
+functio od_stdin(lista<numerus> bytes) → lista<textus> {
+    varia lista<textus> lineae ← vacua
+    varia numerus address ← 0
+    varia numerus i ← 0
+
+    si bytes.longitudo() ≡ 0 {
+        lineae.appende(octal_padded(0, 7))
+        redde lineae
+    }
+
+    dum i < bytes.longitudo() {
+        lineae.appende(od_linea(address, bytes, i))
+        fixum numerus remaining ← bytes.longitudo() - i
+        si remaining ≥ 16 {
+            i ← i + 16
+            address ← address + 16
+        } secus {
+            i ← bytes.longitudo()
+        }
+    }
+
+    lineae.appende(octal_padded(bytes.longitudo(), 7))
+    redde lineae
+}
+
+probandum "od formatting" tag "coreutils" {
+    proba "empty stdin emits only the base address line" {
+        fixum lista<numerus> empty ← vacua
+        adfirma od_stdin(empty) ≡ ["0000000"]
+    }
+}
+
+@ cli "od"
+@ descriptio "GNU coreutils od stdin parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum lista<numerus> bytes ← lege_octeti_stdin()
+    itera ex od_stdin(bytes) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

@@ -1,0 +1,19 @@
+# CLI Framework Example
+#
+# Demonstrates @ cli, @ imperium, @ optio, and @ imperia.
+# Emit: cargo run -p faber -- emit -t rust --package crates/exempla/corpus/cli/main.fab
+
+importa ex "./commands/greet" privata * ut greetModule
+
+@ cli "example"
+@ versio "1.0.0"
+@ descriptio "Example CLI application"
+@ optio verbose brevis "v" longum "verbose" typus bivalens ubique descriptio "Enable verbose output"
+@ imperia "greet" ex greetModule
+incipit argumenta args {}
+
+@ imperium "version"
+@ alias "v"
+functio version() → vacuum {
+    nota "Example CLI v1.0.0"
+}

@@ -1,0 +1,8 @@
+importa ex "norma:processus" privata processus
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+@ cli "pwd"
+@ descriptio "GNU coreutils pwd parity exemplum"
+incipit argumenta args {
+    gnu_stdio.scribe_linea(processus.sedes())
+}

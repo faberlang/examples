@@ -1,0 +1,32 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = "4294967295 0"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "hello-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "hello\n"
+stdout = "3015617425 6"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "single-char-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "a\n"
+stdout = "2418082923 2"
+stderr = ""
+exit = 0
+stdout_newline = true

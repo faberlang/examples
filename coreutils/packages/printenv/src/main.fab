@@ -1,0 +1,28 @@
+importa ex "norma:processus" privata processus
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# Stage 3 keeps printenv in the named-operand slice. Full environment dumps need
+# enumeration support beyond processus.lege and stay out of this stepper subset.
+functio printenv_nomen(textus nomen) → vacuum {
+    fac {
+        fixum textus valor ← processus.lege(nomen)
+        gnu_stdio.scribe_linea(valor)
+    } cape err {
+        tacet
+    }
+}
+
+probandum "printenv operand slice" tag "coreutils" {
+    proba "empty operand list is a no-op surface" {
+        adfirma verum
+    }
+}
+
+@ cli "printenv"
+@ descriptio "GNU coreutils printenv parity exemplum"
+@ operandus ceteri textus names
+incipit argumenta args {
+    itera ex args.names fixum nomen {
+        printenv_nomen(nomen)
+    }
+}

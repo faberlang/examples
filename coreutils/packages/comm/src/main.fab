@@ -1,0 +1,146 @@
+importa ex "norma:solum" privata solum
+genus CommOptiones {
+    bivalens suppress1
+    bivalens suppress2
+    bivalens suppress3
+    lista<textus> paths
+}
+
+functio comm_optio_flag(textus arg, textus digit) → bivalens {
+    redde (arg.longitudo() ≡ 2 et arg.sectio(0, 1) ≡ "-") et arg.sectio(1, 2) ≡ digit
+}
+
+functio comm_parse(lista<textus> args) → CommOptiones {
+    varia numerus suppress1 ← 0
+    varia numerus suppress2 ← 0
+    varia numerus suppress3 ← 0
+    varia lista<textus> paths ← vacua
+    varia numerus i ← 0
+
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
+        si comm_optio_flag(arg, "1") {
+            suppress1 ← 1
+            i ← i + 1
+        }
+        sin comm_optio_flag(arg, "2") {
+            suppress2 ← 1
+            i ← i + 1
+        }
+        sin comm_optio_flag(arg, "3") {
+            suppress3 ← 1
+            i ← i + 1
+        }
+        secus {
+            paths.appende(arg)
+            i ← i + 1
+        }
+    }
+
+    redde CommOptiones { suppress1 = suppress1 > 0, suppress2 = suppress2 > 0, suppress3 = suppress3 > 0, paths = paths }
+}
+
+functio compara_textus(textus a, textus b) → numerus {
+    si a ≡ b ergo redde 0
+
+    varia lista<textus> duo ← ["" + a, "" + b]
+    duo.ordina()
+
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
+    redde 1
+}
+
+functio comm_lineae(lista<textus> left, lista<textus> right, CommOptiones opts) → vacuum {
+    varia numerus i ← 0
+    varia numerus j ← 0
+    varia textus col2_prefix ← "\t"
+    varia textus col3_prefix ← "\t\t"
+
+    si opts.suppress1 {
+        col2_prefix ← ""
+        col3_prefix ← "\t"
+    }
+    si opts.suppress2 {
+        si opts.suppress1 {
+            col3_prefix ← ""
+        }
+        secus {
+            col3_prefix ← "\t"
+        }
+    }
+
+    dum i < left.longitudo() aut j < right.longitudo() {
+        si j ≥ right.longitudo() {
+            si opts.suppress1 ≡ falsum {
+                nota left.accipe(i) vel ""
+            }
+            i ← i + 1
+        }
+        sin i ≥ left.longitudo() {
+            si opts.suppress2 ≡ falsum {
+                nota col2_prefix + (right.accipe(j) vel "")
+            }
+            j ← j + 1
+        }
+        secus {
+            fixum textus a ← left.accipe(i) vel ""
+            fixum textus b ← right.accipe(j) vel ""
+            si compara_textus(a, b) < 0 {
+                si opts.suppress1 ≡ falsum {
+                    nota a
+                }
+                i ← i + 1
+            }
+            sin compara_textus(b, a) < 0 {
+                si opts.suppress2 ≡ falsum {
+                    nota col2_prefix + b
+                }
+                j ← j + 1
+            }
+            secus {
+                si opts.suppress3 ≡ falsum {
+                    nota col3_prefix + a
+                }
+                i ← i + 1
+                j ← j + 1
+            }
+        }
+    }
+}
+
+functio lege_stdin_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    }
+    redde lineae
+}
+
+functio lege_lineas(textus via) → lista<textus> {
+    si via ≡ "-" ergo redde lege_stdin_lineas()
+    redde solum.carpe(via)
+}
+
+probandum "comm merge" tag "coreutils" {
+    proba "sorted unique and common lines partition cleanly" {
+        fixum lista<textus> left ← ["a", "b"]
+        fixum lista<textus> right ← ["b", "c"]
+        adfirma (left.accipe(0) vel "") ≡ "a"
+        adfirma (right.accipe(1) vel "") ≡ "c"
+        adfirma (left.accipe(1) vel "") ≡ (right.accipe(0) vel "")
+    }
+}
+
+@ cli "comm"
+@ descriptio "GNU coreutils comm parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum CommOptiones parsed ← comm_parse(args.operands)
+    fixum textus left_path ← "" + (parsed.paths)[0]
+    fixum textus right_path ← "" + (parsed.paths)[1]
+    fixum lista<textus> left ← lege_lineas(left_path)
+    fixum lista<textus> right ← lege_lineas(right_path)
+    comm_lineae(left, right, parsed)
+}

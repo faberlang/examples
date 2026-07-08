@@ -1,0 +1,54 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "single-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\n"
+stdout = "alpha\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "blank-line-preservation"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\n\nomega\n"
+stdout = "alpha\n\nomega\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "multiple-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\nbravo\ncharlie\n"
+stdout = "alpha\nbravo\ncharlie\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "append-no-file-passthrough"
+lane = "stepper"
+tier = "A"
+args = ["-a"]
+stdin = "alpha\nbravo\n"
+stdout = "alpha\nbravo\n"
+stderr = ""
+exit = 0
+stdout_newline = true

@@ -1,0 +1,49 @@
+[[case]]
+id = "empty-stdin"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "one-line"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\n"
+stdout = "alpha\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "multiple-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "alpha\nbeta\ngamma\n"
+stdout = "gamma\nbeta\nalpha\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "blank-line-preservation"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "top\n\nbottom\n"
+stdout = "bottom\n\ntop\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "repeated-lines"
+lane = "stepper"
+tier = "A"
+args = []
+stdin = "same\nother\nsame\n"
+stdout = "same\nother\nsame\n"
+stderr = ""
+exit = 0

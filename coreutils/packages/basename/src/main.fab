@@ -1,0 +1,132 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio sine_slash_finali(textus via) → textus {
+    si via.longitudo() ≡ 0 ergo redde ""
+
+    varia numerus finis ← via.longitudo()
+    dum finis > 1 et via.sectio(finis - 1, finis) ≡ "/" {
+        finis ← finis - 1
+    }
+
+    redde via.sectio(0, finis)
+}
+
+functio nomen_base(textus via) → textus {
+    fixum textus munda ← sine_slash_finali(via)
+    si munda.longitudo() ≡ 0 ergo redde ""
+    si munda ≡ "/" ergo redde "/"
+
+    varia numerus initium ← munda.longitudo()
+    dum initium > 0 {
+        initium ← initium - 1
+        si munda.sectio(initium, initium + 1) ≡ "/" {
+            redde munda.sectio(initium + 1, munda.longitudo())
+        }
+    }
+
+    redde munda
+}
+
+functio sine_suffixo(textus nomen, textus suffixum) → textus {
+    fixum numerus suffixi_longitudo ← suffixum.longitudo()
+    si suffixi_longitudo ≡ 0 ergo redde nomen
+    si nomen.longitudo() ≤ suffixi_longitudo ergo redde nomen
+    si nomen.finis(suffixum) {
+        redde nomen.sectio(0, nomen.longitudo() - suffixi_longitudo)
+    }
+
+    redde nomen
+}
+
+functio basename_unum(textus via, textus suffixum) → textus {
+    redde sine_suffixo(nomen_base(via), suffixum)
+}
+
+functio basename(lista<textus> operands) → textus {
+    varia numerus numerus_operandorum ← 0
+    varia textus via ← ""
+    varia textus suffixum ← ""
+
+    itera ex operands fixum operandum {
+        si numerus_operandorum ≡ 0 {
+            via ← operandum
+        } secus {
+            si numerus_operandorum ≡ 1 {
+                suffixum ← operandum
+            }
+        }
+        numerus_operandorum ← numerus_operandorum + 1
+    }
+
+    si numerus_operandorum ≡ 0 ergo redde ""
+
+    si numerus_operandorum > 1 {
+        redde basename_unum(via, suffixum)
+    }
+
+    redde basename_unum(via, "")
+}
+
+functio basenames_suffixo(lista<textus> operands, textus suffixum) → lista<textus> {
+    varia lista<textus> nomina ← vacua
+    itera ex operands fixum operandum {
+        nomina.appende(basename_unum(operandum, suffixum))
+    }
+
+    redde nomina
+}
+
+probandum "basename operands" tag "coreutils" {
+    proba "plain path returns final segment" {
+        adfirma basename(["/usr/bin/sort"]) ≡ "sort"
+    }
+
+    proba "trailing slash returns final non-empty segment" {
+        adfirma basename(["/usr/bin/"]) ≡ "bin"
+    }
+
+    proba "root path remains slash" {
+        adfirma basename(["/"]) ≡ "/"
+    }
+
+    proba "proper suffix is removed" {
+        adfirma basename(["/usr/bin/sort", "rt"]) ≡ "so"
+    }
+
+    proba "whole-name suffix is not removed" {
+        adfirma basename(["/usr/bin/sort", "sort"]) ≡ "sort"
+    }
+
+    proba "empty path returns empty basename" {
+        adfirma basename([""]) ≡ ""
+    }
+
+    proba "repeated trailing slashes collapse" {
+        adfirma basename(["//usr//bin//"]) ≡ "bin"
+    }
+
+    proba "suffix option removes suffix from one path" {
+        adfirma basename_unum("/usr/bin/sort", "rt") ≡ "so"
+    }
+
+    proba "suffix option removes suffix from multiple paths" {
+        fixum lista<textus> nomina ← basenames_suffixo(["src/foo.c", "src/bar.c"], ".c")
+        adfirma (nomina.accipe(0) vel "") ≡ "foo"
+        adfirma (nomina.accipe(1) vel "") ≡ "bar"
+    }
+}
+
+@ cli "basename"
+@ descriptio "GNU coreutils basename parity exemplum"
+@ optio suffixum brevis "s" longum "suffix" typus textus descriptio "remove trailing suffix"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    si args.suffixum non est nihil {
+        fixum textus suffixum ← args.suffixum vel ""
+        itera ex basenames_suffixo(args.operands, suffixum) fixum nomen {
+            gnu_stdio.scribe_linea(nomen)
+        }
+    } secus {
+        gnu_stdio.scribe_linea(basename(args.operands))
+    }
+}

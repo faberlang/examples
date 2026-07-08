@@ -1,0 +1,54 @@
+[[case]]
+id = "three-column"
+lane = "stepper"
+tier = "A"
+args = ["left", "right"]
+stdin = ""
+setup = "printf 'a\\nb\\n' > left && printf 'b\\nc\\n' > right"
+stdout = "a\n\t\tb\n\tc\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "suppress-column-one"
+lane = "stepper"
+tier = "A"
+args = ["-1", "left", "right"]
+stdin = ""
+setup = "printf 'a\\nb\\n' > left && printf 'b\\nc\\n' > right"
+stdout = "\tb\nc\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "suppress-column-two"
+lane = "stepper"
+tier = "A"
+args = ["-2", "left", "right"]
+stdin = ""
+setup = "printf 'a\\nb\\n' > left && printf 'b\\nc\\n' > right"
+stdout = "a\n\tb\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "suppress-column-three"
+lane = "stepper"
+tier = "A"
+args = ["-3", "left", "right"]
+stdin = ""
+setup = "printf 'a\\nb\\n' > left && printf 'b\\nc\\n' > right"
+stdout = "a\n\tc\n"
+stderr = ""
+exit = 0
+
+[[case]]
+id = "stdin-second-file"
+lane = "stepper"
+tier = "A"
+args = ["left", "-"]
+stdin = "b\nc\n"
+setup = "printf 'a\\nb\\n' > left"
+stdout = "a\n\t\tb\n\tc\n"
+stderr = ""
+exit = 0

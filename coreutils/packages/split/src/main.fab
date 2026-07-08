@@ -1,0 +1,105 @@
+importa ex "norma:solum" privata solum
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio lege_stdin_lineas() → lista<textus> {
+    varia lista<textus> lineae ← vacua
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde lineae
+        lineae.appende(linea vel "")
+    }
+    redde lineae
+}
+
+functio char_alpha(numerus offset) → textus {
+    redde "abcdefghijklmnopqrstuvwxyz".sectio(offset, offset + 1)
+}
+
+functio suffix_alpha(numerus index, numerus width) → textus {
+    varia numerus n ← index
+    varia lista<textus> digits ← vacua
+    varia numerus i ← 0
+
+    dum i < width {
+        digits.appende(char_alpha(n % 26))
+        n ← n / 26
+        i ← i + 1
+    }
+
+    varia textus out ← ""
+    varia numerus j ← digits.longitudo()
+    dum j > 0 {
+        j ← j - 1
+        out ← out + (digits.accipe(j) vel "")
+    }
+
+    redde out
+}
+
+functio prefixus_defectus(lista<textus> operands) → textus {
+    si operands.longitudo() > 0 ergo redde operands[operands.longitudo() - 1]
+    redde "x"
+}
+
+functio lineae_per_file(numerus line_count) → numerus {
+    si line_count > 0 ergo redde line_count
+    redde 1000
+}
+
+functio corpus_chunk(lista<textus> lineae, numerus start, numerus count) → textus {
+    varia textus out ← ""
+    varia numerus i ← start
+    varia numerus finis ← start + count
+
+    dum i < finis et i < lineae.longitudo() {
+        si i > start {
+            out ← out + "\n"
+        }
+        out ← out + (lineae.accipe(i) vel "")
+        i ← i + 1
+    }
+
+    si out.longitudo() > 0 {
+        out ← out + "\n"
+    }
+
+    redde out
+}
+
+functio scribe_chunk(textus prefix, textus suffix, textus corpus) → vacuum {
+    solum.scribe(prefix + suffix, corpus)
+}
+
+functio split_stdin(lista<textus> lineae, numerus chunk_lines, textus prefix) → vacuum {
+    varia numerus start ← 0
+    varia numerus part ← 0
+
+    dum start < lineae.longitudo() {
+        fixum textus suffix ← suffix_alpha(part, 2)
+        fixum textus corpus ← corpus_chunk(lineae, start, chunk_lines)
+        scribe_chunk(prefix, suffix, corpus)
+        start ← start + chunk_lines
+        part ← part + 1
+    }
+}
+
+probandum "split chunk helpers" tag "coreutils" {
+    proba "suffix sequence starts at aa" {
+        adfirma suffix_alpha(0, 2) ≡ "aa"
+        adfirma suffix_alpha(1, 2) ≡ "ab"
+        adfirma suffix_alpha(25, 2) ≡ "az"
+        adfirma suffix_alpha(26, 2) ≡ "ba"
+    }
+    proba "two-line chunk keeps trailing newline" {
+        adfirma corpus_chunk(["a", "b", "c"], 0, 2) ≡ "a\nb\n"
+    }
+}
+
+@ cli "split"
+@ descriptio "GNU coreutils split stdin parity exemplum"
+@ optio line_count typus numerus brevis "l" descriptio "put NUMBER lines per output file"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum lista<textus> lineae ← lege_stdin_lineas()
+    split_stdin(lineae, lineae_per_file(args.line_count), prefixus_defectus(args.operands))
+}

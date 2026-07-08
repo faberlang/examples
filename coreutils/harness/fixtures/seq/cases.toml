@@ -1,0 +1,96 @@
+[[case]]
+id = "one-operand"
+lane = "stepper"
+tier = "A"
+args = ["3"]
+stdin = ""
+stdout = "1\n2\n3"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "two-operands"
+lane = "stepper"
+tier = "A"
+args = ["3", "5"]
+stdin = ""
+stdout = "3\n4\n5"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "positive-increment"
+lane = "stepper"
+tier = "A"
+args = ["2", "2", "6"]
+stdin = ""
+stdout = "2\n4\n6"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "negative-increment"
+lane = "stepper"
+tier = "A"
+args = ["5", "-2", "1"]
+stdin = ""
+stdout = "5\n3\n1"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "empty-positive-range"
+lane = "stepper"
+tier = "A"
+args = ["5", "1"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "empty-negative-range"
+lane = "stepper"
+tier = "A"
+args = ["1", "-1", "5"]
+stdin = ""
+stdout = ""
+stderr = ""
+exit = 0
+
+[[case]]
+id = "custom-separator-comma"
+lane = "stepper"
+tier = "A"
+args = ["-s", ",", "1", "3"]
+stdin = ""
+stdout = "1,2,3"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "custom-separator-empty"
+lane = "stepper"
+tier = "A"
+args = ["-s", "", "1", "3"]
+stdin = ""
+stdout = "123"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "equal-width-positive"
+lane = "stepper"
+tier = "A"
+args = ["-w", "8", "10"]
+stdin = ""
+stdout = "08\n09\n10"
+stderr = ""
+exit = 0
+stdout_newline = true

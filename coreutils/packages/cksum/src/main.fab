@@ -1,0 +1,38 @@
+importa ex "../../../common/gnu/bytes" privata gnu_bytes
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio lege_octeti_stdin() → lista<numerus> {
+    varia lista<numerus> bytes ← vacua
+
+    dum verum {
+        fixum textus ∪ nihil linea ← lege
+        si linea est nihil ergo redde bytes
+        fixum lista<numerus> payload ← gnu_bytes.octeti_textus(linea vel "")
+        itera ex payload fixum octet {
+            bytes.appende(octet)
+        }
+        bytes.appende(10)
+    }
+
+    redde bytes
+}
+
+functio forma_cksum(lista<numerus> bytes) → textus {
+    fixum numerus crc ← gnu_bytes.crc32_octeti(bytes)
+    redde "§ §"(crc, bytes.longitudo())
+}
+
+probandum "cksum formatting" tag "coreutils" {
+    proba "empty payload uses POSIX empty checksum" {
+        fixum lista<numerus> empty ← vacua
+        adfirma forma_cksum(empty) ≡ "4294967295 0"
+    }
+}
+
+@ cli "cksum"
+@ descriptio "GNU coreutils cksum stdin parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum lista<numerus> bytes ← lege_octeti_stdin()
+    gnu_stdio.scribe_linea(forma_cksum(bytes))
+}

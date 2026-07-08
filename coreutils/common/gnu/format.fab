@@ -1,0 +1,12 @@
+# Shared GNU-style text formatting helpers for coreutils packages.
+
+functio inter_spatia(lista<textus> verba) → textus {
+    si verba.longitudo() ≡ 0 ergo redde ""
+    varia textus linea ← verba[0]
+    varia numerus i ← 1
+    dum i < verba.longitudo() {
+        linea ← linea + " " + verba[i]
+        i ← i + 1
+    }
+    redde linea
+}

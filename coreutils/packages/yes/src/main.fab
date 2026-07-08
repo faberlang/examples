@@ -1,0 +1,28 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+# GNU yes repeats one line forever; parity fixtures cap stdout line count in the
+# harness rather than pretending the utility terminates on its own.
+functio yes_linea(lista<textus> operands) → textus {
+    si operands.longitudo() ≡ 0 ergo redde "y"
+    redde operands[0]
+}
+
+probandum "yes line selection" tag "coreutils" {
+    proba "default operand is y" {
+        adfirma yes_linea([]) ≡ "y"
+    }
+
+    proba "first operand becomes the repeated line" {
+        adfirma yes_linea(["hello", "world"]) ≡ "hello"
+    }
+}
+
+@ cli "yes"
+@ descriptio "GNU coreutils yes parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum textus linea ← yes_linea(args.operands)
+    dum verum {
+        gnu_stdio.scribe_linea(linea)
+    }
+}

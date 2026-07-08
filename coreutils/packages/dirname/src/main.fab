@@ -1,0 +1,87 @@
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio sine_slash_finali(textus via) → textus {
+    si via.longitudo() ≡ 0 ergo redde ""
+
+    varia numerus finis ← via.longitudo()
+    dum finis > 1 et via.sectio(finis - 1, finis) ≡ "/" {
+        finis ← finis - 1
+    }
+
+    redde via.sectio(0, finis)
+}
+
+# Tier A stepper slice: simple non-empty paths with conservative GNU slash
+# normalization. Unsupported for now: options and no-operand usage errors.
+functio nomen_directorii(textus iter) → textus {
+    fixum textus munda ← sine_slash_finali(iter)
+    varia numerus novissimus_separans ← -1
+    varia numerus i ← munda.longitudo()
+
+    si munda ≡ "/" ergo redde "/"
+
+    dum i > 0 {
+        i ← i - 1
+        si munda.sectio(i, i + 1) ≡ "/" {
+            novissimus_separans ← i
+            i ← 0
+        }
+    }
+
+    si novissimus_separans < 0 ergo redde "."
+
+    varia numerus finis ← novissimus_separans
+    dum finis > 0 et munda.sectio(finis - 1, finis) ≡ "/" {
+        finis ← finis - 1
+    }
+
+    si finis ≡ 0 ergo redde "/"
+    redde munda.sectio(0, finis)
+}
+
+probandum "dirname simple paths" tag "coreutils" {
+    proba "plain filename returns current directory" {
+        adfirma nomen_directorii("file") ≡ "."
+    }
+
+    proba "relative child returns parent component" {
+        adfirma nomen_directorii("usr/bin") ≡ "usr"
+    }
+
+    proba "nested relative child returns nested parent" {
+        adfirma nomen_directorii("usr/local/bin") ≡ "usr/local"
+    }
+
+    proba "absolute child under root returns slash" {
+        adfirma nomen_directorii("/bin") ≡ "/"
+    }
+
+    proba "absolute nested child returns absolute parent" {
+        adfirma nomen_directorii("/usr/bin") ≡ "/usr"
+    }
+
+    proba "trailing slash returns parent of final non-empty component" {
+        adfirma nomen_directorii("foo/bar/") ≡ "foo"
+    }
+
+    proba "repeated trailing slash run returns parent" {
+        adfirma nomen_directorii("foo/bar//") ≡ "foo"
+    }
+
+    proba "root path remains slash" {
+        adfirma nomen_directorii("/") ≡ "/"
+    }
+
+    proba "repeated separators before basename collapse in output" {
+        adfirma nomen_directorii("foo//bar") ≡ "foo"
+    }
+}
+
+@ cli "dirname"
+@ descriptio "GNU coreutils dirname parity exemplum"
+@ operandus ceteri textus paths
+incipit argumenta args {
+    itera ex args.paths fixum path {
+        gnu_stdio.scribe_linea(nomen_directorii(path))
+    }
+}

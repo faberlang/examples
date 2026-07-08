@@ -1,0 +1,65 @@
+[[case]]
+id = "lower-to-upper"
+lane = "stepper"
+tier = "A"
+args = ["a-z", "A-Z"]
+stdin = "abc xyz\n"
+stdout = "ABC XYZ\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "digits-to-hash"
+lane = "stepper"
+tier = "A"
+args = ["0-9", "#"]
+stdin = "a1b23\n"
+stdout = "a#b##\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "truncate-set1-single-replacement"
+lane = "stepper"
+tier = "A"
+args = ["-t", "a-z", "A"]
+stdin = "abc xyz\n"
+stdout = "Abc xyz\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "delete-a"
+lane = "stepper"
+tier = "A"
+args = ["-d", "a"]
+stdin = "banana\n"
+stdout = "bnn\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "squeeze-a"
+lane = "stepper"
+tier = "A"
+args = ["-s", "a"]
+stdin = "baaalloon\n"
+stdout = "balloon\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "preserve-newline-multiple-lines"
+lane = "stepper"
+tier = "A"
+args = ["a-z", "A-Z"]
+stdin = "alpha\nbeta\n"
+stdout = "ALPHA\nBETA\n"
+stderr = ""
+exit = 0
+stdout_newline = true

@@ -1,0 +1,98 @@
+[[case]]
+id = "tab-default-field-two"
+lane = "stepper"
+tier = "A"
+args = ["-f", "2"]
+stdin = "alpha\tbeta\tgamma\n"
+stdout = "beta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "comma-field-two"
+lane = "stepper"
+tier = "A"
+args = ["-d", ",", "-f", "2"]
+stdin = "alpha,beta,gamma\n"
+stdout = "beta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "comma-list-one-three"
+lane = "stepper"
+tier = "A"
+args = ["-d", ",", "-f", "1,3"]
+stdin = "alpha,beta,gamma\n"
+stdout = "alpha,gamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "comma-range-one-two"
+lane = "stepper"
+tier = "A"
+args = ["-d", ",", "-f", "1-2"]
+stdin = "alpha,beta,gamma\n"
+stdout = "alpha,beta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "comma-open-ended-two"
+lane = "stepper"
+tier = "A"
+args = ["-d", ",", "-f", "2-"]
+stdin = "alpha,beta,gamma\n"
+stdout = "beta,gamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "no-delimiter-passthrough"
+lane = "stepper"
+tier = "A"
+args = ["-d", ",", "-f", "2"]
+stdin = "plain line\n"
+stdout = "plain line\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "only-delimited-suppresses-plain"
+lane = "stepper"
+tier = "A"
+args = ["-s", "-d", ",", "-f", "2"]
+stdin = "alpha,beta,gamma\nplain line\n"
+stdout = "beta\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "complement-single-field"
+lane = "stepper"
+tier = "A"
+args = ["--complement", "-d", ",", "-f", "2"]
+stdin = "alpha,beta,gamma\n"
+stdout = "alpha,gamma\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "complement-range"
+lane = "stepper"
+tier = "A"
+args = ["--complement", "-d", ",", "-f", "2-3"]
+stdin = "alpha,beta,gamma,delta\n"
+stdout = "alpha,delta\n"
+stderr = ""
+exit = 0
+stdout_newline = true

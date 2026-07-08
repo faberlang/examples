@@ -1,0 +1,44 @@
+[pack]
+id = "th-TH"
+fallback = ["la"]
+
+[keywords]
+dum = "ขณะ"
+fac = "ทำ"
+fixum = "คงที่"
+functio = "ฟังก์ชัน"
+incipit = "เริ่ม"
+itera = "วน"
+nota = "แสดง"
+perge = "ข้าม"
+redde = "คืน"
+rumpe = "หยุด"
+secus = "มิฉะนั้น"
+si = "ถ้า"
+sin = "ถ้าไม่ก็"
+varia = "แปร"
+ex = "จาก"
+falsum = "เท็จ"
+verum = "จริง"
+
+[types]
+bivalens = "ตรรกะ"
+lista = "รายการ"
+numerus = "จำนวน"
+textus = "ข้อความ"
+
+[diagnostics.READER001]
+message = "ชุดภาษา {pack} ใช้คำละติน {keyword}; ควรใช้ {localized}"
+help = "ใช้ {localized} หรือเพิ่ม {keyword} เป็น alias ถ้าตั้งใจ"
+
+[diagnostics.PARSE011]
+message = "ต้องมีชื่อหลัง ฟังก์ชัน"
+help = "เพิ่มชื่อฟังก์ชันหลัง ฟังก์ชัน"
+
+[diagnostics.SEM010]
+message = "ชนิดข้อมูลไม่ตรงกัน"
+help = "ทำให้ค่าตรงกับชนิดที่ประกาศไว้"
+
+[llm]
+system_prompt_snippet = "Emit Thai reader-locale Faber using localized keywords for functions, bindings, conditionals, loops, entry blocks, output, returns, booleans, lista collections, and primitive text/number/boolean types."
+exemplars = ["./exemplars/salve-munde.th-TH.fab"]

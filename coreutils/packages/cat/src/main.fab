@@ -1,0 +1,51 @@
+importa ex "norma:solum" privata solum
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
+
+functio modus_stdin(lista<textus> operands) → bivalens {
+    redde operands.longitudo() ≡ 0
+}
+
+# lege returns nihil at EOF, so recursion stops without printing a final
+# synthetic line.
+functio cat_stdin() → vacuum {
+    fixum textus ∪ nihil linea ← lege
+    si linea non est nihil {
+        gnu_stdio.scribe_linea(linea vel "")
+        cat_stdin()
+    }
+}
+
+functio cat_file(textus path) → vacuum {
+    itera ex solum.carpe(path) fixum linea {
+        gnu_stdio.scribe_linea(linea)
+    }
+}
+
+functio cat_files(lista<textus> operands) → vacuum {
+    itera ex operands fixum path {
+        cat_file(path)
+    }
+}
+
+probandum "cat operand mode" tag "coreutils" {
+    proba "no operands selects stdin mode" {
+        adfirma modus_stdin([]) ≡ verum
+    }
+    proba "file operands select file mode" {
+        adfirma modus_stdin(["input.txt"]) ≡ falsum
+    }
+}
+
+@ cli "cat"
+@ descriptio "GNU coreutils cat stdin parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    fixum lista<textus> operands ← args.operands
+    fixum numerus count ← operands.longitudo()
+    si count ≡ 0 {
+        cat_stdin()
+    }
+    si count > 0 {
+        cat_files(operands)
+    }
+}

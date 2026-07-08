@@ -1,0 +1,50 @@
+functio ทักทาย(textus name) → textus {
+    fixum textus greeting ← scriptum("สวัสดี, §!", name)
+    redde greeting
+}
+
+functio ผ่าน(numerus score) → bivalens {
+    si score ≥ 80 {
+        redde verum
+    }
+    sin score ≥ 50 {
+        redde verum
+    }
+    secus {
+        redde falsum
+    }
+}
+
+functio นับผ่าน(lista<numerus> scores) → numerus {
+    varia numerus total ← 0
+    itera ex scores fixum score {
+        si score < 0 {
+            perge
+        }
+        si score ≥ 50 {
+            total ← total + 1
+        }
+        si total ≥ 2 {
+            rumpe
+        }
+    }
+    redde total
+}
+
+functio นับถอยหลัง(numerus start) → numerus {
+    varia numerus current ← start
+    dum current > 0 {
+        current ← current - 1
+    }
+    redde current
+}
+
+incipit {
+    fixum textus message ← ทักทาย("โลก")
+    fixum numerus score ← 82
+    fixum lista<numerus> scores ← [-1, 82, 41, 60]
+    nota message
+    nota ผ่าน(score)
+    nota นับผ่าน(scores)
+    nota นับถอยหลัง(3)
+}

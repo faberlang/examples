@@ -1,0 +1,127 @@
+# New Annotation Grammar Example
+#
+# Demonstrates the unified keyword-dispatch grammar for annotations:
+#   @ <keyword> [args...]  - declaration metadata
+#   +++ TOML frontmatter on line 1  - file/module metadata
+#
+# See: https://github.com/ianzepp/faber/issues/293
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# importa - Module Imports (NEW SYNTAX per issue #304)
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Syntax: importa ex "<path>" privata|publica <name> [ut <alias>]
+# Syntax: importa ex "<path>" privata|publica * ut <alias>  (wildcard)
+
+importa ex "./types" privata Numerus
+importa ex "./types" privata Textus
+importa ex "./utils" privata auxilium ut aux
+importa ex "./utils" privata formata
+importa ex "./constants" privata * ut constants
+importa ex "./config" privata * ut cfg
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ publica / @ privata - Visibility
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+
+@ publica
+genus PublicaRes {}
+
+@ privata
+genus PrivataRes {}
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ futura - Async Functions
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+
+@ publica
+@ futura
+functio fetchData(textus url) → textus {
+    redde ""
+}
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ cli - CLI Program Declaration
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Keyword: cli
+# Grammar: @ cli <string>
+
+@ cli "exemplar"
+@ versio "1.0.0"
+@ descriptio "An example CLI program"
+incipit argumenta args {}
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ optio - CLI Options
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Keyword: optio
+# Grammar: @ optio <binding> [brevis <s>] [longum <s>] [typus <type>] [descriptio <s>] [ubique] [vel <value>]
+
+@ optio verbose brevis "v" longum "verbose" typus bivalens descriptio "Enable verbose output"
+@ optio output brevis "o" longum "output" typus textus descriptio "Output file path"
+@ optio count longum "count" typus numerus descriptio "Number of iterations"
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ operandus - CLI Positional Arguments
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Keyword: operandus
+# Grammar: @ operandus [ceteri] <type> <binding> [descriptio <s>]
+
+@ operandus textus input descriptio "Input file"
+@ operandus ceteri textus files descriptio "Additional files"
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ imperium / @ alias - CLI Subcommands
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Keyword: imperium
+# Grammar: @ imperium <string>
+#
+# Keyword: alias
+# Grammar: @ alias <string>
+
+@ imperium "build"
+@ alias "b"
+@ descriptio "Build the project"
+@ optio release longum "release" typus bivalens descriptio "Build in release mode"
+functio build() argumenta args → vacuum {}
+
+@ imperium "test"
+@ alias "t"
+@ descriptio "Run tests"
+@ optio filter brevis "f" longum "filter" typus textus descriptio "Filter tests by name"
+functio test() argumenta args → vacuum {}
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ nomen - Named Blocks (for config)
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Keyword: nomen
+# Grammar: @ nomen <string>
+
+@ indentum 4
+@ tabulae falsum
+@ latitudo 100
+@ nomen "forma"
+fac {}
+
+@ ordinatio "alphabetica"
+@ separaGroups verum
+@ nomen "importa"
+fac {}
+
+@ bracchiae "nova-linea"
+@ methodiSeparatio 1
+@ nomen "genus"
+fac {}
+
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# @ verte / @ radix - Current Library Annotations
+# ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# Package native mappings use CISTA `[[bindings]]`.
+
+genus Tabula {}
+
+@ radix sort, imperativus, perfectum
+@ verte ts "sort"
+@ verte py "sort"
+functio sorta() {
+    tacet
+}
