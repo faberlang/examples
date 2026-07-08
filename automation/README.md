@@ -19,15 +19,17 @@ The package is manifest-backed by `faber.toml`; use the directory path for norma
 
 ## Validate
 
-From the repository root:
+From the `examples/` repo root (sibling `faber` checkout required):
 
 ```bash
-cargo run -p faber-cli -- check examples/automation
-cargo run -p faber-cli -- test examples/automation
-cargo run -p faber-cli -- build examples/automation
-cargo run -p faber-cli -- run examples/automation -- inventory list
-cargo run -p faber-cli -- run examples/automation -- runner dry-run sample-automation
-cargo run -p faber-cli -- emit -t rust --package examples/automation
+cargo run --manifest-path ../faber/Cargo.toml -- check automation
+cargo run --manifest-path ../faber/Cargo.toml -- test automation
+cargo run --manifest-path ../faber/Cargo.toml -- build automation
+cargo run --manifest-path ../faber/Cargo.toml -- run automation -- inventory list
+cargo run --manifest-path ../faber/Cargo.toml -- run automation -- runner dry-run sample-automation
+cargo run --manifest-path ../faber/Cargo.toml -- emit -t rust --package automation
 ```
+
+Or use a built `faber` on `PATH` with the same subcommands and paths.
 
 Runnable CLI generation is Rust-only in the active compiler. See `PLAN.md` for the staged path from this skeleton to a closer executor port.

@@ -3,13 +3,15 @@
 Faber re-implementations of GNU coreutils for **application-lane** proof, not as
 a replacement binary distribution.
 
-**Campaign control plane:** [`docs/factory/coreutils/CAMPAIGN.md`](../docs/factory/coreutils/CAMPAIGN.md)
+**Campaign control plane (private radix tree):**
+[`../../radix/docs/factory/coreutils/CAMPAIGN.md`](../../radix/docs/factory/coreutils/CAMPAIGN.md)
 
 ## Purpose
 
 - Demonstrate Faber building real CLI programs (argv, stdio, exit codes, host I/O)
 - Verify behavior against host GNU utilities via the parity harness
-- Stay separate from syntax exempla in `crates/exempla/corpus/`
+- Stay separate from syntax exempla in the private Radix tree
+  (`radix/crates/exempla/corpus/`)
 
 ## Layout
 
@@ -31,11 +33,19 @@ examples/coreutils/
 
 ## DevCycle (inner loop)
 
+From the `examples/` repo root (or any path that reaches these packages):
+
 ```bash
-faber check examples/coreutils/packages/<utility>
-faber test examples/coreutils/packages/<utility>
-faber format examples/coreutils/packages/<utility>/src/main.fab
-faber run --interpret examples/coreutils/packages/<utility> -- <args>
+faber check coreutils/packages/<utility>
+faber test coreutils/packages/<utility>
+faber format coreutils/packages/<utility>/src/main.fab
+faber run --interpret coreutils/packages/<utility> -- <args>
+```
+
+Parity harness lives in the private Radix tree:
+
+```bash
+# from radix/
 ./scripta/check-coreutils-parity <utility> --backend stepper
 ```
 
@@ -45,7 +55,8 @@ Faber constructs and utility-slice boundaries that readers need to understand.
 Ship milestone (per utility):
 
 ```bash
-faber build examples/coreutils/packages/<utility>
+faber build coreutils/packages/<utility>
+# from radix/
 ./scripta/check-coreutils-parity <utility> --backend rust
 ```
 
@@ -53,10 +64,10 @@ faber build examples/coreutils/packages/<utility>
 
 | Doc | Role |
 | --- | --- |
-| [`CAMPAIGN.md`](../docs/factory/coreutils/CAMPAIGN.md) | Routing, stages, dependencies |
-| [`ledger.md`](../docs/factory/coreutils/ledger.md) | Per-utility status |
-| [`parity-contract.md`](../docs/factory/coreutils/parity-contract.md) | Fixture format, lanes |
-| [`goals/_template.md`](../docs/factory/coreutils/goals/_template.md) | Factory goal template |
+| [`CAMPAIGN.md`](../../radix/docs/factory/coreutils/CAMPAIGN.md) | Routing, stages, dependencies |
+| [`ledger.md`](../../radix/docs/factory/coreutils/ledger.md) | Per-utility status |
+| [`parity-contract.md`](../../radix/docs/factory/coreutils/parity-contract.md) | Fixture format, lanes |
+| [`goals/_template.md`](../../radix/docs/factory/coreutils/goals/_template.md) | Factory goal template |
 
 ## Status
 
@@ -67,4 +78,4 @@ option, formatting, range, and path normalization coverage. Stage 4 has
 nullable-stdin slices for `cat`, `head`, `tail`, `wc`, `tac`, `uniq`, `fold`,
 `nl`, `expand`, `unexpand`, `sort`, `cut`, `grep`, `tr`, `tee`, and `paste`;
 continue from
-[`CAMPAIGN.md`](../docs/factory/coreutils/CAMPAIGN.md).
+[`CAMPAIGN.md`](../../radix/docs/factory/coreutils/CAMPAIGN.md).
