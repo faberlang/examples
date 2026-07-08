@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/expand/`
+**Primary surfaces**: `coreutils/packages/expand/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ streams, plus GNU-compatible initial-only expansion for `-i` / `--initial`.
 
 ## Deliverables
 
-- `examples/coreutils/packages/expand/faber.toml`
-- `examples/coreutils/packages/expand/src/main.fab`
-- `examples/coreutils/harness/fixtures/expand/cases.toml`
+- `coreutils/packages/expand/faber.toml`
+- `coreutils/packages/expand/src/main.fab`
+- `coreutils/harness/fixtures/expand/cases.toml`
 - Inline `probandum` / `proba` coverage for pure tab-expansion helper logic.
 
 ## Capability matrix
@@ -55,16 +55,16 @@ stop, and tabs after the final listed stop become one space.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/expand` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/expand`.
+- `faber check coreutils/packages/expand` passes.
+- Inline package tests pass through `faber test coreutils/packages/expand`.
 - `./scripta/check-coreutils-parity expand --backend stepper` passes declared
   Stage 4 fixtures against GNU `gexpand`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/expand
-faber test examples/coreutils/packages/expand
+faber check coreutils/packages/expand
+faber test coreutils/packages/expand
 ./scripta/check-coreutils-parity expand --backend stepper
 ```
 

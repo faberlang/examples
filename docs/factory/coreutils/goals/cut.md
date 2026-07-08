@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/cut/`
+**Primary surfaces**: `coreutils/packages/cut/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ default tab-delimited `-f LIST` and custom single-character ASCII delimiters via
 
 ## Deliverables
 
-- `examples/coreutils/packages/cut/faber.toml`
-- `examples/coreutils/packages/cut/src/main.fab`
-- `examples/coreutils/harness/fixtures/cut/cases.toml`
+- `coreutils/packages/cut/faber.toml`
+- `coreutils/packages/cut/src/main.fab`
+- `coreutils/harness/fixtures/cut/cases.toml`
 - Inline `probandum` / `proba` coverage for pure field-selection helper logic.
 
 ## Capability matrix
@@ -62,17 +62,17 @@ through unchanged, matching GNU `cut -f` default behavior, unless `-s` /
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/cut` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/cut`.
+- `faber check coreutils/packages/cut` passes.
+- Inline package tests pass through `faber test coreutils/packages/cut`.
 - `./scripta/check-coreutils-parity cut --backend stepper` passes declared
   Stage 4 fixtures against GNU `gcut`.
 
 ## Validation
 
 ```bash
-cargo run -q -p faber-cli -- format examples/coreutils/packages/cut/src/main.fab
-timeout 120 cargo run -p faber-cli -- check examples/coreutils/packages/cut
-timeout 120 cargo run -p faber-cli -- test examples/coreutils/packages/cut
+cargo run -q --manifest-path ../faber/Cargo.toml -- format coreutils/packages/cut/src/main.fab
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/cut
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- test coreutils/packages/cut
 timeout 120 ./scripta/check-coreutils-parity cut --backend stepper
 git diff --check
 ```

@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/basename/`
+**Primary surfaces**: `coreutils/packages/basename/`
 
 ## Utility
 
@@ -43,8 +43,8 @@ cases.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/basename` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/basename`.
+- `faber check coreutils/packages/basename` passes.
+- Inline package tests pass through `faber test coreutils/packages/basename`.
 - `./scripta/check-coreutils-parity basename --backend stepper` passes declared
   Tier A operand and suffix-option fixtures against GNU `gbasename`.
 - Shared `common/gnu/*` helpers are imported directly, without package-local
@@ -53,10 +53,10 @@ cases.
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/basename
-faber test examples/coreutils/packages/basename
-faber run --interpret examples/coreutils/packages/basename -- /usr/bin/sort rt
-faber run --interpret examples/coreutils/packages/basename -- -s rt /usr/bin/sort
+faber check coreutils/packages/basename
+faber test coreutils/packages/basename
+faber run --interpret coreutils/packages/basename -- /usr/bin/sort rt
+faber run --interpret coreutils/packages/basename -- -s rt /usr/bin/sort
 ./scripta/check-coreutils-parity basename --backend stepper
 ```
 

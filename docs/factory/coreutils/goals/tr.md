@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/tr/`
+**Primary surfaces**: `coreutils/packages/tr/`
 
 ## Utility
 
@@ -22,9 +22,9 @@ through unchanged.
 
 ## Deliverables
 
-- `examples/coreutils/packages/tr/faber.toml`
-- `examples/coreutils/packages/tr/src/main.fab`
-- `examples/coreutils/harness/fixtures/tr/cases.toml`
+- `coreutils/packages/tr/faber.toml`
+- `coreutils/packages/tr/src/main.fab`
+- `coreutils/harness/fixtures/tr/cases.toml`
 - Inline `probandum` / `proba` coverage for pure set expansion and line
   transformation helper logic.
 
@@ -65,17 +65,17 @@ boundaries in the Stage 4 contract.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/tr` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/tr`.
+- `faber check coreutils/packages/tr` passes.
+- Inline package tests pass through `faber test coreutils/packages/tr`.
 - `./scripta/check-coreutils-parity tr --backend stepper` passes declared
   Stage 4 fixtures against GNU `gtr`.
 
 ## Validation
 
 ```bash
-cargo run -q -p faber-cli -- format examples/coreutils/packages/tr/src/main.fab
-timeout 120 cargo run -p faber-cli -- check examples/coreutils/packages/tr
-timeout 120 cargo run -p faber-cli -- test examples/coreutils/packages/tr
+cargo run -q --manifest-path ../faber/Cargo.toml -- format coreutils/packages/tr/src/main.fab
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/tr
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- test coreutils/packages/tr
 timeout 120 ./scripta/check-coreutils-parity tr --backend stepper
 git diff --check
 ```

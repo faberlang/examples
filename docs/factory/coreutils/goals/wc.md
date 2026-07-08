@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/wc/`
+**Primary surfaces**: `coreutils/packages/wc/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ for newline-terminated ASCII streams.
 
 ## Deliverables
 
-- `examples/coreutils/packages/wc/faber.toml`
-- `examples/coreutils/packages/wc/src/main.fab`
-- `examples/coreutils/harness/fixtures/wc/cases.toml`
+- `coreutils/packages/wc/faber.toml`
+- `coreutils/packages/wc/src/main.fab`
+- `coreutils/harness/fixtures/wc/cases.toml`
 - Inline `probandum` / `proba` coverage for pure counting and formatting logic.
 
 ## Capability matrix
@@ -51,16 +51,16 @@ newline-terminated ASCII fixtures.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/wc` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/wc`.
+- `faber check coreutils/packages/wc` passes.
+- Inline package tests pass through `faber test coreutils/packages/wc`.
 - `./scripta/check-coreutils-parity wc --backend stepper` passes declared
   Stage 4 fixtures against GNU `gwc`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/wc
-faber test examples/coreutils/packages/wc
+faber check coreutils/packages/wc
+faber test coreutils/packages/wc
 ./scripta/check-coreutils-parity wc --backend stepper
 ```
 

@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/dirname/`
+**Primary surfaces**: `coreutils/packages/dirname/`
 
 ## Utility
 
@@ -44,17 +44,17 @@ semantics for `//`; the package normalizes root-like slash runs to `/`.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/dirname` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/dirname`.
+- `faber check coreutils/packages/dirname` passes.
+- Inline package tests pass through `faber test coreutils/packages/dirname`.
 - `./scripta/check-coreutils-parity dirname --backend stepper` passes declared
   Tier A simple-path and slash-normalization fixtures.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/dirname
-faber test examples/coreutils/packages/dirname
-faber run --interpret examples/coreutils/packages/dirname -- usr/bin
+faber check coreutils/packages/dirname
+faber test coreutils/packages/dirname
+faber run --interpret coreutils/packages/dirname -- usr/bin
 ./scripta/check-coreutils-parity dirname --backend stepper
 ```
 

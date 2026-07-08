@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 3
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/printf/`
+**Primary surfaces**: `coreutils/packages/printf/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ for raw-output parity once the stdout surface supports it.
 
 ## Deliverables
 
-- `examples/coreutils/packages/printf/faber.toml`
-- `examples/coreutils/packages/printf/src/main.fab`
-- `examples/coreutils/harness/fixtures/printf/cases.toml`
+- `coreutils/packages/printf/faber.toml`
+- `coreutils/packages/printf/src/main.fab`
+- `coreutils/harness/fixtures/printf/cases.toml`
 - Inline `probandum` / `proba` coverage for pure formatting logic.
 
 ## Capability matrix
@@ -53,16 +53,16 @@ directives.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/printf` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/printf`.
+- `faber check coreutils/packages/printf` passes.
+- Inline package tests pass through `faber test coreutils/packages/printf`.
 - `./scripta/check-coreutils-parity printf --backend stepper` passes declared
   Tier A fixtures.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/printf
-faber test examples/coreutils/packages/printf
+faber check coreutils/packages/printf
+faber test coreutils/packages/printf
 ./scripta/check-coreutils-parity printf --backend stepper
 ```
 

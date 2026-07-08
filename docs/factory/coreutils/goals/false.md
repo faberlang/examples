@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/false/`
+**Primary surfaces**: `coreutils/packages/false/`
 
 ## Utility
 
@@ -23,15 +23,15 @@ Implement `false` as a Faber package that exits `1`.
 ## Acceptance
 
 - Stepper fixtures pass through `./scripta/check-coreutils-parity false --backend stepper`.
-- Inline package tests pass through `faber test examples/coreutils/packages/false`.
+- Inline package tests pass through `faber test coreutils/packages/false`.
 - Rust ship gate remains a later milestone.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/false
-faber test examples/coreutils/packages/false
-faber run --interpret examples/coreutils/packages/false
+faber check coreutils/packages/false
+faber test coreutils/packages/false
+faber run --interpret coreutils/packages/false
 ./scripta/check-coreutils-parity false --backend stepper
 ```
 

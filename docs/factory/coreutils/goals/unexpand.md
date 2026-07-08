@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/unexpand/`
+**Primary surfaces**: `coreutils/packages/unexpand/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ comma/list tab stops for the declared ASCII stepper subset.
 
 ## Deliverables
 
-- `examples/coreutils/packages/unexpand/faber.toml`
-- `examples/coreutils/packages/unexpand/src/main.fab`
-- `examples/coreutils/harness/fixtures/unexpand/cases.toml`
+- `coreutils/packages/unexpand/faber.toml`
+- `coreutils/packages/unexpand/src/main.fab`
+- `coreutils/harness/fixtures/unexpand/cases.toml`
 - Inline `probandum` / `proba` coverage for pure unexpand helper logic.
 
 ## Capability matrix
@@ -53,16 +53,16 @@ multibyte or terminal-column behavior.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/unexpand` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/unexpand`.
+- `faber check coreutils/packages/unexpand` passes.
+- Inline package tests pass through `faber test coreutils/packages/unexpand`.
 - `./scripta/check-coreutils-parity unexpand --backend stepper` passes declared
   Stage 4 fixtures against GNU `gunexpand`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/unexpand
-faber test examples/coreutils/packages/unexpand
+faber check coreutils/packages/unexpand
+faber test coreutils/packages/unexpand
 ./scripta/check-coreutils-parity unexpand --backend stepper
 ```
 

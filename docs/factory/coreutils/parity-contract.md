@@ -1,7 +1,7 @@
 # Parity Contract: Coreutils Application Exempla
 
 **Campaign**: [`CAMPAIGN.md`](CAMPAIGN.md)
-**Fixture root**: `examples/coreutils/harness/fixtures/<utility>/`
+**Fixture root**: `coreutils/harness/fixtures/<utility>/`
 
 This document is the authority for GNU baseline comparison, fixture shape, and
 two-lane (`stepper` / `rust`) validation.

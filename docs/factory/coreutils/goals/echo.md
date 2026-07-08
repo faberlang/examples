@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/echo/`
+**Primary surfaces**: `coreutils/packages/echo/`
 
 ## Utility
 
@@ -42,25 +42,25 @@ verb.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/echo` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/echo`.
+- `faber check coreutils/packages/echo` passes.
+- Inline package tests pass through `faber test coreutils/packages/echo`.
 - `./scripta/check-coreutils-parity echo --backend stepper` passes declared
   Tier A fixtures including `stdout_newline = false` cases.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/echo
-faber test examples/coreutils/packages/echo
-faber run --interpret examples/coreutils/packages/echo -- hello world
-faber run --interpret examples/coreutils/packages/echo -- -n hello
+faber check coreutils/packages/echo
+faber test coreutils/packages/echo
+faber run --interpret coreutils/packages/echo -- hello world
+faber run --interpret coreutils/packages/echo -- -n hello
 ./scripta/check-coreutils-parity echo --backend stepper
 ```
 
 ## Evidence
 
 - 2026-07-08: `echo -n` stepper parity 11/11 after `KernelModule::Consolum`
-  (`dic`/`scribe`/`mone`) + host `write_stdout_raw` landed in radix/faber-cli.
+  (`dic`/`scribe`/`mone`) + host `write_stdout_raw` landed in radix/`faber`.
 - Inline `proba` covers operand join, `-E`, `-n` flag parsing, and combinations.
 - Harness `stdout_newline = false` is strict (does not strip trailing newlines).
 

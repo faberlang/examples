@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/paste/`
+**Primary surfaces**: `coreutils/packages/paste/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ serial mode with `-s` joining all stdin lines with tabs, and serial mode with
 
 ## Deliverables
 
-- `examples/coreutils/packages/paste/faber.toml`
-- `examples/coreutils/packages/paste/src/main.fab`
-- `examples/coreutils/harness/fixtures/paste/cases.toml`
+- `coreutils/packages/paste/faber.toml`
+- `coreutils/packages/paste/src/main.fab`
+- `coreutils/harness/fixtures/paste/cases.toml`
 - Inline `probandum` / `proba` coverage for pure delimiter and serial joining
   helper logic.
 
@@ -59,17 +59,17 @@ matches GNU `gpaste` by producing no output.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/paste` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/paste`.
+- `faber check coreutils/packages/paste` passes.
+- Inline package tests pass through `faber test coreutils/packages/paste`.
 - `./scripta/check-coreutils-parity paste --backend stepper` passes declared
   Stage 4 fixtures against GNU `gpaste`.
 
 ## Validation
 
 ```bash
-cargo run -q -p faber-cli -- format examples/coreutils/packages/paste/src/main.fab
-timeout 120 cargo run -p faber-cli -- check examples/coreutils/packages/paste
-timeout 120 cargo run -p faber-cli -- test examples/coreutils/packages/paste
+cargo run -q --manifest-path ../faber/Cargo.toml -- format coreutils/packages/paste/src/main.fab
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/paste
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- test coreutils/packages/paste
 timeout 120 ./scripta/check-coreutils-parity paste --backend stepper
 git diff --check
 ```

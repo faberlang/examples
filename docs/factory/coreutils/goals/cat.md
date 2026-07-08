@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/cat/`
+**Primary surfaces**: `coreutils/packages/cat/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ helper.
 
 ## Deliverables
 
-- `examples/coreutils/packages/cat/faber.toml`
-- `examples/coreutils/packages/cat/src/main.fab`
-- `examples/coreutils/harness/fixtures/cat/cases.toml`
+- `coreutils/packages/cat/faber.toml`
+- `coreutils/packages/cat/src/main.fab`
+- `coreutils/harness/fixtures/cat/cases.toml`
 - Inline `probandum` / `proba` coverage for operand-mode helper logic.
 
 ## Capability matrix
@@ -46,16 +46,16 @@ behaviors honestly.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/cat` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/cat`.
+- `faber check coreutils/packages/cat` passes.
+- Inline package tests pass through `faber test coreutils/packages/cat`.
 - `./scripta/check-coreutils-parity cat --backend stepper` passes declared
   newline-terminated stdin fixtures.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/cat
-faber test examples/coreutils/packages/cat
+faber check coreutils/packages/cat
+faber test coreutils/packages/cat
 ./scripta/check-coreutils-parity cat --backend stepper
 ```
 

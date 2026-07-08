@@ -14,8 +14,8 @@ packages. Each utility is a runnable binary with GNU argv and I/O behavior,
 verified against the host-installed baseline. The work is **application exempla**:
 it proves Faber can build real CLI programs, not syntax tutorials.
 
-The syntax corpus (`crates/exempla/corpus/`) stays focused on language constructs.
-Coreutils lives under `examples/coreutils/` as a package workspace with a
+The syntax corpus (sibling radix `crates/exempla/corpus/`) stays focused on language constructs.
+Coreutils lives under `coreutils/` as a package workspace with a
 stepper-first DevCycle and a Rust ship gate.
 
 ## Problem
@@ -35,7 +35,7 @@ Cargo builds for every edit.
 
 ## Desired End State
 
-- `examples/coreutils/` holds one Faber package per utility plus shared
+- `coreutils/` holds one Faber package per utility plus shared
   `common/gnu/*` pure modules.
 - Pure utility logic is covered by inline `proba` / `probandum` blocks in the
   package `.fab` files; separate `.proba` files are deferred until package
@@ -55,7 +55,7 @@ Cargo builds for every edit.
 ## Development Posture
 
 - **Application exempla, not stdlib.** Shared code lives in
-  `examples/coreutils/common/`. Do not add coreutils modules to `stdlib/norma`.
+  `coreutils/common/`. Do not add coreutils modules to sibling `norma/src`.
 - **Stepper-first inner loop.** Prefer `faber check` and
   `faber run --interpret` over `faber build` during implementation. Rust compile
   is a milestone gate, not an edit-run cycle.
@@ -98,7 +98,7 @@ Cargo builds for every edit.
 
 **In campaign**
 
-- `examples/coreutils/` package workspace and shared `common/gnu/*`
+- `coreutils/` package workspace and shared `common/gnu/*`
 - Parity harness (`scripta/check-coreutils-parity`) and fixture corpora
 - Per-utility factory goals under `docs/factory/coreutils/goals/`
 - Thin pointer exemplum under `crates/exempla/corpus/applications/` (meta only)
@@ -107,7 +107,7 @@ Cargo builds for every edit.
 **Out of campaign unless explicitly pulled in**
 
 - Syntax/keyword exempla in `crates/exempla/corpus/<term>/`
-- `stdlib/norma` growth (route to
+- sibling `norma/src` growth (route to
   [`core-stdlib/CAMPAIGN.md`](../core-stdlib/CAMPAIGN.md))
 - Compiler/MIR work except gaps filed from coreutils utility goals
 - Full GNU test-suite import or locale matrix certification
@@ -131,16 +131,16 @@ per-utility state; stages hold track-level routing.
 
 | Source | Authority for |
 | --- | --- |
-| [`AGENTS.md`](../../../AGENTS.md) | Workspace lanes, tooling, grammar rules |
-| [`README.md`](../../../README.md) | Package manifest, compiler performance, CLI roles |
-| [`crates/exempla/corpus/cli/cli.fab`](../../../crates/exempla/corpus/cli/cli.fab) | `@ cli` / `@ optio` / operand patterns |
-| [`examples/fixtures/exempla-boundary/package-cli/`](../../../examples/fixtures/exempla-boundary/package-cli/) | Package CLI mounts |
-| [`docs/factory/faber-kernel-solum/`](../faber-kernel-solum/) · [`docs/factory/faber-kernel-namespace/`](../faber-kernel-namespace/) | `faber:*` kernel modules (`solum`, `processus`) backing dev-lane host I/O |
-| [`docs/factory/faber-script-kernel/CAMPAIGN.md`](../faber-script-kernel/CAMPAIGN.md) | Script-mode kernel dispatch (`faber run script.fab`) |
-| [`docs/factory/faber-script-runtime/CAMPAIGN.md`](../faber-script-runtime/CAMPAIGN.md) | `faber script` lane + Stage 1b package host import bridge (owns the `norma:*` → stepper-kernel dispatch) |
-| [`crates/faber-cli/src/commands/run.rs`](../../../crates/faber-cli/src/commands/run.rs) | `faber run` interpret vs compile policy |
-| [`crates/faber-cli/src/package/mir.rs`](../../../crates/faber-cli/src/package/mir.rs) | Package MIR limits (library imports, CLI surfaces) |
-| [`docs/factory/core-stdlib/CAMPAIGN.md`](../core-stdlib/CAMPAIGN.md) | `norma:*` readiness for file/process ship lane |
+| [sibling radix `AGENTS.md`](../../../../radix/AGENTS.md) | Workspace lanes, tooling, grammar rules |
+| [sibling radix `README.md`](../../../../radix/README.md) | Package manifest, compiler performance, CLI roles |
+| [sibling radix `crates/exempla/corpus/cli/cli.fab`](../../../../radix/crates/exempla/corpus/cli/cli.fab) | `@ cli` / `@ optio` / operand patterns |
+| [`fixtures/exempla-boundary/package-cli/`](../../../fixtures/exempla-boundary/package-cli/) | Package CLI mounts |
+| [sibling radix `docs/factory/faber-kernel-solum/`](../../../../radix/docs/factory/faber-kernel-solum/) · [`faber-kernel-namespace/`](../../../../radix/docs/factory/faber-kernel-namespace/) | `faber:*` kernel modules (`solum`, `processus`) backing dev-lane host I/O |
+| [sibling radix `docs/factory/faber-script-kernel/CAMPAIGN.md`](../../../../radix/docs/factory/faber-script-kernel/CAMPAIGN.md) | Script-mode kernel dispatch (`faber run script.fab`) |
+| [sibling faber `docs/factory/faber-script-runtime/CAMPAIGN.md`](../../../../faber/docs/factory/faber-script-runtime/CAMPAIGN.md) | `faber script` lane + Stage 1b package host import bridge (owns the `norma:*` → stepper-kernel dispatch) |
+| [`../faber/src/commands/run.rs`](../../../../faber/src/commands/run.rs) | `faber run` interpret vs compile policy |
+| [`../faber/src/package/mir.rs`](../../../../faber/src/package/mir.rs) | Package MIR limits (library imports, CLI surfaces) |
+| [sibling radix `docs/factory/core-stdlib/CAMPAIGN.md`](../../../../radix/docs/factory/core-stdlib/CAMPAIGN.md) | `norma:*` readiness for file/process ship lane |
 
 ## Track Ledger
 
@@ -174,7 +174,7 @@ Summary (2026-07-07):
 **Source**: [`stage-1-scaffold-goal.md`](stage-1-scaffold-goal.md).
 **Why now**: proves layout, fixture contract, and stepper compare loop before
 utility throughput.
-**Deliverables**: `examples/coreutils/` skeleton, `scripta/check-coreutils-parity`,
+**Deliverables**: `coreutils/` skeleton, `scripta/check-coreutils-parity`,
 `true` and `false` stepper-complete, applications pointer exemplum.
 **Gate**: Stage 1 goal acceptance criteria green.
 **Evidence**: `true` and `false` pass `faber check` and
@@ -384,9 +384,9 @@ test -f docs/factory/coreutils/parity-contract.md
 Downstream validation (Stage 1+):
 
 ```bash
-faber check examples/coreutils/packages/true
-faber test examples/coreutils/packages/true
-faber run --interpret examples/coreutils/packages/true
+faber check coreutils/packages/true
+faber test coreutils/packages/true
+faber run --interpret coreutils/packages/true
 ./scripta/check-coreutils-parity true --backend stepper
 ./scripta/check-coreutils-parity echo --backend stepper
 ./scripta/check-coreutils-parity basename --backend stepper
@@ -429,7 +429,7 @@ faber run --interpret examples/coreutils/packages/true
 Full utility ship gate (milestone):
 
 ```bash
-faber build examples/coreutils/packages/<util>
+faber build coreutils/packages/<util>
 ./scripta/check-coreutils-parity <util> --backend rust
 ```
 
@@ -455,8 +455,8 @@ Stage 1 promotes an optional CI hook.
 Pause and return to the campaign before implementing when:
 
 - a utility would land in `crates/exempla/corpus/<keyword>/` instead of
-  `examples/coreutils/`;
-- a factory goal would add behavior to `stdlib/norma` for one utility;
+  `coreutils/`;
+- a factory goal would add behavior to sibling `norma/src` for one utility;
 - stepper and Rust paths would diverge without fixture/documentation update;
 - a proposal schedules Stage 7 utilities before M3;
 - file-I/O flags are stubbed to pass stepper fixtures while Rust path is wrong.

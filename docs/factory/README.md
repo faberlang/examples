@@ -1,9 +1,28 @@
 # Factory documentation (examples)
 
-Open factory tracks for public application examples (coreutils campaign).
+Open factory tracks for public **application examples** (coreutils campaign).
 
-These goals were relocated from private Radix `docs/factory/` on 2026-07-08 so
-product-lane work can be planned and implemented in the owning public repo.
-Compiler-only factory work remains under `faberlang/radix/docs/factory/`.
+Relocated from private Radix on 2026-07-08.
+
+## Layout (current)
+
+```text
+examples/
+  coreutils/           packages + harness fixtures
+  docs/factory/        this control plane
+  fixtures/            boundary fixtures
+# siblings
+  ../faber             public CLI
+  ../norma             public stdlib source
+  ../radix             private compiler + parity scripta
+```
+
+Common commands from this repo:
+
+```bash
+cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/<util>
+# from ../radix:
+# ./scripta/check-coreutils-parity <util> --backend stepper
+```
 
 Each `goal.md` / `CAMPAIGN.md` owns its **Status** line.

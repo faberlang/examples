@@ -19,7 +19,7 @@
 
 | Row | Stage | Stepper | Ship | Stepper surface | Blocked (stepper) | Next action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `examples/coreutils/` layout | 1 | complete | — | package workspace + fixtures | — | Complete |
+| `coreutils/` layout | 1 | complete | — | package workspace + fixtures | — | Complete |
 | `scripta/check-coreutils-parity` | 1 | complete | — | stepper parity harness | rust milestone not exercised | Extend per utility |
 | `common/gnu/*` substrate | 2 | complete | — | pure argv/stdio/format helpers | host I/O | Extend per utility |
 | Inline `proba` package tests | 2 | slice | — | pure helper behavior in package `.fab` files | separate `.proba` discovery | Extend per utility |

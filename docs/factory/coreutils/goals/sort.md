@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/sort/`
+**Primary surfaces**: `coreutils/packages/sort/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ GNU `-f` fold-case comparison over ASCII lines under `LC_ALL=C`.
 
 ## Deliverables
 
-- `examples/coreutils/packages/sort/faber.toml`
-- `examples/coreutils/packages/sort/src/main.fab`
-- `examples/coreutils/harness/fixtures/sort/cases.toml`
+- `coreutils/packages/sort/faber.toml`
+- `coreutils/packages/sort/src/main.fab`
+- `coreutils/harness/fixtures/sort/cases.toml`
 - Inline `probandum` / `proba` coverage for pure line sorting helper logic.
 
 ## Capability matrix
@@ -68,19 +68,19 @@ non-ASCII collation is not claimed.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/sort` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/sort`.
+- `faber check coreutils/packages/sort` passes.
+- Inline package tests pass through `faber test coreutils/packages/sort`.
 - `./scripta/check-coreutils-parity sort --backend stepper` passes declared
   Stage 4 fixtures against GNU `gsort`.
-- `faber format --check examples/coreutils/packages/sort/src/main.fab` passes.
+- `faber format --check coreutils/packages/sort/src/main.fab` passes.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/sort
-faber test examples/coreutils/packages/sort
+faber check coreutils/packages/sort
+faber test coreutils/packages/sort
 ./scripta/check-coreutils-parity sort --backend stepper
-faber format --check examples/coreutils/packages/sort/src/main.fab
+faber format --check coreutils/packages/sort/src/main.fab
 ```
 
 ## Evidence

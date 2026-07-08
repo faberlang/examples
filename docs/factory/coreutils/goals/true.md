@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/true/`
+**Primary surfaces**: `coreutils/packages/true/`
 
 ## Utility
 
@@ -25,15 +25,15 @@ Implement `true` as a Faber package that exits `0` and ignores operands like GNU
 ## Acceptance
 
 - Stepper fixtures pass through `./scripta/check-coreutils-parity true --backend stepper`.
-- Inline package tests pass through `faber test examples/coreutils/packages/true`.
+- Inline package tests pass through `faber test coreutils/packages/true`.
 - Rust ship gate remains a later milestone.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/true
-faber test examples/coreutils/packages/true
-faber run --interpret examples/coreutils/packages/true
+faber check coreutils/packages/true
+faber test coreutils/packages/true
+faber run --interpret coreutils/packages/true
 ./scripta/check-coreutils-parity true --backend stepper
 ```
 

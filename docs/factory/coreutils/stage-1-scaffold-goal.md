@@ -5,7 +5,7 @@
 **Created**: 2026-07-06
 **Target repo**: `/Users/ianzepp/work/faberlang/examples`
 **Factory artifact dir**: `docs/factory/coreutils/`
-**Primary surfaces**: `examples/coreutils/`, `scripta/check-coreutils-parity`,
+**Primary surfaces**: `coreutils/`, `scripta/check-coreutils-parity`,
 `crates/exempla/corpus/applications/`
 
 **Related**: [`parity-contract.md`](parity-contract.md), [`ledger.md`](ledger.md)
@@ -29,10 +29,10 @@ stepper-first DevCycle before scheduling further utilities.
 
 ### 1. Workspace layout
 
-Create directory tree per [`examples/coreutils/README.md`](../../../examples/coreutils/README.md):
+Create directory tree per [`coreutils/README.md`](../../../coreutils/README.md):
 
 ```text
-examples/coreutils/
+coreutils/
   README.md
   common/gnu/          # empty placeholder until Stage 2
   packages/
@@ -77,9 +77,9 @@ kind = "bin"
 Verify package MIR path:
 
 ```bash
-faber check examples/coreutils/packages/true
-faber run --interpret examples/coreutils/packages/true
-faber run --interpret examples/coreutils/packages/false
+faber check coreutils/packages/true
+faber run --interpret coreutils/packages/true
+faber run --interpret coreutils/packages/false
 ```
 
 ### 3. Parity fixtures
@@ -100,7 +100,7 @@ All cases: `lane = "stepper"`, `tier = "A"`.
 `scripta/check-coreutils-parity`:
 
 - Args: `<utility> [--backend stepper|rust|all] [--tier A] [--case <id>]`
-- Stepper backend: `faber run --interpret examples/coreutils/packages/<utility> --`
+- Stepper backend: `faber run --interpret coreutils/packages/<utility> --`
 - GNU baseline: explicit `g<utility>` (keg-only; never `command -v`, which
   resolves shell builtins or BSD — see parity contract) with same
   args/stdin/env/cwd
@@ -116,7 +116,7 @@ Stage 1 closeout requires `--backend stepper` green for `true` and `false`.
 `crates/exempla/corpus/applications/coreutils.fab`:
 
 - `+++` frontmatter: `term = "applications"`, meta/kind appropriate for pointer
-- Body explains application exempla live in `examples/coreutils/`
+- Body explains application exempla live in `coreutils/`
 - Links campaign path `docs/factory/coreutils/CAMPAIGN.md`
 - Runnable smoke: `incipit { nota "coreutils application exempla" }`
 
@@ -137,7 +137,7 @@ Fill capability matrices (minimal). Mark ship-complete as optional stretch.
 
 ## Acceptance criteria
 
-- [x] Layout exists under `examples/coreutils/`
+- [x] Layout exists under `coreutils/`
 - [x] `true` and `false` packages pass `faber check`
 - [x] `faber run --interpret` exits 0/1 respectively with no args
 - [x] `./scripta/check-coreutils-parity true --backend stepper` passes all Tier A cases
@@ -149,10 +149,10 @@ Fill capability matrices (minimal). Mark ship-complete as optional stretch.
 ## Completion evidence
 
 ```text
-faber check examples/coreutils/packages/true: ok
-faber check examples/coreutils/packages/false: ok
-faber run --interpret examples/coreutils/packages/true: exit 0
-faber run --interpret examples/coreutils/packages/false: exit 1
+faber check coreutils/packages/true: ok
+faber check coreutils/packages/false: ok
+faber run --interpret coreutils/packages/true: exit 0
+faber run --interpret coreutils/packages/false: exit 1
 check-coreutils-parity true --backend stepper: 2/2 pass
 check-coreutils-parity false --backend stepper: 2/2 pass
 ```
@@ -160,18 +160,18 @@ check-coreutils-parity false --backend stepper: 2/2 pass
 ## DevCycle (locked for campaign)
 
 ```bash
-faber check examples/coreutils/packages/<util>
-faber run --interpret examples/coreutils/packages/<util> -- <args>
+faber check coreutils/packages/<util>
+faber run --interpret coreutils/packages/<util> -- <args>
 ./scripta/check-coreutils-parity <util> --backend stepper
 ```
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/true
-faber check examples/coreutils/packages/false
-faber run --interpret examples/coreutils/packages/true
-faber run --interpret examples/coreutils/packages/false
+faber check coreutils/packages/true
+faber check coreutils/packages/false
+faber run --interpret coreutils/packages/true
+faber run --interpret coreutils/packages/false
 ./scripta/check-coreutils-parity true --backend stepper
 ./scripta/check-coreutils-parity false --backend stepper
 python3.11 scripta/generate-exempla-index.py
@@ -181,7 +181,7 @@ rg -n "applications/coreutils" crates/exempla/corpus/index.toml
 Optional stretch:
 
 ```bash
-faber build examples/coreutils/packages/true
+faber build coreutils/packages/true
 ./scripta/check-coreutils-parity true --backend rust
 ```
 

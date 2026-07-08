@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/fold/`
+**Primary surfaces**: `coreutils/packages/fold/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ ASCII subset of `-s` / `--spaces` on newline-terminated text.
 
 ## Deliverables
 
-- `examples/coreutils/packages/fold/faber.toml`
-- `examples/coreutils/packages/fold/src/main.fab`
-- `examples/coreutils/harness/fixtures/fold/cases.toml`
+- `coreutils/packages/fold/faber.toml`
+- `coreutils/packages/fold/src/main.fab`
+- `coreutils/harness/fixtures/fold/cases.toml`
 - Inline `probandum` / `proba` coverage for pure line folding logic.
 
 ## Capability matrix
@@ -54,16 +54,16 @@ helper tests stay finite, but no parity fixture depends on that behavior.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/fold` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/fold`.
+- `faber check coreutils/packages/fold` passes.
+- Inline package tests pass through `faber test coreutils/packages/fold`.
 - `./scripta/check-coreutils-parity fold --backend stepper` passes declared
   Stage 4 fixtures against GNU `gfold`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/fold
-faber test examples/coreutils/packages/fold
+faber check coreutils/packages/fold
+faber test coreutils/packages/fold
 ./scripta/check-coreutils-parity fold --backend stepper
 ```
 

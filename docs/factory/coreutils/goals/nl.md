@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/nl/`
+**Primary surfaces**: `coreutils/packages/nl/`
 
 ## Utility
 
@@ -20,9 +20,9 @@ and left-justified number formatting.
 
 ## Deliverables
 
-- `examples/coreutils/packages/nl/faber.toml`
-- `examples/coreutils/packages/nl/src/main.fab`
-- `examples/coreutils/harness/fixtures/nl/cases.toml`
+- `coreutils/packages/nl/faber.toml`
+- `coreutils/packages/nl/src/main.fab`
+- `coreutils/harness/fixtures/nl/cases.toml`
 - Inline `probandum` / `proba` coverage for pure numbering and formatting logic.
 
 ## Capability matrix
@@ -54,16 +54,16 @@ options as `-b a`, not attached `-ba`.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/nl` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/nl`.
+- `faber check coreutils/packages/nl` passes.
+- Inline package tests pass through `faber test coreutils/packages/nl`.
 - `./scripta/check-coreutils-parity nl --backend stepper` passes declared
   Stage 4 fixtures against GNU `gnl`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/nl
-faber test examples/coreutils/packages/nl
+faber check coreutils/packages/nl
+faber test coreutils/packages/nl
 ./scripta/check-coreutils-parity nl --backend stepper
 ```
 

@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/tail/`
+**Primary surfaces**: `coreutils/packages/tail/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ one-based start-line mode.
 
 ## Deliverables
 
-- `examples/coreutils/packages/tail/faber.toml`
-- `examples/coreutils/packages/tail/src/main.fab`
-- `examples/coreutils/harness/fixtures/tail/cases.toml`
+- `coreutils/packages/tail/faber.toml`
+- `coreutils/packages/tail/src/main.fab`
+- `coreutils/harness/fixtures/tail/cases.toml`
 - Inline `probandum` / `proba` coverage for pure line-selection logic.
 
 ## Capability matrix
@@ -51,16 +51,16 @@ before selecting either the final bounded line window or the one-based
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/tail` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/tail`.
+- `faber check coreutils/packages/tail` passes.
+- Inline package tests pass through `faber test coreutils/packages/tail`.
 - `./scripta/check-coreutils-parity tail --backend stepper` passes declared
   Stage 4 fixtures against GNU `gtail`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/tail
-faber test examples/coreutils/packages/tail
+faber check coreutils/packages/tail
+faber test coreutils/packages/tail
 ./scripta/check-coreutils-parity tail --backend stepper
 ```
 

@@ -5,7 +5,7 @@
 **Ledger row**: [`../ledger.md`](../ledger.md) § `<section>`
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
 **Factory artifact dir**: `docs/factory/coreutils/`
-**Primary surfaces**: `examples/coreutils/packages/<utility>/`
+**Primary surfaces**: `coreutils/packages/<utility>/`
 
 ---
 
@@ -21,16 +21,16 @@ declared capability slices.
 
 ## Deliverables
 
-- `examples/coreutils/packages/<utility>/faber.toml`
-- `examples/coreutils/packages/<utility>/src/main.fab` (+ modules as needed)
-- `examples/coreutils/harness/fixtures/<utility>/cases.toml`
+- `coreutils/packages/<utility>/faber.toml`
+- `coreutils/packages/<utility>/src/main.fab` (+ modules as needed)
+- `coreutils/harness/fixtures/<utility>/cases.toml`
 - `proba` blocks for extractable pure logic (optional)
-- Imports from `examples/coreutils/common/gnu/*` where applicable
+- Imports from `coreutils/common/gnu/*` where applicable
 
 ## Package layout
 
 ```text
-examples/coreutils/packages/<utility>/
+coreutils/packages/<utility>/
   faber.toml
   src/
     main.fab       # @ cli, incipit argumenta, dispatch
@@ -53,11 +53,11 @@ examples/coreutils/packages/<utility>/
 ## DevCycle (mandatory)
 
 ```bash
-faber check examples/coreutils/packages/<utility>
-faber run --interpret examples/coreutils/packages/<utility> -- <args>
+faber check coreutils/packages/<utility>
+faber run --interpret coreutils/packages/<utility> -- <args>
 ./scripta/check-coreutils-parity <utility> --backend stepper
 # closeout only:
-faber build examples/coreutils/packages/<utility>
+faber build coreutils/packages/<utility>
 ./scripta/check-coreutils-parity <utility> --backend rust
 ```
 
@@ -105,15 +105,15 @@ Until Stage 1b: keep file reads on `lane = rust` fixtures only.
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/<utility>
-faber run --interpret examples/coreutils/packages/<utility> -- ...
+faber check coreutils/packages/<utility>
+faber run --interpret coreutils/packages/<utility> -- ...
 ./scripta/check-coreutils-parity <utility> --backend stepper
 ```
 
 Ship:
 
 ```bash
-faber build examples/coreutils/packages/<utility>
+faber build coreutils/packages/<utility>
 ./scripta/check-coreutils-parity <utility> --backend rust
 ```
 

@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/tee/`
+**Primary surfaces**: `coreutils/packages/tee/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ files.
 
 ## Deliverables
 
-- `examples/coreutils/packages/tee/faber.toml`
-- `examples/coreutils/packages/tee/src/main.fab`
-- `examples/coreutils/harness/fixtures/tee/cases.toml`
+- `coreutils/packages/tee/faber.toml`
+- `coreutils/packages/tee/src/main.fab`
+- `coreutils/harness/fixtures/tee/cases.toml`
 - Inline `probandum` / `proba` coverage for pure no-file subset and stdout
   passthrough helper logic.
 
@@ -58,17 +58,17 @@ than byte-exact stream copying.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/tee` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/tee`.
+- `faber check coreutils/packages/tee` passes.
+- Inline package tests pass through `faber test coreutils/packages/tee`.
 - `./scripta/check-coreutils-parity tee --backend stepper` passes declared
   Stage 4 fixtures against GNU `gtee`.
 
 ## Validation
 
 ```bash
-cargo run -q -p faber-cli -- format examples/coreutils/packages/tee/src/main.fab
-timeout 120 cargo run -p faber-cli -- check examples/coreutils/packages/tee
-timeout 120 cargo run -p faber-cli -- test examples/coreutils/packages/tee
+cargo run -q --manifest-path ../faber/Cargo.toml -- format coreutils/packages/tee/src/main.fab
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/tee
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- test coreutils/packages/tee
 timeout 120 ./scripta/check-coreutils-parity tee --backend stepper
 git diff --check
 ```

@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/uniq/`
+**Primary surfaces**: `coreutils/packages/uniq/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ newline-terminated streams.
 
 ## Deliverables
 
-- `examples/coreutils/packages/uniq/faber.toml`
-- `examples/coreutils/packages/uniq/src/main.fab`
-- `examples/coreutils/harness/fixtures/uniq/cases.toml`
+- `coreutils/packages/uniq/faber.toml`
+- `coreutils/packages/uniq/src/main.fab`
+- `coreutils/harness/fixtures/uniq/cases.toml`
 - Inline `probandum` / `proba` coverage for pure grouping and output logic.
 
 ## Capability matrix
@@ -54,16 +54,16 @@ without producing a synthetic final line.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/uniq` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/uniq`.
+- `faber check coreutils/packages/uniq` passes.
+- Inline package tests pass through `faber test coreutils/packages/uniq`.
 - `./scripta/check-coreutils-parity uniq --backend stepper` passes declared
   Stage 4 fixtures against GNU `guniq`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/uniq
-faber test examples/coreutils/packages/uniq
+faber check coreutils/packages/uniq
+faber test coreutils/packages/uniq
 ./scripta/check-coreutils-parity uniq --backend stepper
 ```
 

@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/grep/`
+**Primary surfaces**: `coreutils/packages/grep/`
 
 ## Utility
 
@@ -19,9 +19,9 @@ modes.
 
 ## Deliverables
 
-- `examples/coreutils/packages/grep/faber.toml`
-- `examples/coreutils/packages/grep/src/main.fab`
-- `examples/coreutils/harness/fixtures/grep/cases.toml`
+- `coreutils/packages/grep/faber.toml`
+- `coreutils/packages/grep/src/main.fab`
+- `coreutils/harness/fixtures/grep/cases.toml`
 - Inline `probandum` / `proba` coverage for pure literal matching, inversion,
   count, line-number formatting, repeated option-pattern OR behavior, and
   pattern selection helper logic.
@@ -63,17 +63,17 @@ exit status cleanly.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/grep` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/grep`.
+- `faber check coreutils/packages/grep` passes.
+- Inline package tests pass through `faber test coreutils/packages/grep`.
 - `./scripta/check-coreutils-parity grep --backend stepper` passes declared
   Stage 4 fixtures against GNU `ggrep`.
 
 ## Validation
 
 ```bash
-cargo run -q -p faber-cli -- format examples/coreutils/packages/grep/src/main.fab
-timeout 120 cargo run -p faber-cli -- check examples/coreutils/packages/grep
-timeout 120 cargo run -p faber-cli -- test examples/coreutils/packages/grep
+cargo run -q --manifest-path ../faber/Cargo.toml -- format coreutils/packages/grep/src/main.fab
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/grep
+timeout 120 cargo run --manifest-path ../faber/Cargo.toml -- test coreutils/packages/grep
 timeout 120 ./scripta/check-coreutils-parity grep --backend stepper
 git diff --check
 ```

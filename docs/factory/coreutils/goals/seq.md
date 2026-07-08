@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/seq/`
+**Primary surfaces**: `coreutils/packages/seq/`
 
 ## Utility
 
@@ -41,19 +41,19 @@ diagnostic parity. Fixtures cover finite integer ranges, `-s SEP`, and integer
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/seq` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/seq`.
+- `faber check coreutils/packages/seq` passes.
+- Inline package tests pass through `faber test coreutils/packages/seq`.
 - `./scripta/check-coreutils-parity seq --backend stepper` passes declared
   Tier A integer range fixtures against GNU `gseq`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/seq
-faber test examples/coreutils/packages/seq
-faber run --interpret examples/coreutils/packages/seq -- 2 2 6
+faber check coreutils/packages/seq
+faber test coreutils/packages/seq
+faber run --interpret coreutils/packages/seq -- 2 2 6
 ./scripta/check-coreutils-parity seq --backend stepper
-cargo run -q -p faber-cli -- format --check examples/coreutils/packages/seq/src/main.fab
+cargo run -q --manifest-path ../faber/Cargo.toml -- format --check coreutils/packages/seq/src/main.fab
 ```
 
 ## Evidence

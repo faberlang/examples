@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/tac/`
+**Primary surfaces**: `coreutils/packages/tac/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ line order.
 
 ## Deliverables
 
-- `examples/coreutils/packages/tac/faber.toml`
-- `examples/coreutils/packages/tac/src/main.fab`
-- `examples/coreutils/harness/fixtures/tac/cases.toml`
+- `coreutils/packages/tac/faber.toml`
+- `coreutils/packages/tac/src/main.fab`
+- `coreutils/harness/fixtures/tac/cases.toml`
 - Inline `probandum` / `proba` coverage for pure reverse-line logic.
 
 ## Capability matrix
@@ -51,16 +51,16 @@ before applying the pure reverse-line helper.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/tac` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/tac`.
+- `faber check coreutils/packages/tac` passes.
+- Inline package tests pass through `faber test coreutils/packages/tac`.
 - `./scripta/check-coreutils-parity tac --backend stepper` passes declared
   Stage 4 fixtures against GNU `gtac`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/tac
-faber test examples/coreutils/packages/tac
+faber check coreutils/packages/tac
+faber test coreutils/packages/tac
 ./scripta/check-coreutils-parity tac --backend stepper
 ```
 

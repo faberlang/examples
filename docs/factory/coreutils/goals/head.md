@@ -4,7 +4,7 @@
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Stage 4
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
-**Primary surfaces**: `examples/coreutils/packages/head/`
+**Primary surfaces**: `coreutils/packages/head/`
 
 ## Utility
 
@@ -18,9 +18,9 @@ fixtures: default first 10 lines, `-n N` for non-negative integer counts, and
 
 ## Deliverables
 
-- `examples/coreutils/packages/head/faber.toml`
-- `examples/coreutils/packages/head/src/main.fab`
-- `examples/coreutils/harness/fixtures/head/cases.toml`
+- `coreutils/packages/head/faber.toml`
+- `coreutils/packages/head/src/main.fab`
+- `coreutils/harness/fixtures/head/cases.toml`
 - Inline `probandum` / `proba` coverage for pure line-selection logic.
 
 ## Capability matrix
@@ -48,16 +48,16 @@ without unwrapping `nihil`.
 
 ## Acceptance
 
-- `faber check examples/coreutils/packages/head` passes.
-- Inline package tests pass through `faber test examples/coreutils/packages/head`.
+- `faber check coreutils/packages/head` passes.
+- Inline package tests pass through `faber test coreutils/packages/head`.
 - `./scripta/check-coreutils-parity head --backend stepper` passes declared
   Stage 4 fixtures against GNU `ghead`.
 
 ## Validation
 
 ```bash
-faber check examples/coreutils/packages/head
-faber test examples/coreutils/packages/head
+faber check coreutils/packages/head
+faber test coreutils/packages/head
 ./scripta/check-coreutils-parity head --backend stepper
 ```
 
