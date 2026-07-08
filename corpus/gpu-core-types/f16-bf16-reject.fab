@@ -1,0 +1,20 @@
++++
+term = "f16"
+kind = "type"
+category = "numeric"
+summary = "bf16 remains deferred; f16 is the only half-width marker today."
+syntax = "f16"
+related = ["fractus"]
++++
+
+# f16 — bf16 is deliberately not accepted yet
+#
+# GRAMMAR:
+#   fractus-width :← 'f16' | 'f32' | 'f64'
+#
+# EXPECTED OUTPUT:
+#   reject: bf16 is deferred.
+
+functio rejected_half(bf16 x) → bf16 {
+    redde x
+}

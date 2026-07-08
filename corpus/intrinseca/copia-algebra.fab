@@ -1,0 +1,48 @@
++++
+term = "copia"
+kind = "existing-home"
+category = "collection"
+canonical = false
+summary = "Compiler-owned copia set-algebra methodi."
+syntax = "copia.unio | intersectio | differentia | symmetrica | subcopia | supercopia"
+related = ["copia", "intrinseca"]
++++
+
+
+# copia<T> set-algebra intrinsics
+#
+# Compiler-owned copia<T> methodi — unio, intersectio, differentia,
+# symmetrica, subcopia, supercopia.
+#
+# GRAMMAR:
+#   a.unio(b) | a.intersectio(b) | a.differentia(b) | a.symmetrica(b)
+#   a.subcopia(b) | a.supercopia(b)
+#
+# Set operations return new copia<T> values; operands are not mutated.
+#
+# EXPECTED OUTPUT:
+#   Smoke asserts exit 0 only.
+#
+# BACKEND: Go e2e whitelist — copia method surface not yet lowered for Go.
+
+incipit {
+    varia copia<numerus> primi ← vacua
+    primi.adde(1)
+    primi.adde(2)
+    primi.adde(3)
+
+    varia copia<numerus> pares ← vacua
+    pares.adde(2)
+    pares.adde(4)
+    pares.adde(6)
+
+    fixum _ omnes ← primi.unio(pares)
+    fixum _ communia ← primi.intersectio(pares)
+    fixum _ reliqua ← primi.differentia(pares)
+    fixum _ disiuncta ← primi.symmetrica(pares)
+    fixum _ subcopiaest ← communia.subcopia(omnes)
+    fixum _ supercopiaest ← omnes.supercopia(communia)
+
+    nota omnes, communia, reliqua, disiuncta
+    nota subcopiaest, supercopiaest
+}

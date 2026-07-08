@@ -1,0 +1,23 @@
++++
+term = "verum"
+kind = "keyword"
+category = "boolean"
+canonical = true
+summary = "Represents the true boolean value and can prefix a truthiness check."
+syntax = "verum [<expression>]"
+related = ["falsum", "nihil"]
++++
+
+# verum — true literal
+#
+# GRAMMAR:
+#   literal :← 'verum'
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+incipit {
+    fixum _ active ← verum
+    nota active
+}

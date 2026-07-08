@@ -1,0 +1,37 @@
++++
+term = "cede"
+kind = "keyword"
+category = "async"
+canonical = true
+summary = "Awaits a promise or yields a value depending on context."
+syntax = "cede <expression>"
+aliases = ["await", "yield"]
+related = ["futura", "cursor"]
++++
+
+
+# cede — await a @ futura function inside incipiet
+#
+# @ futura functio …   — declares an async-capable callee
+# incipiet { … }       — async program entry (required host for cede)
+# cede <vocatio>       — suspends until the promissum resolves
+#
+# GRAMMAR:
+#   awaitStmt :← 'cede' callExpr
+#
+# EXPECTED OUTPUT:
+#   none — compile-only in harness
+#
+# BACKEND:
+#   Rust async runtime whitelist (cede/cede.fab).
+
+@ futura
+functio accipe() → textus {
+    redde "paratum"
+}
+
+incipiet {
+    # cede suspends until accipe() resolves
+    fixum _ condicio ← cede accipe()
+    nota condicio
+}

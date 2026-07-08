@@ -1,0 +1,25 @@
++++
+term = "optio"
+kind = "annotation"
+category = "cli"
+canonical = true
+summary = "Braced canonical @ optio CLI option record."
+syntax = "@ optio { binding = NAME, brevis = \"x\", longum = \"name\", typus = TYPE, descriptio = \"...\", ubique = verum }"
+related = ["optio", "cli", "annotation-sugar"]
++++
+
+# Braced @ optio — canonical option record
+#
+# TARGET: annotation-sugar stage 2
+# PAIR: sugar `@ optio NAME brevis \"x\" ...` (see optio/optio.fab)
+
+@ cli { nomen = "optio-braced-smoke" }
+@ optio {
+    binding = verbose,
+    brevis = "v",
+    longum = "verbose",
+    typus = bivalens,
+    descriptio = "Verbose mode",
+    ubique = verum,
+}
+incipit argumenta args { }

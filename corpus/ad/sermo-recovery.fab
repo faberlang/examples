@@ -1,0 +1,10 @@
+# Exemplar: `sermo ↦ T ⇥ fallback` recovers materialization failure.
+#
+# runtime:echo returns the opener as textus. Materializing that stream as
+# `numerus` fails the one-frame scalar extractor, so inline recovery supplies
+# the target-typed fallback value.
+
+incipit {
+    fixum numerus n ← ad 'runtime:echo' ("non-numeric") ↦ numerus ⇥ 0
+    adfirma n ≡ 0
+}

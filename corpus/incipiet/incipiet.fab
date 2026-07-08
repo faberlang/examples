@@ -1,0 +1,49 @@
++++
+term = "incipiet"
+kind = "keyword"
+category = "entry"
+canonical = true
+summary = "Declares the asynchronous program entry point."
+syntax = "incipiet <block>"
+related = ["incipit", "cede"]
++++
+
+
+# incipiet — async program entry point
+#
+# incipiet { <body> }
+#
+# GRAMMAR:
+#   asyncEntry :← 'incipiet' block
+#
+# EXPECTED OUTPUT:
+#   none — Rust async runtime whitelist (compile-only in harness)
+#
+# BACKEND:
+#   Pairs with @ futura and cede; contrast with incipit (synchronous entry).
+
+# Helper futura function
+@ futura
+functio accipe() → textus {
+    # Simulates futura operation
+    redde "datum paratum"
+}
+
+@ futura
+functio metire(textus datum) → numerus {
+    redde datum.longitudo()
+}
+
+# Futura entry point
+incipiet {
+    nota "incipiet initium"
+
+    # Await futura functions with cede
+    fixum _ datum ← cede accipe()
+    nota "acceptum: §"(datum)
+
+    fixum _ longitudo ← cede metire(datum)
+    nota "longitudo: §"(longitudo)
+
+    nota "opus perfectum"
+}

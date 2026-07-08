@@ -1,0 +1,26 @@
++++
+term = "descriptio"
+kind = "keyword"
+category = "cli"
+canonical = true
+summary = "Attaches a description string to CLI metadata."
+syntax = "@ descriptio <string>"
+related = ["versio"]
++++
+
+# descriptio — CLI description annotation
+#
+# GRAMMAR:
+#   annotation :← '@' 'descriptio' stringLit
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only CLI metadata (whitelist: descriptio/descriptio.fab).
+#
+
+@ cli "descriptio-smoke"
+@ descriptio "Short CLI description"
+incipit argumenta args {
+}

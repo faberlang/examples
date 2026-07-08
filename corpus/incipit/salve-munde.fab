@@ -1,0 +1,25 @@
++++
+term = "incipit"
+kind = "keyword"
+category = "function"
+canonical = false
+summary = "Canonical hello-world smoke with module-scope nota output."
+syntax = "nota <textus-literal>"
+related = ["incipit", "nota"]
++++
+
+
+# incipit — canonical hello-world entry point
+#
+# nota <textus literal>           — module scope, no incipit block required
+#
+# GRAMMAR:
+#   moduleStmt :← notaStmt
+#
+# EXPECTED OUTPUT:
+#   salve-munde.expected — one greeting line via nota.
+#
+# BACKEND:
+#   Roundtrip harness gives this file special-case handling (canonical smoke).
+
+nota "Salve, Munde!"

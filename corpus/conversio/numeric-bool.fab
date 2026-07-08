@@ -1,0 +1,43 @@
++++
+term = "↦"
+kind = "operator-group"
+category = "conversion"
+canonical = false
+summary = "Scalar numeric and bivalens primitive conversio."
+syntax = "<expression> ↦ <numeric-or-bivalens-type>"
+related = ["↦", "numerus", "fractus", "bivalens"]
++++
+
+
+# conversio — numeric and bivalens primitive conversions
+#
+# WHY: `↦` owns the normal expectation for scalar numeric/bool conversions.
+# `fractus ↦ numerus` truncates toward zero (Rust `as` default). `fractus ↦
+# bivalens` and `numerus ↦ bivalens` use non-zero truthiness. `bivalens ↦
+# numerus` yields 0/1. `bivalens ↦ fractus` uses 1.0/0.0 because `bool as f64`
+# is invalid in Rust. `ascii ↦ bivalens` parallels `textus ↦ bivalens`.
+# Byte reinterpretation (`numerus`/`fractus`/`bivalens` ↔ `octeti`) is rejected
+# at typecheck — use `chorda` instead. See docs/factory/conversio-numeric-bool-coverage/.
+
+incipit {
+    fixum fractus pi ← 3.7
+    fixum numerus truncated ← pi ↦ numerus
+    nota truncated
+
+    fixum bivalens fromFractus ← pi ↦ bivalens
+    nota fromFractus
+
+    fixum numerus count ← 42
+    fixum bivalens fromNumerus ← count ↦ bivalens
+    nota fromNumerus
+
+    fixum bivalens flag ← verum
+    fixum numerus asInt ← flag ↦ numerus
+    fixum fractus asFloat ← flag ↦ fractus
+    nota asInt
+    nota asFloat
+
+    fixum ascii token ← 'yes'
+    fixum bivalens fromAscii ← token ↦ bivalens
+    nota fromAscii
+}

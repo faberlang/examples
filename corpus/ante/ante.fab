@@ -1,0 +1,27 @@
++++
+term = "ante"
+kind = "keyword"
+category = "range"
+canonical = true
+summary = "Creates an exclusive range with a Latin keyword."
+syntax = "<expression> ante <expression>"
+related = ["usque", "‥"]
++++
+
+
+# ante — exclusive upper bound for range iteration
+#
+# itera ab <initium> ante <finis> <var> { … }
+#
+# GRAMMAR:
+#   iterStmt :← 'itera' 'ab' expr 'ante' expr binding '{' stmt* '}'
+#
+# EXPECTED OUTPUT:
+#   none
+
+incipit {
+    # i = 0, 1, 2, 3 (stops before 4)
+    itera ab 0 ante 4 fixum i {
+        nota i
+    }
+}

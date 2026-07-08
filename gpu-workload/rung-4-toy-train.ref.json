@@ -1,0 +1,12 @@
+{
+  "rung": 4,
+  "name": "toy-train",
+  "dtype": "f32",
+  "shape": [1],
+  "tolerance": 0.0001,
+  "reference": {
+    "weights": [2.0, 2.0],
+    "losses": [16.0, 0.0]
+  },
+  "source": "hand-computed two-step scalar linear-regression fixture"
+}

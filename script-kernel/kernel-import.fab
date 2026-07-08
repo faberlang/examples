@@ -1,0 +1,7 @@
+importa ex "faber:solum" privata solum
+importa ex "faber:json" privata json
+importa ex "faber:processus" privata processus
+importa ex "faber:aleator" privata aleator
+
+incipit {
+}

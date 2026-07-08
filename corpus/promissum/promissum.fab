@@ -1,0 +1,30 @@
++++
+term = "promissum"
+kind = "existing-home"
+category = "async"
+canonical = true
+summary = "Promise-like result type associated with futura functions."
+syntax = "promissum<T>"
+aliases = ["promise"]
+related = ["futura", "cede"]
++++
+
+
+# promissum<T> — async result type (paired with @ futura)
+#
+# @ futura functio … → <typus>   -- lowers to promissum<<typus>>
+#
+# GRAMMAR:
+#   futuraDecl :← '@' 'futura' funcDecl
+#
+# EXPECTED OUTPUT:
+#   promissum typus notus (promissum.expected).
+
+@ futura
+functio compute() → numerus {
+    redde 7
+}
+
+incipit {
+    nota "promissum typus notus"
+}

@@ -1,0 +1,12 @@
++++
+term = "vector"
+kind = "kernel"
+category = "gpu"
+summary = "global_invocation_id returns vector<u32, 3>"
++++
+
+@ nucleum
+functio builtin_probe(fractus<f32> x) → fractus<f32> {
+    fixum vector<u32, 3> gid ← global_invocation_id()
+    redde x
+}

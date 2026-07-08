@@ -1,0 +1,22 @@
+# tensor arithmetic reject cases — expected compile failure
+#
+# WHY: documents the typecheck contract for elementwise tensor arithmetic.
+# Both cases must reject:
+#   1. tensor<textus, …> — non-numeric element (numeric gate).
+#   2. numerus<i32> + numerus<i64> — mixed width is a ↦ conversio problem,
+#      never silent promotion at the kernel.
+#
+# This exemplum intentionally fails to compile; it is registered in the
+# per-backend EXPECTED_FAILURES lists.
+
+incipit {
+    fixum tensor<textus, [2]> words_a ← vacua
+    fixum tensor<textus, [2]> words_b ← vacua
+    fixum tensor<textus, [2]> words_sum ← words_a.addita(words_b)
+    nota words_sum.longitudo()
+
+    fixum tensor<numerus<i32>, [2]> i32_a ← vacua
+    fixum tensor<numerus<i64>, [2]> i64_b ← vacua
+    fixum tensor<numerus<i32>, [2]> mixed ← i32_a.addita(i64_b)
+    nota mixed.longitudo()
+}

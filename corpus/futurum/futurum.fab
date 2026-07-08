@@ -1,0 +1,26 @@
++++
+term = "futurum"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Marks a test case as pending future work with a reason."
+syntax = "proba <name> futurum <reason> <block>"
+aliases = ["todo", "pending"]
+related = ["proba", "omitte"]
++++
+
+# futurum — todo test modifier
+#
+# GRAMMAR:
+#   testModifier :← 'futurum' stringLit
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test modifier (whitelist: futurum/futurum.fab).
+#
+
+proba "async file operations" futurum "needs async support" {
+    adfirma verum
+}

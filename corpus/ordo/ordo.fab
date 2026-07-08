@@ -1,0 +1,59 @@
++++
+term = "ordo"
+kind = "keyword"
+category = "type"
+canonical = true
+summary = "Declares an enumeration."
+syntax = "ordo <name> <block>"
+aliases = ["enum"]
+related = ["discretio"]
++++
+
+
+# ordo — enumerated constants (ordered variants)
+#
+# ordo <Nomen> { <membrum>, … }
+# ordo <Nomen> { <membrum> = <valor>, … }
+#
+# GRAMMAR:
+#   ordoDecl :← 'ordo' ident '{' ordoMember (',' ordoMember)* '}'
+#
+# EXPECTED OUTPUT:
+#   rubrum
+#   actum
+
+ordo Color { rubrum, viridis, caeruleum }
+
+ordo Condicio { pendens = 0, actum = 1, finitum = 2 }
+
+incipit {
+    # Using ordo values
+    fixum _ color ← Color.rubrum
+    fixum _ condicio ← Condicio.actum
+
+    # Select by ordo
+    elige color {
+        casu Color.rubrum {
+            nota "rubrum"
+        }
+        casu Color.viridis {
+            nota "viridis"
+        }
+        casu Color.caeruleum {
+            nota "caeruleum"
+        }
+    }
+
+    # Select by ordo with numeric values
+    elige condicio {
+        casu Condicio.pendens {
+            nota "pendens"
+        }
+        casu Condicio.actum {
+            nota "actum"
+        }
+        casu Condicio.finitum {
+            nota "finitum"
+        }
+    }
+}

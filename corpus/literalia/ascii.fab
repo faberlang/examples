@@ -1,0 +1,20 @@
++++
+term = "ascii"
+kind = "existing-home"
+category = "literal"
+canonical = true
+summary = "Single-quoted ASCII machine-text literals."
+syntax = "'<text>'"
+aliases = ["'...'"]
+related = ["textus", "string"]
++++
+
+# literalia/ascii — '...' literals
+#
+# EXPECTED OUTPUT:
+#   pg:query
+
+incipit {
+    fixum _ route ← 'pg:query'
+    nota route
+}

@@ -1,0 +1,9 @@
+# Exemplar: `sermo ↦ vacuum` drains the stream without extracting data.
+#
+# The exemplar just confirms compilation and no runtime error. `vacuum`
+# means "drain to terminal and ignore payloads."
+
+incipit {
+    fixum _ v ← ad 'runtime:echo' ("salve") ↦ vacuum
+    adfirma verum
+}

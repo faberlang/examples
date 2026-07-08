@@ -1,0 +1,17 @@
++++
+term = "radix-lane"
+kind = "annotation"
+category = "lane"
+canonical = true
+summary = "Braced canonical @ radix lane routing record for the Rust HIR-direct lane."
+syntax = "@ radix { lane = \"hir-direct\" }"
+related = ["radix", "annotation-sugar"]
++++
+@ radix { lane = "hir-direct" }
+functio loss() → numerus {
+    redde 1
+}
+
+incipit {
+    nota loss()
+}

@@ -1,0 +1,26 @@
++++
+term = "omitte"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Marks a test case as skipped with a reason."
+syntax = "proba <name> omitte <reason> <block>"
+aliases = ["skip"]
+related = ["proba", "futurum"]
++++
+
+# omitte — skipped test modifier
+#
+# GRAMMAR:
+#   testModifier :← 'omitte' stringLit
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test modifier (whitelist: omitte/omitte.fab).
+#
+
+proba "database connection" omitte "blocked" {
+    adfirma falsum
+}

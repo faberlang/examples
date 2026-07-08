@@ -1,0 +1,29 @@
++++
+term = "incipit"
+kind = "keyword"
+category = "function"
+canonical = true
+summary = "Declares the synchronous program entry point."
+syntax = "incipit <block>"
+aliases = ["main", "entry"]
+related = ["functio", "importa"]
++++
+
+
+# incipit — basic program entry point
+#
+# incipit { <body> }
+#
+# GRAMMAR:
+#   entryBlock :← 'incipit' block
+#
+# EXPECTED OUTPUT:
+#   none — smoke asserts exit 0; entry diagnostic via nota.
+#
+# BACKEND:
+#   Contrast with salve-munde.fab (module-scope nota), functionibus.fab
+#   (calls module-level functio), and cli/cli.fab (incipit argumenta).
+
+incipit {
+    nota "ingressus"
+}

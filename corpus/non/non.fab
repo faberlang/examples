@@ -1,0 +1,25 @@
++++
+term = "non"
+kind = "keyword"
+category = "logic"
+canonical = true
+summary = "Negates a boolean expression."
+syntax = "non <expression>"
+aliases = ["!"]
+related = ["verum", "falsum"]
++++
+
+# non — logical not
+#
+# GRAMMAR:
+#   unaryExpr :← 'non' expr
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+incipit {
+    fixum _ flag ← falsum
+    fixum _ negated ← non flag
+    nota negated
+}

@@ -1,0 +1,25 @@
++++
+term = "repete"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Repeats a test a fixed number of times."
+syntax = "repete <number>"
+related = ["fragilis"]
++++
+
+# repete — repeat test modifier
+#
+# GRAMMAR:
+#   testModifier :← 'repete' integer
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test modifier (whitelist: repete/repete.fab).
+#
+
+proba "flaky guard" repete 2 {
+    adfirma verum
+}

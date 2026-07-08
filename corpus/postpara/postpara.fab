@@ -1,0 +1,30 @@
++++
+term = "postpara"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Registers an after-each test hook."
+syntax = "postpara <block>"
+related = ["praepara", "omnia"]
++++
+
+# postpara — after-each test hook
+#
+# GRAMMAR:
+#   hookDecl :← 'postpara' block
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test hook (whitelist: postpara/postpara.fab).
+#
+
+probandum "hooks" {
+    postpara {
+        nota "after each"
+    }
+    proba "sample" {
+        adfirma verum
+    }
+}

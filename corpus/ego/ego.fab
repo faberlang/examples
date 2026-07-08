@@ -1,0 +1,35 @@
++++
+term = "ego"
+kind = "keyword"
+category = "object"
+canonical = true
+summary = "Refers to the current instance inside a method."
+syntax = "ego.<member>"
+aliases = ["self", "this"]
+related = ["generis", "nexum"]
++++
+
+
+# ego — current genus instance reference
+#
+# ego.<field>
+#
+# GRAMMAR:
+#   memberExpr inside genus method :← 'ego' '.' ident
+#
+# EXPECTED OUTPUT:
+#   capsa: prima
+
+genus Capsa {
+    textus titulus
+
+    functio narra() → textus {
+        # ego = the receiver instance
+        redde "capsa: " + ego.titulus
+    }
+}
+
+incipit {
+    fixum _ capsa ← Capsa { titulus = "prima" }
+    nota capsa.narra()
+}

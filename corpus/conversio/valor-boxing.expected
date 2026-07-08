@@ -1,0 +1,6 @@
+Numerus(42)
+Lista([Numerus(222), Numerus(173)])
+Lista([Numerus(1), Numerus(2)])
+Tabula({"alpha": Numerus(10)})
+Tabula({"x": Numerus(3), "y": Numerus(4)})
+Lista([Numerus(5), Numerus(6)])

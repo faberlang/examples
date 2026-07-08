@@ -1,0 +1,35 @@
++++
+term = "nihil"
+kind = "existing-home"
+category = "literal"
+canonical = true
+summary = "Null literal and nullable union bindings."
+syntax = "nihil"
+related = ["∪", "nonnihil", "sponte", "nihil"]
++++
+
+# literalia/nihil — nihil literal and T ∪ nihil
+#
+# GRAMMAR:
+#   literal :← 'nihil'
+#   unionType :← type '∪' 'nihil'
+#
+# EXPECTED OUTPUT:
+#   nihil, verum, 42
+#
+# BACKEND:
+#   Cross-ref nihil/nihil.fab and nonnihil/nonnihil.fab.
+
+functio maybe() → numerus ∪ nihil {
+    redde 42
+}
+
+incipit {
+    fixum numerus ∪ nihil absent ← nihil
+    nota absent
+
+    fixum _ nihilne ← absent est nihil
+    nota nihilne
+
+    nota maybe() non est nihil
+}

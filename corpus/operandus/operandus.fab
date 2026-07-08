@@ -1,0 +1,27 @@
++++
+term = "operandus"
+kind = "keyword"
+category = "cli"
+canonical = true
+summary = "Declares a CLI operand annotation."
+syntax = "@ operandus [ceteri] <type> <binding> [descriptio \"...\"] [ubique] [vel <default>]"
+related = ["optio", "cli", "imperium", "ceteri", "ubique"]
++++
+
+# operandus — CLI positional operand
+#
+# GRAMMAR:
+#   annotation :← '@' 'operandus' operandSpec
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only CLI metadata (whitelist: operandus/operandus.fab).
+#
+
+@ cli "operandus-smoke"
+@ operandus textus input descriptio "Input path"
+@ operandus ceteri textus files descriptio "Extra files"
+incipit argumenta args {
+}

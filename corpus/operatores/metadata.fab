@@ -1,0 +1,26 @@
++++
+term = "§"
+kind = "operator-group"
+category = "format"
+canonical = true
+summary = "String-template substitution holes inside quoted literals."
+syntax = "\"<template>\"(<args>...)"
+related = ["textus", "scribe"]
++++
+
+# operatores/metadata — § string templates
+#
+# GRAMMAR:
+#   stringTemplate :← stringLit '(' expr (',' expr)* ')'
+#
+# EXPECTED OUTPUT:
+#   Salve, Marcus!, 1 + 2 = 3
+#
+# BACKEND:
+#   Per-file metadata belongs in +++ frontmatter, not line-start § directives.
+
+incipit {
+    fixum _ nomen ← "Marcus"
+    nota "Salve, §!"(nomen)
+    nota "§ + § = §"(1, 2, 3)
+}

@@ -1,0 +1,14 @@
++++
+term = "vector"
+kind = "kernel"
+category = "gpu"
+summary = "vector constructor and dot product lower for GPU text emit"
++++
+
+@ nucleum
+functio vector_dot(fractus<f32> x) → fractus<f32> {
+    fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]
+    fixum vf32[4] b ← [1.0, 1.0, 1.0, 1.0] ↦ vf32[4]
+    fixum fractus<f32> d ← a.dot(b)
+    redde d
+}

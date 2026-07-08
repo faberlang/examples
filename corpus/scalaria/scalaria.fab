@@ -1,0 +1,37 @@
++++
+term = "scalaria"
+kind = "concept"
+category = "type"
+canonical = true
+summary = "Scalar operations on numerus, fractus, and bivalens in function signatures."
+syntax = "functio <name>(<scalar-params>) → <scalar-type> <block>"
+related = ["numerus", "fractus", "bivalens"]
++++
+
+
+# scalaria — scalar operations on primitive types
+#
+# Demonstrates numerus, fractus, and bivalens parameters with arithmetic,
+# comparison, and boolean logic in function signatures.
+#
+# GRAMMAR:
+#   funcDecl :← 'functio' ident '(' paramList ')' ('→' type)? block
+#
+# EXPECTED OUTPUT:
+#   Compile-only declaration tour (no incipit).
+
+functio numerica(numerus a, numerus b) → numerus {
+    redde (a + b) * 2
+}
+
+functio fracta(fractus a, fractus b) → fractus {
+    redde (a + b) / 2.0
+}
+
+functio comparata(numerus a, numerus b) → bivalens {
+    redde a ≤ b
+}
+
+functio logica(bivalens a, bivalens b) → bivalens {
+    redde non a et b
+}

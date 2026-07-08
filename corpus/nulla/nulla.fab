@@ -1,0 +1,27 @@
++++
+term = "nulla"
+kind = "legacy"
+category = "nullability"
+canonical = false
+canonical_term = "est"
+summary = "Retired prefix predicate; use value est nihil."
+syntax = "<expression> est nihil"
+related = ["nihil", "est", "non est"]
++++
+
+# nulla — retired prefix predicate
+#
+# GRAMMAR:
+#   value est nihil
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+functio absent() → numerus ∪ nihil {
+    redde nihil
+}
+
+incipit {
+    nota absent() est nihil
+}

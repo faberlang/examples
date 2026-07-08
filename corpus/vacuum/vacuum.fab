@@ -1,0 +1,27 @@
++++
+term = "vacuum"
+kind = "keyword"
+category = "type"
+canonical = true
+summary = "Primitive no-value return type."
+syntax = "vacuum"
+aliases = ["void", "unit"]
+related = ["functio", "redde"]
++++
+
+# vacuum — void return type
+#
+# GRAMMAR:
+#   returnType :← 'vacuum'
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+functio log(textus message) → vacuum {
+    nota message
+}
+
+incipit {
+    log("vacuum smoke")
+}

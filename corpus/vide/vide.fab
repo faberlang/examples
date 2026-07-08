@@ -1,0 +1,24 @@
++++
+term = "vide"
+kind = "keyword"
+category = "output"
+canonical = true
+summary = "Writes a debug value to standard output."
+syntax = "vide <expression>"
+related = ["scribe", "mone"]
++++
+
+
+# vide diagnostic output
+#
+# vide <expr>  -- emit a vide-style inspection diagnostic (distinct from nota/mone)
+#
+# GRAMMAR:
+#   outputStmt :← 'vide' expr
+#
+# EXPECTED OUTPUT:
+#   vide-style diagnostic: "inspecta"
+
+incipit {
+    vide "inspecta"
+}

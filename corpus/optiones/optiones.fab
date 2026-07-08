@@ -1,0 +1,25 @@
++++
+term = "optiones"
+kind = "keyword"
+category = "entry"
+canonical = true
+summary = "Binds CLI options metadata to a function declaration."
+syntax = "functio <name>(...) optiones <ident> → <type>"
+related = ["argumenta", "ad"]
++++
+
+# optiones — CLI options bundle on functio
+#
+# GRAMMAR:
+#   funcModifier :← ')' 'optiones' ident '→' type
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only CLI binding (whitelist: optiones/optiones.fab).
+#
+
+functio mitte() optiones Opts → textus {
+    redde "ok"
+}

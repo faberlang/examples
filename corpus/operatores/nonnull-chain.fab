@@ -1,0 +1,34 @@
++++
+term = "!."
+kind = "operator-group"
+category = "non-null-chain"
+canonical = true
+summary = "Asserted member, index, and call access on known-present values."
+syntax = "<expression>!.<name> | <expression>![<expression>] | <expression>!(<args>)"
+related = ["!.", "![", "!(", "nonnulla"]
++++
+
+# operatores/nonnull-chain — !. ![ !(
+#
+# GRAMMAR:
+#   nonNullSuffix :← '!.' IDENTIFIER | '![' expr ']' | '!(' argumentList ')'
+#
+# EXPECTED OUTPUT:
+#   Marcus, Roma, a
+#
+# BACKEND:
+#   Rust: non-null chain lowering gap (whitelist: operatores/nonnull-chain.fab).
+
+genus Persona {
+    textus nomen
+    textus urbs sponte
+}
+
+incipit {
+    fixum Persona ∪ nihil p ← Persona { nomen = "Marcus", urbs = "Roma" }
+    nota p!.nomen
+    nota p!.urbs
+
+    fixum _ litterae ← ["a", "b", "c"]
+    nota litterae![0]
+}

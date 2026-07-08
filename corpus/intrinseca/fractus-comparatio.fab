@@ -1,0 +1,35 @@
++++
+term = "fractus"
+kind = "existing-home"
+category = "type"
+canonical = true
+summary = "Primitive floating-point number type."
+syntax = "fractus"
+aliases = ["float"]
+related = ["numerus", "↦"]
++++
+
+
+# fractus comparison and ordering intrinsics
+#
+# Compiler-owned fractus methodi — absolutum, signum, minimus, maximus.
+#
+# GRAMMAR:
+#   valor.absolutum() | valor.signum()
+#   valor.minimus(other) | valor.maximus(other)
+#
+# Mirrors numerus-methodi.fab for floating-point; Wasm tier Runnable.
+#
+# EXPECTED OUTPUT:
+#   Smoke asserts exit 0 only.
+
+incipit {
+    fixum fractus valor ← -3.75
+
+    fixum _ absolutus ← valor.absolutum()
+    fixum _ signum ← valor.signum()
+    fixum _ minor ← valor.minimus(2.5)
+    fixum _ maior ← valor.maximus(2.5)
+
+    nota absolutus, signum, minor, maior
+}

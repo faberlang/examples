@@ -1,0 +1,32 @@
++++
+term = "radix lane"
+kind = "annotation"
+category = "compiler"
+canonical = true
+summary = "Compiler-owned @ radix lane metadata for HIR-direct, MIR, and AIR routing."
+syntax = "@ radix lane \"air\" | \"mir\" | \"hir-direct\""
+aliases = ["@ radix", "lane", "air"]
+related = ["functio", "mir", "air"]
++++
+
+# @ radix lane — compiler routing metadata
+#
+# `@ radix lane "air"` is the AIR entry hook for MIR-backed targets. The default
+# Rust corpus path is HIR-direct, so this runnable fixture uses `hir-direct`.
+# See `air/air-lane.fab` for an AIR-lane fixture validated through a MIR-backed
+# target.
+#
+# GRAMMAR:
+#   annotation :← '@' 'radix' 'lane' string
+#
+# EXPECTED OUTPUT:
+#   7
+
+@ radix lane "hir-direct"
+functio route() → numerus {
+    redde 7
+}
+
+incipit {
+    nota route()
+}

@@ -1,0 +1,5 @@
+importa ex "faber:processus" privata processus
+
+incipit {
+    nota processus.exsequi("echo kernel-exsequi-ok")
+}

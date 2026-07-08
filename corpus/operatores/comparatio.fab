@@ -1,0 +1,37 @@
++++
+term = "≡"
+kind = "operator-group"
+category = "comparison"
+canonical = true
+summary = "Equality and ordering comparisons returning bivalens."
+syntax = "<expression> ≡ <expression> | <expression> ≠ <expression> | <expression> ≤ <expression> | <expression> ≥ <expression>"
+related = ["≠", "≤", "≥", "est", "adfirma"]
++++
+
+# operatores/comparatio — ≡ ≠ ≤ ≥
+#
+# GRAMMAR:
+#   cmpExpr :← expr ('≡' | '≠' | '≤' | '≥' | '<' | '>') expr
+#
+# EXPECTED OUTPUT:
+#   verum, verum, verum, verum, verum
+#
+# BACKEND:
+#   Scalar bivalens stdout; chain with et for interval tests.
+
+incipit {
+    fixum _ aequalis ← 10 ≡ 10
+    nota aequalis
+
+    fixum _ diversus ← 10 ≠ 5
+    nota diversus
+
+    fixum _ nonMaior ← 5 ≤ 10
+    nota nonMaior
+
+    fixum _ nonMinor ← 10 ≥ 5
+    nota nonMinor
+
+    fixum _ intervallum ← 0 < 5 et 5 < 10
+    nota intervallum
+}

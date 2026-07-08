@@ -1,0 +1,24 @@
++++
+term = "sparsa"
+kind = "type"
+category = "collection"
+canonical = false
+summary = "Dense/sparse conversio rejects shape-changing representation conversion."
+syntax = "tensor<T, F> ↦ sparsa<T, G> — rejected when F != G"
+related = ["sparsa", "tensor", "↦"]
++++
+
+
+# sparsa conversio reject case — expected compile failure
+#
+# WHY: `tensor ↔ sparsa` `↦` changes representation only. Reshape explicitly
+# before changing dense/sparse storage.
+#
+# This exemplum intentionally fails to compile; it is registered in the
+# per-backend EXPECTED_FAILURES lists.
+
+incipit {
+    fixum tf32[2, 2] dense ← vacua
+    fixum sf32[4] sparse ← dense ↦ sf32[4]
+    nota sparse.longitudo()
+}

@@ -1,0 +1,34 @@
++++
+term = "gpu workload rung 2"
+kind = "workload"
+category = "gpu"
+summary = "Two-layer MLP forward workload floor probe."
+related = ["tensor", "matmul", "mlp", "nucleum"]
++++
+
+# GPU workload rung 2 — two-layer MLP forward pass
+#
+# Uses the currently legal tensor surface: two batched matmul stages. Bias and
+# dynamic ReLU between the two linear layers remain producer-track work because
+# today's type rules do not preserve enough static shape through elementwise
+# tensors to feed the next matmul or return from this kernel shape.
+
+@ nucleum
+functio rung2_mlp_kernel(tf32[2, 2] input, tf32[2, 2] w0, tf32[2, 2] w1) → tf32[2, 2] {
+    fixum tf32[2, 2] hidden ← input.matmul(w0)
+    redde hidden.matmul(w1)
+}
+
+incipit {
+    fixum tf32[] seed ← vacua
+    fixum lista<f32> flat_input ← [1.0, 2.0, 3.0, 4.0]
+    fixum lista<f32> flat_w0 ← [1.0, 0.0, 0.0, 1.0]
+    fixum lista<f32> flat_w1 ← [2.0, 1.0, 1.0, 2.0]
+    fixum tf32[2, 2] input ← seed.strue(flat_input, [2, 2])
+    fixum tf32[2, 2] w0 ← seed.strue(flat_w0, [2, 2])
+    fixum tf32[2, 2] w1 ← seed.strue(flat_w1, [2, 2])
+    fixum tf32[2, 2] reference ← rung2_mlp_kernel(input, w0, w1)
+    fixum vacuum _launch ← ad 'cuda:launch' ("rung2_mlp_kernel") ↦ vacuum
+
+    nota reference.planata()
+}

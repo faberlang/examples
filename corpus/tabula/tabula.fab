@@ -1,0 +1,37 @@
++++
+term = "tabula"
+kind = "existing-home"
+category = "collection"
+canonical = true
+summary = "Generic key/value map type."
+syntax = "tabula<K,V>"
+aliases = ["map", "dictionary"]
+related = ["lista", "copia", "∷", "itera"]
++++
+
+
+# tabula<K,V> declaration, vacua, and keyed lookup
+#
+# varia tabula<K,V> nomen ← vacua   -- typed empty map (forma innata)
+# nomen[key] ← value                -- index assignment
+# nomen[key]                        -- keyed accipe
+# nomen.longitudo()                 -- entry count
+#
+# GRAMMAR:
+#   mapDecl :← 'varia' 'tabula<' type ',' type '>' ident '←' expr
+#   mapAcc  :← expr '[' expr ']'
+#
+# EXPECTED OUTPUT:
+#   longitudo() plus keyed lookups for alpha/beta/gamma (tabula.expected).
+
+incipit {
+    varia tabula<textus, numerus> puncta ← vacua
+    puncta["alpha"] ← 1
+    puncta["beta"] ← 2
+    puncta["gamma"] ← 3
+
+    nota puncta.longitudo()
+    nota puncta["alpha"]
+    nota puncta["beta"]
+    nota puncta["gamma"]
+}

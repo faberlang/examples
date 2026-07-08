@@ -1,0 +1,35 @@
++++
+term = "futura"
+kind = "annotation"
+category = "async"
+canonical = true
+summary = "Marks a function as asynchronous."
+syntax = "@ futura"
+related = ["cursor", "cede"]
++++
+
+
+# @ futura — async function annotation
+#
+# @ futura
+# functio nomen(…) → typus { … }
+#
+# GRAMMAR:
+#   annotatedFunc :← '@' 'futura' funcDecl
+#
+# EXPECTED OUTPUT:
+#   none — Rust async runtime whitelist (compile-only in harness)
+#
+# BACKEND:
+#   Rust async runtime not linked in exempla harness (whitelist: futura/futura.fab).
+
+@ futura
+functio responde() → numerus {
+    redde 42
+}
+
+incipiet {
+    # cede awaits the promissum
+    fixum _ responsum ← cede responde()
+    nota responsum
+}

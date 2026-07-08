@@ -1,0 +1,19 @@
++++
+term = "importa"
+kind = "keyword"
+category = "package"
+canonical = false
+summary = "Minimal import sugar with private binding inferred from the path."
+syntax = "importa ex \"norma:chorda\""
+aliases = ["import"]
+related = ["ex", "privata", "annotation-sugar"]
++++
+
+# importa ex — minimal sugar
+#
+# Missing visibility defaults to privata. Missing binding defaults to the final
+# path segment, so this imports norma:chorda as chorda.
+
+importa ex "norma:chorda"
+
+nota "importa-minimal"

@@ -1,0 +1,17 @@
++++
+term = "verte"
+kind = "annotation"
+category = "codegen"
+canonical = true
+summary = "Braced canonical @ verte rename mapping."
+syntax = "@ verte { target = rs, methodus = \"…\" }"
+related = ["verte", "annotation-sugar"]
++++
+@ verte { target = rs, methodus = "push" }
+functio addeExemplar() → vacuum {
+    tacet
+}
+
+incipit {
+    nota "verte-braced"
+}

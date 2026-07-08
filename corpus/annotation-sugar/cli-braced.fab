@@ -1,0 +1,24 @@
++++
+term = "cli"
+kind = "annotation"
+category = "cli"
+canonical = true
+summary = "Braced canonical @ cli program marker."
+syntax = "@ cli { nomen = \"NAME\" }"
+related = ["cli", "optio", "annotation-sugar"]
++++
+
+# Braced @ cli — canonical program name record
+#
+# TARGET: annotation-sugar stage 2
+# PAIR: sugar `@ cli "NAME"` (see optio/optio.fab)
+
+@ cli { nomen = "annotation-sugar-smoke" }
+@ optio {
+    binding = verbose,
+    brevis = "v",
+    longum = "verbose",
+    typus = bivalens,
+    descriptio = "Verbose mode",
+}
+incipit argumenta args { }

@@ -1,0 +1,33 @@
++++
+term = "fractus"
+kind = "existing-home"
+category = "type"
+canonical = false
+summary = "Compiler-owned fractus rounding methodi."
+syntax = "valor.rotunda | pavimentum | tectum | trunca"
+related = ["fractus", "intrinseca"]
++++
+
+
+# fractus rounding intrinsics
+#
+# Compiler-owned fractus methodi — rotunda, pavimentum, tectum, trunca.
+#
+# GRAMMAR:
+#   valor.rotunda() | valor.pavimentum() | valor.tectum() | valor.trunca()
+#
+# Rounding modes lower to per-target float intrinsics; Wasm tier Runnable.
+#
+# EXPECTED OUTPUT:
+#   Smoke asserts exit 0 only.
+
+incipit {
+    fixum fractus valor ← -3.75
+
+    fixum _ rotundus ← valor.rotunda()
+    fixum _ basis ← valor.pavimentum()
+    fixum _ culmen ← valor.tectum()
+    fixum _ truncatus ← valor.trunca()
+
+    nota rotundus, basis, culmen, truncatus
+}

@@ -1,0 +1,27 @@
++++
+term = "nonnihil"
+kind = "legacy"
+category = "nullability"
+canonical = false
+canonical_term = "est"
+summary = "Retired prefix predicate; use value non est nihil."
+syntax = "<expression> non est nihil"
+related = ["nihil", "est", "non est"]
++++
+
+# nonnihil — retired prefix predicate
+#
+# GRAMMAR:
+#   value non est nihil
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+functio maybe() → numerus ∪ nihil {
+    redde 42
+}
+
+incipit {
+    nota maybe() non est nihil
+}

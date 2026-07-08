@@ -1,0 +1,26 @@
++++
+term = "numerus"
+kind = "existing-home"
+category = "type"
+canonical = false
+summary = "Sized numerus and fractus width annotations in type position."
+syntax = "numerus<W> | fractus<W>"
+related = ["numerus", "fractus", "instans"]
++++
+
+
+# sized numerus/fractus width annotations
+#
+# WHY: `numerus<W>` and `fractus<W>` carry explicit target widths in type position.
+
+incipit {
+    fixum numerus<i32> narrow ← 7 ∷ numerus<i32>
+    fixum numerus<u64> wide ← 255 ∷ numerus<u64>
+    fixum numerus<i64> signed ← narrow
+    fixum fractus<f32> single ← 1.5 ∷ fractus<f32>
+
+    nota narrow
+    nota wide
+    nota signed
+    nota single
+}

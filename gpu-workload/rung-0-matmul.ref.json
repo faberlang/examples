@@ -1,0 +1,9 @@
+{
+  "rung": 0,
+  "name": "matmul",
+  "dtype": "f32",
+  "shape": [2, 2],
+  "tolerance": 0.00001,
+  "reference": [58.0, 64.0, 139.0, 154.0],
+  "source": "hand-computed CPU matmul fixture"
+}

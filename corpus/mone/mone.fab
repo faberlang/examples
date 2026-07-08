@@ -1,0 +1,24 @@
++++
+term = "mone"
+kind = "keyword"
+category = "output"
+canonical = true
+summary = "Writes a warning message."
+syntax = "mone <expression>"
+related = ["scribe", "vide"]
++++
+
+
+# mone diagnostic output
+#
+# mone <expr>  -- emit a warning-style diagnostic (distinct from nota/vide)
+#
+# GRAMMAR:
+#   outputStmt :← 'mone' expr
+#
+# EXPECTED OUTPUT:
+#   mone-style warning diagnostic (single mone call).
+
+incipit {
+    mone "cave"
+}

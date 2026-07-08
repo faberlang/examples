@@ -1,0 +1,9 @@
+# vector width inference
+
+functio make<elem, magnitudo N>() → vector<elem, _> {
+    mori "infer width stub"
+}
+
+functio vectorInferSmoke() → numerus {
+    redde 0
+}

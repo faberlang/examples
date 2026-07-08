@@ -1,0 +1,30 @@
++++
+term = "in"
+kind = "keyword"
+category = "function"
+canonical = true
+summary = "Marks a mutable borrowed parameter."
+syntax = "in <type> <name>"
+related = ["de", "ex"]
++++
+
+# in — value parameter passing mode
+#
+# GRAMMAR:
+#   paramMode :← 'in' type
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+# BACKEND:
+#   Cross-ref: functio/in-ex.fab.
+#
+
+functio summa(in lista<numerus> values) → numerus {
+    redde values.summa()
+}
+
+incipit {
+    fixum _ xs ← [1, 2, 3]
+    nota summa(xs)
+}

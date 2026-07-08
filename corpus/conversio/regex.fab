@@ -1,0 +1,30 @@
++++
+term = "regex"
+kind = "conversio"
+category = "conversion"
+canonical = false
+summary = "Regex carrier construction from textus and ascii."
+syntax = "<textus-or-ascii> ↦ regex"
+related = ["↦", "regex", "textus", "ascii"]
++++
+
+
+# conversio — regex carrier construction
+#
+# WHY: v1 regex conversio constructs a pattern carrier and does not validate
+# pattern syntax against a regex engine. Invalid-looking pattern text is still
+# preserved identically by the Rust route and the MIR stepper route.
+
+incipit {
+    fixum textus digitsWire ← "\d+"
+    fixum regex digits ← digitsWire ↦ regex
+    nota digits
+
+    fixum ascii wordWire ← '(?i)[a-z]+'
+    fixum regex word ← wordWire ↦ regex
+    nota word
+
+    fixum textus brokenWire ← "\d["
+    fixum regex broken ← brokenWire ↦ regex
+    nota broken
+}

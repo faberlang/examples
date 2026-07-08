@@ -1,0 +1,28 @@
++++
+term = "verum"
+kind = "existing-home"
+category = "literal"
+canonical = true
+summary = "Boolean literals verum and falsum with bivalens bindings."
+syntax = "verum | falsum"
+related = ["falsum", "bivalens", "verum"]
++++
+
+# literalia/boolean — verum and falsum literals
+#
+# GRAMMAR:
+#   literal :← 'verum' | 'falsum'
+#
+# EXPECTED OUTPUT:
+#   verum, falsum, verum
+#
+# BACKEND:
+#   Cross-ref keyword dirs verum/verum.fab and falsum/falsum.fab.
+
+incipit {
+    fixum bivalens enabled ← verum
+    fixum bivalens disabled ← falsum
+    nota enabled
+    nota disabled
+    nota enabled et non disabled
+}

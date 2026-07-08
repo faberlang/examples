@@ -1,0 +1,24 @@
++++
+term = "positivum"
+kind = "legacy"
+category = "operators"
+canonical = false
+canonical_term = "≡"
+summary = "Retired prefix predicate; use value > 0."
+syntax = "<expression> > 0"
+related = ["negativum", "≡"]
++++
+
+# positivum — retired prefix predicate
+#
+# GRAMMAR:
+#   value > 0
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+incipit {
+    fixum _ value ← 7
+    nota value > 0
+}

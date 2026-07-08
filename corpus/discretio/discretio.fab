@@ -1,0 +1,50 @@
++++
+term = "discretio"
+kind = "keyword"
+category = "type"
+canonical = true
+summary = "Declares a tagged union with variant payloads."
+syntax = "discretio <name> [<type-params>] <block>"
+aliases = ["union", "sum type"]
+related = ["ordo", "discerne", "finge"]
++++
+
+
+# discretio — tagged union declarations
+#
+# discretio Nomen {
+#     Varians { <type> <field>, ... }
+#     Alius
+# }
+#
+# GRAMMAR:
+#   discretioDecl :← 'discretio' ident '{' variantDecl* '}'
+#   variant     :← ident ('{' fieldDecl (',' fieldDecl)* '}')?
+#
+# EXPECTED OUTPUT:
+#   discretiones paratae
+
+# Discretio with payload variants
+discretio Exitus {
+    Bonum { textus nuntius }
+    Malum { textus causa }
+}
+
+# Discretio with mixed unit and payload variants
+discretio Actum {
+    Pulsus { numerus x, numerus y }
+    Clavis { textus clavis }
+    # unit variant (no payload fields)
+    Finis
+}
+
+# Discretio with many fields per variant
+discretio Figura {
+    Rectum { numerus x, numerus y, numerus latitudo, numerus altitudo }
+    Circulus { numerus cx, numerus cy, numerus radius }
+    Punctum { numerus x, numerus y }
+}
+
+incipit {
+    nota "discretiones paratae"
+}

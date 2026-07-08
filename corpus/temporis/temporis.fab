@@ -1,0 +1,25 @@
++++
+term = "temporis"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Sets a timeout-like duration for a test modifier."
+syntax = "temporis <number>"
+related = ["metior", "repete"]
++++
+
+# temporis — timed test modifier
+#
+# GRAMMAR:
+#   testModifier :← 'temporis' integer
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test modifier (whitelist: temporis/temporis.fab).
+#
+
+proba "timed case" temporis 5 {
+    adfirma verum
+}

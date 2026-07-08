@@ -1,0 +1,27 @@
++++
+term = "nonnulla"
+kind = "legacy"
+category = "nullability"
+canonical = false
+canonical_term = "est"
+summary = "Retired prefix predicate; use value non est nihil."
+syntax = "<expression> non est nihil"
+related = ["nihil", "est", "non est"]
++++
+
+# nonnulla — retired prefix predicate
+#
+# GRAMMAR:
+#   value non est nihil
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+
+functio label() → textus {
+    redde "ok"
+}
+
+incipit {
+    nota label() non est nihil
+}

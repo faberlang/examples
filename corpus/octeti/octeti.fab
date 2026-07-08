@@ -1,0 +1,30 @@
++++
+term = "octeti"
+kind = "existing-home"
+category = "type"
+canonical = true
+summary = "Primitive byte-buffer type."
+syntax = "octeti"
+aliases = ["bytes"]
+related = ["textus", "lista"]
++++
+
+
+# octeti — byte-buffer type alias
+#
+# typus Fascis = octeti
+#
+# GRAMMAR:
+#   typeAliasDecl :← 'typus' ident '=' typeExpr
+#
+# EXPECTED OUTPUT:
+#   octeti.expected — type-known diagnostic.
+
+typus Fascis = octeti
+
+incipit {
+    fixum octeti sig ← |de ad be ef|
+    fixum octeti hello ← |48 65 6c 6c 6f|
+    fixum octeti empty ← ||
+    nota "octeti typus notus"
+}

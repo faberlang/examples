@@ -1,0 +1,6 @@
+incipit {
+  fixum sparsa<fractus, [2, 3]> s ← vacua
+  fixum _ len ← s.longitudo()
+  fixum _ count ← s.nonnihil()
+  nota len, count
+}

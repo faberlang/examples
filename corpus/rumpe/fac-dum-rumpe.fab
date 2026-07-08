@@ -1,0 +1,23 @@
++++
+term = "rumpe"
+kind = "keyword"
+category = "transfer"
+canonical = false
+summary = "innermost dum wins over enclosing fac for rumpe"
+related = ["fac", "dum"]
++++
+# loop wins over enclosing fac — rumpe exits dum only
+
+incipit {
+    varia numerus x ← 0
+    fac {
+        dum x < 3 {
+            x ← x + 1
+            si x ≡ 2 ergo rumpe
+        }
+        nota x
+    }
+    cape err {
+        nota 0
+    }
+}

@@ -1,0 +1,9 @@
+importa ex "faber:processus" privata processus
+importa ex "faber:solum" privata fileio
+importa ex "faber:json" privata jsonio
+
+incipit {
+    fixum textus path ← "/tmp/faber-kernel-solum-json.fab"
+    processus.exsequi("printf '[1,2]' > /tmp/faber-kernel-solum-json.fab")
+    nota jsonio.pange(jsonio.solve(fileio.lege<textus>(path)))
+}

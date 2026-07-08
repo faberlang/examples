@@ -1,0 +1,29 @@
++++
+term = "faber"
+kind = "concept"
+category = "script-kernel"
+canonical = true
+summary = "Imports the released script-kernel manifest as a compile-time module prefix."
+syntax = "importa ex \"faber:*\" privata faber"
+aliases = ["faber:*"]
+related = ["importa", "incipit"]
++++
+
+# faber:* — script-kernel manifest import
+#
+# This glob is inside the import path string. It expands the released binary's
+# kernel manifest into `faber.<module>.<verb>` calls at compile time; it does not
+# create a runtime aggregate value.
+#
+# Manifest modules may grow in minor releases. Pin `faber --version` when a
+# script needs bit-exact reproducibility.
+
+importa ex "faber:*" privata faber
+
+incipit {
+    faber.processus.exsequi("printf '{\"script\":\"kernel\"}' > /tmp/faber-kernel-glob.json")
+    sit raw ← faber.solum.lege<textus>("/tmp/faber-kernel-glob.json")
+    nota faber.json.pange(faber.json.solve(raw))
+    faber.aleator.semina(42)
+    nota faber.aleator.uuid()
+}

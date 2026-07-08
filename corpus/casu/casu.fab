@@ -1,0 +1,34 @@
++++
+term = "casu"
+kind = "keyword"
+category = "control-flow"
+canonical = true
+summary = "Introduces a branch inside an elige or discerne statement."
+syntax = "casu <expression> <block>"
+aliases = ["case"]
+related = ["elige", "discerne"]
++++
+
+# casu — branch arm in elige or discerne
+#
+# GRAMMAR:
+#   casuClause :← 'casu' expr block
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+# BACKEND:
+#   Cross-ref: elige/elige.fab, discerne/discerne.fab.
+#
+
+incipit {
+    fixum _ code ← 200
+    elige code {
+        casu 200 {
+            nota "ok"
+        }
+        ceterum {
+            nota "other"
+        }
+    }
+}

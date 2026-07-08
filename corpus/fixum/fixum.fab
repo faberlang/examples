@@ -1,0 +1,55 @@
++++
+term = "fixum"
+kind = "keyword"
+category = "binding"
+canonical = true
+summary = "Declares an immutable binding."
+syntax = "fixum <type|_> <pattern> [← <expression>]"
+aliases = ["const", "immutable"]
+related = ["varia", "sit", "←"]
++++
+# fixum — immutable bindings
+#
+# Immediate init:
+#   fixum numerus count ← 0
+#   fixum _ nomen ← "Marcus"
+#
+# Deferred init (write-once): declare without ←, assign exactly once later, then
+# freeze. The definite-assignment pass rejects reads before that assignment and
+# any second assignment.
+#   fixum numerus pending
+#   pending ← 42
+#
+# `sit x` is sugar for `fixum _ x` in both immediate and deferred shapes; see
+# sit/sit.fab for the compact inferred spelling.
+#
+# GRAMMAR:
+#   varDecl := ('fixum' | 'varia') typeAnnotation IDENTIFIER ('←' expression)?
+#
+# EXPECTED OUTPUT:
+#   fixum.expected (Salve, Marcus! / 7 / 30 / 300)
+
+functio scale(bivalens compact, numerus base) → numerus {
+    fixum numerus factor
+    si compact {
+        factor ← 10
+    }
+    secus {
+        factor ← 100
+    }
+    redde base * factor
+}
+
+incipit {
+    fixum _ nomen ← "Marcus"
+    fixum _ salve ← "Salve, §!"(nomen)
+
+    nota salve
+
+    fixum numerus pending
+    pending ← 7
+    nota pending
+
+    nota scale(verum, 3)
+    nota scale(falsum, 3)
+}

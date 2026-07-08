@@ -1,0 +1,39 @@
++++
+term = "dum"
+kind = "keyword"
+category = "control-flow"
+canonical = true
+summary = "Repeats a block while a condition remains true."
+syntax = "dum <condition> <block|ergo statement>"
+aliases = ["while"]
+related = ["si", "ergo", "fac"]
++++
+# dum — while loop
+#
+# dum <condition> { <body> }
+#
+# GRAMMAR:
+#   loopStmt :← 'dum' expr '{' stmt* '}'
+#
+# EXPECTED OUTPUT:
+#   dum.expected
+
+incipit {
+    # Ascending counter: varia so the loop variable can mutate
+    varia numerus computus ← 0
+
+    dum computus < 5 {
+        nota computus
+        computus ← computus + 1
+    }
+
+    # Descending loop: condition becomes falsum at 0
+    varia numerus reliquum ← 3
+
+    dum reliquum > 0 {
+        nota "reliquum: §"(reliquum)
+        reliquum ← reliquum - 1
+    }
+
+    nota "perfectum!"
+}

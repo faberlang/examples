@@ -1,0 +1,25 @@
++++
+term = "lineam"
+kind = "keyword"
+category = "io"
+canonical = true
+summary = "Reads one line of input."
+syntax = "lege lineam"
+related = ["lege"]
++++
+
+# lineam — line-oriented lege read
+#
+# GRAMMAR:
+#   readMode :← 'lege' 'lineam'
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+# BACKEND:
+#   Rust/Go/roundtrip whitelist like lege/lege.fab.
+#
+
+incipit {
+    nota "lineam exemplum — stdin read deferred in harness"
+}

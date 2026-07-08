@@ -1,0 +1,29 @@
++++
+term = "cura"
+kind = "keyword"
+category = "resource"
+canonical = true
+summary = "Starts an allocator scope."
+syntax = "cura \"<allocator-kind>\" fixum _ <alloc> <block>"
+related = ["arena"]
++++
+
+
+# cura "arena" — allocator-scoped binding
+#
+# cura "arena" introduces an arena allocator scope for a binding.
+#
+# GRAMMAR:
+#   cura "arena" fixum _ <name> { <body> }
+#
+# Rust lowers to a no-op with a warning; Faber/TS preserve arena syntax for future
+# real allocators. Body runs normally.
+#
+# EXPECTED OUTPUT:
+#   "in arena".
+
+incipit {
+    cura "arena" fixum _ alloc {
+        nota "in arena"
+    }
+}

@@ -1,0 +1,27 @@
++++
+term = "usque"
+kind = "keyword"
+category = "range"
+canonical = true
+summary = "Creates an inclusive range with a Latin keyword."
+syntax = "<expression> usque <expression>"
+related = ["ante", "…"]
++++
+
+
+# usque — inclusive upper bound for range iteration
+#
+# itera ab <initium> usque <finis> <var> { … }   -- both endpoints included
+#
+# GRAMMAR:
+#   iterStmt :← 'itera' 'ab' expr 'usque' expr binding block
+#
+# EXPECTED OUTPUT:
+#   0, 1, 2, 3 (inclusive range through finis).
+
+incipit {
+    # i = 0, 1, 2, 3 (includes 3)
+    itera ab 0 usque 3 fixum i {
+        nota i
+    }
+}

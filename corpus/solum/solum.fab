@@ -1,0 +1,25 @@
++++
+term = "solum"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Marks a test as the only test to run."
+syntax = "solum"
+related = ["omitte", "futurum"]
++++
+
+# solum — focused test modifier
+#
+# GRAMMAR:
+#   testModifier :← 'solum'
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test modifier (whitelist: solum/solum.fab).
+#
+
+proba "focus me" solum {
+    adfirma verum
+}

@@ -1,0 +1,27 @@
++++
+term = "block-string"
+kind = "existing-home"
+category = "literal"
+canonical = true
+summary = "Block textus literals with embedded quotes and newlines."
+syntax = "«<text>»"
+aliases = ["«...»"]
+related = ["string", "textus"]
++++
+
+# literalia/block-string — « ... » literals
+#
+# GRAMMAR:
+#   blockStringLit :← '«' ... '»'
+#
+# EXPECTED OUTPUT:
+#   he said "salve", line one
+
+incipit {
+    fixum _ quote ← «he said "salve"»
+    nota quote
+
+    fixum _ multiline ← «line one
+still line one»
+    nota multiline.sectio(0, 8)
+}

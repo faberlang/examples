@@ -1,0 +1,63 @@
++++
+term = "itera"
+kind = "keyword"
+category = "control-flow"
+canonical = true
+summary = "Starts a for-each iteration statement."
+syntax = "itera <mode> <expression> <binding> <block>"
+aliases = ["iterate"]
+related = ["ex", "de", "ab"]
++++
+
+
+# itera ex — cursor function return iteration
+#
+# itera ex <cursor-call> fixum <item> { <body> }
+#
+# GRAMMAR:
+#   forInStmt  :← 'itera' 'ex' callExpr 'fixum' ident block
+#   cursorDecl :← '@' 'cursor' funcDecl
+#
+# EXPECTED OUTPUT:
+#   Sync cursor values and collected lista of doubled results.
+#
+# BACKEND:
+#   Go backend emits cursor generators as eager slices for e2e parity.
+
+# Multi-value sync function that yields values via cede
+@ cursor
+functio grena(numerus n) → numerus {
+    itera ab 0‥n fixum i {
+        cede i
+    }
+}
+
+# Multi-value futura function that yields values via cede
+@ futura
+@ cursor
+functio grena_futurum(numerus n) → numerus {
+    itera ab 0‥n fixum i {
+        cede i
+    }
+}
+
+incipit {
+    # Direct consumption of cursor yield stream
+    nota "Sync cursor iteration:"
+    itera ex grena(3) fixum num {
+        nota "  numerus: §"(num)
+    }
+
+    # Collect all results from cursor function
+    varia _ effecta ← []
+    itera ex grena(5) fixum num {
+        effecta.appende(num * 2)
+    }
+    nota "Sync collected:"
+    nota effecta
+
+    # Note: Futura iteration would require futura context
+    # itera ex grena_futurum(3) fixum num {
+    #     nota num
+    # }
+}

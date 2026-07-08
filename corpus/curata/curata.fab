@@ -1,0 +1,25 @@
++++
+term = "curata"
+kind = "keyword"
+category = "function"
+canonical = true
+summary = "Marks a function as requiring an allocator binding."
+syntax = "functio <name>(...) curata <required> [ut <local>] → <type>"
+related = ["cura", "arena"]
++++
+
+# curata — allocator scope on functio
+#
+# GRAMMAR:
+#   funcModifier :← 'curata' ident 'ut' ident
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only allocator modifier (whitelist: curata/curata.fab).
+#
+
+functio greet(textus name) curata alloc ut a → textus {
+    redde name
+}

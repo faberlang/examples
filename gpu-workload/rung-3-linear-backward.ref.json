@@ -1,0 +1,12 @@
+{
+  "rung": 3,
+  "name": "linear-backward",
+  "dtype": "f32",
+  "shape": [1],
+  "tolerance": 0.0001,
+  "reference": {
+    "loss": 4.0,
+    "d_weight": 8.0
+  },
+  "source": "hand-derived linear squared-error gradient fixture"
+}

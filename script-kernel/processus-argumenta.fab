@@ -1,0 +1,5 @@
+importa ex "faber:processus" privata processus
+
+incipit {
+    nota processus.argumenta()
+}

@@ -1,0 +1,6 @@
+importa ex "faber:aleator" privata aleator
+
+incipit {
+    aleator.semina(42)
+    nota aleator.uuid()
+}

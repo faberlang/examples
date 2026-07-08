@@ -1,0 +1,23 @@
++++
+term = "rumpe"
+kind = "keyword"
+category = "transfer"
+canonical = false
+summary = "rumpe exits fac from nested si without entering cape"
+related = ["fac", "si", "cape"]
++++
+incipit {
+    varia numerus valorem ← 0
+    fac {
+        si verum {
+            si verum {
+                rumpe
+            }
+        }
+        valorem ← 2
+    }
+    cape err {
+        valorem ← 3
+    }
+    nota valorem
+}

@@ -1,0 +1,21 @@
++++
+term = "air lane"
+kind = "annotation"
+category = "compiler"
+canonical = true
+summary = "Accepted @ radix lane \"air\" function routed through AIR to MIR-backed targets."
+syntax = "@ radix lane \"air\""
+aliases = ["air", "radix lane air"]
+related = ["radix lane", "mir", "tensor"]
++++
+
+# air lane — accepted AIR routing through MIR-backed targets
+#
+# AIR is a transform detour, not a backend. This function is accepted by the
+# AIR purity policy, lowers HIR → AIR, and re-lowers AIR → MIR for MIR-backed
+# targets such as `wasm-text`.
+
+@ radix lane "air"
+functio loss(numerus x, numerus y) → numerus {
+    redde x + y
+}

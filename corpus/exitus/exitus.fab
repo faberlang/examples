@@ -1,0 +1,25 @@
++++
+term = "exitus"
+kind = "keyword"
+category = "entry"
+canonical = true
+summary = "Sets the exit code or exit expression for an entry point."
+syntax = "incipit argumenta <name> exitus <expr> <block>"
+related = ["incipit", "incipiet", "argumenta"]
++++
+
+# exitus — CLI exit code on entry
+#
+# GRAMMAR:
+#   entryModifier :← 'exitus' integer
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only entry modifier (whitelist: exitus/exitus.fab).
+#
+
+@ cli "exitus-smoke"
+incipit argumenta args exitus 1 {
+}

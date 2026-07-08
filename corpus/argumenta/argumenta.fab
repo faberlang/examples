@@ -1,0 +1,26 @@
++++
+term = "argumenta"
+kind = "keyword"
+category = "entry"
+canonical = true
+summary = "Binds command-line arguments for an entry point."
+syntax = "incipit argumenta <name> <block> | functio <name>() argumenta <name> <block>"
+related = ["incipit", "cli", "imperium", "optio", "operandus"]
++++
+
+# argumenta — CLI entry operand binding
+#
+# GRAMMAR:
+#   entryDecl :← 'incipit' 'argumenta' ident block
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only CLI entry (whitelist: argumenta/argumenta.fab).
+#
+
+@ cli "argumenta-smoke"
+@ descriptio "argumenta exemplum"
+incipit argumenta args {
+}

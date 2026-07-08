@@ -1,0 +1,28 @@
++++
+term = "emitte"
+kind = "keyword"
+category = "endpoint"
+canonical = true
+summary = "Retired statement-level frame emit; use expression ad with sermo directional views."
+syntax = "emitte <expression>"
+related = ["ad", "meus", "tuus", "sermo"]
++++
+
+# emitte — retired statement-level frame emit
+#
+# `emitte` is still a reserved lexer keyword so the parser can reject old stream
+# blocks with a targeted diagnostic.
+#
+# GRAMMAR:
+#   retiredEmitteStmt :← 'emitte' expr
+#
+# EXPECTED ERROR:
+#   Statement-level `emitte` is retired. Use expression `ad` and a `sermo`
+#   directional view such as `s.meus<T>().da(value)` or `s.tuus<T>().accipe()`.
+#
+# Retired form, intentionally commented out:
+#   emitte scrinium { status = "item", data = "payload" }
+
+incipit {
+    nota "emitte is a retired statement form; use sermo directional views"
+}

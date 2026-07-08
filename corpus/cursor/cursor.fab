@@ -1,0 +1,31 @@
++++
+term = "cursor"
+kind = "keyword"
+category = "async"
+canonical = true
+summary = "Marks a function as a generator."
+syntax = "@ cursor"
+related = ["futura", "cede"]
++++
+
+# cursor — async iteration annotation
+#
+# GRAMMAR:
+#   annotation :← '@' 'cursor'
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+# BACKEND:
+#   Cross-ref: futura/futura.fab, itera/cursor-iteratio.fab; Go whitelist: cursor/cursor.fab.
+#
+
+@ cursor
+functio stream() → numerus {
+    cede 1
+    cede 2
+}
+
+incipit {
+    nota stream()
+}

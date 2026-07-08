@@ -1,0 +1,35 @@
++++
+term = "↦"
+kind = "operator-group"
+category = "conversion"
+canonical = false
+summary = "Radix-parameterized integer parsing from textus."
+syntax = "<textus> ↦ numerus<W, Radix>"
+related = ["↦", "numerus", "textus"]
++++
+
+
+# conversio — radix-parameterized integer parsing
+#
+# <textus> ↦ numerus<i32, Hex|Bin|Oct>
+#
+# GRAMMAR:
+#   convertExpr :← expr '↦' type '<' typeArg (',' radix)? '>'
+#
+# EXPECTED OUTPUT:
+#   255
+#   10
+#   493
+#
+# BACKEND:
+#   HIR-direct Rust and MIR-stepper routes must agree for radix parsing.
+
+incipit {
+    fixum _ hex ← "ff" ↦ numerus<i32, Hex>
+    fixum _ bin ← "1010" ↦ numerus<i32, Bin>
+    fixum _ oct ← "755" ↦ numerus<i32, Oct>
+
+    nota hex
+    nota bin
+    nota oct
+}

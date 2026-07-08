@@ -1,0 +1,17 @@
++++
+term = "nondum"
+kind = "annotation"
+category = "availability"
+canonical = true
+summary = "Braced canonical @ nondum availability record."
+syntax = "@ nondum { target = rs, ratio = \"…\" }"
+related = ["nondum", "annotation-sugar"]
++++
+implendum tempus {
+  @ nondum { target = rs, ratio = "timer handles are not implemented" }
+  functio siste(numerus handle) → vacuum
+}
+
+incipit {
+    nota "nondum-braced"
+}

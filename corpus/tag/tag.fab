@@ -1,0 +1,25 @@
++++
+term = "tag"
+kind = "keyword"
+category = "testing"
+canonical = true
+summary = "Attaches a test tag string."
+syntax = "tag <string>"
+related = ["solum", "temporis"]
++++
+
+# tag — test tag modifier
+#
+# GRAMMAR:
+#   testModifier :← 'tag' stringLit
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only test modifier (whitelist: tag/tag.fab).
+#
+
+proba "tagged case" tag "focus" {
+    adfirma verum
+}

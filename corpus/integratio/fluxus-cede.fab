@@ -1,0 +1,52 @@
++++
+term = "integratio"
+kind = "concept"
+category = "integration"
+canonical = false
+summary = "Async futura and cursor cede in one program."
+syntax = "integratio — multi-feature happy path"
+related = ["futura", "cursor", "cede", "incipiet"]
++++
+
+
+# integratio — async futura and cursor cede in one program
+#
+# @ futura
+# functio f() → T { … }
+# @ cursor
+# functio g(n) → T { itera … { cede expr } }
+# incipiet { fixum _ x ← cede f(); … }
+#
+# GRAMMAR:
+#   annotatedFunc :← ('@' ('futura' | 'cursor'))* funcDecl
+#   awaitExpr     :← 'cede' callExpr
+#   asyncEntry    :← 'incipiet' block
+#
+# EXPECTED OUTPUT:
+#   none — smoke asserts exit 0 when runtime is linked.
+#
+# BACKEND:
+#   Rust/Go e2e whitelist — async/tokio runtime not linked in harness.
+
+@ futura
+functio accipe() → textus {
+    redde "Livia"
+}
+
+@ cursor
+functio paria(numerus finis) → numerus {
+    itera ab 0 ante finis fixum i {
+        si i % 2 ≡ 0 {
+            cede i
+        }
+    }
+}
+
+incipiet {
+    fixum _ nomen ← cede accipe()
+    nota "salve §"(nomen)
+
+    itera ex paria(8) fixum n {
+        nota n
+    }
+}

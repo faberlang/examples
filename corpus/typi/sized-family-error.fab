@@ -1,0 +1,19 @@
++++
+term = "numerus"
+kind = "existing-home"
+category = "type"
+canonical = false
+summary = "Sized primitive family violation (expect type error)."
+syntax = "numerus<f32> — rejected; use fractus<f32>"
+related = ["numerus", "fractus"]
++++
+
+
+# sized primitive family violation (expect type error)
+#
+# WHY: `numerus<W>` rejects float width markers; use `fractus<f32>` instead.
+
+incipit {
+    fixum numerus<f32> invalid ← 1.0 ∷ fractus<f32>
+    nota invalid
+}

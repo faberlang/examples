@@ -1,0 +1,14 @@
++++
+term = "vector"
+kind = "type"
+category = "register"
+summary = "vf32[4] width sugar in type position"
++++
+
+functio takes(vf32[4] v) → numerus {
+    redde 0
+}
+
+functio vectorSugarSmoke() → numerus {
+    redde 0
+}

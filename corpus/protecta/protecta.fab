@@ -1,0 +1,31 @@
++++
+term = "protecta"
+kind = "keyword"
+category = "modifier"
+canonical = true
+summary = "Reserved visibility annotation rejected by semantic analysis."
+syntax = "@ protecta"
+aliases = ["protected"]
+related = ["publica", "privata"]
++++
+
+
+# @ protecta is reserved visibility syntax
+#
+# This exemplum intentionally fails to compile. `@ protecta` is reserved and
+# has no active package, subclass, or sibling-file visibility meaning.
+#
+# GRAMMAR:
+#   annotatedDecl :← '@' 'protecta' funcDecl
+#
+# EXPECTED ERROR:
+#   `@ protecta` is reserved and has no active visibility meaning
+
+@ protecta
+functio protectum() → textus {
+    redde "protecta"
+}
+
+incipit {
+    nota protectum()
+}

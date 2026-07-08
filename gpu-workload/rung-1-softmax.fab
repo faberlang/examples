@@ -1,0 +1,46 @@
++++
+term = "gpu workload rung 1"
+kind = "workload"
+category = "gpu"
+summary = "Softmax-forward workload floor probe."
+related = ["tensor", "softmax", "reduction", "broadcast", "nucleum"]
++++
+
+# GPU workload rung 1 — softmax forward
+#
+# Current tensor intrinsics do not yet expose exponential syntax. The host
+# supplies max-shifted exponentials; the device entry performs the row
+# reductions and elementwise division that this rung is meant to expose.
+
+@ nucleum
+functio rung1_softmax_kernel(tf32[2, 3] exp_logits) → tf32[2, 3] {
+    fixum tf32[] seed ← vacua
+    varia tf32[2, 3] out ← seed.crea(0.0, [2, 3])
+
+    fixum f32 r0c0 ← exp_logits.accipe([0, 0]) vel 0.0
+    fixum f32 r0c1 ← exp_logits.accipe([0, 1]) vel 0.0
+    fixum f32 r0c2 ← exp_logits.accipe([0, 2]) vel 0.0
+    fixum f32 r0_sum ← r0c0 + r0c1 + r0c2
+    out.ponde([0, 0], r0c0 / r0_sum)
+    out.ponde([0, 1], r0c1 / r0_sum)
+    out.ponde([0, 2], r0c2 / r0_sum)
+
+    fixum f32 r1c0 ← exp_logits.accipe([1, 0]) vel 0.0
+    fixum f32 r1c1 ← exp_logits.accipe([1, 1]) vel 0.0
+    fixum f32 r1c2 ← exp_logits.accipe([1, 2]) vel 0.0
+    fixum f32 r1_sum ← r1c0 + r1c1 + r1c2
+    out.ponde([1, 0], r1c0 / r1_sum)
+    out.ponde([1, 1], r1c1 / r1_sum)
+    out.ponde([1, 2], r1c2 / r1_sum)
+
+    redde out
+}
+
+incipit {
+    fixum lista<f32> flat_exp ← [0.13533528, 0.36787944, 1.0, 0.01831564, 0.13533528, 1.0]
+    fixum tf32[] seed ← vacua
+    fixum tf32[2, 3] exp_logits ← seed.strue(flat_exp, [2, 3])
+    fixum vacuum _launch ← ad 'cuda:launch' ("rung1_softmax_kernel") ↦ vacuum
+
+    nota rung1_softmax_kernel(exp_logits).planata()
+}

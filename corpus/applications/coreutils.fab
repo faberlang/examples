@@ -1,0 +1,16 @@
++++
+term = "applications"
+kind = "pointer"
+category = "application"
+canonical = true
+summary = "Points to the coreutils application exempla workspace."
+related = ["cli", "argumenta", "operandus", "exitus"]
++++
+
+# Coreutils application exempla live outside the syntax corpus.
+#
+# See examples/coreutils/ and docs/factory/coreutils/CAMPAIGN.md.
+
+incipit {
+    nota "coreutils application exempla"
+}

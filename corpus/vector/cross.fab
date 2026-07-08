@@ -1,0 +1,14 @@
++++
+term = "vector"
+kind = "kernel"
+category = "gpu"
+summary = "vector cross product lowers for GPU text emit"
++++
+
+@ nucleum
+functio vector_cross(fractus<f32> x) → fractus<f32> {
+    fixum vf32[3] a ← [x, 2.0, 3.0] ↦ vf32[3]
+    fixum vf32[3] b ← [4.0, 5.0, 6.0] ↦ vf32[3]
+    fixum vf32[3] c ← a.cross(b)
+    redde c.dot(b)
+}

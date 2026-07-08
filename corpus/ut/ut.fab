@@ -1,0 +1,30 @@
++++
+term = "ut"
+kind = "keyword"
+category = "aliasing"
+canonical = true
+summary = "Introduces an alias name."
+syntax = "<name> ut <alias>"
+aliases = ["as"]
+related = ["ex", "argumenta"]
++++
+
+# ut — alias introducer
+#
+# GRAMMAR:
+#   alias :← ident 'ut' ident
+#
+# EXPECTED OUTPUT:
+#   Scalar stdout smoke (see body).
+#
+# BACKEND:
+#   Cross-ref: destructura/, importa/, discerne/ (per-field ut).
+#
+
+functio greet(textus location ut loc) → textus {
+    redde loc
+}
+
+incipit {
+    nota greet("Roma")
+}

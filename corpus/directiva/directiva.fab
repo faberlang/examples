@@ -1,0 +1,29 @@
++++
+sectio = "smoke"
+term = "@"
+kind = "annotation"
+category = "metadata"
+canonical = true
+summary = "Introduces an annotation for the following declaration or statement."
+syntax = "@ <name>"
+aliases = ["annotation"]
+related = ["nondum", "cli", "futura"]
++++
+
+
+
+# directiva — +++ TOML frontmatter smoke
+#
+# GRAMMAR:
+#   fabFile := frontmatter? program
+#
+# EXPECTED OUTPUT:
+#   pong
+
+functio ping() → textus {
+    redde "pong"
+}
+
+incipit {
+    nota ping()
+}

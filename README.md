@@ -1,19 +1,24 @@
 # Faber examples
 
-Public Faber application examples and demos.
-
-This repository is the home for runnable Faber packages that are not the
-language syntax corpus (`exempla` inside the private Radix compiler tree).
+Public Faber language corpus, named tracks, and application packages.
 
 ## Layout
 
 ```text
-coreutils/       GNU coreutils reimplementation (application exempla campaign)
+corpus/          Keyword / language reference (faber explain source)
+gpu-workload/    GPU systems workload rungs
+air/             AIR lane demos
+script-kernel/   faber:* script-kernel demos
+coreutils/       GNU coreutils reimplementation (application campaign)
 automation/      automation sketch packages
 reader-locale/   locale pack demos
 fixtures/        boundary fixtures used by tooling tests
 cista-lab/       package-store lab material
 ```
+
+Norma stdlib tours live in the sibling **`norma/exempla/`** tree, not here.
+The private Radix `crates/exempla` crate owns harnesses only and resolves these
+paths at runtime.
 
 ## Requirements
 

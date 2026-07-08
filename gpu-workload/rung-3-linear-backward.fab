@@ -1,0 +1,30 @@
++++
+term = "gpu workload rung 3"
+kind = "workload"
+category = "gpu"
+summary = "Linear backward-pass workload floor probe for the AIR gate."
+related = ["air", "gradient", "tensor", "nucleum"]
++++
+
+# GPU workload rung 3 — backward pass / gradients
+#
+# AIR autodiff is the producer gate for this rung. This legal AIR-lane function
+# pins the workload target without implementing autodiff in the measurement goal.
+
+@ radix lane "air"
+functio rung3_loss(f32 x, f32 weight, f32 target) → f32 {
+    fixum f32 prediction ← x * weight
+    fixum f32 err ← prediction - target
+    redde err * err
+}
+
+@ nucleum
+functio rung3_gradient_kernel(f32 x, f32 weight, f32 target) → f32 {
+    redde rung3_loss(x, weight, target)
+}
+
+incipit {
+    fixum f32 loss ← rung3_loss(2.0, 3.0, 4.0)
+    fixum vacuum _launch ← ad 'cuda:launch' ("rung3_gradient_kernel") ↦ vacuum
+    nota loss
+}

@@ -1,0 +1,26 @@
++++
+term = "ubique"
+kind = "keyword"
+category = "cli"
+canonical = true
+summary = "Marks an option or operand as global."
+syntax = "ubique"
+related = ["optio", "operandus"]
++++
+
+# ubique — global CLI option flag
+#
+# GRAMMAR:
+#   annotationFlag :← 'ubique'
+#
+# EXPECTED OUTPUT:
+#   No incipit — declaration or test-runner surface only.
+#
+# BACKEND:
+#   declaration-only CLI metadata (whitelist: ubique/ubique.fab).
+#
+
+@ cli "ubique-smoke"
+@ optio verbose brevis "v" longum "verbose" typus bivalens ubique descriptio "Global verbose flag"
+incipit argumenta args {
+}
