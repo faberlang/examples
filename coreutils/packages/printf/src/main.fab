@@ -46,7 +46,7 @@ functio numerus_specierum(textus formatum) → numerus {
             si next ≡ "%" {
                 i ← i + 2
             } secus {
-                si next ≡ "s" vel next ≡ "b" {
+                si next ≡ "s" aut next ≡ "b" {
                     n ← n + 1
                     i ← i + 2
                 } secus {
