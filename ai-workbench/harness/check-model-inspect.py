@@ -33,7 +33,6 @@ def main() -> int:
             str(faber_manifest),
             "--",
             "run",
-            "--interpret",
             str(package),
             "--",
             *case["args"],

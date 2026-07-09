@@ -33,7 +33,7 @@ From the workspace root:
 ```bash
 cargo run --manifest-path faber/Cargo.toml -- check examples/ai-workbench/packages/faber-ai
 cargo run --manifest-path faber/Cargo.toml -- test examples/ai-workbench/packages/faber-ai
-cargo run --manifest-path faber/Cargo.toml -- run --interpret examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json
+cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json
 python3 examples/ai-workbench/harness/check-model-inspect.py
 ```
 
@@ -46,3 +46,7 @@ Operator-local absolute model paths are intentionally redacted from portable
 examples; live local path validation belongs to the workspace inventory. Binary
 safetensors and GGUF metadata parsing is deliberately routed to the Stage 1
 delivery spec before it is claimed complete.
+
+`model inspect` reads the alias map with `norma:solum`, so the map-backed
+runtime path uses compiled `faber run`; the interpreter does not yet support
+that provider route.

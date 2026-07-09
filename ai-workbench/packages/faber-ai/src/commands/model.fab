@@ -1,5 +1,7 @@
 # Model inventory and metadata commands for the Faber AI workbench.
 
+importa ex "norma:solum" privata solum
+
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
 }
@@ -8,78 +10,128 @@ functio json_quote() → textus {
     redde |22| ↦ textus
 }
 
-functio status_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "router-backed"
-    si target ≡ "basic/minilm" ergo redde "missing-download"
-    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "missing-download"
-    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "missing-download"
+functio quoted_value(textus line) → textus {
+    varia numerus initium ← -1
+    varia numerus finis ← -1
+    varia numerus i ← 0
+    dum i < line.longitudo() {
+        si line.sectio(i, i + 1) ≡ "\"" {
+            si initium < 0 {
+                initium ← i + 1
+            } secus {
+                finis ← i
+                i ← line.longitudo()
+            }
+        }
+        i ← i + 1
+    }
+
+    si initium ≥ 0 et finis ≥ initium ergo redde line.sectio(initium, finis)
+    redde ""
+}
+
+functio map_value(lista<textus> aliases, textus target, textus field) → textus {
+    varia bivalens matched ← falsum
+    itera ex aliases fixum line {
+        si line.continet("[[tiers]]") {
+            matched ← falsum
+        }
+        si line.continet("alias = ") {
+            matched ← quoted_value(line) ≡ target
+        }
+        si matched et line.continet(field + " = ") {
+            redde quoted_value(line)
+        }
+    }
+
+    redde ""
+}
+
+functio status_for(lista<textus> aliases, textus target) → textus {
+    fixum textus status ← map_value(aliases, target, "status")
+    si status.longitudo() > 0 ergo redde status
     redde "unknown"
 }
 
-functio source_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "unsloth/Qwen3.6-35B-A3B-GGUF"
-    si target ≡ "basic/minilm" ergo redde "sentence-transformers/all-MiniLM-L6-v2"
-    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "Qwen/Qwen3-Embedding-0.6B"
-    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "Qwen/Qwen3-4B-FP8"
+functio source_for(lista<textus> aliases, textus target) → textus {
+    fixum textus source ← map_value(aliases, target, "source")
+    si source.longitudo() > 0 ergo redde source
     redde target
 }
 
-functio local_path_for(textus target) → textus {
+functio local_path_for(lista<textus> aliases, textus target) → textus {
+    fixum textus localis ← map_value(aliases, target, "local_path")
+    si localis.longitudo() > 0 ergo redde ""
     redde ""
 }
 
-functio router_id_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "qwen36-35b-a3b-q4"
-    redde ""
+functio router_id_for(lista<textus> aliases, textus target) → textus {
+    redde map_value(aliases, target, "router_model_id")
 }
 
-functio format_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "gguf"
-    si target ≡ "basic/minilm" ergo redde "alias-missing"
-    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "alias-missing"
-    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "alias-missing"
+functio format_for(lista<textus> aliases, textus target) → textus {
+    si status_for(aliases, target) ≡ "missing-download" ergo redde "alias-missing"
+    si source_for(aliases, target).continet("GGUF") ergo redde "gguf"
     redde "unknown"
 }
 
-functio diagnostic_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "metadata parser pending; router model is " + router_id_for(target)
-    si target ≡ "basic/minilm" ergo redde "missing local download for " + source_for(target)
-    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "missing local download for " + source_for(target)
-    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "missing local download for " + source_for(target)
+functio diagnostic_for(lista<textus> aliases, textus target) → textus {
+    si status_for(aliases, target) ≡ "router-backed" ergo redde "metadata parser pending; router model is " + router_id_for(aliases, target)
+    si status_for(aliases, target) ≡ "missing-download" ergo redde "missing local download for " + source_for(aliases, target)
     redde "unknown alias or unsupported path"
+}
+
+functio test_aliases() → lista<textus> {
+    redde [
+        "[[tiers]]",
+        "alias = \"basic/minilm\"",
+        "status = \"missing-download\"",
+        "source = \"sentence-transformers/all-MiniLM-L6-v2\"",
+        "local_path = \"\"",
+        "router_model_id = \"\"",
+        "[[tiers]]",
+        "alias = \"daily/qwen36-35b-a3b-q4\"",
+        "status = \"router-backed\"",
+        "source = \"unsloth/Qwen3.6-35B-A3B-GGUF\"",
+        "local_path = \"/redacted/local.gguf\"",
+        "router_model_id = \"qwen36-35b-a3b-q4\"",
+    ]
 }
 
 probandum "model alias inspection" tag "ai-workbench" {
     proba "Tier 1 MiniLM is marked as missing local download" {
-        adfirma status_for("basic/minilm") ≡ "missing-download"
-        adfirma source_for("basic/minilm") ≡ "sentence-transformers/all-MiniLM-L6-v2"
-        adfirma format_for("basic/minilm") ≡ "alias-missing"
+        fixum lista<textus> aliases ← test_aliases()
+        adfirma status_for(aliases, "basic/minilm") ≡ "missing-download"
+        adfirma source_for(aliases, "basic/minilm") ≡ "sentence-transformers/all-MiniLM-L6-v2"
+        adfirma format_for(aliases, "basic/minilm") ≡ "alias-missing"
     }
 
     proba "Tier 4 Qwen router alias records redacted GGUF state" {
-        adfirma status_for("daily/qwen36-35b-a3b-q4") ≡ "router-backed"
-        adfirma router_id_for("daily/qwen36-35b-a3b-q4") ≡ "qwen36-35b-a3b-q4"
-        adfirma local_path_for("daily/qwen36-35b-a3b-q4") ≡ ""
-        adfirma format_for("daily/qwen36-35b-a3b-q4") ≡ "gguf"
+        fixum lista<textus> aliases ← test_aliases()
+        adfirma status_for(aliases, "daily/qwen36-35b-a3b-q4") ≡ "router-backed"
+        adfirma router_id_for(aliases, "daily/qwen36-35b-a3b-q4") ≡ "qwen36-35b-a3b-q4"
+        adfirma local_path_for(aliases, "daily/qwen36-35b-a3b-q4") ≡ ""
+        adfirma format_for(aliases, "daily/qwen36-35b-a3b-q4") ≡ "gguf"
     }
 
     proba "unknown model target fails closed" {
-        adfirma status_for("not/a-known-alias") ≡ "unknown"
-        adfirma diagnostic_for("not/a-known-alias") ≡ "unknown alias or unsupported path"
+        fixum lista<textus> aliases ← test_aliases()
+        adfirma status_for(aliases, "not/a-known-alias") ≡ "unknown"
+        adfirma diagnostic_for(aliases, "not/a-known-alias") ≡ "unknown alias or unsupported path"
     }
 }
 
-functio inspect_json(textus target) → vacuum {
+functio inspect_json(lista<textus> aliases, textus target) → vacuum {
     fixum textus q ← json_quote()
     fixum textus alias_json ←
         "{" +
         q + "alias" + q + ":" + q + target + q + "," +
-        q + "source" + q + ":" + q + source_for(target) + q + "," +
-        q + "status" + q + ":" + q + status_for(target) + q + "," +
-        q + "format" + q + ":" + q + format_for(target) + q + ","
+        q + "source" + q + ":" + q + source_for(aliases, target) + q + "," +
+        q + "status" + q + ":" + q + status_for(aliases, target) + q + "," +
+        q + "format" + q + ":" + q + format_for(aliases, target) + q + ","
     fixum textus location_json ←
-        q + "local_path" + q + ":" + q + local_path_for(target) + q + "," +
-        q + "router_model_id" + q + ":" + q + router_id_for(target) + q + ","
+        q + "local_path" + q + ":" + q + local_path_for(aliases, target) + q + "," +
+        q + "router_model_id" + q + ":" + q + router_id_for(aliases, target) + q + ","
     fixum textus inventory_json ←
         q + "files" + q + ":[]," +
         q + "tensors" + q + ":[]," +
@@ -87,33 +139,35 @@ functio inspect_json(textus target) → vacuum {
         q + "quantization" + q + ":" + q + "" + q + "," +
         q + "estimated_bytes" + q + ":0,"
     fixum textus diagnostics_json ←
-        q + "diagnostics" + q + ":[" + q + diagnostic_for(target) + q + "]" +
+        q + "diagnostics" + q + ":[" + q + diagnostic_for(aliases, target) + q + "]" +
         "}"
     nota alias_json + location_json + inventory_json + diagnostics_json
 }
 
-functio inspect_text(textus target) → vacuum {
+functio inspect_text(lista<textus> aliases, textus target) → vacuum {
     nota "alias: §"(target)
-    nota "source: §"(source_for(target))
-    nota "status: §"(status_for(target))
-    nota "format: §"(format_for(target))
-    si local_path_for(target).longitudo() > 0 {
-        nota "local_path: §"(local_path_for(target))
+    nota "source: §"(source_for(aliases, target))
+    nota "status: §"(status_for(aliases, target))
+    nota "format: §"(format_for(aliases, target))
+    si local_path_for(aliases, target).longitudo() > 0 {
+        nota "local_path: §"(local_path_for(aliases, target))
     }
-    si router_id_for(target).longitudo() > 0 {
-        nota "router_model_id: §"(router_id_for(target))
+    si router_id_for(aliases, target).longitudo() > 0 {
+        nota "router_model_id: §"(router_id_for(aliases, target))
     }
-    nota "diagnostic: §"(diagnostic_for(target))
+    nota "diagnostic: §"(diagnostic_for(aliases, target))
 }
 
 @ imperium "inspect"
 @ descriptio "Inspect model alias or local model metadata"
 @ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
 @ operandus textus target descriptio "Model alias or local file path"
 functio inspect() argumenta args → vacuum {
+    fixum lista<textus> aliases ← solum.lege<lista<textus>>(args.map)
     si format_jsonne(args.format) {
-        inspect_json(args.target)
+        inspect_json(aliases, args.target)
     } secus {
-        inspect_text(args.target)
+        inspect_text(aliases, args.target)
     }
 }
