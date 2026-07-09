@@ -1,0 +1,9 @@
+# Faber AI workbench command surface.
+
+importa ex "./commands/model" privata * ut modelModule
+
+@ cli "faber-ai"
+@ versio "0.1.0"
+@ descriptio "Local Faber AI workbench"
+@ imperia "model" ex modelModule
+incipit argumenta args {}

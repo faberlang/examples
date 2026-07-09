@@ -1,0 +1,29 @@
+[[case]]
+id = "basic-minilm-missing-json"
+args = ["model", "inspect", "basic/minilm", "--format", "json"]
+stdout_contains = [
+  "\"alias\":\"basic/minilm\"",
+  "\"status\":\"missing-download\"",
+  "sentence-transformers/all-MiniLM-L6-v2",
+]
+exit = 0
+
+[[case]]
+id = "qwen36-router-json"
+args = ["model", "inspect", "daily/qwen36-35b-a3b-q4", "--format", "json"]
+stdout_contains = [
+  "\"status\":\"router-backed\"",
+  "\"format\":\"gguf\"",
+  "qwen36-35b-a3b-q4",
+  "/Users/ianzepp/ai/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf",
+]
+exit = 0
+
+[[case]]
+id = "unknown-text"
+args = ["model", "inspect", "not/a-known-alias"]
+stdout_contains = [
+  "status: unknown",
+  "diagnostic: unknown alias or unsupported path",
+]
+exit = 0

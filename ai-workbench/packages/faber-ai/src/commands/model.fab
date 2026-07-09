@@ -1,0 +1,109 @@
+# Model inventory and metadata commands for the Faber AI workbench.
+
+functio format_jsonne(textus formatum) → bivalens {
+    redde formatum ≡ "json"
+}
+
+functio json_quote() → textus {
+    redde |22| ↦ textus
+}
+
+functio status_for(textus target) → textus {
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "router-backed"
+    si target ≡ "basic/minilm" ergo redde "missing-download"
+    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "missing-download"
+    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "missing-download"
+    redde "unknown"
+}
+
+functio source_for(textus target) → textus {
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "unsloth/Qwen3.6-35B-A3B-GGUF"
+    si target ≡ "basic/minilm" ergo redde "sentence-transformers/all-MiniLM-L6-v2"
+    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "Qwen/Qwen3-Embedding-0.6B"
+    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "Qwen/Qwen3-4B-FP8"
+    redde target
+}
+
+functio local_path_for(textus target) → textus {
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "/Users/ianzepp/ai/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
+    redde ""
+}
+
+functio router_id_for(textus target) → textus {
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "qwen36-35b-a3b-q4"
+    redde ""
+}
+
+functio format_for(textus target) → textus {
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "gguf"
+    si target ≡ "basic/minilm" ergo redde "alias-missing"
+    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "alias-missing"
+    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "alias-missing"
+    redde "unknown"
+}
+
+functio diagnostic_for(textus target) → textus {
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "metadata parser pending; local GGUF path is recorded"
+    si target ≡ "basic/minilm" ergo redde "missing local download for sentence-transformers/all-MiniLM-L6-v2"
+    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "missing local download for Qwen/Qwen3-Embedding-0.6B"
+    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "missing local download for Qwen/Qwen3-4B-FP8"
+    redde "unknown alias or unsupported path"
+}
+
+probandum "model alias inspection" tag "ai-workbench" {
+    proba "Tier 1 MiniLM is marked as missing local download" {
+        adfirma status_for("basic/minilm") ≡ "missing-download"
+        adfirma source_for("basic/minilm") ≡ "sentence-transformers/all-MiniLM-L6-v2"
+        adfirma format_for("basic/minilm") ≡ "alias-missing"
+    }
+
+    proba "Tier 4 Qwen router alias records local GGUF state" {
+        adfirma status_for("daily/qwen36-35b-a3b-q4") ≡ "router-backed"
+        adfirma router_id_for("daily/qwen36-35b-a3b-q4") ≡ "qwen36-35b-a3b-q4"
+        adfirma format_for("daily/qwen36-35b-a3b-q4") ≡ "gguf"
+    }
+
+    proba "unknown model target fails closed" {
+        adfirma status_for("not/a-known-alias") ≡ "unknown"
+        adfirma diagnostic_for("not/a-known-alias") ≡ "unknown alias or unsupported path"
+    }
+}
+
+functio inspect_json(textus target) → vacuum {
+    fixum textus q ← json_quote()
+    nota "{" +
+        q + "alias" + q + ":" + q + target + q + "," +
+        q + "source" + q + ":" + q + source_for(target) + q + "," +
+        q + "status" + q + ":" + q + status_for(target) + q + "," +
+        q + "format" + q + ":" + q + format_for(target) + q + "," +
+        q + "local_path" + q + ":" + q + local_path_for(target) + q + "," +
+        q + "router_model_id" + q + ":" + q + router_id_for(target) + q + "," +
+        q + "diagnostics" + q + ":[" + q + diagnostic_for(target) + q + "]" +
+        "}"
+}
+
+functio inspect_text(textus target) → vacuum {
+    nota "alias: §"(target)
+    nota "source: §"(source_for(target))
+    nota "status: §"(status_for(target))
+    nota "format: §"(format_for(target))
+    si local_path_for(target).longitudo() > 0 {
+        nota "local_path: §"(local_path_for(target))
+    }
+    si router_id_for(target).longitudo() > 0 {
+        nota "router_model_id: §"(router_id_for(target))
+    }
+    nota "diagnostic: §"(diagnostic_for(target))
+}
+
+@ imperium "inspect"
+@ descriptio "Inspect model alias or local model metadata"
+@ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ operandus textus target descriptio "Model alias or local file path"
+functio inspect() argumenta args → vacuum {
+    si format_jsonne(args.format) {
+        inspect_json(args.target)
+    } secus {
+        inspect_text(args.target)
+    }
+}
