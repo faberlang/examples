@@ -50,6 +50,8 @@ python3 examples/ai-workbench/harness/check-index.py
 python3 examples/ai-workbench/harness/check-query.py
 python3 examples/ai-workbench/harness/check-package-reuse.py
 python3 examples/ai-workbench/harness/check-product-install-path.py
+python3 examples/ai-workbench/harness/check-reuse-handoff.py
+python3 examples/ai-workbench/harness/check-campaign-tour.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -98,6 +100,17 @@ Validate that path and its missing-inventory diagnostic with:
 
 ```bash
 python3 examples/ai-workbench/harness/check-product-install-path.py
+```
+
+Stage 8C records the product-to-systems handoff in `reuse-handoff.toml`. It
+keeps alias fields, artifact shapes, and future Radix/GPU routing explicit
+without claiming owned transformer inference or live GPU support. Validate it
+and the hermetic inspect -> embed -> index -> query -> generate -> chat tour
+with:
+
+```bash
+python3 examples/ai-workbench/harness/check-reuse-handoff.py
+python3 examples/ai-workbench/harness/check-campaign-tour.py
 ```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may
