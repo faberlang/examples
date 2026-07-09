@@ -48,3 +48,39 @@ stdout_contains = [
 compare_campaign = false
 absent_path = "/tmp/faber-ai-missing-alias-map.toml"
 exit = 0
+
+[[case]]
+id = "package-subset-map-json"
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/subset-aliases.toml",
+]
+stdout_contains = [
+  "\"status\":\"missing-download\"",
+  "sentence-transformers/all-MiniLM-L6-v2",
+]
+compare_campaign = false
+exit = 0
+
+[[case]]
+id = "outside-subset-map-json"
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/outside-subset-valid.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "alias map outside supported subset: examples/ai-workbench/harness/fixtures/model-inspect/maps/outside-subset-valid.toml",
+]
+compare_campaign = false
+exit = 0

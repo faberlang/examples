@@ -24,6 +24,9 @@ examples/ai-workbench/
         cases.toml
         files/
           README.md
+        maps/
+          subset-aliases.toml
+          outside-subset-valid.toml
 ```
 
 ## DevCycle
@@ -56,8 +59,11 @@ it requires the campaign map under `docs/campaigns/ai-workbench/`. It checks
 `source`, `status`, and `router_model_id` against the campaign map and requires
 portable output to redact `local_path` to an empty string.
 
-Stage 1 reads only the current campaign map subset: `[[tiers]]` blocks with
-single-line quoted `alias`, `source`, `status`, `local_path`, and
-`router_model_id` assignments written as `key = "value"`. General TOML parsing
-is deferred to the Norma metadata/parser work; unsupported map shapes must fail
-the harness before Stage B relies on them.
+Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may
+contain many campaign inventory fields, but the package reads `alias`, `source`,
+`status`, `local_path`, and `router_model_id` only when those assignments are
+single-line quoted `key = "value"` entries. General TOML parsing is deferred to
+the Norma metadata/parser work. The harness includes package-local map fixtures
+for the accepted subset and for a valid-TOML shape outside the consumed subset;
+the latter must fail closed with a structured diagnostic instead of being
+silently misread.

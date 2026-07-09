@@ -30,17 +30,46 @@ functio quoted_value(textus line) → textus {
     redde ""
 }
 
+functio subset_field_line(textus line, textus field) → bivalens {
+    redde line.initium(field + " = \"") et line.finis("\"")
+}
+
+functio subset_field_candidate(textus line, textus field) → bivalens {
+    redde line.initium(field + " ") aut line.initium(field + "=")
+}
+
+functio subset_line_supported(textus line) → bivalens {
+    fixum textus trimmed ← line.recide()
+    si trimmed.longitudo() ≡ 0 ergo redde verum
+    si trimmed.initium("#") ergo redde verum
+    si trimmed ≡ "[[tiers]]" ergo redde verum
+    si subset_field_candidate(trimmed, "alias") ergo redde subset_field_line(trimmed, "alias")
+    si subset_field_candidate(trimmed, "source") ergo redde subset_field_line(trimmed, "source")
+    si subset_field_candidate(trimmed, "status") ergo redde subset_field_line(trimmed, "status")
+    si subset_field_candidate(trimmed, "local_path") ergo redde subset_field_line(trimmed, "local_path")
+    si subset_field_candidate(trimmed, "router_model_id") ergo redde subset_field_line(trimmed, "router_model_id")
+    redde verum
+}
+
+functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
+    itera ex aliases fixum line {
+        si subset_line_supported(line) ≠ verum ergo redde falsum
+    }
+    redde verum
+}
+
 functio map_value(lista<textus> aliases, textus target, textus field) → textus {
     varia bivalens matched ← falsum
     itera ex aliases fixum line {
-        si line.continet("[[tiers]]") {
+        fixum textus trimmed ← line.recide()
+        si trimmed ≡ "[[tiers]]" {
             matched ← falsum
         }
-        si line.continet("alias = ") {
-            matched ← quoted_value(line) ≡ target
+        si trimmed.initium("alias = ") {
+            matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et line.continet(field + " = ") {
-            redde quoted_value(line)
+        si matched et trimmed.initium(field + " = ") {
+            redde quoted_value(trimmed)
         }
     }
 
@@ -98,6 +127,17 @@ functio test_aliases() → lista<textus> {
     ]
 }
 
+functio test_invalid_aliases() → lista<textus> {
+    redde [
+        "[[tiers]]",
+        "alias=\"basic/minilm\"",
+        "status = \"missing-download\"",
+        "source = \"sentence-transformers/all-MiniLM-L6-v2\"",
+        "local_path = \"\"",
+        "router_model_id = \"\"",
+    ]
+}
+
 probandum "model alias inspection" tag "ai-workbench" {
     proba "Tier 1 MiniLM is marked as missing local download" {
         fixum lista<textus> aliases ← test_aliases()
@@ -118,6 +158,11 @@ probandum "model alias inspection" tag "ai-workbench" {
         fixum lista<textus> aliases ← test_aliases()
         adfirma status_for(aliases, "not/a-known-alias") ≡ "unknown"
         adfirma diagnostic_for(aliases, "not/a-known-alias") ≡ "unknown alias or unsupported path"
+    }
+
+    proba "alias map subset rejects valid TOML outside the Stage A dialect" {
+        adfirma alias_map_subset_supported(test_aliases()) ≡ verum
+        adfirma alias_map_subset_supported(test_invalid_aliases()) ≡ falsum
     }
 }
 
@@ -189,6 +234,37 @@ functio inspect_map_missing_text(textus target, textus map_path) → vacuum {
     nota "diagnostic: alias map not found: §"(map_path)
 }
 
+functio inspect_map_invalid_json(textus target, textus map_path) → vacuum {
+    fixum textus q ← json_quote()
+    fixum textus head_json ←
+        "{" +
+        q + "alias" + q + ":" + q + target + q + "," +
+        q + "source" + q + ":" + q + map_path + q + "," +
+        q + "status" + q + ":" + q + "error" + q + "," +
+        q + "format" + q + ":" + q + "unknown" + q + ","
+    fixum textus location_json ←
+        q + "local_path" + q + ":" + q + "" + q + "," +
+        q + "router_model_id" + q + ":" + q + "" + q + ","
+    fixum textus inventory_json ←
+        q + "files" + q + ":[]," +
+        q + "tensors" + q + ":[]," +
+        q + "shards" + q + ":[]," +
+        q + "quantization" + q + ":" + q + "" + q + "," +
+        q + "estimated_bytes" + q + ":0,"
+    fixum textus diagnostics_json ←
+        q + "diagnostics" + q + ":[" + q + "alias map outside supported subset: " + map_path + q + "]" +
+        "}"
+    nota head_json + location_json + inventory_json + diagnostics_json
+}
+
+functio inspect_map_invalid_text(textus target, textus map_path) → vacuum {
+    nota "alias: §"(target)
+    nota "source: §"(map_path)
+    nota "status: error"
+    nota "format: unknown"
+    nota "diagnostic: alias map outside supported subset: §"(map_path)
+}
+
 @ imperium "inspect"
 @ descriptio "Inspect model alias or local model metadata"
 @ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
@@ -206,6 +282,15 @@ functio inspect() argumenta args → vacuum {
     }
 
     fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    si alias_map_subset_supported(aliases) ≠ verum {
+        si format_jsonne(args.format) {
+            inspect_map_invalid_json(args.target, map_path)
+        } secus {
+            inspect_map_invalid_text(args.target, map_path)
+        }
+        redde
+    }
+
     si format_jsonne(args.format) {
         inspect_json(aliases, args.target)
     } secus {
