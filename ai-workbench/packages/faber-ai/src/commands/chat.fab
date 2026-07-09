@@ -207,7 +207,7 @@ functio emit_error(textus target, textus source, textus diagnosticum, textus for
     emit_summary(target, source, "error", "", "", "", "", "", diagnosticum, formatum)
 }
 
-functio router_command(
+functio router_args(
     textus runner_path,
     textus prompt_path,
     textus out_path,
@@ -217,16 +217,50 @@ functio router_command(
     textus local_path,
     textus router_label,
     textus router_url,
-) → textus {
-    redde "python3 " + runner_path
-        + " --prompt " + prompt_path
-        + " --out " + out_path
-        + " --model-alias " + target
-        + " --source " + source
-        + " --router-model-id " + router_id
-        + " --local-path " + local_path
-        + " --router-label " + router_label
-        + " --router-url " + router_url
+) → lista<textus> {
+    redde [
+        "python3",
+        runner_path,
+        "--prompt",
+        prompt_path,
+        "--out",
+        out_path,
+        "--model-alias",
+        target,
+        "--source",
+        source,
+        "--router-model-id",
+        router_id,
+        "--local-path",
+        local_path,
+        "--router-label",
+        router_label,
+        "--router-url",
+        router_url,
+    ]
+}
+
+functio result_status(tabula<textus, valor> result) → numerus {
+    redde result["status"] ↦ numerus
+}
+
+functio result_stdout(tabula<textus, valor> result) → textus {
+    redde result["stdout"] ↦ textus
+}
+
+functio result_stderr(tabula<textus, valor> result) → textus {
+    redde result["stderr"] ↦ textus
+}
+
+functio runner_failure(tabula<textus, valor> result) → textus {
+    fixum textus stderr ← result_stderr(result).recide()
+    si stderr.longitudo() > 0 ergo redde stderr
+    redde result_stdout(result).recide()
+}
+
+functio artifact_contains(textus out_path, textus marker) → bivalens {
+    fixum textus artifact ← solum.lege<textus>(out_path)
+    redde artifact.continet(marker)
 }
 
 functio curre(
@@ -299,17 +333,21 @@ functio curre(
     si solum.exstat(out_path) {
         solum.dele(out_path)
     }
-    fixum textus runner_output ← processus.exsequi(router_command(router_runner, prompt_path, out_path, target, source, router_id, local_path, router_label, router_url))
-    si runner_output.recide().initium("wrote ") ≠ verum {
-        emit_error(target, source, "router runner failed: " + runner_output, formatum)
+    fixum tabula<textus, valor> runner_result ← processus.captura(router_args(router_runner, prompt_path, out_path, target, source, router_id, local_path, router_label, router_url)) ↦ tabula<textus, valor>
+    si result_status(runner_result) ≠ 0 {
+        emit_error(target, source, "router runner failed: " + runner_failure(runner_result), formatum)
         redde
     }
     si solum.exstat(out_path) ≠ verum {
-        emit_error(target, source, "router runner did not produce output: " + runner_output, formatum)
+        emit_error(target, source, "router runner did not produce output: " + result_stdout(runner_result), formatum)
         redde
     }
     si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
         emit_error(target, source, "router runner output unreadable: " + out_path, formatum)
+        redde
+    }
+    si artifact_contains(out_path, "\"status\":\"router-backed\"") ≠ verum {
+        emit_error(target, source, "router runner output missing router-backed status: " + out_path, formatum)
         redde
     }
 

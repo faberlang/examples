@@ -213,7 +213,7 @@ functio emit_error(textus target, textus source, textus diagnosticum, textus for
     emit_summary(target, source, "error", "", "", falsum, "", 0, "0", 0, diagnosticum, formatum)
 }
 
-functio oracle_command(
+functio oracle_args(
     textus runner_path,
     textus prompt_path,
     textus out_path,
@@ -224,17 +224,52 @@ functio oracle_command(
     numerus max_new_tokens,
     textus temperature,
     numerus seed,
-) → textus {
-    redde "python3 " + runner_path
-        + " --prompt " + prompt_path
-        + " --out " + out_path
-        + " --model-dir " + model_dir
-        + " --model-alias " + target
-        + " --source " + source
-        + " --oracle-label " + oracle_label
-        + " --max-new-tokens " + (max_new_tokens ↦ textus)
-        + " --temperature " + temperature
-        + " --seed " + (seed ↦ textus)
+) → lista<textus> {
+    redde [
+        "python3",
+        runner_path,
+        "--prompt",
+        prompt_path,
+        "--out",
+        out_path,
+        "--model-dir",
+        model_dir,
+        "--model-alias",
+        target,
+        "--source",
+        source,
+        "--oracle-label",
+        oracle_label,
+        "--max-new-tokens",
+        max_new_tokens ↦ textus,
+        "--temperature",
+        temperature,
+        "--seed",
+        seed ↦ textus,
+    ]
+}
+
+functio result_status(tabula<textus, valor> result) → numerus {
+    redde result["status"] ↦ numerus
+}
+
+functio result_stdout(tabula<textus, valor> result) → textus {
+    redde result["stdout"] ↦ textus
+}
+
+functio result_stderr(tabula<textus, valor> result) → textus {
+    redde result["stderr"] ↦ textus
+}
+
+functio runner_failure(tabula<textus, valor> result) → textus {
+    fixum textus stderr ← result_stderr(result).recide()
+    si stderr.longitudo() > 0 ergo redde stderr
+    redde result_stdout(result).recide()
+}
+
+functio artifact_contains(textus out_path, textus marker) → bivalens {
+    fixum textus artifact ← solum.lege<textus>(out_path)
+    redde artifact.continet(marker)
 }
 
 functio curre(
@@ -308,17 +343,21 @@ functio curre(
         solum.dele(out_path)
     }
     fixum textus model_dir ← solum.parens(local_path)
-    fixum textus runner_output ← processus.exsequi(oracle_command(oracle_runner, prompt_path, out_path, model_dir, target, source, oracle_label, max_new_tokens, temperature, seed))
-    si runner_output.recide().initium("wrote ") ≠ verum {
-        emit_error(target, source, "oracle runner failed: " + runner_output, formatum)
+    fixum tabula<textus, valor> runner_result ← processus.captura(oracle_args(oracle_runner, prompt_path, out_path, model_dir, target, source, oracle_label, max_new_tokens, temperature, seed)) ↦ tabula<textus, valor>
+    si result_status(runner_result) ≠ 0 {
+        emit_error(target, source, "oracle runner failed: " + runner_failure(runner_result), formatum)
         redde
     }
     si solum.exstat(out_path) ≠ verum {
-        emit_error(target, source, "oracle runner did not produce output: " + runner_output, formatum)
+        emit_error(target, source, "oracle runner did not produce output: " + result_stdout(runner_result), formatum)
         redde
     }
     si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
         emit_error(target, source, "oracle runner output unreadable: " + out_path, formatum)
+        redde
+    }
+    si artifact_contains(out_path, "\"status\":\"oracle-backed\"") ≠ verum {
+        emit_error(target, source, "oracle runner output missing oracle-backed status: " + out_path, formatum)
         redde
     }
 
