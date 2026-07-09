@@ -23,6 +23,25 @@ artifact_vector_count = 3
 exit = 0
 
 [[case]]
+id = "unsafe-index-wrapper-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/unsafe-vectors.fvi",
+  "--out",
+  "/tmp/faber-ai-index-unsafe.fvi",
+  "--format",
+  "json",
+  "--metric",
+  "cosine",
+]
+stdout_json_equals = { status = "ok", model = "unsafe\\\\model", source = "brace { source }", metric = "cosine" }
+out_path = "/tmp/faber-ai-index-unsafe.fvi"
+expect_output_file = true
+artifact_equals = { format = "fvi-stage3-index", source_format = "fvi-stage2", model = "unsafe\\\\model", source = "brace { source }", input_vectors = 1, dimensions = 2, metric = "cosine", normalization = "l2" }
+artifact_vector_count = 1
+exit = 0
+
+[[case]]
 id = "missing-vector-artifact-json"
 args = [
   "index",

@@ -175,3 +175,27 @@ expect_output_file = true
 artifact_events = ["metadata", "token", "token", "final"]
 artifact_contains = ["\"status\":\"oracle-backed\"", "\"final\"", "Local inventory."]
 exit = 0
+
+[[case]]
+id = "unsafe-oracle-label-json"
+args = [
+  "generate",
+  "examples/ai-workbench/harness/fixtures/generate/prompt.txt",
+  "--model",
+  "stretch/qwen3-4b-fp8",
+  "--out",
+  "/tmp/faber-ai-generate-unsafe-oracle.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/generate/local-alias.toml",
+  "--oracle-runner",
+  "examples/ai-workbench/harness/fixtures/generate/fake_generate_oracle.py",
+  "--oracle-label",
+  "oracle\"label\\line\nbrace{}",
+]
+stdout_json_equals = { status = "oracle-backed", oracle = "oracle\"label\\line\nbrace{}" }
+out_path = "/tmp/faber-ai-generate-unsafe-oracle.jsonl"
+expect_output_file = true
+artifact_events = ["metadata", "token", "token", "final"]
+exit = 0

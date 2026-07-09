@@ -2,6 +2,7 @@
 
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
+importa ex "norma:chorda" privata chorda
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
@@ -9,6 +10,36 @@ functio format_jsonne(textus formatum) → bivalens {
 
 functio json_quote() → textus {
     redde |22| ↦ textus
+}
+
+functio json_escape(textus value) → textus {
+    fixum textus q ← json_quote()
+    fixum textus slash ← |5C| ↦ textus
+    varia lista<textus> partes ← vacua
+    varia numerus i ← 0
+    dum i < value.longitudo() {
+        fixum textus c ← value.sectio(i, i + 1)
+        si c ≡ q {
+            partes.appende(slash + q)
+        } sin c ≡ slash {
+            partes.appende(slash + slash)
+        } sin c ≡ "\n" {
+            partes.appende(slash + "n")
+        } sin c ≡ "\r" {
+            partes.appende(slash + "r")
+        } sin c ≡ "\t" {
+            partes.appende(slash + "t")
+        } secus {
+            partes.appende(c)
+        }
+        i ← i + 1
+    }
+    redde chorda.nexa(partes, "")
+}
+
+functio json_string(textus value) → textus {
+    fixum textus q ← json_quote()
+    redde q + json_escape(value) + q
 }
 
 functio quoted_value(textus line) → textus {
@@ -85,7 +116,7 @@ functio status_for(lista<textus> aliases, textus target) → textus {
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde source
+    si source.longitudo() > 0 ergo redde "" + source
     redde target
 }
 
@@ -108,13 +139,13 @@ functio event_metadata(
 ) → textus {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "event" + q + ":" + q + "metadata" + q + ","
-    out ← out + q + "model" + q + ":" + q + target + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
-    out ← out + q + "status" + q + ":" + q + status + q + ","
-    out ← out + q + "runtime" + q + ":" + q + oracle_label + q + ","
+    out ← out + q + "event" + q + ":" + json_string("metadata") + ","
+    out ← out + q + "model" + q + ":" + json_string(target) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
+    out ← out + q + "status" + q + ":" + json_string(status) + ","
+    out ← out + q + "runtime" + q + ":" + json_string(oracle_label) + ","
     out ← out + q + "max_new_tokens" + q + ":" + (max_new_tokens ↦ textus) + ","
-    out ← out + q + "temperature" + q + ":" + q + temperature + q + ","
+    out ← out + q + "temperature" + q + ":" + json_string(temperature) + ","
     out ← out + q + "seed" + q + ":" + (seed ↦ textus)
     out ← out + "}"
     redde out
@@ -122,7 +153,7 @@ functio event_metadata(
 
 functio event_diagnostic(textus diagnosticum) → textus {
     fixum textus q ← json_quote()
-    redde "{" + q + "event" + q + ":" + q + "diagnostic" + q + "," + q + "message" + q + ":" + q + diagnosticum + q + "}"
+    redde "{" + q + "event" + q + ":" + json_string("diagnostic") + "," + q + "message" + q + ":" + json_string(diagnosticum) + "}"
 }
 
 functio blocked_artifact(
@@ -153,17 +184,17 @@ functio emit_summary_json(
 ) → vacuum {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + q + target + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
-    out ← out + q + "status" + q + ":" + q + status + q + ","
-    out ← out + q + "prompt_path" + q + ":" + q + prompt_path + q + ","
-    out ← out + q + "output_path" + q + ":" + q + out_path + q + ","
+    out ← out + q + "model" + q + ":" + json_string(target) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
+    out ← out + q + "status" + q + ":" + json_string(status) + ","
+    out ← out + q + "prompt_path" + q + ":" + json_string(prompt_path) + ","
+    out ← out + q + "output_path" + q + ":" + json_string(out_path) + ","
     out ← out + q + "streaming" + q + ":" + (streaming ↦ textus) + ","
-    out ← out + q + "oracle" + q + ":" + q + oracle_label + q + ","
+    out ← out + q + "oracle" + q + ":" + json_string(oracle_label) + ","
     out ← out + q + "max_new_tokens" + q + ":" + (max_new_tokens ↦ textus) + ","
-    out ← out + q + "temperature" + q + ":" + q + temperature + q + ","
+    out ← out + q + "temperature" + q + ":" + json_string(temperature) + ","
     out ← out + q + "seed" + q + ":" + (seed ↦ textus) + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + diagnosticum + q + "]"
+    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
     out ← out + "}"
     nota out
 }

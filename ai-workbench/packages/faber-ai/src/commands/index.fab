@@ -1,6 +1,7 @@
 # Stage 3 vector index command contract.
 
 importa ex "norma:solum" privata solum
+importa ex "norma:chorda" privata chorda
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
@@ -8,6 +9,36 @@ functio format_jsonne(textus formatum) → bivalens {
 
 functio json_quote() → textus {
     redde |22| ↦ textus
+}
+
+functio json_escape(textus value) → textus {
+    fixum textus q ← json_quote()
+    fixum textus slash ← |5C| ↦ textus
+    varia lista<textus> partes ← vacua
+    varia numerus i ← 0
+    dum i < value.longitudo() {
+        fixum textus c ← value.sectio(i, i + 1)
+        si c ≡ q {
+            partes.appende(slash + q)
+        } sin c ≡ slash {
+            partes.appende(slash + slash)
+        } sin c ≡ "\n" {
+            partes.appende(slash + "n")
+        } sin c ≡ "\r" {
+            partes.appende(slash + "r")
+        } sin c ≡ "\t" {
+            partes.appende(slash + "t")
+        } secus {
+            partes.appende(c)
+        }
+        i ← i + 1
+    }
+    redde chorda.nexa(partes, "")
+}
+
+functio json_string(textus value) → textus {
+    fixum textus q ← json_quote()
+    redde q + json_escape(value) + q
 }
 
 functio find_from(textus s, textus needle, numerus start) → numerus {
@@ -23,10 +54,10 @@ functio find_from(textus s, textus needle, numerus start) → numerus {
 functio field_textus(textus documentum, textus field) → textus ⇥ textus {
     fixum textus pattern ← "\"" + field + "\":\""
     fixum numerus start ← find_from(documentum, pattern, 0)
-    si start < 0 ergo iace "missing vector artifact field: §"(field)
+    si start < 0 ergo iace "missing vector artifact field: " + field
     fixum numerus value_start ← start + pattern.longitudo()
     fixum numerus value_end ← find_from(documentum, "\"", value_start)
-    si value_end < 0 ergo iace "unterminated vector artifact field: §"(field)
+    si value_end < 0 ergo iace "unterminated vector artifact field: " + field
     redde documentum.sectio(value_start, value_end)
 }
 
@@ -37,7 +68,7 @@ functio est_digita(textus c) → bivalens {
 functio field_numerus(textus documentum, textus field) → numerus ⇥ textus {
     fixum textus pattern ← "\"" + field + "\":"
     fixum numerus start ← find_from(documentum, pattern, 0)
-    si start < 0 ergo iace "missing vector artifact field: §"(field)
+    si start < 0 ergo iace "missing vector artifact field: " + field
     varia numerus i ← start + pattern.longitudo()
     varia textus digits ← ""
     dum i < documentum.longitudo() {
@@ -45,20 +76,20 @@ functio field_numerus(textus documentum, textus field) → numerus ⇥ textus {
         si est_digita(c) {
             digits ← digits + c
         } sin c ≡ "-" {
-            si digits.longitudo() > 0 ergo iace "invalid numeric vector artifact field: §"(field)
+            si digits.longitudo() > 0 ergo iace "invalid numeric vector artifact field: " + field
             digits ← digits + c
         } sin c ≡ " " {
             si digits.longitudo() > 0 ergo redde digits ↦ numerus
         } sin c ≡ "," aut c ≡ "}" aut c ≡ "]" {
             si digits.longitudo() > 0 ergo redde digits ↦ numerus
-            iace "empty numeric vector artifact field: §"(field)
+            iace "empty numeric vector artifact field: " + field
         } secus {
-            iace "invalid numeric vector artifact field: §"(field)
+            iace "invalid numeric vector artifact field: " + field
         }
         i ← i + 1
     }
     si digits.longitudo() > 0 ergo redde digits ↦ numerus
-    iace "empty numeric vector artifact field: §"(field)
+    iace "empty numeric vector artifact field: " + field
 }
 
 functio array_end(textus documentum, numerus start) → numerus ⇥ textus {
@@ -156,14 +187,14 @@ functio index_artifact(
 ) → textus {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "format" + q + ":" + q + "fvi-stage3-index" + q + ","
-    out ← out + q + "source_format" + q + ":" + q + "fvi-stage2" + q + ","
-    out ← out + q + "model" + q + ":" + q + model + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "format" + q + ":" + json_string("fvi-stage3-index") + ","
+    out ← out + q + "source_format" + q + ":" + json_string("fvi-stage2") + ","
+    out ← out + q + "model" + q + ":" + json_string(model) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
     out ← out + q + "input_vectors" + q + ":" + (input_vectors ↦ textus) + ","
     out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
-    out ← out + q + "metric" + q + ":" + q + metric + q + ","
-    out ← out + q + "normalization" + q + ":" + q + "l2" + q + ","
+    out ← out + q + "metric" + q + ":" + json_string(metric) + ","
+    out ← out + q + "normalization" + q + ":" + json_string("l2") + ","
     out ← out + q + "vectors" + q + ":[" + vectors + "],"
     out ← out + q + "diagnostics" + q + ":[]"
     out ← out + "}"
@@ -173,13 +204,13 @@ functio index_artifact(
 functio emit_json(textus model, textus source, numerus input_vectors, numerus dimensions, textus metric, textus out_path) → vacuum {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "status" + q + ":" + q + "ok" + q + ","
-    out ← out + q + "model" + q + ":" + q + model + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "status" + q + ":" + json_string("ok") + ","
+    out ← out + q + "model" + q + ":" + json_string(model) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
     out ← out + q + "input_vectors" + q + ":" + (input_vectors ↦ textus) + ","
     out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
-    out ← out + q + "metric" + q + ":" + q + metric + q + ","
-    out ← out + q + "index_path" + q + ":" + q + out_path + q + ","
+    out ← out + q + "metric" + q + ":" + json_string(metric) + ","
+    out ← out + q + "index_path" + q + ":" + json_string(out_path) + ","
     out ← out + q + "diagnostics" + q + ":[]"
     out ← out + "}"
     nota out
@@ -206,14 +237,14 @@ functio emit_ok(textus model, textus source, numerus input_vectors, numerus dime
 functio emit_error_json(textus diagnosticum) → vacuum {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "status" + q + ":" + q + "error" + q + ","
-    out ← out + q + "model" + q + ":" + q + "" + q + ","
-    out ← out + q + "source" + q + ":" + q + "" + q + ","
+    out ← out + q + "status" + q + ":" + json_string("error") + ","
+    out ← out + q + "model" + q + ":" + json_string("") + ","
+    out ← out + q + "source" + q + ":" + json_string("") + ","
     out ← out + q + "input_vectors" + q + ":0,"
     out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "metric" + q + ":" + q + "" + q + ","
-    out ← out + q + "index_path" + q + ":" + q + "" + q + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + diagnosticum + q + "]"
+    out ← out + q + "metric" + q + ":" + json_string("") + ","
+    out ← out + q + "index_path" + q + ":" + json_string("") + ","
+    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
     out ← out + "}"
     nota out
 }

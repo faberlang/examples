@@ -1,0 +1,1 @@
+{"format":"fvi-stage2","model":"unsafe\\model","source":"brace { source }","status":"oracle-backed","input_count":1,"dimensions":2,"normalization":"l2","vectors":[{"id":0,"text":"unsafe wrapper source","values":[1.0,0.0]}],"diagnostics":[]}

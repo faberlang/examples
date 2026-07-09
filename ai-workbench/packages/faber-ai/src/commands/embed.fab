@@ -2,6 +2,7 @@
 
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
+importa ex "norma:chorda" privata chorda
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
@@ -9,6 +10,36 @@ functio format_jsonne(textus formatum) → bivalens {
 
 functio json_quote() → textus {
     redde |22| ↦ textus
+}
+
+functio json_escape(textus value) → textus {
+    fixum textus q ← json_quote()
+    fixum textus slash ← |5C| ↦ textus
+    varia lista<textus> partes ← vacua
+    varia numerus i ← 0
+    dum i < value.longitudo() {
+        fixum textus c ← value.sectio(i, i + 1)
+        si c ≡ q {
+            partes.appende(slash + q)
+        } sin c ≡ slash {
+            partes.appende(slash + slash)
+        } sin c ≡ "\n" {
+            partes.appende(slash + "n")
+        } sin c ≡ "\r" {
+            partes.appende(slash + "r")
+        } sin c ≡ "\t" {
+            partes.appende(slash + "t")
+        } secus {
+            partes.appende(c)
+        }
+        i ← i + 1
+    }
+    redde chorda.nexa(partes, "")
+}
+
+functio json_string(textus value) → textus {
+    fixum textus q ← json_quote()
+    redde q + json_escape(value) + q
 }
 
 functio quoted_value(textus line) → textus {
@@ -85,7 +116,7 @@ functio status_for(lista<textus> aliases, textus target) → textus {
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde source
+    si source.longitudo() > 0 ergo redde "" + source
     redde target
 }
 
@@ -116,15 +147,15 @@ functio blocked_diagnostic(textus target) → textus {
 functio artifact_json(textus target, textus source, numerus count) → textus {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "format" + q + ":" + q + "fvi-stage2" + q + ","
-    out ← out + q + "model" + q + ":" + q + target + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
-    out ← out + q + "status" + q + ":" + q + "blocked" + q + ","
+    out ← out + q + "format" + q + ":" + json_string("fvi-stage2") + ","
+    out ← out + q + "model" + q + ":" + json_string(target) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
+    out ← out + q + "status" + q + ":" + json_string("blocked") + ","
     out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
     out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "normalization" + q + ":" + q + "pending" + q + ","
+    out ← out + q + "normalization" + q + ":" + json_string("pending") + ","
     out ← out + q + "vectors" + q + ":[],"
-    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic(target) + q + "]"
+    out ← out + q + "diagnostics" + q + ":[" + json_string(blocked_diagnostic(target)) + "]"
     out ← out + "}"
     redde out
 }
@@ -132,15 +163,15 @@ functio artifact_json(textus target, textus source, numerus count) → textus {
 functio emit_json(textus target, textus source, numerus count) → vacuum {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + q + target + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
-    out ← out + q + "status" + q + ":" + q + "blocked" + q + ","
+    out ← out + q + "model" + q + ":" + json_string(target) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
+    out ← out + q + "status" + q + ":" + json_string("blocked") + ","
     out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
     out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "normalization" + q + ":" + q + "pending" + q + ","
-    out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
-    out ← out + q + "oracle" + q + ":" + q + "" + q + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic(target) + q + "]"
+    out ← out + q + "normalization" + q + ":" + json_string("pending") + ","
+    out ← out + q + "vectors_path" + q + ":" + json_string("") + ","
+    out ← out + q + "oracle" + q + ":" + json_string("") + ","
+    out ← out + q + "diagnostics" + q + ":[" + json_string(blocked_diagnostic(target)) + "]"
     out ← out + "}"
     nota out
 }
@@ -159,15 +190,15 @@ functio emit_oracle_json(textus target, textus source, numerus count, textus ora
     fixum textus q ← json_quote()
     fixum numerus dimensions ← embedding_dimensions(target)
     varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + q + target + q + ","
-    out ← out + q + "source" + q + ":" + q + source + q + ","
-    out ← out + q + "status" + q + ":" + q + "oracle-backed" + q + ","
+    out ← out + q + "model" + q + ":" + json_string(target) + ","
+    out ← out + q + "source" + q + ":" + json_string(source) + ","
+    out ← out + q + "status" + q + ":" + json_string("oracle-backed") + ","
     out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
     out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
-    out ← out + q + "normalization" + q + ":" + q + "l2" + q + ","
-    out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
-    out ← out + q + "oracle" + q + ":" + q + oracle_label + q + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + "vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented" + q + "]"
+    out ← out + q + "normalization" + q + ":" + json_string("l2") + ","
+    out ← out + q + "vectors_path" + q + ":" + json_string("") + ","
+    out ← out + q + "oracle" + q + ":" + json_string(oracle_label) + ","
+    out ← out + q + "diagnostics" + q + ":[" + json_string("vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented") + "]"
     out ← out + "}"
     nota out
 }
@@ -194,15 +225,15 @@ functio emit_oracle(textus target, textus source, numerus count, textus formatum
 functio emit_error_json(textus target, textus diagnosticum) → vacuum {
     fixum textus q ← json_quote()
     varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + q + target + q + ","
-    out ← out + q + "source" + q + ":" + q + target + q + ","
-    out ← out + q + "status" + q + ":" + q + "error" + q + ","
+    out ← out + q + "model" + q + ":" + json_string(target) + ","
+    out ← out + q + "source" + q + ":" + json_string(target) + ","
+    out ← out + q + "status" + q + ":" + json_string("error") + ","
     out ← out + q + "input_count" + q + ":0,"
     out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "normalization" + q + ":" + q + "" + q + ","
-    out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
-    out ← out + q + "oracle" + q + ":" + q + "" + q + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + diagnosticum + q + "]"
+    out ← out + q + "normalization" + q + ":" + json_string("") + ","
+    out ← out + q + "vectors_path" + q + ":" + json_string("") + ","
+    out ← out + q + "oracle" + q + ":" + json_string("") + ","
+    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
     out ← out + "}"
     nota out
 }

@@ -193,3 +193,25 @@ expect_output_file = true
 artifact_events = ["metadata", "prompt", "message", "final"]
 artifact_contains = ["\"status\":\"router-backed\"", "external runtime adapter", "\"router_model_id\":\"qwen36-35b-a3b-q4\""]
 exit = 0
+
+[[case]]
+id = "unsafe-router-fields-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-unsafe-router.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+  "--router-url",
+  "http://127.0.0.1:18173/v1?q=\"slash\\line\nbrace{}",
+]
+stdout_json_equals = { status = "blocked", router_url = "http://127.0.0.1:18173/v1?q=\"slash\\line\nbrace{}" }
+out_path = "/tmp/faber-ai-chat-unsafe-router.jsonl"
+expect_output_file = true
+artifact_events = ["metadata", "diagnostic"]
+exit = 0

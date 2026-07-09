@@ -197,6 +197,25 @@ expect_output_file = false
 exit = 0
 
 [[case]]
+id = "unsafe-model-error-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "unsafe/quote\"slash\\brace{}\nline",
+  "--out",
+  "/tmp/faber-ai-vectors-unsafe-model.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/local-safetensors-alias.toml",
+]
+stdout_json_equals = { status = "error", model = "unsafe/quote\"slash\\brace{}\nline" }
+out_path = "/tmp/faber-ai-vectors-unsafe-model.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
 id = "unsupported-status-json"
 args = [
   "embed",

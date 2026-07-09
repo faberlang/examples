@@ -20,6 +20,14 @@ def load_events(path: pathlib.Path) -> list[dict[str, object]]:
     return events
 
 
+def stdout_json(stdout: str) -> dict[str, object]:
+    for line in reversed(stdout.splitlines()):
+        line = line.strip()
+        if line.startswith("{") and line.endswith("}"):
+            return json.loads(line)
+    raise json.JSONDecodeError("no JSON object in stdout", stdout, 0)
+
+
 def main() -> int:
     root = workspace_root()
     cases_path = root / "examples/ai-workbench/harness/fixtures/generate/cases.toml"
@@ -78,6 +86,18 @@ def main() -> int:
         for needle in case.get("stdout_contains", []):
             if needle not in result.stdout:
                 failures.append(f"{case['id']}: stdout missing {needle!r}")
+        if "stdout_json_equals" in case:
+            try:
+                summary = stdout_json(result.stdout)
+            except json.JSONDecodeError as exc:
+                failures.append(f"{case['id']}: invalid stdout json: {exc}")
+            else:
+                for key, expected in case["stdout_json_equals"].items():
+                    if summary.get(key) != expected:
+                        failures.append(
+                            f"{case['id']}: stdout {key}={summary.get(key)!r}, "
+                            f"expected {expected!r}"
+                        )
 
         if case.get("expect_output_file", False):
             if not out_path.exists():
