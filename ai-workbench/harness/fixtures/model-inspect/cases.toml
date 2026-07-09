@@ -12,13 +12,24 @@ exit = 0
 
 [[case]]
 id = "qwen36-router-json"
-args = ["model", "inspect", "daily/qwen36-35b-a3b-q4", "--format", "json"]
+args = [
+  "model",
+  "inspect",
+  "daily/qwen36-35b-a3b-q4",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/router-redacted.toml",
+]
 stdout_contains = [
   "\"status\":\"router-backed\"",
   "\"format\":\"gguf\"",
   "qwen36-35b-a3b-q4",
   "\"local_path\":\"\"",
+  "\"router_model_id\":\"qwen36-35b-a3b-q4\"",
+  "\"tensor_count\":0",
 ]
+compare_campaign = false
 exit = 0
 
 [[case]]
@@ -144,6 +155,33 @@ stdout_contains = [
   "\"parameter_count\":6",
   "\"estimated_bytes\":24",
   "tokenizer/config files not found beside examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors",
+]
+compare_campaign = false
+exit = 0
+
+[[case]]
+id = "local-gguf-json"
+args = [
+  "model",
+  "inspect",
+  "examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.gguf",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/missing-local-path.toml",
+]
+stdout_contains = [
+  "\"status\":\"local\"",
+  "\"format\":\"gguf\"",
+  "\"files\":[\"examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.gguf\"]",
+  "\"tensor_count\":1",
+  "\"quantization\":\"Q4_K_M\"",
+  "\"name\":\"output.weight\"",
+  "\"dtype\":\"Q4_K\"",
+  "\"shape\":[2,3]",
+  "\"parameter_count\":6",
+  "\"estimated_bytes\":238",
+  "gguf architecture: toy",
 ]
 compare_campaign = false
 exit = 0

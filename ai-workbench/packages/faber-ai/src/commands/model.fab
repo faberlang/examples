@@ -90,9 +90,14 @@ functio source_for(lista<textus> aliases, textus target) → textus {
 }
 
 functio local_path_for(lista<textus> aliases, textus target) → textus {
-    fixum textus localis ← map_value(aliases, target, "local_path")
+    fixum textus localis ← raw_local_path_for(aliases, target)
     si localis.longitudo() > 0 ergo redde ""
     redde ""
+}
+
+functio raw_local_path_for(lista<textus> aliases, textus target) → textus {
+    fixum textus localis ← map_value(aliases, target, "local_path")
+    redde localis
 }
 
 functio router_id_for(lista<textus> aliases, textus target) → textus {
@@ -177,6 +182,7 @@ functio inspect_json(lista<textus> aliases, textus target) → vacuum {
     fixum textus inventory_json ←
         q + "files" + q + ":[]," +
         q + "tensors" + q + ":[]," +
+        q + "tensor_count" + q + ":0," +
         q + "shards" + q + ":[]," +
         q + "quantization" + q + ":" + q + "" + q + "," +
         q + "estimated_bytes" + q + ":0,"
@@ -227,6 +233,15 @@ functio json_numerus_lista(lista<numerus> items) → textus {
     redde out + "]"
 }
 
+functio gguf_quantization_for(textus read_path, textus router_model_id, textus summary_quantization) → textus {
+    si summary_quantization ≠ "FILE_TYPE_-1" ergo redde summary_quantization
+    si router_model_id.longitudo() ≡ 0 ergo redde summary_quantization
+    fixum numerus offset ← solum.inveni(read_path, "general.file_type", 0, 12000000)
+    si offset < 0 ergo redde summary_quantization
+    fixum octeti fragment ← solum.partem(read_path, offset, 64)
+    redde model.gguf_quantization_fragmentum(fragment)
+}
+
 functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
     fac {
         fixum octeti data ← solum.lege<octeti>(target)
@@ -270,10 +285,11 @@ functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
                 q + "format" + q + ":" + q + summary.formatum + q + ","
             fixum textus location_json ←
                 q + "local_path" + q + ":" + q + summary.local_path + q + "," +
-                q + "router_model_id" + q + ":" + q + summary.router_model_id + q + ","
+                q + "router_model_id" + q + ":" + q + "" + q + ","
             fixum textus inventory_json ←
                 q + "files" + q + ":" + json_textus_lista(summary.files) + "," +
                 q + "tensors" + q + ":" + tensors_json + "," +
+                q + "tensor_count" + q + ":" + (summary.tensor_count ↦ textus) + "," +
                 q + "shards" + q + ":" + json_textus_lista(summary.shards) + "," +
                 q + "quantization" + q + ":" + q + summary.quantization + q + "," +
                 q + "estimated_bytes" + q + ":" + (summary.estimated_bytes ↦ textus) + ","
@@ -287,6 +303,7 @@ functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
             nota "status: §"(summary.status)
             nota "format: §"(summary.formatum)
             nota "local_path: §"(summary.local_path)
+            nota "tensor_count: §"(summary.tensor_count)
             nota "estimated_bytes: §"(summary.estimated_bytes)
             itera ex summary.tensors fixum tensor {
                 nota "tensor: § § §"(tensor.nomen, tensor.dtype, json_numerus_lista(tensor.figura))
@@ -311,6 +328,7 @@ functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
             fixum textus inventory_json ←
                 q + "files" + q + ":[]," +
                 q + "tensors" + q + ":[]," +
+                q + "tensor_count" + q + ":0," +
                 q + "shards" + q + ":[]," +
                 q + "quantization" + q + ":" + q + "" + q + "," +
                 q + "estimated_bytes" + q + ":0,"
@@ -329,6 +347,124 @@ functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
     }
 }
 
+functio inspect_local_gguf(textus alias, textus source, textus read_path, textus display_path, textus router_model_id, textus formatum) → vacuum {
+    fac {
+        varia numerus prefix_bytes ← 16777216
+        si router_model_id.longitudo() > 0 et display_path.longitudo() ≡ 0 {
+            prefix_bytes ← 65536
+        }
+        fixum octeti data ← solum.partem(read_path, 0, prefix_bytes)
+        fixum numerus file_size ← solum.mensura(read_path)
+        fixum _ summary ← model.tempta_gguf_summarium(alias, source, display_path, router_model_id, data, file_size)
+        fixum textus quantization_text ← gguf_quantization_for(read_path, router_model_id, summary.quantization)
+        si format_jsonne(formatum) {
+            fixum textus q ← json_quote()
+            varia textus tensors_json ← "["
+            varia numerus tensor_index ← 0
+            itera ex summary.tensors fixum tensor {
+                si tensor_index > 0 {
+                    tensors_json ← tensors_json + ","
+                }
+                tensors_json ←
+                    tensors_json +
+                    "{" +
+                    q + "name" + q + ":" + q + tensor.nomen + q + "," +
+                    q + "dtype" + q + ":" + q + tensor.dtype + q + "," +
+                    q + "shape" + q + ":" + json_numerus_lista(tensor.figura) + "," +
+                    q + "parameter_count" + q + ":" + (tensor.parameter_count ↦ textus) +
+                    "}"
+                tensor_index ← tensor_index + 1
+            }
+            tensors_json ← tensors_json + "]"
+
+            varia textus diagnostics_json ← "["
+            varia numerus diagnostic_index ← 0
+            itera ex summary.diagnostics fixum diagnostic {
+                si diagnostic_index > 0 {
+                    diagnostics_json ← diagnostics_json + ","
+                }
+                diagnostics_json ← diagnostics_json + q + diagnostic.nuntius + q
+                diagnostic_index ← diagnostic_index + 1
+            }
+            diagnostics_json ← diagnostics_json + "]"
+
+            fixum textus head_json ←
+                "{" +
+                q + "alias" + q + ":" + q + summary.alias + q + "," +
+                q + "source" + q + ":" + q + summary.source + q + "," +
+                q + "status" + q + ":" + q + summary.status + q + "," +
+                q + "format" + q + ":" + q + summary.formatum + q + ","
+            fixum textus location_json ←
+                q + "local_path" + q + ":" + q + summary.local_path + q + "," +
+                q + "router_model_id" + q + ":" + q + router_model_id + q + ","
+            fixum textus inventory_json ←
+                q + "files" + q + ":" + json_textus_lista(summary.files) + "," +
+                q + "tensors" + q + ":" + tensors_json + "," +
+                q + "tensor_count" + q + ":" + (summary.tensor_count ↦ textus) + "," +
+                q + "shards" + q + ":" + json_textus_lista(summary.shards) + "," +
+                q + "quantization" + q + ":" + q + quantization_text + q + "," +
+                q + "estimated_bytes" + q + ":" + (summary.estimated_bytes ↦ textus) + ","
+            fixum textus diagnostics_field_json ←
+                q + "diagnostics" + q + ":" + diagnostics_json +
+                "}"
+            nota head_json + location_json + inventory_json + diagnostics_field_json
+        } secus {
+            nota "alias: §"(summary.alias)
+            nota "source: §"(summary.source)
+            nota "status: §"(summary.status)
+            nota "format: §"(summary.formatum)
+            nota "local_path: §"(summary.local_path)
+            si router_model_id.longitudo() > 0 {
+                nota "router_model_id: §"(router_model_id)
+            }
+            nota "tensor_count: §"(summary.tensor_count)
+            nota "quantization: §"(quantization_text)
+            nota "estimated_bytes: §"(summary.estimated_bytes)
+            itera ex summary.tensors fixum tensor {
+                nota "tensor: § § §"(tensor.nomen, tensor.dtype, json_numerus_lista(tensor.figura))
+            }
+            itera ex summary.diagnostics fixum diagnostic {
+                nota "diagnostic: §"(diagnostic.nuntius)
+            }
+        }
+    }
+    cape err {
+        fixum textus q ← json_quote()
+        si format_jsonne(formatum) {
+            fixum textus head_json ←
+                "{" +
+                q + "alias" + q + ":" + q + alias + q + "," +
+                q + "source" + q + ":" + q + source + q + "," +
+                q + "status" + q + ":" + q + "error" + q + "," +
+                q + "format" + q + ":" + q + "gguf" + q + ","
+            fixum textus location_json ←
+                q + "local_path" + q + ":" + q + display_path + q + "," +
+                q + "router_model_id" + q + ":" + q + router_model_id + q + ","
+            fixum textus inventory_json ←
+                q + "files" + q + ":[]," +
+                q + "tensors" + q + ":[]," +
+                q + "tensor_count" + q + ":0," +
+                q + "shards" + q + ":[]," +
+                q + "quantization" + q + ":" + q + "" + q + "," +
+                q + "estimated_bytes" + q + ":0,"
+            fixum textus diagnostics_json ←
+                q + "diagnostics" + q + ":[" + q + "gguf metadata error: " + err.nuntius + q + "]" +
+                "}"
+            nota head_json + location_json + inventory_json + diagnostics_json
+        } secus {
+            nota "alias: §"(alias)
+            nota "source: §"(source)
+            nota "status: error"
+            nota "format: gguf"
+            nota "local_path: §"(display_path)
+            si router_model_id.longitudo() > 0 {
+                nota "router_model_id: §"(router_model_id)
+            }
+            nota "diagnostic: gguf metadata error: §"(err.nuntius)
+        }
+    }
+}
+
 functio inspect_map_missing_json(textus target, textus map_path) → vacuum {
     fixum textus q ← json_quote()
     fixum textus head_json ←
@@ -343,6 +479,7 @@ functio inspect_map_missing_json(textus target, textus map_path) → vacuum {
     fixum textus inventory_json ←
         q + "files" + q + ":[]," +
         q + "tensors" + q + ":[]," +
+        q + "tensor_count" + q + ":0," +
         q + "shards" + q + ":[]," +
         q + "quantization" + q + ":" + q + "" + q + "," +
         q + "estimated_bytes" + q + ":0,"
@@ -374,6 +511,7 @@ functio inspect_map_unreadable_json(textus target, textus map_path) → vacuum {
     fixum textus inventory_json ←
         q + "files" + q + ":[]," +
         q + "tensors" + q + ":[]," +
+        q + "tensor_count" + q + ":0," +
         q + "shards" + q + ":[]," +
         q + "quantization" + q + ":" + q + "" + q + "," +
         q + "estimated_bytes" + q + ":0,"
@@ -405,6 +543,7 @@ functio inspect_map_invalid_json(textus target, textus map_path) → vacuum {
     fixum textus inventory_json ←
         q + "files" + q + ":[]," +
         q + "tensors" + q + ":[]," +
+        q + "tensor_count" + q + ":0," +
         q + "shards" + q + ":[]," +
         q + "quantization" + q + ":" + q + "" + q + "," +
         q + "estimated_bytes" + q + ":0,"
@@ -436,6 +575,10 @@ functio inspect() argumenta args → vacuum {
             inspect_local_safetensors(target, output_format)
             redde
         }
+        si model.formatum("local", target) ≡ "gguf" {
+            inspect_local_gguf(target, target, target, target, "", output_format)
+            redde
+        }
     }
 
     si solum.exstat(map_path) ≠ verum {
@@ -463,6 +606,14 @@ functio inspect() argumenta args → vacuum {
             inspect_map_invalid_text(target, map_path)
         }
         redde
+    }
+
+    fixum textus raw_local_path ← raw_local_path_for(aliases, target)
+    si status_for(aliases, target) ≡ "router-backed" et format_for(aliases, target) ≡ "gguf" et raw_local_path.longitudo() > 0 {
+        si solum.exstat(raw_local_path) et solum.regularene(raw_local_path) et solum.legibilene(raw_local_path) {
+            inspect_local_gguf(target, source_for(aliases, target), raw_local_path, "", router_id_for(aliases, target), output_format)
+            redde
+        }
     }
 
     si format_jsonne(output_format) {
