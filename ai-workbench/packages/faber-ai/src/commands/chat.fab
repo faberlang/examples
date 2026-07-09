@@ -1,0 +1,317 @@
+# GGUF router-backed chat command contract for Stage 7.
+
+importa ex "norma:solum" privata solum
+importa ex "norma:processus" privata processus
+
+functio format_jsonne(textus formatum) → bivalens {
+    redde formatum ≡ "json"
+}
+
+functio json_quote() → textus {
+    redde |22| ↦ textus
+}
+
+functio quoted_value(textus line) → textus {
+    varia numerus initium ← -1
+    varia numerus finis ← -1
+    varia numerus i ← 0
+    dum i < line.longitudo() {
+        si line.sectio(i, i + 1) ≡ "\"" {
+            si initium < 0 {
+                initium ← i + 1
+            } secus {
+                finis ← i
+                i ← line.longitudo()
+            }
+        }
+        i ← i + 1
+    }
+
+    si initium ≥ 0 et finis ≥ initium ergo redde line.sectio(initium, finis)
+    redde ""
+}
+
+functio subset_field_line(textus line, textus field) → bivalens {
+    redde line.initium(field + " = \"") et line.finis("\"")
+}
+
+functio subset_field_candidate(textus line, textus field) → bivalens {
+    redde line.initium(field + " ") aut line.initium(field + "=")
+}
+
+functio subset_line_supported(textus line) → bivalens {
+    fixum textus trimmed ← line.recide()
+    si trimmed.longitudo() ≡ 0 ergo redde verum
+    si trimmed.initium("#") ergo redde verum
+    si trimmed ≡ "[[tiers]]" ergo redde verum
+    si subset_field_candidate(trimmed, "alias") ergo redde subset_field_line(trimmed, "alias")
+    si subset_field_candidate(trimmed, "source") ergo redde subset_field_line(trimmed, "source")
+    si subset_field_candidate(trimmed, "status") ergo redde subset_field_line(trimmed, "status")
+    si subset_field_candidate(trimmed, "local_path") ergo redde subset_field_line(trimmed, "local_path")
+    si subset_field_candidate(trimmed, "router_model_id") ergo redde subset_field_line(trimmed, "router_model_id")
+    redde verum
+}
+
+functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
+    itera ex aliases fixum line {
+        si subset_line_supported(line) ≠ verum ergo redde falsum
+    }
+    redde verum
+}
+
+functio map_value(lista<textus> aliases, textus target, textus field) → textus {
+    varia bivalens matched ← falsum
+    itera ex aliases fixum line {
+        fixum textus trimmed ← line.recide()
+        si trimmed ≡ "[[tiers]]" {
+            matched ← falsum
+        }
+        si trimmed.initium("alias = ") {
+            matched ← quoted_value(trimmed) ≡ target
+        }
+        si matched et trimmed.initium(field + " = ") {
+            redde quoted_value(trimmed)
+        }
+    }
+
+    redde ""
+}
+
+functio status_for(lista<textus> aliases, textus target) → textus {
+    fixum textus status ← map_value(aliases, target, "status")
+    si status.longitudo() > 0 ergo redde status
+    redde "unknown"
+}
+
+functio source_for(lista<textus> aliases, textus target) → textus {
+    fixum textus source ← map_value(aliases, target, "source")
+    si source.longitudo() > 0 ergo redde source
+    redde target
+}
+
+functio raw_local_path_for(lista<textus> aliases, textus target) → textus {
+    redde map_value(aliases, target, "local_path")
+}
+
+functio router_id_for(lista<textus> aliases, textus target) → textus {
+    redde map_value(aliases, target, "router_model_id")
+}
+
+functio blocked_diagnostic(textus target) → textus {
+    redde "Router-backed chat for " + target + " requires an explicit router runner or reachable local router"
+}
+
+functio event_metadata(
+    textus target,
+    textus source,
+    textus status,
+    textus router_id,
+    textus runtime,
+    textus router_url,
+) → textus {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "event" + q + ":" + q + "metadata" + q + ","
+    out ← out + q + "model" + q + ":" + q + target + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "status" + q + ":" + q + status + q + ","
+    out ← out + q + "router_model_id" + q + ":" + q + router_id + q + ","
+    out ← out + q + "runtime" + q + ":" + q + runtime + q + ","
+    out ← out + q + "router_url" + q + ":" + q + router_url + q
+    out ← out + "}"
+    redde out
+}
+
+functio event_diagnostic(textus diagnosticum) → textus {
+    fixum textus q ← json_quote()
+    redde "{" + q + "event" + q + ":" + q + "diagnostic" + q + "," + q + "message" + q + ":" + q + diagnosticum + q + "}"
+}
+
+functio blocked_artifact(
+    textus target,
+    textus source,
+    textus out_path,
+    textus router_id,
+    textus router_url,
+) → vacuum {
+    fixum textus body ← event_metadata(target, source, "blocked", router_id, "", router_url) + "\n" + event_diagnostic(blocked_diagnostic(target)) + "\n"
+    solum.scribe(out_path, body)
+}
+
+functio emit_summary_json(
+    textus target,
+    textus source,
+    textus status,
+    textus prompt_path,
+    textus out_path,
+    textus router_id,
+    textus router_label,
+    textus router_url,
+    textus diagnosticum,
+) → vacuum {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "model" + q + ":" + q + target + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "status" + q + ":" + q + status + q + ","
+    out ← out + q + "prompt_path" + q + ":" + q + prompt_path + q + ","
+    out ← out + q + "output_path" + q + ":" + q + out_path + q + ","
+    out ← out + q + "router_model_id" + q + ":" + q + router_id + q + ","
+    out ← out + q + "runtime" + q + ":" + q + router_label + q + ","
+    out ← out + q + "router_url" + q + ":" + q + router_url + q + ","
+    out ← out + q + "diagnostics" + q + ":[" + q + diagnosticum + q + "]"
+    out ← out + "}"
+    nota out
+}
+
+functio emit_summary_text(
+    textus target,
+    textus source,
+    textus status,
+    textus out_path,
+    textus router_id,
+    textus router_label,
+    textus diagnosticum,
+) → vacuum {
+    nota "model: §"(target)
+    nota "source: §"(source)
+    nota "status: §"(status)
+    nota "output_path: §"(out_path)
+    nota "router_model_id: §"(router_id)
+    si router_label.longitudo() > 0 {
+        nota "runtime: §"(router_label)
+    }
+    nota "diagnostic: §"(diagnosticum)
+}
+
+functio emit_summary(
+    textus target,
+    textus source,
+    textus status,
+    textus prompt_path,
+    textus out_path,
+    textus router_id,
+    textus router_label,
+    textus router_url,
+    textus diagnosticum,
+    textus formatum,
+) → vacuum {
+    si format_jsonne(formatum) {
+        emit_summary_json(target, source, status, prompt_path, out_path, router_id, router_label, router_url, diagnosticum)
+    } secus {
+        emit_summary_text(target, source, status, out_path, router_id, router_label, diagnosticum)
+    }
+}
+
+functio emit_error(textus target, textus source, textus diagnosticum, textus formatum) → vacuum {
+    emit_summary(target, source, "error", "", "", "", "", "", diagnosticum, formatum)
+}
+
+functio router_command(
+    textus runner_path,
+    textus prompt_path,
+    textus out_path,
+    textus target,
+    textus source,
+    textus router_id,
+    textus local_path,
+    textus router_label,
+    textus router_url,
+) → textus {
+    redde "python3 " + runner_path
+        + " --prompt " + prompt_path
+        + " --out " + out_path
+        + " --model-alias " + target
+        + " --source " + source
+        + " --router-model-id " + router_id
+        + " --local-path " + local_path
+        + " --router-label " + router_label
+        + " --router-url " + router_url
+}
+
+functio curre(
+    textus prompt_path,
+    textus target,
+    textus out_path,
+    textus formatum,
+    textus map_path,
+    textus router_runner,
+    textus router_label,
+    textus router_url,
+) → vacuum {
+    si solum.exstat(map_path) ≠ verum {
+        emit_error(target, target, "alias map not found: " + map_path, formatum)
+        redde
+    }
+    si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
+        emit_error(target, target, "alias map unreadable: " + map_path, formatum)
+        redde
+    }
+
+    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    si alias_map_subset_supported(aliases) ≠ verum {
+        emit_error(target, target, "alias map outside supported subset: " + map_path, formatum)
+        redde
+    }
+
+    fixum textus source ← source_for(aliases, target)
+    fixum textus status ← status_for(aliases, target)
+    fixum textus router_id ← router_id_for(aliases, target)
+    si status ≠ "router-backed" {
+        emit_error(target, source, "chat requires router-backed model alias: " + target, formatum)
+        redde
+    }
+    si router_id.longitudo() ≡ 0 {
+        emit_error(target, source, "router model id not found: " + target, formatum)
+        redde
+    }
+
+    fixum textus local_path ← raw_local_path_for(aliases, target)
+    si local_path.initium("/Users/ianzepp/ai/models/") ≠ verum {
+        emit_error(target, source, "router-backed GGUF must live under /Users/ianzepp/ai/models: " + target, formatum)
+        redde
+    }
+
+    si solum.exstat(prompt_path) ≠ verum {
+        emit_error(target, source, "prompt file not found: " + prompt_path, formatum)
+        redde
+    }
+    si solum.regularene(prompt_path) ≠ verum aut solum.legibilene(prompt_path) ≠ verum {
+        emit_error(target, source, "prompt file unreadable: " + prompt_path, formatum)
+        redde
+    }
+
+    si router_runner.longitudo() ≡ 0 {
+        blocked_artifact(target, source, out_path, router_id, router_url)
+        emit_summary(target, source, "blocked", prompt_path, out_path, router_id, "", router_url, blocked_diagnostic(target), formatum)
+        redde
+    }
+
+    si solum.exstat(router_runner) ≠ verum {
+        emit_error(target, source, "router runner not found: " + router_runner, formatum)
+        redde
+    }
+    si solum.regularene(router_runner) ≠ verum aut solum.legibilene(router_runner) ≠ verum {
+        emit_error(target, source, "router runner unreadable: " + router_runner, formatum)
+        redde
+    }
+
+    si solum.exstat(out_path) {
+        solum.dele(out_path)
+    }
+    fixum textus runner_output ← processus.exsequi(router_command(router_runner, prompt_path, out_path, target, source, router_id, local_path, router_label, router_url))
+    si runner_output.recide().initium("wrote ") ≠ verum {
+        emit_error(target, source, "router runner failed: " + runner_output, formatum)
+        redde
+    }
+    si solum.exstat(out_path) ≠ verum {
+        emit_error(target, source, "router runner did not produce output: " + runner_output, formatum)
+        redde
+    }
+    si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
+        emit_error(target, source, "router runner output unreadable: " + out_path, formatum)
+        redde
+    }
+
+    emit_summary(target, source, "router-backed", prompt_path, out_path, router_id, router_label, router_url, "chat produced by explicit llama.cpp router adapter; Faber-owned GGUF inference not implemented", formatum)
+}

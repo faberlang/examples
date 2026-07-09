@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "daily/qwen36-35b-a3b-q4"
+status = "router-backed"
+source = "unsloth/Qwen3.6-35B-A3B-GGUF"
+local_path = "/Users/ianzepp/ai/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
+router_model_id = "qwen36-35b-a3b-q4"

@@ -1,0 +1,195 @@
+[[case]]
+id = "blocked-no-router-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-blocked.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"blocked\"",
+  "\"router_model_id\":\"qwen36-35b-a3b-q4\"",
+  "requires an explicit router runner or reachable local router",
+]
+out_path = "/tmp/faber-ai-chat-blocked.jsonl"
+expect_output_file = true
+artifact_events = ["metadata", "diagnostic"]
+artifact_contains = ["\"status\":\"blocked\"", "requires an explicit router runner"]
+exit = 0
+
+[[case]]
+id = "unsupported-status-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-unsupported.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/unsupported-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "chat requires router-backed model alias: daily/qwen36-35b-a3b-q4",
+]
+out_path = "/tmp/faber-ai-chat-unsupported.jsonl"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "missing-router-id-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-missing-router-id.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/missing-router-id-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "router model id not found: daily/qwen36-35b-a3b-q4",
+]
+out_path = "/tmp/faber-ai-chat-missing-router-id.jsonl"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "bad-path-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-bad-path.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/bad-path-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "router-backed GGUF must live under /Users/ianzepp/ai/models",
+]
+out_path = "/tmp/faber-ai-chat-bad-path.jsonl"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "missing-prompt-json"
+args = [
+  "chat",
+  "/tmp/faber-ai-chat-missing-prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-missing-prompt.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "prompt file not found: /tmp/faber-ai-chat-missing-prompt.txt",
+]
+out_path = "/tmp/faber-ai-chat-missing-prompt.jsonl"
+expect_output_file = false
+absent_path = "/tmp/faber-ai-chat-missing-prompt.txt"
+exit = 0
+
+[[case]]
+id = "router-runner-unreadable-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-unreadable-router.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+  "--router-runner",
+  "/tmp/faber-ai-chat-router-dir",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "router runner unreadable: /tmp/faber-ai-chat-router-dir",
+]
+out_path = "/tmp/faber-ai-chat-unreadable-router.jsonl"
+expect_output_file = false
+directory_path = "/tmp/faber-ai-chat-router-dir"
+exit = 0
+
+[[case]]
+id = "failing-router-removes-stale-output-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-stale-router.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+  "--router-runner",
+  "examples/ai-workbench/harness/fixtures/embed/failing_oracle.py",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "router runner failed",
+]
+out_path = "/tmp/faber-ai-chat-stale-router.jsonl"
+expect_output_file = false
+preexisting_output = true
+exit = 0
+
+[[case]]
+id = "router-backed-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-router.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+  "--router-runner",
+  "examples/ai-workbench/harness/fixtures/chat/fake_chat_router.py",
+  "--router-label",
+  "hermetic-llama-router",
+  "--router-url",
+  "http://127.0.0.1:18173/v1",
+]
+stdout_contains = [
+  "\"status\":\"router-backed\"",
+  "\"router_model_id\":\"qwen36-35b-a3b-q4\"",
+  "\"runtime\":\"hermetic-llama-router\"",
+  "chat produced by explicit llama.cpp router adapter; Faber-owned GGUF inference not implemented",
+]
+out_path = "/tmp/faber-ai-chat-router.jsonl"
+expect_output_file = true
+artifact_events = ["metadata", "prompt", "message", "final"]
+artifact_contains = ["\"status\":\"router-backed\"", "external runtime adapter", "\"router_model_id\":\"qwen36-35b-a3b-q4\""]
+exit = 0

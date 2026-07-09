@@ -5,6 +5,7 @@ importa ex "./commands/embed" privata * ut embedModule
 importa ex "./commands/index" privata * ut indexModule
 importa ex "./commands/query" privata * ut queryModule
 importa ex "./commands/generate" privata * ut generateModule
+importa ex "./commands/chat" privata * ut chatModule
 
 @ cli "faber-ai"
 @ versio "0.1.0"
@@ -89,5 +90,28 @@ functio generate() argumenta args → vacuum {
         args.max_new_tokens,
         "" + args.temperature,
         args.seed,
+    )
+}
+
+@ imperium "chat"
+@ descriptio "Chat through an explicit local llama.cpp router adapter"
+@ optio model_alias longum "model" typus textus vel "daily/qwen36-35b-a3b-q4" descriptio "Model alias"
+@ optio out longum "out" typus textus vel "/tmp/faber-ai-chat.jsonl" descriptio "Chat transcript output path"
+@ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
+@ optio router_runner longum "router-runner" typus textus vel "" descriptio "Explicit router runner script"
+@ optio router_label longum "router-label" typus textus vel "llama-router" descriptio "Router runtime label"
+@ optio router_url longum "router-url" typus textus vel "http://127.0.0.1:18173/v1" descriptio "Router base URL"
+@ operandus textus prompt descriptio "Prompt text file"
+functio chat() argumenta args → vacuum {
+    chatModule.curre(
+        "" + args.prompt,
+        "" + args.model_alias,
+        "" + args.out,
+        "" + args.format,
+        "" + args.map,
+        "" + args.router_runner,
+        "" + args.router_label,
+        "" + args.router_url,
     )
 }
