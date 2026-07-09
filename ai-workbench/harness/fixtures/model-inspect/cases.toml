@@ -154,7 +154,7 @@ stdout_contains = [
   "\"shape\":[2,3]",
   "\"parameter_count\":6",
   "\"estimated_bytes\":24",
-  "tokenizer/config files not found beside examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors",
+  "tokenizer/config sibling probe not yet implemented beside examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors",
 ]
 compare_campaign = false
 exit = 0
