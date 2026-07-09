@@ -134,6 +134,21 @@ the same durable MiniLM directory with `local_files_only=True`, computes mean
 pooled and L2-normalized embeddings through `AutoModel`, and compares those
 vectors with the CLI artifact produced by the explicit manual oracle runner.
 
+Stage 4C adds the Tier 2 Qwen3 local-ops oracle:
+
+```bash
+python3 examples/ai-workbench/harness/check-qwen3-embed-oracle.py
+```
+
+That harness requires `/Users/ianzepp/ai/models/Qwen3-Embedding-0.6B` and the
+operator-local `/Users/ianzepp/ai/venvs/qwen3-embed-py313` environment. The
+runner loads Qwen3 through Transformers with `local_files_only=True`, left
+padding, last-token pooling, and L2 normalization, then writes an
+`oracle-backed` Stage 2 `.fvi` artifact with 1024-dimensional vectors and batch
+metadata. Validation runs offline and compares the CLI artifact with a direct
+oracle artifact at `1e-6` tolerance; it does not claim Faber-owned tokenizer or
+transformer execution.
+
 ## Stage 3 Index Floor
 
 `faber-ai index <vectors.fvi> --out <index.fvi>` is wired as the Stage 3 index
