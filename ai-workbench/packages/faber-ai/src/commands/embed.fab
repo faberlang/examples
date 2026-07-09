@@ -292,7 +292,15 @@ functio curre(
             redde
         }
         fixum textus model_dir ← solum.parens(local_path)
-        processus.exsequi(oracle_command(oracle_runner, input_path, out_path, model_dir, target, source, oracle_label))
+        fixum textus runner_output ← processus.exsequi(oracle_command(oracle_runner, input_path, out_path, model_dir, target, source, oracle_label))
+        si solum.exstat(out_path) ≠ verum {
+            emit_error(target, "oracle runner did not produce output: " + runner_output, formatum)
+            redde
+        }
+        si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
+            emit_error(target, "oracle runner output unreadable: " + out_path, formatum)
+            redde
+        }
         emit_oracle(target, source, count, formatum, oracle_label)
         redde
     }
