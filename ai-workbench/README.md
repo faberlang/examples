@@ -84,8 +84,8 @@ input/model file readability, writes a parseable Stage 2 `.fvi` JSON artifact,
 and returns an honest `blocked` status until an explicit oracle artifact is
 provided.
 
-`--oracle-artifact <path>` is the local-ops bridge for Stage 2 Option A. It
-copies a vector artifact generated outside Faber, labels the result
+`--oracle-runner <path>` is the local-ops bridge for Stage 2 Option A. It runs
+a labelled oracle script to produce the vector artifact, labels the result
 `oracle-backed`, and keeps the diagnostic explicit that Faber-owned transformer
 execution is not implemented.
 

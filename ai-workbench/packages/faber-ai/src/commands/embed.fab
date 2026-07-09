@@ -1,6 +1,7 @@
 # MiniLM embedding command contract for Stage 2.
 
 importa ex "norma:solum" privata solum
+importa ex "norma:processus" privata processus
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
@@ -160,7 +161,7 @@ functio emit_oracle_json(textus target, textus source, numerus count, textus ora
     out ← out + q + "normalization" + q + ":" + q + "l2" + q + ","
     out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
     out ← out + q + "oracle" + q + ":" + q + oracle_label + q + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + "vectors supplied by explicit oracle artifact; Faber-owned transformer execution not implemented" + q + "]"
+    out ← out + q + "diagnostics" + q + ":[" + q + "vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented" + q + "]"
     out ← out + "}"
     nota out
 }
@@ -173,7 +174,7 @@ functio emit_oracle_text(textus target, textus source, numerus count, textus ora
     nota "dimensions: 384"
     nota "normalization: l2"
     nota "oracle: §"(oracle_label)
-    nota "diagnostic: vectors supplied by explicit oracle artifact; Faber-owned transformer execution not implemented"
+    nota "diagnostic: vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented"
 }
 
 functio emit_oracle(textus target, textus source, numerus count, textus formatum, textus oracle_label) → vacuum {
@@ -213,13 +214,31 @@ functio emit_error(textus target, textus diagnosticum, textus formatum) → vacu
     }
 }
 
+functio oracle_command(
+    textus runner_path,
+    textus input_path,
+    textus out_path,
+    textus model_dir,
+    textus target,
+    textus source,
+    textus oracle_label,
+) → textus {
+    redde "python3 " + runner_path
+        + " --texts " + input_path
+        + " --out " + out_path
+        + " --model-dir " + model_dir
+        + " --model-alias " + target
+        + " --source " + source
+        + " --oracle-label " + oracle_label
+}
+
 functio curre(
     textus input_path,
     textus target,
     textus out_path,
     textus formatum,
     textus map_path,
-    textus oracle_artifact,
+    textus oracle_runner,
     textus oracle_label,
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
@@ -263,16 +282,17 @@ functio curre(
 
     fixum numerus count ← input_count(input_path)
     fixum textus source ← source_for(aliases, target)
-    si oracle_artifact.longitudo() > 0 {
-        si solum.exstat(oracle_artifact) ≠ verum {
-            emit_error(target, "oracle artifact not found: " + oracle_artifact, formatum)
+    si oracle_runner.longitudo() > 0 {
+        si solum.exstat(oracle_runner) ≠ verum {
+            emit_error(target, "oracle runner not found: " + oracle_runner, formatum)
             redde
         }
-        si solum.regularene(oracle_artifact) ≠ verum aut solum.legibilene(oracle_artifact) ≠ verum {
-            emit_error(target, "oracle artifact unreadable: " + oracle_artifact, formatum)
+        si solum.regularene(oracle_runner) ≠ verum aut solum.legibilene(oracle_runner) ≠ verum {
+            emit_error(target, "oracle runner unreadable: " + oracle_runner, formatum)
             redde
         }
-        solum.scribe(out_path, solum.lege<textus>(oracle_artifact))
+        fixum textus model_dir ← solum.parens(local_path)
+        processus.exsequi(oracle_command(oracle_runner, input_path, out_path, model_dir, target, source, oracle_label))
         emit_oracle(target, source, count, formatum, oracle_label)
         redde
     }

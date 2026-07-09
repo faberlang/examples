@@ -39,9 +39,7 @@ def main() -> int:
         return 2
 
     texts_path = root / "examples/ai-workbench/harness/fixtures/embed/texts.txt"
-    oracle_path = pathlib.Path("/tmp/faber-ai-minilm-oracle.fvi")
     actual_path = pathlib.Path("/tmp/faber-ai-minilm-oracle-cli.fvi")
-    oracle_path.unlink(missing_ok=True)
     actual_path.unlink(missing_ok=True)
 
     texts = minilm_oracle.read_texts(texts_path)
@@ -52,7 +50,6 @@ def main() -> int:
         texts=texts,
         vectors=minilm_oracle.embed(model_dir, texts),
     )
-    minilm_oracle.write_artifact(oracle_path, expected)
 
     command = [
         "cargo",
@@ -73,8 +70,8 @@ def main() -> int:
         "json",
         "--alias-map",
         str(root / "docs/campaigns/ai-workbench/model-aliases.toml"),
-        "--oracle-artifact",
-        str(oracle_path),
+        "--oracle-runner",
+        str(root / "examples/ai-workbench/harness/minilm_oracle.py"),
         "--oracle-label",
         minilm_oracle.DEFAULT_ORACLE_LABEL,
     ]
@@ -116,7 +113,6 @@ def main() -> int:
         if error > TOLERANCE:
             failures.append(f"max_abs_error={error}, tolerance={TOLERANCE}")
 
-    oracle_path.unlink(missing_ok=True)
     actual_path.unlink(missing_ok=True)
 
     if failures:
