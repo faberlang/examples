@@ -26,3 +26,10 @@ cargo run --manifest-path ../faber/Cargo.toml -- check coreutils/packages/<util>
 ```
 
 Each `goal.md` / `CAMPAIGN.md` owns its **Status** line.
+
+## Open goals
+
+| Goal | Status | Entry |
+| ---- | ------ | ----- |
+| Coreutils application exempla | active | [`coreutils/CAMPAIGN.md`](coreutils/CAMPAIGN.md) |
+| ViviLite application exemplum | proposed | [`vivilite/goal.md`](vivilite/goal.md) |

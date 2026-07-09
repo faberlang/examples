@@ -1,0 +1,407 @@
+# ViviLite file-backed local mailspace exemplum.
+
+importa ex "norma:solum" privata solum
+
+genus Store {
+    textus root
+    textus dir
+    textus identities
+    textus mail
+    textus work
+}
+
+genus WorkItem {
+    textus handle
+    textus kind
+    textus status
+    textus from
+    textus to
+    textus subject
+    textus body
+}
+
+functio store(textus root) → Store {
+    fixum textus dir_path ← root + "/.vivilite"
+    redde Store {
+        root = "" + root,
+        dir = "" + dir_path,
+        identities = dir_path + "/identities.tsv",
+        mail = dir_path + "/mail.tsv",
+        work = dir_path + "/work.tsv",
+    }
+}
+
+functio split(textus s, textus separator) → lista<textus> {
+    varia lista<textus> partes ← vacua
+    fixum numerus sep_len ← separator.longitudo()
+    varia numerus initium ← 0
+    varia numerus i ← 0
+    dum i < s.longitudo() {
+        si s.sectio(i, i + sep_len) ≡ separator {
+            partes.appende(s.sectio(initium, i))
+            i ← i + sep_len
+            initium ← i
+        } secus {
+            i ← i + 1
+        }
+    }
+    partes.appende(s.sectio(initium, s.longitudo()))
+    redde partes
+}
+
+functio read_lines(textus path) → lista<textus> {
+    si solum.exstat(path) ≠ verum ergo redde []
+    redde solum.carpe(path)
+}
+
+functio append_line(textus path, textus line) → vacuum {
+    varia textus body ← ""
+    si solum.exstat(path) {
+        body ← solum.lege<textus>(path)
+    }
+    solum.scribe(path, body + line + "\n")
+}
+
+functio ensure_store(Store s) → vacuum {
+    fixum textus dir ← "" + s.dir
+    fixum textus identities ← "" + s.identities
+    fixum textus mail ← "" + s.mail
+    fixum textus work ← "" + s.work
+    solum.crea("" + dir)
+    si solum.exstat(dir + "/mailspace.txt") ≠ verum {
+        solum.scribe(dir + "/mailspace.txt", "name=vivilite\n")
+    }
+    si solum.exstat("" + identities) ≠ verum {
+        solum.scribe("" + identities, "")
+    }
+    si solum.exstat("" + mail) ≠ verum {
+        solum.scribe("" + mail, "")
+    }
+    si solum.exstat("" + work) ≠ verum {
+        solum.scribe("" + work, "")
+    }
+}
+
+functio arg(lista<textus> args, textus flag, textus def) → textus {
+    varia numerus i ← 0
+    dum i < args.longitudo() {
+        si (args.accipe(i) vel "") ≡ flag ergo redde args.accipe(i + 1) vel def
+        i ← i + 1
+    }
+    redde def
+}
+
+functio has(lista<textus> args, textus flag) → bivalens {
+    itera ex args fixum item {
+        si item ≡ flag ergo redde verum
+    }
+    redde falsum
+}
+
+functio positional(lista<textus> args, numerus index, textus def) → textus {
+    redde args.accipe(index) vel def
+}
+
+functio json_escape(textus value) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < value.longitudo() {
+        fixum textus c ← value.sectio(i, i + 1)
+        si c ≡ "\"" {
+            out ← out + "\\\""
+        } sin c ≡ "\\" {
+            out ← out + "\\\\"
+        } sin c ≡ "\n" {
+            out ← out + "\\n"
+        } sin c ≡ "\r" {
+            out ← out + "\\r"
+        } sin c ≡ "\t" {
+            out ← out + "\\t"
+        } secus {
+            out ← out + c
+        }
+        i ← i + 1
+    }
+    redde out
+}
+
+functio jq(textus value) → textus {
+    redde "\"" + json_escape(value) + "\""
+}
+
+functio work_from_line(textus line) → WorkItem {
+    fixum lista<textus> p ← split(line, "\t")
+    redde WorkItem {
+        handle = p.accipe(0) vel "",
+        kind = p.accipe(1) vel "",
+        status = p.accipe(2) vel "",
+        from = p.accipe(3) vel "",
+        to = p.accipe(4) vel "",
+        subject = p.accipe(5) vel "",
+        body = p.accipe(6) vel "",
+    }
+}
+
+functio work_line(WorkItem item) → textus {
+    redde item.handle + "\t" + item.kind + "\t" + item.status + "\t" + item.from + "\t" + item.to + "\t" + item.subject + "\t" + item.body
+}
+
+functio next_handle(textus kind, lista<textus> lines) → textus {
+    fixum numerus n ← lines.longitudo() + 1
+    redde kind.sectio(0, 1) + "-" + (n ↦ textus)
+}
+
+functio count_identities(Store s) → numerus {
+    redde read_lines("" + s.identities).longitudo()
+}
+
+functio count_work(Store s, textus kind, textus status, textus who) → numerus {
+    varia numerus count ← 0
+    itera ex read_lines("" + s.work) fixum line {
+        si line.longitudo() > 0 {
+            fixum WorkItem item ← work_from_line(line)
+            si item.kind ≡ kind et item.status ≡ status et item.to ≡ who {
+                count ← count + 1
+            }
+        }
+    }
+    redde count
+}
+
+functio list_work_json(Store s, textus kind, textus who) → textus {
+    varia textus out ← "["
+    varia bivalens first ← verum
+    itera ex read_lines("" + s.work) fixum line {
+        si line.longitudo() > 0 {
+            fixum WorkItem item ← work_from_line(line)
+            si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
+                si first ≠ verum ergo out ← out + ","
+                out ← out + "{\"handle\":" + jq(item.handle) + ",\"subject\":" + jq(item.subject) + ",\"from\":" + jq(item.from) + "}"
+                first ← falsum
+            }
+        }
+    }
+    redde out + "]"
+}
+
+functio print_status(Store s, bivalens json) → vacuum {
+    ensure_store(store("" + s.root))
+    fixum numerus identities ← count_identities(store("" + s.root))
+    si json {
+        nota "{\"status\":\"ok\",\"lane\":\"file\",\"identities\":" + (identities ↦ textus) + "}"
+    } secus {
+        nota "lane: file"
+        nota "identities: §"(identities)
+    }
+}
+
+functio identity_add(Store s, textus name, textus address) → vacuum {
+    ensure_store(store("" + s.root))
+    append_line("" + s.identities, name + "\t" + address)
+    nota "identity added: §"(name)
+}
+
+functio identity_list(Store s) → vacuum {
+    ensure_store(store("" + s.root))
+    itera ex read_lines("" + s.identities) fixum line {
+        fixum lista<textus> p ← split(line, "\t")
+        nota (p.accipe(0) vel "") + " " + (p.accipe(1) vel "")
+    }
+}
+
+functio send_mail(Store s, textus from, textus to, textus subject, textus body) → vacuum {
+    ensure_store(store("" + s.root))
+    fixum textus handle ← "m-" + ((read_lines("" + s.mail).longitudo() + 1) ↦ textus)
+    append_line("" + s.mail, handle + "\tlocal\t" + from + "\t" + to + "\t" + subject + "\t" + body)
+    nota "sent " + handle
+}
+
+functio mail_list(Store s, textus who) → vacuum {
+    ensure_store(store("" + s.root))
+    itera ex read_lines("" + s.mail) fixum line {
+        fixum lista<textus> p ← split(line, "\t")
+        si (p.accipe(3) vel "") ≡ who {
+            nota (p.accipe(0) vel "") + "  " + (p.accipe(4) vel "")
+        }
+    }
+}
+
+functio mail_show(Store s, textus handle) → vacuum {
+    ensure_store(store("" + s.root))
+    itera ex read_lines("" + s.mail) fixum line {
+        fixum lista<textus> p ← split(line, "\t")
+        si (p.accipe(0) vel "") ≡ handle {
+            nota "From: " + (p.accipe(2) vel "")
+            nota "To: " + (p.accipe(3) vel "")
+            nota "Subject: " + (p.accipe(4) vel "")
+            nota ""
+            nota p.accipe(5) vel ""
+            redde
+        }
+    }
+    nota "not found: §"(handle)
+}
+
+functio work_send(Store s, textus kind, textus from, textus to, textus subject, textus body) → vacuum {
+    ensure_store(store("" + s.root))
+    fixum lista<textus> lines ← read_lines("" + s.work)
+    fixum textus handle ← next_handle(kind, lines)
+    append_line("" + s.work, handle + "\t" + kind + "\topen\t" + from + "\t" + to + "\t" + subject + "\t" + body)
+    nota "sent " + handle
+}
+
+functio work_list(Store s, textus kind, textus who) → vacuum {
+    ensure_store(store("" + s.root))
+    itera ex read_lines("" + s.work) fixum line {
+        si line.longitudo() > 0 {
+            fixum WorkItem item ← work_from_line(line)
+            si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
+                nota item.handle + "  " + item.subject
+            }
+        }
+    }
+}
+
+functio work_show(Store s, textus handle) → vacuum {
+    ensure_store(store("" + s.root))
+    itera ex read_lines("" + s.work) fixum line {
+        si line.longitudo() > 0 {
+            fixum WorkItem item ← work_from_line(line)
+            si item.handle ≡ handle {
+                nota "From: " + item.from
+                nota "To: " + item.to
+                nota "Kind: " + item.kind
+                nota "Status: " + item.status
+                nota "Subject: " + item.subject
+                nota ""
+                nota item.body
+                redde
+            }
+        }
+    }
+    nota "not found: §"(handle)
+}
+
+functio rewrite_work(Store s, textus handle, textus new_status, textus new_kind) → vacuum {
+    ensure_store(store("" + s.root))
+    varia textus out ← ""
+    itera ex read_lines("" + s.work) fixum line {
+        si line.longitudo() > 0 {
+            varia WorkItem item ← work_from_line(line)
+            si item.handle ≡ handle {
+                item.status ← "" + new_status
+                si new_kind.longitudo() > 0 {
+                    item.kind ← "" + new_kind
+                }
+            }
+            out ← out + work_line(item) + "\n"
+        }
+    }
+    solum.scribe("" + s.work, out)
+}
+
+functio board_json(Store s, textus who) → textus {
+    ensure_store(store("" + s.root))
+    fixum numerus tasks ← count_work(store("" + s.root), "task", "open", "" + who)
+    fixum numerus needs ← count_work(store("" + s.root), "need", "open", "" + who)
+    fixum numerus wants ← count_work(store("" + s.root), "want", "open", "" + who)
+    redde "{\"mailspace\":\"vivilite\",\"lane\":\"file\",\"for\":" + jq("" + who) + ",\"actionable\":" + ((tasks + needs) ↦ textus) + ",\"tasks\":" + (tasks ↦ textus) + ",\"needs\":" + (needs ↦ textus) + ",\"wants\":" + (wants ↦ textus) + ",\"task_items\":" + list_work_json(store("" + s.root), "task", "" + who) + ",\"need_items\":" + list_work_json(store("" + s.root), "need", "" + who) + ",\"want_items\":" + list_work_json(store("" + s.root), "want", "" + who) + "}"
+}
+
+functio route(lista<textus> args, Store s) → vacuum {
+    fixum textus top ← positional(args, 0, "")
+    fixum textus subcmd ← positional(args, 1, "")
+    fixum textus op ← positional(args, 2, "")
+    fixum textus who ← arg(args, "--for", "codex")
+    fixum textus from ← arg(args, "--from", who)
+    fixum textus to ← arg(args, "--to", who)
+    fixum textus subject ← arg(args, "--subject", "(no subject)")
+    fixum textus body ← arg(args, "--body", "")
+    si top ≡ "mailspace" et subcmd ≡ "init" {
+        ensure_store(store("" + s.root))
+        nota "initialized " + s.dir
+    } sin top ≡ "mailspace" et subcmd ≡ "status" {
+        print_status(s, has(args, "--json"))
+    } sin top ≡ "mailspace" et subcmd ≡ "identity" et op ≡ "add" {
+        identity_add(s, arg(args, "--name", who), arg(args, "--address", who + "@local"))
+    } sin top ≡ "mailspace" et subcmd ≡ "identity" et op ≡ "list" {
+        identity_list(s)
+    } sin top ≡ "mail" et subcmd ≡ "send" {
+        send_mail(s, from, to, subject, body)
+    } sin top ≡ "mail" et subcmd ≡ "list" {
+        mail_list(s, who)
+    } sin top ≡ "mail" et subcmd ≡ "show" {
+        mail_show(s, op)
+    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "send" {
+        work_send(s, top, from, to, subject, body)
+    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "list" {
+        work_list(s, top, who)
+    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "show" {
+        work_show(s, op)
+    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "done" {
+        rewrite_work(s, op, "done", "")
+        nota "done " + op
+    } sin top ≡ "want" et subcmd ≡ "promote" {
+        rewrite_work(s, op, "open", "task")
+        nota "promoted " + op
+    } sin top ≡ "board" {
+        nota board_json(s, who)
+    } secus {
+        nota "usage: vivilite mailspace|mail|task|need|want|board ..."
+    }
+}
+
+probandum "vivilite helpers" tag "vivilite" {
+    proba "split separates tab fields" {
+        fixum lista<textus> p ← split("a\tb\tc", "\t")
+        adfirma p.longitudo() ≡ 3
+        adfirma (p.accipe(1) vel "") ≡ "b"
+    }
+
+    proba "json escape protects quotes" {
+        adfirma json_escape("a\"b") ≡ "a\\\"b"
+    }
+}
+
+@ cli "vivilite"
+@ versio "0.1.0"
+@ descriptio "File-backed local mailspace example"
+@ optio project longum "project" typus textus vel "." ubique descriptio "Project root containing .vivilite"
+@ optio json longum "json" typus bivalens ubique descriptio "Emit JSON output where supported"
+@ optio for_identity longum "for" typus textus vel "codex" ubique descriptio "Recipient identity filter"
+@ optio from_identity longum "from" typus textus vel "" ubique descriptio "Sender identity"
+@ optio to_identity longum "to" typus textus vel "" ubique descriptio "Recipient identity"
+@ optio subject longum "subject" typus textus vel "(no subject)" ubique descriptio "Message or work subject"
+@ optio body longum "body" typus textus vel "" ubique descriptio "Message or work body"
+@ optio name longum "name" typus textus vel "" ubique descriptio "Identity name"
+@ optio address longum "address" typus textus vel "" ubique descriptio "Identity address"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    varia lista<textus> operands ← args.operands
+    operands.appende("--for")
+    operands.appende("" + args.for_identity)
+    si ("" + args.from_identity).longitudo() > 0 {
+        operands.appende("--from")
+        operands.appende("" + args.from_identity)
+    }
+    si ("" + args.to_identity).longitudo() > 0 {
+        operands.appende("--to")
+        operands.appende("" + args.to_identity)
+    }
+    operands.appende("--subject")
+    operands.appende("" + args.subject)
+    operands.appende("--body")
+    operands.appende("" + args.body)
+    si ("" + args.name).longitudo() > 0 {
+        operands.appende("--name")
+        operands.appende("" + args.name)
+    }
+    si ("" + args.address).longitudo() > 0 {
+        operands.appende("--address")
+        operands.appende("" + args.address)
+    }
+    si args.json {
+        operands.appende("--json")
+    }
+    route(operands, store("" + args.project))
+}
