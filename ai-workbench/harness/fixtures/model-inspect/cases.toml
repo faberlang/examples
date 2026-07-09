@@ -68,6 +68,44 @@ compare_campaign = false
 exit = 0
 
 [[case]]
+id = "directory-map-json"
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "/tmp/faber-ai-alias-map-dir",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "alias map unreadable: /tmp/faber-ai-alias-map-dir",
+]
+compare_campaign = false
+directory_path = "/tmp/faber-ai-alias-map-dir"
+exit = 0
+
+[[case]]
+id = "unreadable-map-json"
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "/tmp/faber-ai-unreadable-alias-map.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "alias map unreadable: /tmp/faber-ai-unreadable-alias-map.toml",
+]
+compare_campaign = false
+unreadable_path = "/tmp/faber-ai-unreadable-alias-map.toml"
+exit = 0
+
+[[case]]
 id = "outside-subset-map-json"
 args = [
   "model",

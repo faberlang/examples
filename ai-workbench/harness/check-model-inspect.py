@@ -39,6 +39,19 @@ def main() -> int:
         if absent_path:
             pathlib.Path(absent_path).unlink(missing_ok=True)
 
+        directory_path = case.get("directory_path")
+        if directory_path:
+            path = pathlib.Path(directory_path)
+            if path.exists() and not path.is_dir():
+                path.unlink()
+            path.mkdir(parents=True, exist_ok=True)
+
+        unreadable_path = case.get("unreadable_path")
+        if unreadable_path:
+            path = pathlib.Path(unreadable_path)
+            path.write_text("[[tiers]]\n")
+            path.chmod(0)
+
         command = [
             "cargo",
             "run",
@@ -58,6 +71,18 @@ def main() -> int:
             stderr=subprocess.PIPE,
             timeout=120,
         )
+        if unreadable_path:
+            path = pathlib.Path(unreadable_path)
+            try:
+                path.chmod(0o600)
+                path.unlink()
+            except FileNotFoundError:
+                pass
+        if directory_path:
+            try:
+                pathlib.Path(directory_path).rmdir()
+            except OSError:
+                pass
         combined = result.stdout + result.stderr
         expected_exit = int(case["exit"])
         if result.returncode != expected_exit:

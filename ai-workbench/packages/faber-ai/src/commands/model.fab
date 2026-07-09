@@ -234,6 +234,37 @@ functio inspect_map_missing_text(textus target, textus map_path) → vacuum {
     nota "diagnostic: alias map not found: §"(map_path)
 }
 
+functio inspect_map_unreadable_json(textus target, textus map_path) → vacuum {
+    fixum textus q ← json_quote()
+    fixum textus head_json ←
+        "{" +
+        q + "alias" + q + ":" + q + target + q + "," +
+        q + "source" + q + ":" + q + map_path + q + "," +
+        q + "status" + q + ":" + q + "error" + q + "," +
+        q + "format" + q + ":" + q + "unknown" + q + ","
+    fixum textus location_json ←
+        q + "local_path" + q + ":" + q + "" + q + "," +
+        q + "router_model_id" + q + ":" + q + "" + q + ","
+    fixum textus inventory_json ←
+        q + "files" + q + ":[]," +
+        q + "tensors" + q + ":[]," +
+        q + "shards" + q + ":[]," +
+        q + "quantization" + q + ":" + q + "" + q + "," +
+        q + "estimated_bytes" + q + ":0,"
+    fixum textus diagnostics_json ←
+        q + "diagnostics" + q + ":[" + q + "alias map unreadable: " + map_path + q + "]" +
+        "}"
+    nota head_json + location_json + inventory_json + diagnostics_json
+}
+
+functio inspect_map_unreadable_text(textus target, textus map_path) → vacuum {
+    nota "alias: §"(target)
+    nota "source: §"(map_path)
+    nota "status: error"
+    nota "format: unknown"
+    nota "diagnostic: alias map unreadable: §"(map_path)
+}
+
 functio inspect_map_invalid_json(textus target, textus map_path) → vacuum {
     fixum textus q ← json_quote()
     fixum textus head_json ←
@@ -277,6 +308,14 @@ functio inspect() argumenta args → vacuum {
             inspect_map_missing_json(args.target, map_path)
         } secus {
             inspect_map_missing_text(args.target, map_path)
+        }
+        redde
+    }
+    si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
+        si format_jsonne(args.format) {
+            inspect_map_unreadable_json(args.target, map_path)
+        } secus {
+            inspect_map_unreadable_text(args.target, map_path)
         }
         redde
     }
