@@ -19,6 +19,15 @@ def main() -> int:
     package = root / "examples/ai-workbench/packages/faber-ai"
     faber_manifest = root / "faber/Cargo.toml"
 
+    if not aliases_path.exists():
+        print(
+            "FAIL campaign alias map missing: "
+            f"{aliases_path}. Run this harness from the faberlang workspace; "
+            "standalone examples checkouts do not contain campaign docs.",
+            file=sys.stderr,
+        )
+        return 2
+
     cases = tomllib.loads(cases_path.read_text())["case"]
     aliases = {
         item["alias"]: item

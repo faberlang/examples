@@ -50,3 +50,8 @@ delivery spec before it is claimed complete.
 `model inspect` reads the alias map with `norma:solum`, so the map-backed
 runtime path uses compiled `faber run`; the interpreter does not yet support
 that provider route.
+
+The harness is workspace-level validation, not standalone `examples` repo CI:
+it requires the campaign map under `docs/campaigns/ai-workbench/`. It checks
+`source`, `status`, and `router_model_id` against the campaign map and requires
+portable output to redact `local_path` to an empty string.
