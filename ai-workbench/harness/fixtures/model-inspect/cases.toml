@@ -1,11 +1,16 @@
 [[case]]
-id = "basic-minilm-missing-json"
+id = "basic-minilm-local-json"
 args = ["model", "inspect", "basic/minilm", "--format", "json"]
 stdout_contains = [
   "\"alias\":\"basic/minilm\"",
-  "\"status\":\"missing-download\"",
-  "\"files\":[]",
-  "\"tensors\":[]",
+  "\"status\":\"local\"",
+  "\"format\":\"safetensors\"",
+  "\"local_path\":\"\"",
+  "\"name\":\"embeddings.position_ids\"",
+  "\"dtype\":\"I64\"",
+  "\"shape\":[1,512]",
+  "\"tensor_count\":104",
+  "\"estimated_bytes\":90856960",
   "sentence-transformers/all-MiniLM-L6-v2",
 ]
 exit = 0

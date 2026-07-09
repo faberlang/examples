@@ -242,10 +242,10 @@ functio gguf_quantization_for(textus read_path, textus router_model_id, textus s
     redde model.gguf_quantization_fragmentum(fragment)
 }
 
-functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
+functio inspect_local_safetensors(textus alias, textus source, textus read_path, textus display_path, textus formatum) → vacuum {
     fac {
-        fixum octeti data ← solum.lege<octeti>(target)
-        fixum _ summary ← model.tempta_safetensors_summarium(target, target, target, data)
+        fixum octeti data ← solum.lege<octeti>(read_path)
+        fixum _ summary ← model.tempta_safetensors_summarium(alias, source, display_path, data)
         si format_jsonne(formatum) {
             fixum textus q ← json_quote()
             varia textus tensors_json ← "["
@@ -318,12 +318,12 @@ functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
         si format_jsonne(formatum) {
             fixum textus head_json ←
                 "{" +
-                q + "alias" + q + ":" + q + target + q + "," +
-                q + "source" + q + ":" + q + target + q + "," +
+                q + "alias" + q + ":" + q + alias + q + "," +
+                q + "source" + q + ":" + q + source + q + "," +
                 q + "status" + q + ":" + q + "error" + q + "," +
                 q + "format" + q + ":" + q + "safetensors" + q + ","
             fixum textus location_json ←
-                q + "local_path" + q + ":" + q + target + q + "," +
+                q + "local_path" + q + ":" + q + display_path + q + "," +
                 q + "router_model_id" + q + ":" + q + "" + q + ","
             fixum textus inventory_json ←
                 q + "files" + q + ":[]," +
@@ -337,11 +337,11 @@ functio inspect_local_safetensors(textus target, textus formatum) → vacuum {
                 "}"
             nota head_json + location_json + inventory_json + diagnostics_json
         } secus {
-            nota "alias: §"(target)
-            nota "source: §"(target)
+            nota "alias: §"(alias)
+            nota "source: §"(source)
             nota "status: error"
             nota "format: safetensors"
-            nota "local_path: §"(target)
+            nota "local_path: §"(display_path)
             nota "diagnostic: safetensors metadata error: §"(err.nuntius)
         }
     }
@@ -572,7 +572,7 @@ functio inspect() argumenta args → vacuum {
     fixum textus output_format ← "" + args.format
     si solum.exstat(target) et solum.regularene(target) et solum.legibilene(target) {
         si model.formatum("local", target) ≡ "safetensors" {
-            inspect_local_safetensors(target, output_format)
+            inspect_local_safetensors(target, target, target, target, output_format)
             redde
         }
         si model.formatum("local", target) ≡ "gguf" {
@@ -609,6 +609,12 @@ functio inspect() argumenta args → vacuum {
     }
 
     fixum textus raw_local_path ← raw_local_path_for(aliases, target)
+    si status_for(aliases, target) ≡ "local" et raw_local_path.finis(".safetensors") {
+        si solum.exstat(raw_local_path) et solum.regularene(raw_local_path) et solum.legibilene(raw_local_path) {
+            inspect_local_safetensors(target, source_for(aliases, target), raw_local_path, "", output_format)
+            redde
+        }
+    }
     si status_for(aliases, target) ≡ "router-backed" et format_for(aliases, target) ≡ "gguf" et raw_local_path.longitudo() > 0 {
         si solum.exstat(raw_local_path) et solum.regularene(raw_local_path) et solum.legibilene(raw_local_path) {
             inspect_local_gguf(target, source_for(aliases, target), raw_local_path, "", router_id_for(aliases, target), output_format)
