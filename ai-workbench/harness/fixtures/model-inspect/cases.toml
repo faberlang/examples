@@ -131,6 +131,8 @@ args = [
   "examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors",
   "--format",
   "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/missing-local-path.toml",
 ]
 stdout_contains = [
   "\"status\":\"local\"",

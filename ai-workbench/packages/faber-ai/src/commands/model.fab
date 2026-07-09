@@ -431,6 +431,13 @@ functio inspect() argumenta args → vacuum {
     fixum textus map_path ← "" + args.map
     fixum textus target ← "" + args.target
     fixum textus output_format ← "" + args.format
+    si solum.exstat(target) et solum.regularene(target) et solum.legibilene(target) {
+        si model.formatum("local", target) ≡ "safetensors" {
+            inspect_local_safetensors(target, output_format)
+            redde
+        }
+    }
+
     si solum.exstat(map_path) ≠ verum {
         si format_jsonne(output_format) {
             inspect_map_missing_json(target, map_path)
@@ -456,13 +463,6 @@ functio inspect() argumenta args → vacuum {
             inspect_map_invalid_text(target, map_path)
         }
         redde
-    }
-
-    si solum.exstat(target) et solum.regularene(target) et solum.legibilene(target) {
-        si model.formatum("local", target) ≡ "safetensors" {
-            inspect_local_safetensors(target, output_format)
-            redde
-        }
     }
 
     si format_jsonne(output_format) {
