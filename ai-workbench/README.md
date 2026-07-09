@@ -116,3 +116,14 @@ default Python `tokenizers`, `torch`, and `numpy` packages, reads
 normalization, and verifies the CLI artifact against a `1e-6` tolerance. It
 does not use `transformers`, `sentence_transformers`, `safetensors`, network
 fetches, or repo-local model blobs.
+
+Independent Transformers parity is also local-ops-only:
+
+```bash
+python3 examples/ai-workbench/harness/check-embed-transformers-oracle.py
+```
+
+That script requires a Python environment with `transformers` available, loads
+the same durable MiniLM directory with `local_files_only=True`, computes mean
+pooled and L2-normalized embeddings through `AutoModel`, and compares those
+vectors with the CLI artifact produced by the explicit manual oracle runner.
