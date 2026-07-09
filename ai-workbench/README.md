@@ -47,6 +47,7 @@ cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages
 python3 examples/ai-workbench/harness/check-model-inspect.py
 python3 examples/ai-workbench/harness/check-embed.py
 python3 examples/ai-workbench/harness/check-index.py
+python3 examples/ai-workbench/harness/check-query.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -152,3 +153,25 @@ The default index harness is hermetic and uses tiny checked-in parser fixtures,
 not live MiniLM model files. The parser is intentionally narrow: malformed
 input, blocked Stage 2 artifacts, unsupported metrics, missing vector files,
 empty indexes, and dimension mismatches fail closed with structured diagnostics.
+
+`faber-ai query <index.fvi> "search text" --query-vector <query.fvi>` is wired
+as the Stage 3 query floor. The first hermetic path requires an explicit
+checked-in query vector fixture, computes cosine as a dot product over
+L2-normalized vectors, and orders results by score descending while preserving
+original index order for stable ties.
+
+The query-vector fixture floor is compact JSON with:
+
+- `format = "fvi-stage3-query-vector"`
+- `model`
+- `dimensions`
+- `normalization = "l2"`
+- `query`
+- `values`
+- `diagnostics`
+
+The default query harness builds a temporary Stage 3 index from the checked-in
+Stage 2 vector fixture, then verifies deterministic ranking and fail-closed
+behavior for missing query vectors, invalid `--top`, malformed/empty indexes,
+unsupported formats/metrics, and dimension mismatches. It does not embed query
+text or use the local MiniLM inventory.

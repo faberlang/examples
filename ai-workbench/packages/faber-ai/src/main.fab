@@ -3,6 +3,7 @@
 importa ex "./commands/model" privata * ut modelModule
 importa ex "./commands/embed" privata * ut embedModule
 importa ex "./commands/index" privata * ut indexModule
+importa ex "./commands/query" privata * ut queryModule
 
 @ cli "faber-ai"
 @ versio "0.1.0"
@@ -43,5 +44,22 @@ functio index() argumenta args → vacuum {
         "" + args.out,
         "" + args.format,
         "" + args.metric,
+    )
+}
+
+@ imperium "query"
+@ descriptio "Query a deterministic Stage 3 vector index"
+@ optio top longum "top" typus numerus vel 10 descriptio "Maximum result count"
+@ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ optio query_vector longum "query-vector" typus textus vel "" descriptio "Explicit query vector fixture"
+@ operandus textus index descriptio "Stage 3 index artifact path"
+@ operandus textus query_text descriptio "Query text"
+functio query() argumenta args → vacuum {
+    queryModule.curre(
+        "" + args.index,
+        "" + args.query_text,
+        args.top,
+        "" + args.format,
+        "" + args.query_vector,
     )
 }

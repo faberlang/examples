@@ -1,0 +1,1 @@
+{"format":"fvi-stage3-index","source_format":"fvi-stage2","model":"basic/minilm","source":"sentence-transformers/all-MiniLM-L6-v2","input_vectors":1,"dimensions":3,"metric":"cosine","normalization":"l2","vectors":[{"id":"short","text":"short","values":[1.0,0.0]}],"diagnostics":[]}

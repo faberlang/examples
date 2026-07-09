@@ -1,0 +1,281 @@
+[[case]]
+id = "happy-query-top-two-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--top",
+  "2",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"ok\"",
+  "\"query\":\"beta release\"",
+  "\"top\":2",
+  "\"metric\":\"cosine\"",
+]
+expected_results = [
+  { id = "beta", score = 1.0 },
+  { id = "alpha", score = 0.0 },
+]
+exit = 0
+
+[[case]]
+id = "happy-query-top-one-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-one.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-one.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--top",
+  "1",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"ok\"",
+]
+expected_results = [
+  { id = "beta", score = 1.0 },
+]
+exit = 0
+
+[[case]]
+id = "quoted-query-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-quoted.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-quoted.fvi",
+  "beta \"release\"",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--top",
+  "1",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"query\":\"beta \\\"release\\\"\"",
+]
+expected_query = "beta \"release\""
+expected_results = [
+  { id = "beta", score = 1.0 },
+]
+exit = 0
+
+[[case]]
+id = "missing-index-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/does-not-exist.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "index artifact not found: examples/ai-workbench/harness/fixtures/query/does-not-exist.fvi",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "missing-query-vector-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-missing-vector.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-missing-vector.fvi",
+  "beta release",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "query embedding required: pass --query-vector",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "query-vector-not-found-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-vector-not-found.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-vector-not-found.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/does-not-exist-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "query vector not found: examples/ai-workbench/harness/fixtures/query/does-not-exist-query.fvi",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "invalid-top-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-invalid-top.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-invalid-top.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--top",
+  "0",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "invalid --top: must be positive",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "malformed-index-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/malformed-index.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "malformed query input",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "malformed-query-vector-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-malformed-query.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-malformed-query.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/malformed-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "malformed query input",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "empty-index-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/empty-index.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "index artifact is empty",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "query-dimension-mismatch-json"
+build_index = true
+index_path = "/tmp/faber-ai-query-index-query-dim.fvi"
+args = [
+  "query",
+  "/tmp/faber-ai-query-index-query-dim.fvi",
+  "bad dimensions",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/dimension-mismatch-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "query vector dimensions mismatch: expected 3 got 2",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "unsupported-index-format-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/unsupported-format-index.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "unsupported index artifact format: fvi-stage2",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "unsupported-metric-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/unsupported-metric-index.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "unsupported query metric: euclidean",
+]
+expected_results = []
+exit = 0
+
+[[case]]
+id = "index-vector-dimension-mismatch-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/index-dimension-mismatch.fvi",
+  "beta release",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "index vector dimensions mismatch: expected 3 got 2",
+]
+expected_results = []
+exit = 0
