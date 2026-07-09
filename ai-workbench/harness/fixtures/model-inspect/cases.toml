@@ -4,6 +4,8 @@ args = ["model", "inspect", "basic/minilm", "--format", "json"]
 stdout_contains = [
   "\"alias\":\"basic/minilm\"",
   "\"status\":\"missing-download\"",
+  "\"files\":[]",
+  "\"tensors\":[]",
   "sentence-transformers/all-MiniLM-L6-v2",
 ]
 exit = 0
@@ -15,7 +17,7 @@ stdout_contains = [
   "\"status\":\"router-backed\"",
   "\"format\":\"gguf\"",
   "qwen36-35b-a3b-q4",
-  "/Users/ianzepp/ai/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf",
+  "\"local_path\":\"\"",
 ]
 exit = 0
 

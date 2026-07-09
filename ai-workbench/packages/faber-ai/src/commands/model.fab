@@ -25,7 +25,6 @@ functio source_for(textus target) → textus {
 }
 
 functio local_path_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "/Users/ianzepp/ai/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
     redde ""
 }
 
@@ -43,10 +42,10 @@ functio format_for(textus target) → textus {
 }
 
 functio diagnostic_for(textus target) → textus {
-    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "metadata parser pending; local GGUF path is recorded"
-    si target ≡ "basic/minilm" ergo redde "missing local download for sentence-transformers/all-MiniLM-L6-v2"
-    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "missing local download for Qwen/Qwen3-Embedding-0.6B"
-    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "missing local download for Qwen/Qwen3-4B-FP8"
+    si target ≡ "daily/qwen36-35b-a3b-q4" ergo redde "metadata parser pending; router model is " + router_id_for(target)
+    si target ≡ "basic/minilm" ergo redde "missing local download for " + source_for(target)
+    si target ≡ "mid/qwen3-embed-0.6b" ergo redde "missing local download for " + source_for(target)
+    si target ≡ "stretch/qwen3-4b-fp8" ergo redde "missing local download for " + source_for(target)
     redde "unknown alias or unsupported path"
 }
 
@@ -57,9 +56,10 @@ probandum "model alias inspection" tag "ai-workbench" {
         adfirma format_for("basic/minilm") ≡ "alias-missing"
     }
 
-    proba "Tier 4 Qwen router alias records local GGUF state" {
+    proba "Tier 4 Qwen router alias records redacted GGUF state" {
         adfirma status_for("daily/qwen36-35b-a3b-q4") ≡ "router-backed"
         adfirma router_id_for("daily/qwen36-35b-a3b-q4") ≡ "qwen36-35b-a3b-q4"
+        adfirma local_path_for("daily/qwen36-35b-a3b-q4") ≡ ""
         adfirma format_for("daily/qwen36-35b-a3b-q4") ≡ "gguf"
     }
 
@@ -71,15 +71,25 @@ probandum "model alias inspection" tag "ai-workbench" {
 
 functio inspect_json(textus target) → vacuum {
     fixum textus q ← json_quote()
-    nota "{" +
+    fixum textus alias_json ←
+        "{" +
         q + "alias" + q + ":" + q + target + q + "," +
         q + "source" + q + ":" + q + source_for(target) + q + "," +
         q + "status" + q + ":" + q + status_for(target) + q + "," +
-        q + "format" + q + ":" + q + format_for(target) + q + "," +
+        q + "format" + q + ":" + q + format_for(target) + q + ","
+    fixum textus location_json ←
         q + "local_path" + q + ":" + q + local_path_for(target) + q + "," +
-        q + "router_model_id" + q + ":" + q + router_id_for(target) + q + "," +
+        q + "router_model_id" + q + ":" + q + router_id_for(target) + q + ","
+    fixum textus inventory_json ←
+        q + "files" + q + ":[]," +
+        q + "tensors" + q + ":[]," +
+        q + "shards" + q + ":[]," +
+        q + "quantization" + q + ":" + q + "" + q + "," +
+        q + "estimated_bytes" + q + ":0,"
+    fixum textus diagnostics_json ←
         q + "diagnostics" + q + ":[" + q + diagnostic_for(target) + q + "]" +
         "}"
+    nota alias_json + location_json + inventory_json + diagnostics_json
 }
 
 functio inspect_text(textus target) → vacuum {
