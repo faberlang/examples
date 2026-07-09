@@ -331,6 +331,16 @@ functio board_json(de Store s, de textus who) → textus {
     redde cat(lb(), cat(body, rb()))
 }
 
+functio reset_fixture(de textus name) → Store {
+    fixum Store s ← store("§/§"(solum.temporarium(), name))
+    solum.crea(s.dir ↦ textus)
+    solum.scribe("§/mailspace.txt"(s.dir), "name=vivilite\n")
+    solum.scribe(s.identities ↦ textus, "")
+    solum.scribe(s.mail ↦ textus, "")
+    solum.scribe(s.work ↦ textus, "")
+    redde s
+}
+
 functio route(de lista<textus> args, de Store s) → vacuum {
     fixum textus top ← positional(args, 0, "")
     fixum textus subcmd ← positional(args, 1, "")
@@ -383,6 +393,36 @@ probandum "vivilite helpers" tag "vivilite" {
 
     proba "json escape protects quotes" {
         adfirma json_escape("a\"b") ≡ "a\\\"b"
+    }
+
+    proba "file-backed mailspace state transitions are stable" {
+        fixum Store s ← reset_fixture("vivilite-stage1-mail")
+        fixum textus root ← s.root
+        identity_add(store(root ↦ textus), "codex", "codex@fixture.local")
+        send_mail(store(root ↦ textus), "codex", "reviewer", "hello", "body")
+        adfirma read_lines(store(root ↦ textus).identities).longitudo() ≡ 1
+        adfirma read_lines(store(root ↦ textus).mail).longitudo() ≡ 1
+        fixum lista<textus> mail ← split(read_lines(store(root ↦ textus).mail).accipe(0) vel "", "\t")
+        adfirma (mail.accipe(0) vel "") ≡ "m-1"
+        adfirma (mail.accipe(2) vel "") ≡ "codex"
+        adfirma (mail.accipe(3) vel "") ≡ "reviewer"
+    }
+
+    proba "work items update board totals and handles" {
+        fixum Store s ← reset_fixture("vivilite-stage1-work")
+        fixum textus root ← s.root
+        work_send(store(root ↦ textus), "task", "reviewer", "codex", "task one", "body")
+        work_send(store(root ↦ textus), "need", "reviewer", "codex", "need one", "body")
+        work_send(store(root ↦ textus), "want", "reviewer", "codex", "want one", "body")
+        adfirma count_work(store(root ↦ textus), "task", "open", "codex") ≡ 1
+        adfirma count_work(store(root ↦ textus), "need", "open", "codex") ≡ 1
+        adfirma count_work(store(root ↦ textus), "want", "open", "codex") ≡ 1
+        adfirma board_json(store(root ↦ textus), "codex") ≡ "{\"mailspace\":\"vivilite\",\"lane\":\"file\",\"for\":\"codex\",\"actionable\":2,\"tasks\":1,\"needs\":1,\"wants\":1,\"task_items\":[{\"handle\":\"t-1\",\"subject\":\"task one\",\"from\":\"reviewer\"}],\"need_items\":[{\"handle\":\"n-2\",\"subject\":\"need one\",\"from\":\"reviewer\"}],\"want_items\":[{\"handle\":\"w-3\",\"subject\":\"want one\",\"from\":\"reviewer\"}]}"
+        rewrite_work(store(root ↦ textus), "t-1", "done", "")
+        rewrite_work(store(root ↦ textus), "w-3", "open", "task")
+        adfirma count_work(store(root ↦ textus), "task", "open", "codex") ≡ 1
+        adfirma count_work(store(root ↦ textus), "task", "done", "codex") ≡ 1
+        adfirma count_work(store(root ↦ textus), "want", "open", "codex") ≡ 0
     }
 }
 
