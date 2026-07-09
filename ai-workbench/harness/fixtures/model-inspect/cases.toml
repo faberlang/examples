@@ -122,3 +122,26 @@ stdout_contains = [
 ]
 compare_campaign = false
 exit = 0
+
+[[case]]
+id = "local-safetensors-json"
+args = [
+  "model",
+  "inspect",
+  "examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"local\"",
+  "\"format\":\"safetensors\"",
+  "\"files\":[\"examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors\"]",
+  "\"name\":\"embeddings\"",
+  "\"dtype\":\"F32\"",
+  "\"shape\":[2,3]",
+  "\"parameter_count\":6",
+  "\"estimated_bytes\":24",
+  "tokenizer/config files not found beside examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors",
+]
+compare_campaign = false
+exit = 0
