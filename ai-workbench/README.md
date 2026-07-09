@@ -46,6 +46,7 @@ cargo run --manifest-path faber/Cargo.toml -- test examples/ai-workbench/package
 cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json
 python3 examples/ai-workbench/harness/check-model-inspect.py
 python3 examples/ai-workbench/harness/check-embed.py
+python3 examples/ai-workbench/harness/check-index.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -127,3 +128,27 @@ That script requires a Python environment with `transformers` available, loads
 the same durable MiniLM directory with `local_files_only=True`, computes mean
 pooled and L2-normalized embeddings through `AutoModel`, and compares those
 vectors with the CLI artifact produced by the explicit manual oracle runner.
+
+## Stage 3 Index Floor
+
+`faber-ai index <vectors.fvi> --out <index.fvi>` is wired as the Stage 3 index
+artifact floor. It consumes the compact Stage 2 `.fvi` JSON shape, requires
+`format = "fvi-stage2"`, positive dimensions, positive input vector count, L2
+normalization, and a vector record count that matches `input_count`.
+
+The initial index artifact is compact JSON with:
+
+- `format = "fvi-stage3-index"`
+- `source_format = "fvi-stage2"`
+- `model` and `source`
+- `input_vectors`
+- `dimensions`
+- `metric`, currently `cosine`
+- `normalization = "l2"`
+- `vectors`
+- `diagnostics`
+
+The default index harness is hermetic and uses tiny checked-in parser fixtures,
+not live MiniLM model files. The parser is intentionally narrow: malformed
+input, blocked Stage 2 artifacts, unsupported metrics, missing vector files,
+empty indexes, and dimension mismatches fail closed with structured diagnostics.

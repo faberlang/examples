@@ -1,0 +1,1 @@
+{"format":"fvi-stage2","model":"basic/minilm","source":"sentence-transformers/all-MiniLM-L6-v2","status":"blocked","input_count":2,"dimensions":0,"normalization":"pending","vectors":[],"diagnostics":["MiniLM embedding execution not implemented"]}

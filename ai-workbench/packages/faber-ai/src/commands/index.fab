@@ -1,0 +1,289 @@
+# Stage 3 vector index command contract.
+
+importa ex "norma:solum" privata solum
+
+functio format_jsonne(textus formatum) → bivalens {
+    redde formatum ≡ "json"
+}
+
+functio json_quote() → textus {
+    redde |22| ↦ textus
+}
+
+functio find_from(textus s, textus needle, numerus start) → numerus {
+    fixum numerus n ← needle.longitudo()
+    varia numerus i ← start
+    dum i + n ≤ s.longitudo() {
+        si s.sectio(i, i + n) ≡ needle ergo redde i
+        i ← i + 1
+    }
+    redde -1
+}
+
+functio field_textus(textus documentum, textus field) → textus ⇥ textus {
+    fixum textus pattern ← "\"" + field + "\":\""
+    fixum numerus start ← find_from(documentum, pattern, 0)
+    si start < 0 ergo iace "missing vector artifact field: §"(field)
+    fixum numerus value_start ← start + pattern.longitudo()
+    fixum numerus value_end ← find_from(documentum, "\"", value_start)
+    si value_end < 0 ergo iace "unterminated vector artifact field: §"(field)
+    redde documentum.sectio(value_start, value_end)
+}
+
+functio est_digita(textus c) → bivalens {
+    redde c ≡ "0" aut c ≡ "1" aut c ≡ "2" aut c ≡ "3" aut c ≡ "4" aut c ≡ "5" aut c ≡ "6" aut c ≡ "7" aut c ≡ "8" aut c ≡ "9"
+}
+
+functio field_numerus(textus documentum, textus field) → numerus ⇥ textus {
+    fixum textus pattern ← "\"" + field + "\":"
+    fixum numerus start ← find_from(documentum, pattern, 0)
+    si start < 0 ergo iace "missing vector artifact field: §"(field)
+    varia numerus i ← start + pattern.longitudo()
+    varia textus digits ← ""
+    dum i < documentum.longitudo() {
+        fixum textus c ← documentum.sectio(i, i + 1)
+        si est_digita(c) {
+            digits ← digits + c
+        } sin c ≡ "-" {
+            si digits.longitudo() > 0 ergo iace "invalid numeric vector artifact field: §"(field)
+            digits ← digits + c
+        } sin c ≡ " " {
+            si digits.longitudo() > 0 ergo redde digits ↦ numerus
+        } sin c ≡ "," aut c ≡ "}" aut c ≡ "]" {
+            si digits.longitudo() > 0 ergo redde digits ↦ numerus
+            iace "empty numeric vector artifact field: §"(field)
+        } secus {
+            iace "invalid numeric vector artifact field: §"(field)
+        }
+        i ← i + 1
+    }
+    si digits.longitudo() > 0 ergo redde digits ↦ numerus
+    iace "empty numeric vector artifact field: §"(field)
+}
+
+functio array_end(textus documentum, numerus start) → numerus ⇥ textus {
+    varia numerus depth ← 0
+    varia numerus i ← start
+    dum i < documentum.longitudo() {
+        fixum textus c ← documentum.sectio(i, i + 1)
+        si c ≡ "[" {
+            depth ← depth + 1
+        }
+        si c ≡ "]" {
+            depth ← depth - 1
+            si depth ≡ 0 ergo redde i
+        }
+        i ← i + 1
+    }
+    iace "unterminated vector artifact array"
+}
+
+functio vectors_payload(textus documentum) → textus ⇥ textus {
+    fixum textus pattern ← "\"vectors\":["
+    fixum numerus start ← find_from(documentum, pattern, 0)
+    si start < 0 ergo iace "missing vector artifact field: vectors"
+    fixum numerus array_start ← start + pattern.longitudo() - 1
+    fixum numerus array_finish ← array_end(documentum, array_start)
+    redde documentum.sectio(array_start + 1, array_finish)
+}
+
+functio number_token_count(textus payload) → numerus ⇥ textus {
+    varia numerus count ← 0
+    varia bivalens active ← falsum
+    varia bivalens saw_digit ← falsum
+    varia numerus i ← 0
+    dum i < payload.longitudo() {
+        fixum textus c ← payload.sectio(i, i + 1)
+        si est_digita(c) {
+            active ← (verum)
+            saw_digit ← (verum)
+        } sin c ≡ "-" {
+            active ← (verum)
+        } sin c ≡ "." {
+            active ← (verum)
+        } sin c ≡ "," {
+            si active {
+                si saw_digit ≠ verum ergo iace "invalid vector value token"
+                count ← count + 1
+                active ← (falsum)
+                saw_digit ← (falsum)
+            }
+        } sin c ≡ " " {
+            si active {
+                si saw_digit ≠ verum ergo iace "invalid vector value token"
+                count ← count + 1
+                active ← (falsum)
+                saw_digit ← (falsum)
+            }
+        } secus {
+            iace "unsupported vector value token: §"(c)
+        }
+        i ← i + 1
+    }
+    si active {
+        si saw_digit ≠ verum ergo iace "invalid vector value token"
+        count ← count + 1
+    }
+    redde count
+}
+
+functio validate_vectors(textus documentum, numerus dimensions) → numerus ⇥ textus {
+    varia numerus count ← 0
+    varia numerus search ← 0
+    dum verum {
+        fixum numerus marker ← find_from(documentum, "\"values\":[", search)
+        si marker < 0 ergo redde count
+        fixum numerus value_start ← marker + "\"values\":[".longitudo() - 1
+        fixum numerus value_finish ← array_end(documentum, value_start)
+        fixum textus payload ← documentum.sectio(value_start + 1, value_finish)
+        fixum numerus actual_dimensions ← number_token_count(payload)
+        si actual_dimensions ≠ dimensions {
+            iace "vector dimensions mismatch: expected § got §"(dimensions, actual_dimensions)
+        }
+        count ← count + 1
+        search ← value_finish + 1
+    }
+    iace "unreachable vector validation state"
+}
+
+functio index_artifact(
+    textus model,
+    textus source,
+    numerus input_vectors,
+    numerus dimensions,
+    textus metric,
+    textus vectors,
+) → textus {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "format" + q + ":" + q + "fvi-stage3-index" + q + ","
+    out ← out + q + "source_format" + q + ":" + q + "fvi-stage2" + q + ","
+    out ← out + q + "model" + q + ":" + q + model + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "input_vectors" + q + ":" + (input_vectors ↦ textus) + ","
+    out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
+    out ← out + q + "metric" + q + ":" + q + metric + q + ","
+    out ← out + q + "normalization" + q + ":" + q + "l2" + q + ","
+    out ← out + q + "vectors" + q + ":[" + vectors + "],"
+    out ← out + q + "diagnostics" + q + ":[]"
+    out ← out + "}"
+    redde out
+}
+
+functio emit_json(textus model, textus source, numerus input_vectors, numerus dimensions, textus metric, textus out_path) → vacuum {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "status" + q + ":" + q + "ok" + q + ","
+    out ← out + q + "model" + q + ":" + q + model + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "input_vectors" + q + ":" + (input_vectors ↦ textus) + ","
+    out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
+    out ← out + q + "metric" + q + ":" + q + metric + q + ","
+    out ← out + q + "index_path" + q + ":" + q + out_path + q + ","
+    out ← out + q + "diagnostics" + q + ":[]"
+    out ← out + "}"
+    nota out
+}
+
+functio emit_text(textus model, textus source, numerus input_vectors, numerus dimensions, textus metric, textus out_path) → vacuum {
+    nota "status: ok"
+    nota "model: §"(model)
+    nota "source: §"(source)
+    nota "input_vectors: §"(input_vectors)
+    nota "dimensions: §"(dimensions)
+    nota "metric: §"(metric)
+    nota "index_path: §"(out_path)
+}
+
+functio emit_ok(textus model, textus source, numerus input_vectors, numerus dimensions, textus metric, textus out_path, textus formatum) → vacuum {
+    si format_jsonne(formatum) {
+        emit_json(model, source, input_vectors, dimensions, metric, out_path)
+    } secus {
+        emit_text(model, source, input_vectors, dimensions, metric, out_path)
+    }
+}
+
+functio emit_error_json(textus diagnosticum) → vacuum {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "status" + q + ":" + q + "error" + q + ","
+    out ← out + q + "model" + q + ":" + q + "" + q + ","
+    out ← out + q + "source" + q + ":" + q + "" + q + ","
+    out ← out + q + "input_vectors" + q + ":0,"
+    out ← out + q + "dimensions" + q + ":0,"
+    out ← out + q + "metric" + q + ":" + q + "" + q + ","
+    out ← out + q + "index_path" + q + ":" + q + "" + q + ","
+    out ← out + q + "diagnostics" + q + ":[" + q + diagnosticum + q + "]"
+    out ← out + "}"
+    nota out
+}
+
+functio emit_error_text(textus diagnosticum) → vacuum {
+    nota "status: error"
+    nota "diagnostic: §"(diagnosticum)
+}
+
+functio emit_error(textus diagnosticum, textus formatum) → vacuum {
+    si format_jsonne(formatum) {
+        emit_error_json(diagnosticum)
+    } secus {
+        emit_error_text(diagnosticum)
+    }
+}
+
+functio curre(textus vectors_path, textus out_path, textus formatum, textus metric) → vacuum {
+    si metric ≠ "cosine" {
+        emit_error("unsupported index metric: " + metric, formatum)
+        redde
+    }
+    si solum.exstat(vectors_path) ≠ verum {
+        emit_error("vector artifact not found: " + vectors_path, formatum)
+        redde
+    }
+    si solum.regularene(vectors_path) ≠ verum aut solum.legibilene(vectors_path) ≠ verum {
+        emit_error("vector artifact unreadable: " + vectors_path, formatum)
+        redde
+    }
+
+    fixum textus documentum ← solum.lege<textus>(vectors_path)
+    fac {
+        fixum textus artifact_format ← field_textus(documentum, "format")
+        si artifact_format ≠ "fvi-stage2" {
+            emit_error("unsupported vector artifact format: " + artifact_format, formatum)
+            redde
+        }
+        fixum textus status ← field_textus(documentum, "status")
+        si status ≠ "oracle-backed" et status ≠ "ok" {
+            emit_error("vector artifact has no embeddings: " + status, formatum)
+            redde
+        }
+        fixum textus normalization ← field_textus(documentum, "normalization")
+        si normalization ≠ "l2" {
+            emit_error("unsupported vector normalization: " + normalization, formatum)
+            redde
+        }
+        fixum textus model ← field_textus(documentum, "model")
+        fixum textus source ← field_textus(documentum, "source")
+        fixum numerus input_vectors ← field_numerus(documentum, "input_count")
+        fixum numerus dimensions ← field_numerus(documentum, "dimensions")
+        si input_vectors ≤ 0 {
+            emit_error("vector artifact is empty", formatum)
+            redde
+        }
+        si dimensions ≤ 0 {
+            emit_error("vector artifact dimensions must be positive", formatum)
+            redde
+        }
+        fixum numerus actual_vectors ← validate_vectors(documentum, dimensions)
+        si actual_vectors ≠ input_vectors {
+            emit_error("vector count mismatch: expected § got §"(input_vectors, actual_vectors), formatum)
+            redde
+        }
+        fixum textus vectors ← vectors_payload(documentum)
+        solum.scribe(out_path, index_artifact(model, source, input_vectors, dimensions, metric, vectors))
+        emit_ok(model, source, input_vectors, dimensions, metric, out_path, formatum)
+    }
+    cape err {
+        emit_error("malformed vector artifact: " + err, formatum)
+    }
+}

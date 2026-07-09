@@ -1,0 +1,151 @@
+[[case]]
+id = "happy-index-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/vectors.fvi",
+  "--out",
+  "/tmp/faber-ai-index.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"ok\"",
+  "\"model\":\"basic/minilm\"",
+  "\"source\":\"sentence-transformers/all-MiniLM-L6-v2\"",
+  "\"input_vectors\":3",
+  "\"dimensions\":3",
+  "\"metric\":\"cosine\"",
+]
+out_path = "/tmp/faber-ai-index.fvi"
+expect_output_file = true
+artifact_equals = { format = "fvi-stage3-index", source_format = "fvi-stage2", model = "basic/minilm", input_vectors = 3, dimensions = 3, metric = "cosine", normalization = "l2" }
+artifact_vector_count = 3
+exit = 0
+
+[[case]]
+id = "missing-vector-artifact-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/does-not-exist.fvi",
+  "--out",
+  "/tmp/faber-ai-index-missing.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "vector artifact not found: examples/ai-workbench/harness/fixtures/index/does-not-exist.fvi",
+]
+out_path = "/tmp/faber-ai-index-missing.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "malformed-vector-artifact-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/malformed.fvi",
+  "--out",
+  "/tmp/faber-ai-index-malformed.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "malformed vector artifact",
+]
+out_path = "/tmp/faber-ai-index-malformed.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "blocked-vector-artifact-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/blocked.fvi",
+  "--out",
+  "/tmp/faber-ai-index-blocked.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "vector artifact has no embeddings: blocked",
+]
+out_path = "/tmp/faber-ai-index-blocked.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "unsupported-metric-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/vectors.fvi",
+  "--out",
+  "/tmp/faber-ai-index-unsupported-metric.fvi",
+  "--format",
+  "json",
+  "--metric",
+  "euclidean",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "unsupported index metric: euclidean",
+]
+out_path = "/tmp/faber-ai-index-unsupported-metric.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "dimension-mismatch-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/dimension-mismatch.fvi",
+  "--out",
+  "/tmp/faber-ai-index-dimension-mismatch.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "vector dimensions mismatch: expected 3 got 2",
+]
+out_path = "/tmp/faber-ai-index-dimension-mismatch.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "empty-vector-artifact-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/empty.fvi",
+  "--out",
+  "/tmp/faber-ai-index-empty.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "vector artifact is empty",
+]
+out_path = "/tmp/faber-ai-index-empty.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "unsupported-format-json"
+args = [
+  "index",
+  "examples/ai-workbench/harness/fixtures/index/unsupported-format.fvi",
+  "--out",
+  "/tmp/faber-ai-index-unsupported-format.fvi",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "unsupported vector artifact format: fvi-stage1",
+]
+out_path = "/tmp/faber-ai-index-unsupported-format.fvi"
+expect_output_file = false
+exit = 0

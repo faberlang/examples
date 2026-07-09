@@ -2,6 +2,7 @@
 
 importa ex "./commands/model" privata * ut modelModule
 importa ex "./commands/embed" privata * ut embedModule
+importa ex "./commands/index" privata * ut indexModule
 
 @ cli "faber-ai"
 @ versio "0.1.0"
@@ -27,5 +28,20 @@ functio embed() argumenta args → vacuum {
         "" + args.map,
         "" + args.oracle_runner,
         "" + args.oracle_label,
+    )
+}
+
+@ imperium "index"
+@ descriptio "Build a deterministic vector index from a Stage 2 .fvi artifact"
+@ optio out longum "out" typus textus vel "/tmp/faber-ai-index.fvi" descriptio "Index output path"
+@ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ optio metric longum "metric" typus textus vel "cosine" descriptio "Similarity metric"
+@ operandus textus vectors descriptio "Stage 2 vector artifact path"
+functio index() argumenta args → vacuum {
+    indexModule.curre(
+        "" + args.vectors,
+        "" + args.out,
+        "" + args.format,
+        "" + args.metric,
     )
 }
