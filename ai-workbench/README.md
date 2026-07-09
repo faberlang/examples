@@ -194,3 +194,18 @@ Stage 2 vector fixture, then verifies deterministic ranking and fail-closed
 behavior for missing query vectors, invalid `--top`, malformed/empty indexes,
 unsupported formats/metrics, and dimension mismatches. It does not embed query
 text or use the local MiniLM inventory.
+
+## Stage 5 Cosine Batch Floor
+
+Stage 5 selects the existing query path's batched cosine scoring operation for
+systems-lane promotion:
+
+```bash
+python3 examples/ai-workbench/harness/check-cosine-batch.py
+```
+
+The harness independently computes dot-product scores over L2-normalized
+Stage 3 index/query-vector artifacts, compares `faber-ai query` results under
+`1e-6` tolerance, and preserves score-descending plus id-ascending tie order.
+It is CPU/reference evidence only; GPU or systems-target claims require the
+Stage 5 delivery spec's later parity gates.
