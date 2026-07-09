@@ -23,6 +23,8 @@ def main() -> int:
     for case in cases:
         out_path = pathlib.Path(case["out_path"])
         out_path.unlink(missing_ok=True)
+        if case.get("preexisting_output", False):
+            out_path.write_text('{"status":"stale","vectors":[{"values":[1.0]}]}\n')
         command = [
             "cargo",
             "run",

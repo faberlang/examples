@@ -90,3 +90,28 @@ stdout_contains = [
 out_path = "/tmp/faber-ai-vectors-unsupported-status.fvi"
 expect_output_file = false
 exit = 0
+
+[[case]]
+id = "failing-oracle-removes-stale-output-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "basic/minilm",
+  "--out",
+  "/tmp/faber-ai-vectors-stale-oracle.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/local-safetensors-alias.toml",
+  "--oracle-runner",
+  "examples/ai-workbench/harness/fixtures/embed/failing_oracle.py",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "oracle runner failed",
+]
+out_path = "/tmp/faber-ai-vectors-stale-oracle.fvi"
+preexisting_output = true
+expect_output_file = false
+exit = 0

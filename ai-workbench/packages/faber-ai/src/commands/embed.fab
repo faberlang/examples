@@ -292,7 +292,14 @@ functio curre(
             redde
         }
         fixum textus model_dir ← solum.parens(local_path)
+        si solum.exstat(out_path) {
+            solum.dele(out_path)
+        }
         fixum textus runner_output ← processus.exsequi(oracle_command(oracle_runner, input_path, out_path, model_dir, target, source, oracle_label))
+        si runner_output.recide().initium("wrote ") ≠ verum {
+            emit_error(target, "oracle runner failed: " + runner_output, formatum)
+            redde
+        }
         si solum.exstat(out_path) ≠ verum {
             emit_error(target, "oracle runner did not produce output: " + runner_output, formatum)
             redde
