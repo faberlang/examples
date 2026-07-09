@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "stretch/qwen3-4b-fp8"
+status = "local"
+source = "Qwen/Qwen3-4B-FP8"
+local_path = "examples/ai-workbench/harness/fixtures/generate/model.safetensors.index.json"
+router_model_id = ""

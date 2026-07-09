@@ -4,6 +4,7 @@ importa ex "./commands/model" privata * ut modelModule
 importa ex "./commands/embed" privata * ut embedModule
 importa ex "./commands/index" privata * ut indexModule
 importa ex "./commands/query" privata * ut queryModule
+importa ex "./commands/generate" privata * ut generateModule
 
 @ cli "faber-ai"
 @ versio "0.1.0"
@@ -61,5 +62,32 @@ functio query() argumenta args → vacuum {
         args.top,
         "" + args.format,
         "" + args.query_vector,
+    )
+}
+
+@ imperium "generate"
+@ descriptio "Generate text with an explicit local oracle-backed model runner"
+@ optio model_alias longum "model" typus textus vel "stretch/qwen3-4b-fp8" descriptio "Model alias"
+@ optio out longum "out" typus textus vel "/tmp/faber-ai-generate.jsonl" descriptio "Generation event output path"
+@ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
+@ optio oracle_runner longum "oracle-runner" typus textus vel "" descriptio "Explicit oracle runner script"
+@ optio oracle_label longum "oracle-label" typus textus vel "transformers-local-fp8" descriptio "Oracle runtime label"
+@ optio max_new_tokens longum "max-new-tokens" typus numerus vel 16 descriptio "Maximum generated tokens"
+@ optio temperature longum "temperature" typus textus vel "0" descriptio "Sampling temperature"
+@ optio seed longum "seed" typus numerus vel 0 descriptio "Deterministic oracle seed"
+@ operandus textus prompt descriptio "Prompt text file"
+functio generate() argumenta args → vacuum {
+    generateModule.curre(
+        "" + args.prompt,
+        "" + args.model_alias,
+        "" + args.out,
+        "" + args.format,
+        "" + args.map,
+        "" + args.oracle_runner,
+        "" + args.oracle_label,
+        args.max_new_tokens,
+        "" + args.temperature,
+        args.seed,
     )
 }

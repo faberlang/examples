@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "stretch/qwen3-4b-fp8"
+status = "unsupported"
+source = "Qwen/Qwen3-4B-FP8"
+local_path = ""
+router_model_id = ""
