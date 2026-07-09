@@ -49,6 +49,7 @@ python3 examples/ai-workbench/harness/check-embed.py
 python3 examples/ai-workbench/harness/check-index.py
 python3 examples/ai-workbench/harness/check-query.py
 python3 examples/ai-workbench/harness/check-package-reuse.py
+python3 examples/ai-workbench/harness/check-product-install-path.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -84,6 +85,19 @@ Validate the contract with:
 
 ```bash
 python3 examples/ai-workbench/harness/check-package-reuse.py
+```
+
+Stage 8B keeps the current operator path package-invoked until Cista bin
+packages and `cista run` are selected:
+
+```bash
+cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json --alias-map docs/campaigns/ai-workbench/model-aliases.toml
+```
+
+Validate that path and its missing-inventory diagnostic with:
+
+```bash
+python3 examples/ai-workbench/harness/check-product-install-path.py
 ```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may

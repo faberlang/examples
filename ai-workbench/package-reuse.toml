@@ -28,6 +28,13 @@ gpu_claims = false
 owned_inference_claims = false
 pytorch_replacement_binary = false
 
+[product_install_path]
+stage = "8B"
+current = "package-invoked"
+operator_smoke = "model inspect basic/minilm --format json --alias-map docs/campaigns/ai-workbench/model-aliases.toml"
+missing_inventory_smoke = "model inspect basic/minilm --format json --alias-map examples/ai-workbench/harness/fixtures/model-inspect/maps/subset-aliases.toml"
+future_installed_bin = "deferred until Cista bin packages and cista run are selected"
+
 [[commands]]
 surface = "model inspect"
 stage = "1+10a"
