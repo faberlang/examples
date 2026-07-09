@@ -20,7 +20,9 @@ examples/ai-workbench/
           model.fab
   harness/
     check-embed.py
+    check-embed-oracle.py
     check-model-inspect.py
+    minilm_oracle.py
     fixtures/
       embed/
         cases.toml
@@ -77,10 +79,15 @@ silently misread.
 ## Stage 2 Embed Floor
 
 `faber-ai embed <texts> --model basic/minilm --out <vectors.fvi>` is wired as
-the Stage 2 command contract. The current factory slice resolves local aliases,
-checks input/model file readability, writes a parseable Stage 2 `.fvi` JSON
-artifact, and returns an honest `blocked` status until the MiniLM oracle and
-execution path land.
+the Stage 2 command contract. The default path resolves local aliases, checks
+input/model file readability, writes a parseable Stage 2 `.fvi` JSON artifact,
+and returns an honest `blocked` status until an explicit oracle artifact is
+provided.
+
+`--oracle-artifact <path>` is the local-ops bridge for Stage 2 Option A. It
+copies a vector artifact generated outside Faber, labels the result
+`oracle-backed`, and keeps the diagnostic explicit that Faber-owned transformer
+execution is not implemented.
 
 The temporary `.fvi` floor is compact JSON with:
 
@@ -90,8 +97,22 @@ The temporary `.fvi` floor is compact JSON with:
 - `input_count`
 - `dimensions`
 - `normalization`
+- `oracle` when an oracle artifact is used
 - `vectors`
 - `diagnostics`
 
 The default embed harness remains hermetic: it uses tiny checked-in text/model
 fixtures and does not require the live `/Users/ianzepp/ai` MiniLM inventory.
+
+Local oracle validation is intentionally separate:
+
+```bash
+python3 examples/ai-workbench/harness/check-embed-oracle.py
+```
+
+That script requires `/Users/ianzepp/ai/models/all-MiniLM-L6-v2`, uses the
+default Python `tokenizers`, `torch`, and `numpy` packages, reads
+`model.safetensors` directly, runs the MiniLM encoder with mean pooling and L2
+normalization, and verifies the CLI artifact against a `1e-6` tolerance. It
+does not use `transformers`, `sentence_transformers`, `safetensors`, network
+fetches, or repo-local model blobs.

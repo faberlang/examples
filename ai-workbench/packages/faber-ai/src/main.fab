@@ -15,7 +15,17 @@ incipit argumenta args {}
 @ optio out longum "out" typus textus vel "/tmp/faber-ai-vectors.fvi" descriptio "Vector output path"
 @ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
 @ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
+@ optio oracle_artifact longum "oracle-artifact" typus textus vel "" descriptio "Explicit oracle vector artifact"
+@ optio oracle_label longum "oracle-label" typus textus vel "manual-minilm-torch" descriptio "Oracle runtime label"
 @ operandus textus texts descriptio "Input text file"
 functio embed() argumenta args → vacuum {
-    embedModule.curre("" + args.texts, "" + args.model_alias, "" + args.out, "" + args.format, "" + args.map)
+    embedModule.curre(
+        "" + args.texts,
+        "" + args.model_alias,
+        "" + args.out,
+        "" + args.format,
+        "" + args.map,
+        "" + args.oracle_artifact,
+        "" + args.oracle_label,
+    )
 }

@@ -149,6 +149,41 @@ functio emit_text(textus target, textus source, numerus count) → vacuum {
     nota "diagnostic: §"(blocked_diagnostic())
 }
 
+functio emit_oracle_json(textus target, textus source, numerus count, textus oracle_label) → vacuum {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "model" + q + ":" + q + target + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "status" + q + ":" + q + "oracle-backed" + q + ","
+    out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
+    out ← out + q + "dimensions" + q + ":384,"
+    out ← out + q + "normalization" + q + ":" + q + "l2" + q + ","
+    out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
+    out ← out + q + "oracle" + q + ":" + q + oracle_label + q + ","
+    out ← out + q + "diagnostics" + q + ":[" + q + "vectors supplied by explicit oracle artifact; Faber-owned transformer execution not implemented" + q + "]"
+    out ← out + "}"
+    nota out
+}
+
+functio emit_oracle_text(textus target, textus source, numerus count, textus oracle_label) → vacuum {
+    nota "model: §"(target)
+    nota "source: §"(source)
+    nota "status: oracle-backed"
+    nota "input_count: §"(count)
+    nota "dimensions: 384"
+    nota "normalization: l2"
+    nota "oracle: §"(oracle_label)
+    nota "diagnostic: vectors supplied by explicit oracle artifact; Faber-owned transformer execution not implemented"
+}
+
+functio emit_oracle(textus target, textus source, numerus count, textus formatum, textus oracle_label) → vacuum {
+    si format_jsonne(formatum) {
+        emit_oracle_json(target, source, count, oracle_label)
+    } secus {
+        emit_oracle_text(target, source, count, oracle_label)
+    }
+}
+
 functio emit_error_json(textus target, textus diagnosticum) → vacuum {
     fixum textus q ← json_quote()
     varia textus out ← "{"
@@ -178,7 +213,15 @@ functio emit_error(textus target, textus diagnosticum, textus formatum) → vacu
     }
 }
 
-functio curre(textus input_path, textus target, textus out_path, textus formatum, textus map_path) → vacuum {
+functio curre(
+    textus input_path,
+    textus target,
+    textus out_path,
+    textus formatum,
+    textus map_path,
+    textus oracle_artifact,
+    textus oracle_label,
+) → vacuum {
     si solum.exstat(map_path) ≠ verum {
         emit_error(target, "alias map not found: " + map_path, formatum)
         redde
@@ -220,6 +263,20 @@ functio curre(textus input_path, textus target, textus out_path, textus formatum
 
     fixum numerus count ← input_count(input_path)
     fixum textus source ← source_for(aliases, target)
+    si oracle_artifact.longitudo() > 0 {
+        si solum.exstat(oracle_artifact) ≠ verum {
+            emit_error(target, "oracle artifact not found: " + oracle_artifact, formatum)
+            redde
+        }
+        si solum.regularene(oracle_artifact) ≠ verum aut solum.legibilene(oracle_artifact) ≠ verum {
+            emit_error(target, "oracle artifact unreadable: " + oracle_artifact, formatum)
+            redde
+        }
+        solum.scribe(out_path, solum.lege<textus>(oracle_artifact))
+        emit_oracle(target, source, count, formatum, oracle_label)
+        redde
+    }
+
     solum.scribe(out_path, artifact_json(target, source, count))
     si format_jsonne(formatum) {
         emit_json(target, source, count)
