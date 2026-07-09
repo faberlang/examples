@@ -15,16 +15,14 @@ def workspace_root() -> pathlib.Path:
 def main() -> int:
     root = workspace_root()
     cases_path = root / "examples/ai-workbench/harness/fixtures/model-inspect/cases.toml"
-    aliases_path = (
-        root / "examples/ai-workbench/harness/fixtures/model-inspect/model-aliases.toml"
-    )
+    aliases_path = root / "docs/campaigns/ai-workbench/model-aliases.toml"
     package = root / "examples/ai-workbench/packages/faber-ai"
     faber_manifest = root / "faber/Cargo.toml"
 
     cases = tomllib.loads(cases_path.read_text())["case"]
     aliases = {
         item["alias"]: item
-        for item in tomllib.loads(aliases_path.read_text()).get("tiers", [])
+        for item in tomllib.loads(aliases_path.read_text())["tiers"]
     }
     failures: list[str] = []
     for case in cases:
@@ -61,25 +59,24 @@ def main() -> int:
             target = case["args"][2]
             expected = aliases.get(target)
             if expected is None:
-                failures.append(f"{case['id']}: no alias fixture for {target!r}")
+                failures.append(f"{case['id']}: no campaign alias for {target!r}")
             else:
                 try:
                     actual = json.loads(result.stdout)
                 except json.JSONDecodeError as exc:
                     failures.append(f"{case['id']}: invalid json: {exc}")
                 else:
-                    for key in (
-                        "source",
-                        "status",
-                        "format",
-                        "local_path",
-                        "router_model_id",
-                    ):
+                    for key in ("source", "status", "router_model_id"):
                         if actual.get(key) != expected[key]:
                             failures.append(
                                 f"{case['id']}: {key}={actual.get(key)!r}, "
                                 f"expected {expected[key]!r}"
                             )
+                    if actual.get("local_path") != "":
+                        failures.append(
+                            f"{case['id']}: local_path={actual.get('local_path')!r}, "
+                            "expected portable redaction ''"
+                        )
         if failures:
             sys.stderr.write(combined)
 

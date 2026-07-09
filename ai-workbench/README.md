@@ -18,10 +18,10 @@ examples/ai-workbench/
         commands/
           model.fab
   harness/
+    check-model-inspect.py
     fixtures/
       model-inspect/
         cases.toml
-        model-aliases.toml
         files/
           README.md
 ```
@@ -37,9 +37,9 @@ cargo run --manifest-path faber/Cargo.toml -- run --interpret examples/ai-workbe
 python3 examples/ai-workbench/harness/check-model-inspect.py
 ```
 
-The initial package resolves a checked-in Stage 1 alias fixture derived from the
-workspace campaign map and reports router-backed/missing status. The harness
-compares JSON output against `model-aliases.toml` so fixture/code divergence
+The initial package reports router-backed/missing status for the campaign model
+aliases. The harness compares JSON output against
+`docs/campaigns/ai-workbench/model-aliases.toml` so campaign/code divergence
 fails validation.
 
 Operator-local absolute model paths are intentionally redacted from portable
