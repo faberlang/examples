@@ -256,7 +256,7 @@ functio gguf_quantization_for(textus read_path, textus router_model_id, textus s
 
 functio inspect_local_safetensors(textus alias, textus source, textus read_path, textus display_path, textus formatum) → vacuum {
     fac {
-        fixum octeti data ← solum.lege<octeti>(read_path)
+        fixum octeti data ← solum.partem(read_path, 0, 16777216)
         fixum _ summary ← model.tempta_safetensors_summarium(alias, source, display_path, data)
         si format_jsonne(formatum) {
             fixum textus q ← json_quote()

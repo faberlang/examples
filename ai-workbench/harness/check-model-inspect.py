@@ -3,13 +3,110 @@ from __future__ import annotations
 
 import json
 import pathlib
+import struct
 import subprocess
 import sys
+import tempfile
 import tomllib
 
 
 def workspace_root() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parents[3]
+
+
+def write_sparse_safetensors(path: pathlib.Path, logical_size: int) -> None:
+    header = json.dumps(
+        {
+            "huge.weight": {
+                "dtype": "F32",
+                "shape": [1, 1],
+                "data_offsets": [0, 4],
+            }
+        },
+        separators=(",", ":"),
+    ).encode("ascii")
+    path.write_bytes(struct.pack("<Q", len(header)) + header + b"\0" * 4)
+    with path.open("r+b") as file:
+        file.truncate(logical_size)
+
+
+def run_large_sparse_case(root: pathlib.Path, package: pathlib.Path, faber_manifest: pathlib.Path) -> list[str]:
+    failures: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="faber-ai-large-safetensors-") as temp:
+        tempdir = pathlib.Path(temp)
+        model_path = tempdir / "large.safetensors"
+        alias_path = tempdir / "aliases.toml"
+        write_sparse_safetensors(model_path, 3 * 1024 * 1024 * 1024)
+        alias_path.write_text(
+            "\n".join(
+                [
+                    "[[tiers]]",
+                    'alias = "large/sparse"',
+                    'status = "local"',
+                    'source = "fixture/large-sparse-safetensors"',
+                    f'local_path = "{model_path}"',
+                    'router_model_id = ""',
+                    "",
+                ]
+            )
+        )
+
+        command = [
+            "cargo",
+            "run",
+            "--manifest-path",
+            str(faber_manifest),
+            "--",
+            "run",
+            str(package),
+            "--",
+            "model",
+            "inspect",
+            "large/sparse",
+            "--format",
+            "json",
+            "--alias-map",
+            str(alias_path),
+        ]
+        result = subprocess.run(
+            command,
+            cwd=root,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=120,
+        )
+        combined = result.stdout + result.stderr
+        if result.returncode != 0:
+            failures.append(f"large-sparse-safetensors-json: exit {result.returncode}, expected 0")
+            sys.stderr.write(combined)
+            return failures
+        try:
+            actual = json.loads(result.stdout)
+        except json.JSONDecodeError as exc:
+            failures.append(f"large-sparse-safetensors-json: invalid json: {exc}")
+            sys.stderr.write(combined)
+            return failures
+        expected = {
+            "alias": "large/sparse",
+            "status": "local",
+            "format": "safetensors",
+            "tensor_count": 1,
+            "estimated_bytes": 4,
+        }
+        for key, value in expected.items():
+            if actual.get(key) != value:
+                failures.append(
+                    f"large-sparse-safetensors-json: {key}={actual.get(key)!r}, expected {value!r}"
+                )
+        if actual.get("local_path") != "":
+            failures.append(
+                f"large-sparse-safetensors-json: local_path={actual.get('local_path')!r}, expected redaction ''"
+            )
+        tensors = actual.get("tensors") or []
+        if not tensors or tensors[0].get("name") != "huge.weight":
+            failures.append("large-sparse-safetensors-json: missing huge.weight tensor metadata")
+    return failures
 
 
 def main() -> int:
@@ -121,11 +218,13 @@ def main() -> int:
         if failures:
             sys.stderr.write(combined)
 
+    failures.extend(run_large_sparse_case(root, package, faber_manifest))
+
     if failures:
         for failure in failures:
             print(f"FAIL {failure}", file=sys.stderr)
         return 1
-    print(f"ok: {len(cases)} model-inspect cases")
+    print(f"ok: {len(cases) + 1} model-inspect cases")
     return 0
 
 
