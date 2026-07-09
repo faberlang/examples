@@ -48,6 +48,7 @@ python3 examples/ai-workbench/harness/check-model-inspect.py
 python3 examples/ai-workbench/harness/check-embed.py
 python3 examples/ai-workbench/harness/check-index.py
 python3 examples/ai-workbench/harness/check-query.py
+python3 examples/ai-workbench/harness/check-package-reuse.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -68,6 +69,22 @@ The harness is workspace-level validation, not standalone `examples` repo CI:
 it requires the campaign map under `docs/campaigns/ai-workbench/`. It checks
 `source`, `status`, and `router_model_id` against the campaign map and requires
 portable output to redact `local_path` to an empty string.
+
+## Stage 8 Package And Model Reuse
+
+`package-reuse.toml` is the Stage 8 install/reuse contract for the workbench. It
+keeps the campaign alias map as the hermetic fixture, `/Users/ianzepp/ai/models`
+as the live inventory root, and future Cista package/model metadata as the
+possible install-time mirror. The contract separates product CLI install from
+future systems reuse and explicitly excludes duplicate model downloads, model
+blobs in git, GPU claims, Faber-owned inference claims, and shipping a PyTorch
+replacement binary.
+
+Validate the contract with:
+
+```bash
+python3 examples/ai-workbench/harness/check-package-reuse.py
+```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may
 contain many campaign inventory fields, but the package reads `alias`, `source`,

@@ -1,0 +1,59 @@
+# Stage 8 package/model reuse contract for the Faber AI workbench.
+
+[package]
+name = "faber-ai"
+manifest = "examples/ai-workbench/packages/faber-ai/faber.toml"
+source = "src"
+entry = "main.fab"
+invocation = "cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai --"
+
+[alias_contract]
+decision = "hybrid"
+campaign_fixture = "docs/campaigns/ai-workbench/model-aliases.toml"
+live_inventory_root = "/Users/ianzepp/ai/models"
+future_install_metadata = "cista package/model metadata may mirror aliases when Stage 8 selects it"
+host_path_redaction = true
+discovery_order = [
+  "explicit --alias-map",
+  "future Cista/package metadata when available",
+  "documented local-ops inventory checks under /Users/ianzepp/ai",
+]
+
+[boundaries]
+product_cli_install = true
+future_systems_reuse = true
+duplicate_model_downloads = false
+model_blobs_in_git = false
+gpu_claims = false
+owned_inference_claims = false
+pytorch_replacement_binary = false
+
+[[commands]]
+surface = "model inspect"
+stage = "1+10a"
+artifact = "metadata JSON/text"
+
+[[commands]]
+surface = "embed"
+stage = "2+4"
+artifact = "fvi-stage2"
+
+[[commands]]
+surface = "index"
+stage = "3"
+artifact = "fvi-stage3-index"
+
+[[commands]]
+surface = "query"
+stage = "3+5"
+artifact = "ranked JSON/text results"
+
+[[commands]]
+surface = "generate"
+stage = "6"
+artifact = "generation JSON-lines"
+
+[[commands]]
+surface = "chat"
+stage = "7"
+artifact = "chat JSON-lines"
