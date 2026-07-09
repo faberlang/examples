@@ -29,3 +29,22 @@ stdout_contains = [
   "diagnostic: unknown alias or unsupported path",
 ]
 exit = 0
+
+[[case]]
+id = "missing-map-json"
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "/tmp/faber-ai-missing-alias-map.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "alias map not found: /tmp/faber-ai-missing-alias-map.toml",
+]
+compare_campaign = false
+absent_path = "/tmp/faber-ai-missing-alias-map.toml"
+exit = 0

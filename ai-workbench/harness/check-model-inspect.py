@@ -35,6 +35,10 @@ def main() -> int:
     }
     failures: list[str] = []
     for case in cases:
+        absent_path = case.get("absent_path")
+        if absent_path:
+            pathlib.Path(absent_path).unlink(missing_ok=True)
+
         command = [
             "cargo",
             "run",
