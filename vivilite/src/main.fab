@@ -20,18 +20,18 @@ genus WorkItem {
     textus body
 }
 
-functio store(textus root) → Store {
+functio store(de textus root) → Store {
     fixum textus dir_path ← "§/.vivilite"(root)
     redde Store {
-        root = "§"(root),
-        dir = "§"(dir_path),
+        root = root ↦ textus,
+        dir = dir_path ↦ textus,
         identities = "§/identities.tsv"(dir_path),
         mail = "§/mail.tsv"(dir_path),
         work = "§/work.tsv"(dir_path),
     }
 }
 
-functio split(textus s, textus separator) → lista<textus> {
+functio split(de textus s, de textus separator) → lista<textus> {
     varia lista<textus> partes ← vacua
     fixum numerus sep_len ← separator.longitudo()
     varia numerus initium ← 0
@@ -49,32 +49,28 @@ functio split(textus s, textus separator) → lista<textus> {
     redde partes
 }
 
-functio read_lines(textus path) → lista<textus> {
+functio read_lines(de textus path) → lista<textus> {
     si solum.exstat(path) ≠ verum ergo redde []
     redde solum.carpe(path)
 }
 
-functio ensure_store(Store s) → vacuum {
-    fixum textus dir ← "§"(s.dir)
-    fixum textus identities ← "§"(s.identities)
-    fixum textus mail ← "§"(s.mail)
-    fixum textus work ← "§"(s.work)
-    solum.crea("§"(dir))
-    si solum.exstat("§/mailspace.txt"(dir)) ≠ verum {
-        solum.scribe("§/mailspace.txt"(dir), "name=vivilite\n")
+functio ensure_store(de Store s) → vacuum {
+    solum.crea(s.dir ↦ textus)
+    si solum.exstat("§/mailspace.txt"(s.dir)) ≠ verum {
+        solum.scribe("§/mailspace.txt"(s.dir), "name=vivilite\n")
     }
-    si solum.exstat("§"(identities)) ≠ verum {
-        solum.scribe("§"(identities), "")
+    si solum.exstat(s.identities ↦ textus) ≠ verum {
+        solum.scribe(s.identities ↦ textus, "")
     }
-    si solum.exstat("§"(mail)) ≠ verum {
-        solum.scribe("§"(mail), "")
+    si solum.exstat(s.mail ↦ textus) ≠ verum {
+        solum.scribe(s.mail ↦ textus, "")
     }
-    si solum.exstat("§"(work)) ≠ verum {
-        solum.scribe("§"(work), "")
+    si solum.exstat(s.work ↦ textus) ≠ verum {
+        solum.scribe(s.work ↦ textus, "")
     }
 }
 
-functio arg(lista<textus> args, textus flag, textus def) → textus {
+functio arg(de lista<textus> args, de textus flag, de textus def) → textus {
     varia numerus i ← 0
     dum i < args.longitudo() {
         si (args.accipe(i) vel "") ≡ flag ergo redde args.accipe(i + 1) vel def
@@ -83,18 +79,18 @@ functio arg(lista<textus> args, textus flag, textus def) → textus {
     redde def
 }
 
-functio has(lista<textus> args, textus flag) → bivalens {
+functio has(de lista<textus> args, de textus flag) → bivalens {
     itera ex args fixum item {
         si item ≡ flag ergo redde verum
     }
     redde falsum
 }
 
-functio positional(lista<textus> args, numerus index, textus def) → textus {
+functio positional(de lista<textus> args, numerus index, de textus def) → textus {
     redde args.accipe(index) vel def
 }
 
-functio json_escape(textus value) → textus {
+functio json_escape(de textus value) → textus {
     varia textus out ← ""
     varia numerus i ← 0
     dum i < value.longitudo() {
@@ -117,7 +113,7 @@ functio json_escape(textus value) → textus {
     redde out
 }
 
-functio jq(textus value) → textus {
+functio jq(de textus value) → textus {
     redde qq(json_escape(value))
 }
 
@@ -133,27 +129,27 @@ functio q() → textus {
     redde "\""
 }
 
-functio qq(textus value) → textus {
+functio qq(de textus value) → textus {
     redde cat(q(), cat(value, q()))
 }
 
-functio row(textus value) → textus {
+functio row(de textus value) → textus {
     redde cat(value, "\n")
 }
 
-functio cat(textus left, textus right) → textus {
+functio cat(de textus left, de textus right) → textus {
     redde "§§"(left, right)
 }
 
-functio pair(textus name, textus value) → textus {
+functio pair(de textus name, de textus value) → textus {
     redde "§:§"(qq(name), value)
 }
 
-functio pair_text(textus name, textus value) → textus {
+functio pair_text(de textus name, de textus value) → textus {
     redde pair(name, jq(value))
 }
 
-functio work_from_line(textus line) → WorkItem {
+functio work_from_line(de textus line) → WorkItem {
     fixum lista<textus> p ← split(line, "\t")
     redde WorkItem {
         handle = p.accipe(0) vel "",
@@ -166,22 +162,22 @@ functio work_from_line(textus line) → WorkItem {
     }
 }
 
-functio work_line(WorkItem item) → textus {
+functio work_line(de WorkItem item) → textus {
     redde "§\t§\t§\t§\t§\t§\t§"(item.handle, item.kind, item.status, item.from, item.to, item.subject, item.body)
 }
 
-functio next_handle(textus kind, lista<textus> lines) → textus {
+functio next_handle(de textus kind, de lista<textus> lines) → textus {
     fixum numerus n ← lines.longitudo() + 1
     redde "§-§"(kind.sectio(0, 1), n ↦ textus)
 }
 
-functio count_identities(Store s) → numerus {
-    redde read_lines("§"(s.identities)).longitudo()
+functio count_identities(de Store s) → numerus {
+    redde read_lines(s.identities).longitudo()
 }
 
-functio count_work(Store s, textus kind, textus status, textus who) → numerus {
+functio count_work(de Store s, de textus kind, de textus status, de textus who) → numerus {
     varia numerus count ← 0
-    itera ex read_lines("§"(s.work)) fixum line {
+    itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.kind ≡ kind et item.status ≡ status et item.to ≡ who {
@@ -192,10 +188,10 @@ functio count_work(Store s, textus kind, textus status, textus who) → numerus 
     redde count
 }
 
-functio list_work_json(Store s, textus kind, textus who) → textus {
+functio list_work_json(de Store s, de textus kind, de textus who) → textus {
     varia textus out ← "["
     varia bivalens first ← verum
-    itera ex read_lines("§"(s.work)) fixum line {
+    itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
@@ -209,9 +205,9 @@ functio list_work_json(Store s, textus kind, textus who) → textus {
     redde "§]"(out)
 }
 
-functio print_status(Store s, bivalens json) → vacuum {
-    ensure_store(store("§"(s.root)))
-    fixum numerus identities ← count_identities(store("§"(s.root)))
+functio print_status(de Store s, bivalens json) → vacuum {
+    ensure_store(store(s.root ↦ textus))
+    fixum numerus identities ← count_identities(store(s.root ↦ textus))
     si json {
         fixum textus body ← "§,§,§"(pair_text("status", "ok"), pair_text("lane", "file"), pair("identities", identities ↦ textus))
         nota cat(lb(), cat(body, rb()))
@@ -221,30 +217,30 @@ functio print_status(Store s, bivalens json) → vacuum {
     }
 }
 
-functio identity_add(Store s, textus name, textus address) → vacuum {
-    ensure_store(store("§"(s.root)))
-    solum.appone("§"(s.identities), row("§\t§"(name, address)))
+functio identity_add(de Store s, de textus name, de textus address) → vacuum {
+    ensure_store(store(s.root))
+    solum.appone(s.identities, row("§\t§"(name, address)))
     nota "identity added: §"(name)
 }
 
-functio identity_list(Store s) → vacuum {
-    ensure_store(store("§"(s.root)))
-    itera ex read_lines("§"(s.identities)) fixum line {
+functio identity_list(de Store s) → vacuum {
+    ensure_store(store(s.root))
+    itera ex read_lines(s.identities) fixum line {
         fixum lista<textus> p ← split(line, "\t")
         nota "§ §"(p.accipe(0) vel "", p.accipe(1) vel "")
     }
 }
 
-functio send_mail(Store s, textus from, textus to, textus subject, textus body) → vacuum {
-    ensure_store(store("§"(s.root)))
-    fixum textus handle ← "m-§"((read_lines("§"(s.mail)).longitudo() + 1) ↦ textus)
-    solum.appone("§"(s.mail), row("§\tlocal\t§\t§\t§\t§"(handle, from, to, subject, body)))
+functio send_mail(de Store s, de textus from, de textus to, de textus subject, de textus body) → vacuum {
+    ensure_store(store(s.root))
+    fixum textus handle ← "m-§"((read_lines(s.mail ↦ textus).longitudo() + 1) ↦ textus)
+    solum.appone(s.mail ↦ textus, row("§\tlocal\t§\t§\t§\t§"(handle, from, to, subject, body)))
     nota "sent §"(handle)
 }
 
-functio mail_list(Store s, textus who) → vacuum {
-    ensure_store(store("§"(s.root)))
-    itera ex read_lines("§"(s.mail)) fixum line {
+functio mail_list(de Store s, de textus who) → vacuum {
+    ensure_store(store(s.root))
+    itera ex read_lines(s.mail) fixum line {
         fixum lista<textus> p ← split(line, "\t")
         si (p.accipe(3) vel "") ≡ who {
             nota "§  §"(p.accipe(0) vel "", p.accipe(4) vel "")
@@ -252,9 +248,9 @@ functio mail_list(Store s, textus who) → vacuum {
     }
 }
 
-functio mail_show(Store s, textus handle) → vacuum {
-    ensure_store(store("§"(s.root)))
-    itera ex read_lines("§"(s.mail)) fixum line {
+functio mail_show(de Store s, de textus handle) → vacuum {
+    ensure_store(store(s.root))
+    itera ex read_lines(s.mail) fixum line {
         fixum lista<textus> p ← split(line, "\t")
         si (p.accipe(0) vel "") ≡ handle {
             nota "From: §"(p.accipe(2) vel "")
@@ -268,17 +264,17 @@ functio mail_show(Store s, textus handle) → vacuum {
     nota "not found: §"(handle)
 }
 
-functio work_send(Store s, textus kind, textus from, textus to, textus subject, textus body) → vacuum {
-    ensure_store(store("§"(s.root)))
-    fixum lista<textus> lines ← read_lines("§"(s.work))
+functio work_send(de Store s, de textus kind, de textus from, de textus to, de textus subject, de textus body) → vacuum {
+    ensure_store(store(s.root))
+    fixum lista<textus> lines ← read_lines(s.work ↦ textus)
     fixum textus handle ← next_handle(kind, lines)
-    solum.appone("§"(s.work), row("§\t§\topen\t§\t§\t§\t§"(handle, kind, from, to, subject, body)))
+    solum.appone(s.work ↦ textus, row("§\t§\topen\t§\t§\t§\t§"(handle, kind, from, to, subject, body)))
     nota "sent §"(handle)
 }
 
-functio work_list(Store s, textus kind, textus who) → vacuum {
-    ensure_store(store("§"(s.root)))
-    itera ex read_lines("§"(s.work)) fixum line {
+functio work_list(de Store s, de textus kind, de textus who) → vacuum {
+    ensure_store(store(s.root))
+    itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
@@ -288,9 +284,9 @@ functio work_list(Store s, textus kind, textus who) → vacuum {
     }
 }
 
-functio work_show(Store s, textus handle) → vacuum {
-    ensure_store(store("§"(s.root)))
-    itera ex read_lines("§"(s.work)) fixum line {
+functio work_show(de Store s, de textus handle) → vacuum {
+    ensure_store(store(s.root))
+    itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
@@ -308,34 +304,34 @@ functio work_show(Store s, textus handle) → vacuum {
     nota "not found: §"(handle)
 }
 
-functio rewrite_work(Store s, textus handle, textus new_status, textus new_kind) → vacuum {
-    ensure_store(store("§"(s.root)))
+functio rewrite_work(de Store s, de textus handle, de textus new_status, de textus new_kind) → vacuum {
+    ensure_store(store(s.root))
     varia textus out ← ""
-    itera ex read_lines("§"(s.work)) fixum line {
+    itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             varia WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
-                item.status ← "§"(new_status)
+                item.status ← new_status ↦ textus
                 si new_kind.longitudo() > 0 {
-                    item.kind ← "§"(new_kind)
+                    item.kind ← new_kind ↦ textus
                 }
             }
             out ← cat(out, row(work_line(item)))
         }
     }
-    solum.scribe("§"(s.work), out)
+    solum.scribe(s.work ↦ textus, out)
 }
 
-functio board_json(Store s, textus who) → textus {
-    ensure_store(store("§"(s.root)))
-    fixum numerus tasks ← count_work(store("§"(s.root)), "task", "open", "§"(who))
-    fixum numerus needs ← count_work(store("§"(s.root)), "need", "open", "§"(who))
-    fixum numerus wants ← count_work(store("§"(s.root)), "want", "open", "§"(who))
-    fixum textus body ← "§,§,§,§,§,§,§,§,§,§"(pair_text("mailspace", "vivilite"), pair_text("lane", "file"), pair("for", jq("§"(who))), pair("actionable", (tasks + needs) ↦ textus), pair("tasks", tasks ↦ textus), pair("needs", needs ↦ textus), pair("wants", wants ↦ textus), pair("task_items", list_work_json(store("§"(s.root)), "task", "§"(who))), pair("need_items", list_work_json(store("§"(s.root)), "need", "§"(who))), pair("want_items", list_work_json(store("§"(s.root)), "want", "§"(who))))
+functio board_json(de Store s, de textus who) → textus {
+    ensure_store(store(s.root ↦ textus))
+    fixum numerus tasks ← count_work(store(s.root ↦ textus), "task", "open", who)
+    fixum numerus needs ← count_work(store(s.root ↦ textus), "need", "open", who)
+    fixum numerus wants ← count_work(store(s.root ↦ textus), "want", "open", who)
+    fixum textus body ← "§,§,§,§,§,§,§,§,§,§"(pair_text("mailspace", "vivilite"), pair_text("lane", "file"), pair("for", jq(who)), pair("actionable", (tasks + needs) ↦ textus), pair("tasks", tasks ↦ textus), pair("needs", needs ↦ textus), pair("wants", wants ↦ textus), pair("task_items", list_work_json(store(s.root ↦ textus), "task", who)), pair("need_items", list_work_json(store(s.root ↦ textus), "need", who)), pair("want_items", list_work_json(store(s.root ↦ textus), "want", who)))
     redde cat(lb(), cat(body, rb()))
 }
 
-functio route(lista<textus> args, Store s) → vacuum {
+functio route(de lista<textus> args, de Store s) → vacuum {
     fixum textus top ← positional(args, 0, "")
     fixum textus subcmd ← positional(args, 1, "")
     fixum textus op ← positional(args, 2, "")
@@ -345,7 +341,7 @@ functio route(lista<textus> args, Store s) → vacuum {
     fixum textus subject ← arg(args, "--subject", "(no subject)")
     fixum textus body ← arg(args, "--body", "")
     si top ≡ "mailspace" et subcmd ≡ "init" {
-        ensure_store(store("§"(s.root)))
+        ensure_store(store(s.root))
         nota "initialized §"(s.dir)
     } sin top ≡ "mailspace" et subcmd ≡ "status" {
         print_status(s, has(args, "--json"))
@@ -395,9 +391,9 @@ probandum "vivilite helpers" tag "vivilite" {
 @ descriptio "File-backed local mailspace example"
 @ optio project longum "project" typus textus vel "." ubique descriptio "Project root containing .vivilite"
 @ optio json longum "json" typus bivalens ubique descriptio "Emit JSON output where supported"
-@ optio for_identity longum "for" typus textus vel "codex" ubique descriptio "Recipient identity filter"
-@ optio from_identity longum "from" typus textus vel "" ubique descriptio "Sender identity"
-@ optio to_identity longum "to" typus textus vel "" ubique descriptio "Recipient identity"
+@ optio forid longum "for" typus textus vel "codex" ubique descriptio "Recipient identity filter"
+@ optio fromid longum "from" typus textus vel "" ubique descriptio "Sender identity"
+@ optio toid longum "to" typus textus vel "" ubique descriptio "Recipient identity"
 @ optio subject longum "subject" typus textus vel "(no subject)" ubique descriptio "Message or work subject"
 @ optio body longum "body" typus textus vel "" ubique descriptio "Message or work body"
 @ optio name longum "name" typus textus vel "" ubique descriptio "Identity name"
@@ -405,30 +401,37 @@ probandum "vivilite helpers" tag "vivilite" {
 @ operandus ceteri textus operands
 incipit argumenta args {
     varia lista<textus> operands ← args.operands
+    fixum textus forid ← args.forid
+    fixum textus fromid ← args.fromid
+    fixum textus toid ← args.toid
+    fixum textus subject ← args.subject
+    fixum textus body ← args.body
+    fixum textus name ← args.name
+    fixum textus address ← args.address
     operands.appende("--for")
-    operands.appende("§"(args.for_identity))
-    si ("§"(args.from_identity)).longitudo() > 0 {
+    operands.appende(forid)
+    si fromid.longitudo() > 0 {
         operands.appende("--from")
-        operands.appende("§"(args.from_identity))
+        operands.appende(fromid)
     }
-    si ("§"(args.to_identity)).longitudo() > 0 {
+    si toid.longitudo() > 0 {
         operands.appende("--to")
-        operands.appende("§"(args.to_identity))
+        operands.appende(toid)
     }
     operands.appende("--subject")
-    operands.appende("§"(args.subject))
+    operands.appende(subject)
     operands.appende("--body")
-    operands.appende("§"(args.body))
-    si ("§"(args.name)).longitudo() > 0 {
+    operands.appende(body)
+    si name.longitudo() > 0 {
         operands.appende("--name")
-        operands.appende("§"(args.name))
+        operands.appende(name)
     }
-    si ("§"(args.address)).longitudo() > 0 {
+    si address.longitudo() > 0 {
         operands.appende("--address")
-        operands.appende("§"(args.address))
+        operands.appende(address)
     }
     si args.json {
         operands.appende("--json")
     }
-    route(operands, store("§"(args.project)))
+    route(operands, store(args.project))
 }
