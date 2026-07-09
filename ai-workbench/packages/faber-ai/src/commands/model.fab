@@ -164,7 +164,8 @@ functio inspect_text(lista<textus> aliases, textus target) → vacuum {
 @ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
 @ operandus textus target descriptio "Model alias or local file path"
 functio inspect() argumenta args → vacuum {
-    fixum lista<textus> aliases ← solum.lege<lista<textus>>(args.map)
+    fixum textus map_path ← args.map
+    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
     si format_jsonne(args.format) {
         inspect_json(aliases, args.target)
     } secus {

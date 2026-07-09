@@ -63,7 +63,11 @@ def main() -> int:
         for needle in case.get("stdout_contains", []):
             if needle not in result.stdout:
                 failures.append(f"{case['id']}: stdout missing {needle!r}")
-        if "--format" in case["args"] and "json" in case["args"]:
+        if (
+            case.get("compare_campaign", True)
+            and "--format" in case["args"]
+            and "json" in case["args"]
+        ):
             target = case["args"][2]
             expected = aliases.get(target)
             if expected is None:
