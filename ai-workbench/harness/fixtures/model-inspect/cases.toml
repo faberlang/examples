@@ -14,11 +14,13 @@ stdout_contains = [
   "\"status\":\"local\"",
   "\"format\":\"safetensors\"",
   "\"local_path\":\"\"",
+  "\"files\":[]",
   "\"name\":\"embeddings\"",
   "\"dtype\":\"F32\"",
   "\"shape\":[2,3]",
   "\"tensor_count\":1",
   "\"estimated_bytes\":24",
+  "tokenizer/config sibling probe skipped for redacted local path",
   "sentence-transformers/all-MiniLM-L6-v2",
 ]
 compare_campaign = false

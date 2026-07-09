@@ -1,0 +1,1 @@
+{"format":"fvi-stage3-index","source_format":"fvi-stage2","model":"basic/minilm","source":"sentence-transformers/all-MiniLM-L6-v2","input_vectors":2,"dimensions":3,"metric":"cosine","normalization":"l2","vectors":[{"id":"gamma","text":"gamma search memo","values":[1.0,0.0,0.0]},{"id":"alpha","text":"alpha project notes","values":[0.0,0.0,1.0]}],"diagnostics":[]}

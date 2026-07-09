@@ -230,9 +230,20 @@ functio dot(lista<fractus> left, lista<fractus> right) → fractus ⇥ textus {
     redde total
 }
 
-functio better_ne(fractus score, fractus best_score, bivalens found) → bivalens {
+functio compara_textus(textus a, textus b) → numerus {
+    si a ≡ b ergo redde 0
+
+    varia lista<textus> duo ← ["" + a, "" + b]
+    duo.ordina()
+
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
+    redde 1
+}
+
+functio better_ne(fractus score, textus id, fractus best_score, textus best_id, bivalens found) → bivalens {
     si found ≠ verum ergo redde verum
     si score > best_score ergo redde verum
+    si score ≡ best_score et compara_textus(id, best_id) < 0 ergo redde verum
     redde falsum
 }
 
@@ -249,9 +260,10 @@ functio ranked(lista<VectorRecord> records, lista<fractus> query, numerus top) �
         varia ScoredRecord best ← ScoredRecord { id = "", text = "", score = 0.0 }
         itera ex records fixum record {
             si selected_ne(selected, "" + record.id) ≠ verum {
+                fixum textus record_id ← "" + record.id
                 fixum fractus score ← dot(record.values, query)
-                si better_ne(score, best.score, found) {
-                    best ← ScoredRecord { id = "" + record.id, text = "" + record.text, score = score }
+                si better_ne(score, record_id, best.score, "" + best.id, found) {
+                    best ← ScoredRecord { id = record_id, text = "" + record.text, score = score }
                     found ← (verum)
                 }
             }

@@ -233,6 +233,18 @@ functio json_numerus_lista(lista<numerus> items) → textus {
     redde out + "]"
 }
 
+functio output_files(lista<textus> files, textus display_path) → lista<textus> {
+    si display_path.longitudo() ≡ 0 ergo redde vacua
+    redde files
+}
+
+functio output_diagnostic(textus nuntius, textus display_path) → textus {
+    si display_path.longitudo() ≡ 0 et nuntius.finis("beside ") {
+        redde "tokenizer/config sibling probe skipped for redacted local path"
+    }
+    redde nuntius
+}
+
 functio gguf_quantization_for(textus read_path, textus router_model_id, textus summary_quantization) → textus {
     si summary_quantization ≠ "FILE_TYPE_-1" ergo redde summary_quantization
     si router_model_id.longitudo() ≡ 0 ergo redde summary_quantization
@@ -272,7 +284,7 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
                 si diagnostic_index > 0 {
                     diagnostics_json ← diagnostics_json + ","
                 }
-                diagnostics_json ← diagnostics_json + q + diagnostic.nuntius + q
+                diagnostics_json ← diagnostics_json + q + output_diagnostic(diagnostic.nuntius, display_path) + q
                 diagnostic_index ← diagnostic_index + 1
             }
             diagnostics_json ← diagnostics_json + "]"
@@ -287,7 +299,7 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
                 q + "local_path" + q + ":" + q + summary.local_path + q + "," +
                 q + "router_model_id" + q + ":" + q + "" + q + ","
             fixum textus inventory_json ←
-                q + "files" + q + ":" + json_textus_lista(summary.files) + "," +
+                q + "files" + q + ":" + json_textus_lista(output_files(summary.files, display_path)) + "," +
                 q + "tensors" + q + ":" + tensors_json + "," +
                 q + "tensor_count" + q + ":" + (summary.tensor_count ↦ textus) + "," +
                 q + "shards" + q + ":" + json_textus_lista(summary.shards) + "," +
@@ -309,7 +321,7 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
                 nota "tensor: § § §"(tensor.nomen, tensor.dtype, json_numerus_lista(tensor.figura))
             }
             itera ex summary.diagnostics fixum diagnostic {
-                nota "diagnostic: §"(diagnostic.nuntius)
+                nota "diagnostic: §"(output_diagnostic(diagnostic.nuntius, display_path))
             }
         }
     }

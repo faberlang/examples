@@ -157,8 +157,8 @@ empty indexes, and dimension mismatches fail closed with structured diagnostics.
 `faber-ai query <index.fvi> "search text" --query-vector <query.fvi>` is wired
 as the Stage 3 query floor. The first hermetic path requires an explicit
 checked-in query vector fixture, computes cosine as a dot product over
-L2-normalized vectors, and orders results by score descending while preserving
-original index order for stable ties.
+L2-normalized vectors, and orders results by score descending with record-id
+ascending order for equal scores.
 
 The query-vector fixture floor is compact JSON with:
 
