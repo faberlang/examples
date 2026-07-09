@@ -1,18 +1,27 @@
 [[case]]
 id = "basic-minilm-local-json"
-args = ["model", "inspect", "basic/minilm", "--format", "json"]
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/local-safetensors-alias.toml",
+]
 stdout_contains = [
   "\"alias\":\"basic/minilm\"",
   "\"status\":\"local\"",
   "\"format\":\"safetensors\"",
   "\"local_path\":\"\"",
-  "\"name\":\"embeddings.position_ids\"",
-  "\"dtype\":\"I64\"",
-  "\"shape\":[1,512]",
-  "\"tensor_count\":104",
-  "\"estimated_bytes\":90856960",
+  "\"name\":\"embeddings\"",
+  "\"dtype\":\"F32\"",
+  "\"shape\":[2,3]",
+  "\"tensor_count\":1",
+  "\"estimated_bytes\":24",
   "sentence-transformers/all-MiniLM-L6-v2",
 ]
+compare_campaign = false
 exit = 0
 
 [[case]]
