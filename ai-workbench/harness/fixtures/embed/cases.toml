@@ -46,3 +46,47 @@ stdout_contains = [
 out_path = "/tmp/faber-ai-vectors-missing.fvi"
 expect_output_file = false
 exit = 0
+
+[[case]]
+id = "missing-alias-map-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "basic/minilm",
+  "--out",
+  "/tmp/faber-ai-vectors-missing-map.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/does-not-exist.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "alias map not found: examples/ai-workbench/harness/fixtures/embed/does-not-exist.toml",
+]
+out_path = "/tmp/faber-ai-vectors-missing-map.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "unsupported-status-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "basic/minilm",
+  "--out",
+  "/tmp/faber-ai-vectors-unsupported-status.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/subset-aliases.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "embedding requires local model alias: basic/minilm",
+]
+out_path = "/tmp/faber-ai-vectors-unsupported-status.fvi"
+expect_output_file = false
+exit = 0
