@@ -1,0 +1,8 @@
+# Demo consumer: uses locked mathesis package interfaces from faber.lock.
+
+importa ex "mathesis:mathesis" privata mathesis
+
+incipit {
+    fixum numerus n ← mathesis.quadratum(4)
+    nota n
+}

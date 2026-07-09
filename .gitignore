@@ -5,3 +5,4 @@
 **/*.rlib
 .DS_Store
 tmp/
+cista-lab/demo/faber.lock

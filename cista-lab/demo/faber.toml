@@ -1,0 +1,15 @@
+[package]
+name = "cista-lab-demo"
+version = "0.1.0"
+edition = "2026"
+
+[paths]
+source = "src"
+entry = "main.fab"
+
+[build]
+target = "rust"
+kind = "bin"
+
+[dependencies]
+mathesis = "0.1.0"
