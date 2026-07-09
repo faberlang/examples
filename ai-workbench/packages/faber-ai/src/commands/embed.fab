@@ -104,8 +104,13 @@ functio input_count(textus input_path) → numerus {
     redde count
 }
 
-functio blocked_diagnostic() → textus {
-    redde "MiniLM embedding execution not implemented; oracle-backed path pending Stage 2C"
+functio embedding_dimensions(textus target) → numerus {
+    si target ≡ "mid/qwen3-embed-0.6b" ergo redde 1024
+    redde 384
+}
+
+functio blocked_diagnostic(textus target) → textus {
+    redde "Embedding execution for " + target + " not implemented; use an explicit oracle-backed runner"
 }
 
 functio artifact_json(textus target, textus source, numerus count) → textus {
@@ -119,7 +124,7 @@ functio artifact_json(textus target, textus source, numerus count) → textus {
     out ← out + q + "dimensions" + q + ":0,"
     out ← out + q + "normalization" + q + ":" + q + "pending" + q + ","
     out ← out + q + "vectors" + q + ":[],"
-    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic() + q + "]"
+    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic(target) + q + "]"
     out ← out + "}"
     redde out
 }
@@ -135,7 +140,7 @@ functio emit_json(textus target, textus source, numerus count) → vacuum {
     out ← out + q + "normalization" + q + ":" + q + "pending" + q + ","
     out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
     out ← out + q + "oracle" + q + ":" + q + "" + q + ","
-    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic() + q + "]"
+    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic(target) + q + "]"
     out ← out + "}"
     nota out
 }
@@ -147,17 +152,18 @@ functio emit_text(textus target, textus source, numerus count) → vacuum {
     nota "input_count: §"(count)
     nota "dimensions: 0"
     nota "normalization: pending"
-    nota "diagnostic: §"(blocked_diagnostic())
+    nota "diagnostic: §"(blocked_diagnostic(target))
 }
 
 functio emit_oracle_json(textus target, textus source, numerus count, textus oracle_label) → vacuum {
     fixum textus q ← json_quote()
+    fixum numerus dimensions ← embedding_dimensions(target)
     varia textus out ← "{"
     out ← out + q + "model" + q + ":" + q + target + q + ","
     out ← out + q + "source" + q + ":" + q + source + q + ","
     out ← out + q + "status" + q + ":" + q + "oracle-backed" + q + ","
     out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
-    out ← out + q + "dimensions" + q + ":384,"
+    out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
     out ← out + q + "normalization" + q + ":" + q + "l2" + q + ","
     out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
     out ← out + q + "oracle" + q + ":" + q + oracle_label + q + ","
@@ -171,7 +177,7 @@ functio emit_oracle_text(textus target, textus source, numerus count, textus ora
     nota "source: §"(source)
     nota "status: oracle-backed"
     nota "input_count: §"(count)
-    nota "dimensions: 384"
+    nota "dimensions: §"(embedding_dimensions(target))
     nota "normalization: l2"
     nota "oracle: §"(oracle_label)
     nota "diagnostic: vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented"

@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "mid/qwen3-embed-0.6b"
+status = "missing-download"
+source = "Qwen/Qwen3-Embedding-0.6B"
+local_path = ""
+router_model_id = ""

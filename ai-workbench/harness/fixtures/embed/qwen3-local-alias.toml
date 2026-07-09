@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "mid/qwen3-embed-0.6b"
+status = "local"
+source = "Qwen/Qwen3-Embedding-0.6B"
+local_path = "examples/ai-workbench/harness/fixtures/model-inspect/files/tiny.safetensors"
+router_model_id = ""

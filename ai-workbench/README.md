@@ -80,11 +80,12 @@ silently misread.
 
 ## Stage 2 Embed Floor
 
-`faber-ai embed <texts> --model basic/minilm --out <vectors.fvi>` is wired as
-the Stage 2 command contract. The default path resolves local aliases, checks
-input/model file readability, writes a parseable Stage 2 `.fvi` JSON artifact,
-and returns an honest `blocked` status until an explicit oracle artifact is
-provided.
+`faber-ai embed <texts> --model <alias> --out <vectors.fvi>` is wired as the
+embedding command contract. Stage 2 uses `basic/minilm`; Stage 4 reuses the
+same product shape for `mid/qwen3-embed-0.6b`. The default path resolves local
+aliases, checks input/model file readability, writes a parseable Stage 2 `.fvi`
+JSON artifact, and returns an honest `blocked` status until an explicit oracle
+artifact is provided.
 
 `--oracle-runner <path>` is the local-ops bridge for Stage 2 Option A. It runs
 a labelled oracle script to produce the vector artifact, labels the result
@@ -104,7 +105,10 @@ The temporary `.fvi` floor is compact JSON with:
 - `diagnostics`
 
 The default embed harness remains hermetic: it uses tiny checked-in text/model
-fixtures and does not require the live `/Users/ianzepp/ai` MiniLM inventory.
+fixtures and does not require the live `/Users/ianzepp/ai` MiniLM or Qwen3
+inventory. The Stage 4B Qwen3 cases use a package-local alias map and a fake
+oracle fixture to prove fail-closed behavior and `oracle-backed` labeling
+without loading the real Tier 2 model.
 
 Local oracle validation is intentionally separate:
 

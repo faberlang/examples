@@ -18,11 +18,138 @@ stdout_contains = [
   "\"status\":\"blocked\"",
   "\"input_count\":2",
   "\"dimensions\":0",
-  "MiniLM embedding execution not implemented; oracle-backed path pending Stage 2C",
+  "Embedding execution for basic/minilm not implemented; use an explicit oracle-backed runner",
 ]
 out_path = "/tmp/faber-ai-vectors.fvi"
 expect_output_file = true
 artifact_equals = { format = "fvi-stage2", model = "basic/minilm", status = "blocked", input_count = 2, dimensions = 0 }
+exit = 0
+
+[[case]]
+id = "qwen3-blocked-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "mid/qwen3-embed-0.6b",
+  "--out",
+  "/tmp/faber-ai-qwen3-vectors.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/qwen3-local-alias.toml",
+]
+stdout_contains = [
+  "\"model\":\"mid/qwen3-embed-0.6b\"",
+  "\"source\":\"Qwen/Qwen3-Embedding-0.6B\"",
+  "\"status\":\"blocked\"",
+  "\"input_count\":2",
+  "\"dimensions\":0",
+  "Embedding execution for mid/qwen3-embed-0.6b not implemented; use an explicit oracle-backed runner",
+]
+out_path = "/tmp/faber-ai-qwen3-vectors.fvi"
+expect_output_file = true
+artifact_equals = { format = "fvi-stage2", model = "mid/qwen3-embed-0.6b", source = "Qwen/Qwen3-Embedding-0.6B", status = "blocked", input_count = 2, dimensions = 0 }
+exit = 0
+
+[[case]]
+id = "qwen3-missing-local-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "mid/qwen3-embed-0.6b",
+  "--out",
+  "/tmp/faber-ai-qwen3-vectors-missing.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/qwen3-missing-local-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "local model file not found: mid/qwen3-embed-0.6b",
+]
+out_path = "/tmp/faber-ai-qwen3-vectors-missing.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "qwen3-unsupported-status-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "mid/qwen3-embed-0.6b",
+  "--out",
+  "/tmp/faber-ai-qwen3-vectors-unsupported.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/qwen3-unsupported-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "embedding requires local model alias: mid/qwen3-embed-0.6b",
+]
+out_path = "/tmp/faber-ai-qwen3-vectors-unsupported.fvi"
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "qwen3-oracle-backed-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "mid/qwen3-embed-0.6b",
+  "--out",
+  "/tmp/faber-ai-qwen3-vectors-oracle.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/qwen3-local-alias.toml",
+  "--oracle-runner",
+  "examples/ai-workbench/harness/fixtures/embed/fake_qwen3_oracle.py",
+  "--oracle-label",
+  "hermetic-qwen3-fixture",
+]
+stdout_contains = [
+  "\"model\":\"mid/qwen3-embed-0.6b\"",
+  "\"source\":\"Qwen/Qwen3-Embedding-0.6B\"",
+  "\"status\":\"oracle-backed\"",
+  "\"dimensions\":1024",
+  "\"oracle\":\"hermetic-qwen3-fixture\"",
+  "vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented",
+]
+out_path = "/tmp/faber-ai-qwen3-vectors-oracle.fvi"
+expect_output_file = true
+artifact_equals = { format = "fvi-stage2", model = "mid/qwen3-embed-0.6b", source = "Qwen/Qwen3-Embedding-0.6B", status = "oracle-backed", input_count = 2, dimensions = 1024, normalization = "l2", oracle = "hermetic-qwen3-fixture" }
+exit = 0
+
+[[case]]
+id = "qwen3-failing-oracle-removes-stale-output-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "mid/qwen3-embed-0.6b",
+  "--out",
+  "/tmp/faber-ai-qwen3-vectors-stale-oracle.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/qwen3-local-alias.toml",
+  "--oracle-runner",
+  "examples/ai-workbench/harness/fixtures/embed/failing_oracle.py",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "oracle runner failed",
+]
+out_path = "/tmp/faber-ai-qwen3-vectors-stale-oracle.fvi"
+preexisting_output = true
+expect_output_file = false
 exit = 0
 
 [[case]]

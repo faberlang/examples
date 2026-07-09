@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "mid/qwen3-embed-0.6b"
+status = "local"
+source = "Qwen/Qwen3-Embedding-0.6B"
+local_path = "/tmp/faber-ai-missing-qwen3-model.safetensors"
+router_model_id = ""
