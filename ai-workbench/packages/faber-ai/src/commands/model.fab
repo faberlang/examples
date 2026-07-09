@@ -1,6 +1,7 @@
 # Model inventory and metadata commands for the Faber AI workbench.
 
 importa ex "norma:solum" privata solum
+importa ex "norma:model" privata model
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
@@ -99,15 +100,11 @@ functio router_id_for(lista<textus> aliases, textus target) → textus {
 }
 
 functio format_for(lista<textus> aliases, textus target) → textus {
-    si status_for(aliases, target) ≡ "missing-download" ergo redde "alias-missing"
-    si source_for(aliases, target).continet("GGUF") ergo redde "gguf"
-    redde "unknown"
+    redde model.formatum(status_for(aliases, target), source_for(aliases, target))
 }
 
 functio diagnostic_for(lista<textus> aliases, textus target) → textus {
-    si status_for(aliases, target) ≡ "router-backed" ergo redde "metadata parser pending; router model is " + router_id_for(aliases, target)
-    si status_for(aliases, target) ≡ "missing-download" ergo redde "missing local download for " + source_for(aliases, target)
-    redde "unknown alias or unsupported path"
+    redde model.diagnosticum(status_for(aliases, target), source_for(aliases, target), router_id_for(aliases, target))
 }
 
 functio test_aliases() → lista<textus> {
