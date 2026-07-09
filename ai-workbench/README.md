@@ -16,10 +16,15 @@ examples/ai-workbench/
       src/
         main.fab
         commands/
+          embed.fab
           model.fab
   harness/
+    check-embed.py
     check-model-inspect.py
     fixtures/
+      embed/
+        cases.toml
+        texts.txt
       model-inspect/
         cases.toml
         files/
@@ -38,6 +43,7 @@ cargo run --manifest-path faber/Cargo.toml -- check examples/ai-workbench/packag
 cargo run --manifest-path faber/Cargo.toml -- test examples/ai-workbench/packages/faber-ai
 cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json
 python3 examples/ai-workbench/harness/check-model-inspect.py
+python3 examples/ai-workbench/harness/check-embed.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -67,3 +73,25 @@ the Norma metadata/parser work. The harness includes package-local map fixtures
 for the accepted subset and for a valid-TOML shape outside the consumed subset;
 the latter must fail closed with a structured diagnostic instead of being
 silently misread.
+
+## Stage 2 Embed Floor
+
+`faber-ai embed <texts> --model basic/minilm --out <vectors.fvi>` is wired as
+the Stage 2 command contract. The current factory slice resolves local aliases,
+checks input/model file readability, writes a parseable Stage 2 `.fvi` JSON
+artifact, and returns an honest `blocked` status until the MiniLM oracle and
+execution path land.
+
+The temporary `.fvi` floor is compact JSON with:
+
+- `format = "fvi-stage2"`
+- `model` and `source`
+- `status`
+- `input_count`
+- `dimensions`
+- `normalization`
+- `vectors`
+- `diagnostics`
+
+The default embed harness remains hermetic: it uses tiny checked-in text/model
+fixtures and does not require the live `/Users/ianzepp/ai` MiniLM inventory.

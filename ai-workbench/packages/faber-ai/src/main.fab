@@ -1,9 +1,21 @@
 # Faber AI workbench command surface.
 
 importa ex "./commands/model" privata * ut modelModule
+importa ex "./commands/embed" privata * ut embedModule
 
 @ cli "faber-ai"
 @ versio "0.1.0"
 @ descriptio "Local Faber AI workbench"
 @ imperia "model" ex modelModule
 incipit argumenta args {}
+
+@ imperium "embed"
+@ descriptio "Embed input texts with a local model alias"
+@ optio model_alias longum "model" typus textus vel "basic/minilm" descriptio "Model alias"
+@ optio out longum "out" typus textus vel "/tmp/faber-ai-vectors.fvi" descriptio "Vector output path"
+@ optio format longum "format" typus textus vel "text" descriptio "Output format: text or json"
+@ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
+@ operandus textus texts descriptio "Input text file"
+functio embed() argumenta args → vacuum {
+    embedModule.curre("" + args.texts, "" + args.model_alias, "" + args.out, "" + args.format, "" + args.map)
+}

@@ -1,0 +1,48 @@
+[[case]]
+id = "basic-minilm-blocked-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "basic/minilm",
+  "--out",
+  "/tmp/faber-ai-vectors.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/local-safetensors-alias.toml",
+]
+stdout_contains = [
+  "\"model\":\"basic/minilm\"",
+  "\"source\":\"sentence-transformers/all-MiniLM-L6-v2\"",
+  "\"status\":\"blocked\"",
+  "\"input_count\":2",
+  "\"dimensions\":0",
+  "MiniLM embedding execution not implemented; oracle-backed path pending Stage 2C",
+]
+out_path = "/tmp/faber-ai-vectors.fvi"
+expect_output_file = true
+artifact_equals = { format = "fvi-stage2", model = "basic/minilm", status = "blocked", input_count = 2, dimensions = 0 }
+exit = 0
+
+[[case]]
+id = "missing-local-json"
+args = [
+  "embed",
+  "examples/ai-workbench/harness/fixtures/embed/texts.txt",
+  "--model",
+  "basic/minilm",
+  "--out",
+  "/tmp/faber-ai-vectors-missing.fvi",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/embed/missing-local-alias.toml",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "local model file not found: basic/minilm",
+]
+out_path = "/tmp/faber-ai-vectors-missing.fvi"
+expect_output_file = false
+exit = 0

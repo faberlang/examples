@@ -1,0 +1,229 @@
+# MiniLM embedding command contract for Stage 2.
+
+importa ex "norma:solum" privata solum
+
+functio format_jsonne(textus formatum) → bivalens {
+    redde formatum ≡ "json"
+}
+
+functio json_quote() → textus {
+    redde |22| ↦ textus
+}
+
+functio quoted_value(textus line) → textus {
+    varia numerus initium ← -1
+    varia numerus finis ← -1
+    varia numerus i ← 0
+    dum i < line.longitudo() {
+        si line.sectio(i, i + 1) ≡ "\"" {
+            si initium < 0 {
+                initium ← i + 1
+            } secus {
+                finis ← i
+                i ← line.longitudo()
+            }
+        }
+        i ← i + 1
+    }
+
+    si initium ≥ 0 et finis ≥ initium ergo redde line.sectio(initium, finis)
+    redde ""
+}
+
+functio subset_field_line(textus line, textus field) → bivalens {
+    redde line.initium(field + " = \"") et line.finis("\"")
+}
+
+functio subset_field_candidate(textus line, textus field) → bivalens {
+    redde line.initium(field + " ") aut line.initium(field + "=")
+}
+
+functio subset_line_supported(textus line) → bivalens {
+    fixum textus trimmed ← line.recide()
+    si trimmed.longitudo() ≡ 0 ergo redde verum
+    si trimmed.initium("#") ergo redde verum
+    si trimmed ≡ "[[tiers]]" ergo redde verum
+    si subset_field_candidate(trimmed, "alias") ergo redde subset_field_line(trimmed, "alias")
+    si subset_field_candidate(trimmed, "source") ergo redde subset_field_line(trimmed, "source")
+    si subset_field_candidate(trimmed, "status") ergo redde subset_field_line(trimmed, "status")
+    si subset_field_candidate(trimmed, "local_path") ergo redde subset_field_line(trimmed, "local_path")
+    si subset_field_candidate(trimmed, "router_model_id") ergo redde subset_field_line(trimmed, "router_model_id")
+    redde verum
+}
+
+functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
+    itera ex aliases fixum line {
+        si subset_line_supported(line) ≠ verum ergo redde falsum
+    }
+    redde verum
+}
+
+functio map_value(lista<textus> aliases, textus target, textus field) → textus {
+    varia bivalens matched ← falsum
+    itera ex aliases fixum line {
+        fixum textus trimmed ← line.recide()
+        si trimmed ≡ "[[tiers]]" {
+            matched ← falsum
+        }
+        si trimmed.initium("alias = ") {
+            matched ← quoted_value(trimmed) ≡ target
+        }
+        si matched et trimmed.initium(field + " = ") {
+            redde quoted_value(trimmed)
+        }
+    }
+
+    redde ""
+}
+
+functio status_for(lista<textus> aliases, textus target) → textus {
+    fixum textus status ← map_value(aliases, target, "status")
+    si status.longitudo() > 0 ergo redde status
+    redde "unknown"
+}
+
+functio source_for(lista<textus> aliases, textus target) → textus {
+    fixum textus source ← map_value(aliases, target, "source")
+    si source.longitudo() > 0 ergo redde source
+    redde target
+}
+
+functio raw_local_path_for(lista<textus> aliases, textus target) → textus {
+    redde map_value(aliases, target, "local_path")
+}
+
+functio input_count(textus input_path) → numerus {
+    fixum lista<textus> lines ← solum.lege<lista<textus>>(input_path)
+    varia numerus count ← 0
+    itera ex lines fixum line {
+        si line.recide().longitudo() > 0 {
+            count ← count + 1
+        }
+    }
+    redde count
+}
+
+functio blocked_diagnostic() → textus {
+    redde "MiniLM embedding execution not implemented; oracle-backed path pending Stage 2C"
+}
+
+functio artifact_json(textus target, textus source, numerus count) → textus {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "format" + q + ":" + q + "fvi-stage2" + q + ","
+    out ← out + q + "model" + q + ":" + q + target + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "status" + q + ":" + q + "blocked" + q + ","
+    out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
+    out ← out + q + "dimensions" + q + ":0,"
+    out ← out + q + "normalization" + q + ":" + q + "pending" + q + ","
+    out ← out + q + "vectors" + q + ":[],"
+    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic() + q + "]"
+    out ← out + "}"
+    redde out
+}
+
+functio emit_json(textus target, textus source, numerus count) → vacuum {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "model" + q + ":" + q + target + q + ","
+    out ← out + q + "source" + q + ":" + q + source + q + ","
+    out ← out + q + "status" + q + ":" + q + "blocked" + q + ","
+    out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
+    out ← out + q + "dimensions" + q + ":0,"
+    out ← out + q + "normalization" + q + ":" + q + "pending" + q + ","
+    out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
+    out ← out + q + "oracle" + q + ":" + q + "" + q + ","
+    out ← out + q + "diagnostics" + q + ":[" + q + blocked_diagnostic() + q + "]"
+    out ← out + "}"
+    nota out
+}
+
+functio emit_text(textus target, textus source, numerus count) → vacuum {
+    nota "model: §"(target)
+    nota "source: §"(source)
+    nota "status: blocked"
+    nota "input_count: §"(count)
+    nota "dimensions: 0"
+    nota "normalization: pending"
+    nota "diagnostic: §"(blocked_diagnostic())
+}
+
+functio emit_error_json(textus target, textus diagnosticum) → vacuum {
+    fixum textus q ← json_quote()
+    varia textus out ← "{"
+    out ← out + q + "model" + q + ":" + q + target + q + ","
+    out ← out + q + "source" + q + ":" + q + target + q + ","
+    out ← out + q + "status" + q + ":" + q + "error" + q + ","
+    out ← out + q + "input_count" + q + ":0,"
+    out ← out + q + "dimensions" + q + ":0,"
+    out ← out + q + "normalization" + q + ":" + q + "" + q + ","
+    out ← out + q + "vectors_path" + q + ":" + q + "" + q + ","
+    out ← out + q + "oracle" + q + ":" + q + "" + q + ","
+    out ← out + q + "diagnostics" + q + ":[" + q + diagnosticum + q + "]"
+    out ← out + "}"
+    nota out
+}
+
+functio emit_error_text(textus diagnosticum) → vacuum {
+    nota "status: error"
+    nota "diagnostic: §"(diagnosticum)
+}
+
+functio emit_error(textus target, textus diagnosticum, textus formatum) → vacuum {
+    si format_jsonne(formatum) {
+        emit_error_json(target, diagnosticum)
+    } secus {
+        emit_error_text(diagnosticum)
+    }
+}
+
+functio curre(textus input_path, textus target, textus out_path, textus formatum, textus map_path) → vacuum {
+    si solum.exstat(map_path) ≠ verum {
+        emit_error(target, "alias map not found: " + map_path, formatum)
+        redde
+    }
+    si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
+        emit_error(target, "alias map unreadable: " + map_path, formatum)
+        redde
+    }
+
+    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    si alias_map_subset_supported(aliases) ≠ verum {
+        emit_error(target, "alias map outside supported subset: " + map_path, formatum)
+        redde
+    }
+
+    fixum textus status ← status_for(aliases, target)
+    si status ≠ "local" {
+        emit_error(target, "embedding requires local model alias: " + target, formatum)
+        redde
+    }
+
+    fixum textus local_path ← raw_local_path_for(aliases, target)
+    si local_path.longitudo() ≡ 0 aut solum.exstat(local_path) ≠ verum {
+        emit_error(target, "local model file not found: " + target, formatum)
+        redde
+    }
+    si solum.regularene(local_path) ≠ verum aut solum.legibilene(local_path) ≠ verum {
+        emit_error(target, "local model file unreadable: " + target, formatum)
+        redde
+    }
+    si solum.exstat(input_path) ≠ verum {
+        emit_error(target, "input text file not found: " + input_path, formatum)
+        redde
+    }
+    si solum.regularene(input_path) ≠ verum aut solum.legibilene(input_path) ≠ verum {
+        emit_error(target, "input text file unreadable: " + input_path, formatum)
+        redde
+    }
+
+    fixum numerus count ← input_count(input_path)
+    fixum textus source ← source_for(aliases, target)
+    solum.scribe(out_path, artifact_json(target, source, count))
+    si format_jsonne(formatum) {
+        emit_json(target, source, count)
+    } secus {
+        emit_text(target, source, count)
+    }
+}

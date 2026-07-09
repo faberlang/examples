@@ -1,0 +1,2 @@
+faber builds local tools.
+MiniLM embeds short text.

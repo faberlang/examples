@@ -1,0 +1,6 @@
+[[tiers]]
+alias = "basic/minilm"
+status = "local"
+source = "sentence-transformers/all-MiniLM-L6-v2"
+local_path = "/tmp/faber-ai-missing-minilm-model.safetensors"
+router_model_id = ""
