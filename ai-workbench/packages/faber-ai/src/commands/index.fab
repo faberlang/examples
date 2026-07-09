@@ -51,14 +51,64 @@ functio find_from(textus s, textus needle, numerus start) → numerus {
     redde -1
 }
 
+functio json_string_end(textus documentum, numerus start) → numerus ⇥ textus {
+    fixum textus q ← json_quote()
+    fixum textus slash ← |5C| ↦ textus
+    varia bivalens escaped ← falsum
+    varia numerus i ← start
+    dum i < documentum.longitudo() {
+        fixum textus c ← documentum.sectio(i, i + 1)
+        si escaped {
+            escaped ← (falsum)
+        } sin c ≡ slash {
+            escaped ← (verum)
+        } sin c ≡ q {
+            redde i
+        }
+        i ← i + 1
+    }
+    iace "unterminated JSON string"
+}
+
+functio json_unescape(textus value) → textus ⇥ textus {
+    fixum textus q ← json_quote()
+    fixum textus slash ← |5C| ↦ textus
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < value.longitudo() {
+        fixum textus c ← value.sectio(i, i + 1)
+        si c ≡ slash {
+            si i + 1 ≥ value.longitudo() ergo iace "unterminated JSON escape"
+            fixum textus escaped ← value.sectio(i + 1, i + 2)
+            si escaped ≡ q {
+                out ← out + q
+            } sin escaped ≡ slash {
+                out ← out + slash
+            } sin escaped ≡ "n" {
+                out ← out + "\n"
+            } sin escaped ≡ "r" {
+                out ← out + "\r"
+            } sin escaped ≡ "t" {
+                out ← out + "\t"
+            } secus {
+                iace "unsupported JSON string escape: §"(escaped)
+            }
+            i ← i + 2
+        } secus {
+            out ← out + c
+            i ← i + 1
+        }
+    }
+    redde out
+}
+
 functio field_textus(textus documentum, textus field) → textus ⇥ textus {
     fixum textus pattern ← "\"" + field + "\":\""
     fixum numerus start ← find_from(documentum, pattern, 0)
     si start < 0 ergo iace "missing vector artifact field: " + field
     fixum numerus value_start ← start + pattern.longitudo()
-    fixum numerus value_end ← find_from(documentum, "\"", value_start)
-    si value_end < 0 ergo iace "unterminated vector artifact field: " + field
-    redde documentum.sectio(value_start, value_end)
+    fixum numerus value_end ← json_string_end(documentum, value_start)
+    redde json_unescape(documentum.sectio(value_start, value_end))
 }
 
 functio est_digita(textus c) → bivalens {
@@ -93,14 +143,27 @@ functio field_numerus(textus documentum, textus field) → numerus ⇥ textus {
 }
 
 functio array_end(textus documentum, numerus start) → numerus ⇥ textus {
+    fixum textus q ← json_quote()
+    fixum textus slash ← |5C| ↦ textus
     varia numerus depth ← 0
+    varia bivalens in_string ← falsum
+    varia bivalens escaped ← falsum
     varia numerus i ← start
     dum i < documentum.longitudo() {
         fixum textus c ← documentum.sectio(i, i + 1)
-        si c ≡ "[" {
+        si in_string {
+            si escaped {
+                escaped ← (falsum)
+            } sin c ≡ slash {
+                escaped ← (verum)
+            } sin c ≡ q {
+                in_string ← (falsum)
+            }
+        } sin c ≡ q {
+            in_string ← (verum)
+        } sin c ≡ "[" {
             depth ← depth + 1
-        }
-        si c ≡ "]" {
+        } sin c ≡ "]" {
             depth ← depth - 1
             si depth ≡ 0 ergo redde i
         }

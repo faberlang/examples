@@ -1,0 +1,1 @@
+{"format":"fvi-stage2","model":"escaped \"model\" \\ tier","source":"brace { source } bracket [source]","status":"oracle-backed","input_count":1,"dimensions":2,"normalization":"l2","vectors":[{"id":"escaped","text":"quote \" brace { bracket ] slash \\ text","values":[1.0,0.0]}],"diagnostics":[]}

@@ -95,6 +95,27 @@ expected_results = [
 exit = 0
 
 [[case]]
+id = "escaped-record-text-delimiters-json"
+args = [
+  "query",
+  "examples/ai-workbench/harness/fixtures/query/escaped-index.fvi",
+  "escaped text",
+  "--query-vector",
+  "examples/ai-workbench/harness/fixtures/query/beta-query.fvi",
+  "--top",
+  "1",
+  "--format",
+  "json",
+]
+stdout_contains = [
+  "\"status\":\"ok\"",
+]
+expected_results = [
+  { id = "escaped", score = 1.0 },
+]
+exit = 0
+
+[[case]]
 id = "missing-index-json"
 args = [
   "query",
