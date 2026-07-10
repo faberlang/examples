@@ -1,0 +1,23 @@
++++
+term = "async tempus dormiet"
+kind = "concept"
+category = "ad"
+canonical = true
+summary = "@ futura tempus.dormiet and sync tempus.expectet share the tempus:dormiet route."
+syntax = "tempus.expectet(ms) | cede tempus.dormiet(ms)"
+related = ["ad", "tempus", "futura", "sermo"]
++++
+
+# Timer proof pair for async `ad` materialization.
+#
+# `expectet` is the synchronous wrapper and `dormiet` is the `@ futura` wrapper.
+# Both use the same `tempus:dormiet` route; only caller posture selects the sync
+# or async materializer.
+
+importa ex "norma:tempus" privata tempus
+
+incipiet {
+    tempus.expectet(0)
+    cede tempus.dormiet(0)
+    adfirma verum
+}

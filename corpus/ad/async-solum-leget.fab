@@ -1,0 +1,25 @@
++++
+term = "async solum leget"
+kind = "concept"
+category = "ad"
+canonical = true
+summary = "@ futura solum.leget<T> uses the same solum:lege route as sync solum.lege<T>."
+syntax = "solum.leget<textus>(via)"
+related = ["ad", "solum", "futura", "sermo"]
++++
+
+# Async `ad` materialization through a standard-library proof pair.
+#
+# `solum.leget<T>` is the async-posture twin of `solum.lege<T>`. Both wrappers
+# use the same host route; `@ futura` only changes the Rust materializer to the
+# async receive path.
+
+importa ex "norma:solum" privata solum
+
+incipiet {
+    fixum textus textPath ← "/tmp/faber-async-solum-leget.txt"
+    solum.scribe(textPath, "async solum\n")
+
+    fixum textus body ← cede solum.leget<textus>(textPath)
+    adfirma body ≡ "async solum\n"
+}
