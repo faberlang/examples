@@ -2,6 +2,7 @@
 
 **Status**: Stage 0-1 file-backed scaffold landed
 **Created**: 2026-07-09
+**Refreshed**: 2026-07-10
 **Target repo**: `/Users/ianzepp/work/faberlang/examples`
 **Factory artifact dir**: `docs/factory/vivilite/`
 **Primary surfaces**: `vivilite/` package, project-local `.vivi/` fixtures,
@@ -132,7 +133,8 @@ regular Vivi compatibility.
 | Current Faber CLI/package support | Enough for command scaffold and file-backed floor. |
 | `norma:solum`, `norma:json`, `norma:chorda` | Enough for file-backed fixture storage and JSON output. |
 | SQLite library package | Required for reading regular Vivi `.vivi/mail.sqlite`. |
-| Unified package manifest Phase 4 | Required before the SQLite package can provide target Rust bindings cleanly. |
+| Unified package manifest Phase 4 | Complete for binding-manifest and Rust ABI verification. |
+| Unified package manifest Phase 3 | Open; required to link the verified SQLite library shim and dependencies into an application build unless research proves an equivalent path. |
 | Regular Vivi oracle fixtures | Required for parity claims. |
 
 ViviLite should start before SQLite only on lanes that do not claim regular Vivi
