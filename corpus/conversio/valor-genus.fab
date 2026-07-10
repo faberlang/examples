@@ -26,13 +26,13 @@ incipit {
         "nomen": "Marcus",
         "born": "1979-05-27T07:32:00Z",
         "extra": "ignored"
-    }
+    } ↦ valor
     fixum Persona good ← payload ↦ Persona
     adfirma good.nomen ≡ "Marcus"
     adfirma good.aetas ≡ nihil
     adfirma good.regio ≡ "Roma"
 
-    fixum valor stale ← { "nomen": "Livia" }
+    fixum valor stale ← { "nomen": "Livia" } ↦ valor
     fixum Persona recovered ← stale ↦ Persona ⇥ good
     adfirma recovered.nomen ≡ "Marcus"
 

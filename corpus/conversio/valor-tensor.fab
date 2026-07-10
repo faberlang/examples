@@ -26,7 +26,7 @@ incipit {
     fixum valor roundtrip ← flat ↦ valor
     nota roundtrip
 
-    fixum valor obj ← { "alpha": 10, "beta": 20 }
+    fixum valor obj ← { "alpha": 10, "beta": 20 } ↦ valor
     fixum tabula<textus, numerus> scores ← obj ↦ tabula<textus, numerus>
     nota scores.accipe("alpha") vel 0
 }

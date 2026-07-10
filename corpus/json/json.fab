@@ -1,0 +1,25 @@
++++
+term = "json"
+kind = "type"
+category = "type"
+canonical = true
++++
+
+@ json
+genus Payload {
+    @ json { nomen = "wire_name" }
+    textus name
+}
+
+incipit {
+    fixum json literal ← { "wire_name": "Ada", "items": [1, { "ok": true }] }
+    fixum valor broad ← literal ↦ valor
+    fixum json narrowed ← broad ↦ json
+
+    fixum Payload payload ← narrowed ↦ Payload
+    fixum json encoded ← payload ↦ json
+    fixum textus wire ← encoded ↦ textus
+
+    nota payload.name
+    nota wire
+}
