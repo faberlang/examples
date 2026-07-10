@@ -1,0 +1,11 @@
+[functions."sqlite:sqlite.exsequi"]
+symbol = "crate::shim::exsequi"
+
+[functions."sqlite:sqlite.quaere"]
+symbol = "crate::shim::quaere"
+
+[functions."sqlite:sqlite.scalar"]
+symbol = "crate::shim::scalar"
+
+[shim]
+path = "rust/shim.rs"

@@ -1,0 +1,13 @@
+[package]
+name = "faber-sqlite-binding"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "shim.rs"
+
+[dependencies]
+faber = { package = "faber-runtime", path = "../../../faber-runtime" }
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[workspace]

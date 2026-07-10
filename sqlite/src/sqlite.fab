@@ -1,0 +1,3 @@
+functio exsequi(textus via, textus sql, lista<valor> params) → valor ⇥ textus
+functio quaere(textus via, textus sql, lista<valor> params) → lista<valor> ⇥ textus
+functio scalar(textus via, textus sql, lista<valor> params) → valor ∪ nihil ⇥ textus

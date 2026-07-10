@@ -1,0 +1,20 @@
+[package]
+name = "sqlite"
+version = "0.1.0"
+edition = "2026"
+
+[library]
+provider = "sqlite"
+
+[paths]
+source = "src"
+
+[build]
+kind = "lib"
+targets = ["rust"]
+
+[target.rust]
+bindings = "bindings/rust.toml"
+
+[target.rust.dependencies]
+rusqlite = '{ version = "0.32", features = ["bundled"] }'
