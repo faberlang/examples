@@ -20,6 +20,41 @@ genus WorkItem {
     textus body
 }
 
+@ json
+@ privata
+genus StatusJson {
+    textus status
+    textus lane
+    numerus identities
+}
+
+@ json
+@ privata
+genus BoardItemJson {
+    textus handle
+    textus subject
+    textus from
+}
+
+@ json
+@ privata
+genus BoardJson {
+    textus mailspace
+    textus lane
+    @ json { nomen = "for" }
+    textus who
+    numerus actionable
+    numerus tasks
+    numerus needs
+    numerus wants
+    @ json { nomen = "task_items" }
+    lista<BoardItemJson> task_items
+    @ json { nomen = "need_items" }
+    lista<BoardItemJson> need_items
+    @ json { nomen = "want_items" }
+    lista<BoardItemJson> want_items
+}
+
 functio store(de textus root) → Store {
     fixum textus dir_path ← "§/.vivilite"(root)
     redde Store {
@@ -90,63 +125,12 @@ functio positional(de lista<textus> args, numerus index, de textus def) → text
     redde args.accipe(index) vel def
 }
 
-functio json_escape(de textus value) → textus {
-    varia textus out ← ""
-    varia numerus i ← 0
-    dum i < value.longitudo() {
-        fixum textus c ← value.sectio(i, i + 1)
-        si c ≡ "\"" {
-            out ← out + "\\\""
-        } sin c ≡ "\\" {
-            out ← out + "\\\\"
-        } sin c ≡ "\n" {
-            out ← out + "\\n"
-        } sin c ≡ "\r" {
-            out ← out + "\\r"
-        } sin c ≡ "\t" {
-            out ← out + "\\t"
-        } secus {
-            out ← out + c
-        }
-        i ← i + 1
-    }
-    redde out
-}
-
-functio jq(de textus value) → textus {
-    redde qq(json_escape(value))
-}
-
-functio lb() → textus {
-    redde "{"
-}
-
-functio rb() → textus {
-    redde "}"
-}
-
-functio q() → textus {
-    redde "\""
-}
-
-functio qq(de textus value) → textus {
-    redde cat(q(), cat(value, q()))
-}
-
 functio row(de textus value) → textus {
     redde cat(value, "\n")
 }
 
 functio cat(de textus left, de textus right) → textus {
     redde "§§"(left, right)
-}
-
-functio pair(de textus name, de textus value) → textus {
-    redde "§:§"(qq(name), value)
-}
-
-functio pair_text(de textus name, de textus value) → textus {
-    redde pair(name, jq(value))
 }
 
 functio work_from_line(de textus line) → WorkItem {
@@ -188,29 +172,32 @@ functio count_work(de Store s, de textus kind, de textus status, de textus who) 
     redde count
 }
 
-functio list_work_json(de Store s, de textus kind, de textus who) → textus {
-    varia textus out ← "["
-    varia bivalens first ← verum
+functio list_work_json(de Store s, de textus kind, de textus who) → lista<BoardItemJson> {
+    varia lista<BoardItemJson> items ← vacua
     itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
-                si first ≠ verum ergo out ← "§,"(out)
-                fixum textus fields ← "§,§,§"(pair("handle", jq(item.handle)), pair("subject", jq(item.subject)), pair("from", jq(item.from)))
-                out ← cat(out, cat(lb(), cat(fields, rb())))
-                first ← falsum
+                items.appende(BoardItemJson {
+                    handle = item.handle,
+                    subject = item.subject,
+                    from = item.from
+                })
             }
         }
     }
-    redde "§]"(out)
+    redde items
 }
 
 functio print_status(de Store s, bivalens json) → vacuum {
     ensure_store(store(s.root ↦ textus))
     fixum numerus identities ← count_identities(store(s.root ↦ textus))
     si json {
-        fixum textus body ← "§,§,§"(pair_text("status", "ok"), pair_text("lane", "file"), pair("identities", identities ↦ textus))
-        nota cat(lb(), cat(body, rb()))
+        nota (StatusJson {
+            status = "ok",
+            lane = "file",
+            identities = identities
+        } ↦ json) ↦ textus
     } secus {
         nota "lane: file"
         nota "identities: §"(identities)
@@ -327,8 +314,21 @@ functio board_json(de Store s, de textus who) → textus {
     fixum numerus tasks ← count_work(store(s.root ↦ textus), "task", "open", who)
     fixum numerus needs ← count_work(store(s.root ↦ textus), "need", "open", who)
     fixum numerus wants ← count_work(store(s.root ↦ textus), "want", "open", who)
-    fixum textus body ← "§,§,§,§,§,§,§,§,§,§"(pair_text("mailspace", "vivilite"), pair_text("lane", "file"), pair("for", jq(who)), pair("actionable", (tasks + needs) ↦ textus), pair("tasks", tasks ↦ textus), pair("needs", needs ↦ textus), pair("wants", wants ↦ textus), pair("task_items", list_work_json(store(s.root ↦ textus), "task", who)), pair("need_items", list_work_json(store(s.root ↦ textus), "need", who)), pair("want_items", list_work_json(store(s.root ↦ textus), "want", who)))
-    redde cat(lb(), cat(body, rb()))
+    fixum lista<BoardItemJson> task_items ← list_work_json(store(s.root ↦ textus), "task", who)
+    fixum lista<BoardItemJson> need_items ← list_work_json(store(s.root ↦ textus), "need", who)
+    fixum lista<BoardItemJson> want_items ← list_work_json(store(s.root ↦ textus), "want", who)
+    redde (BoardJson {
+        mailspace = "vivilite",
+        lane = "file",
+        who = who,
+        actionable = tasks + needs,
+        tasks = tasks,
+        needs = needs,
+        wants = wants,
+        task_items = task_items,
+        need_items = need_items,
+        want_items = want_items
+    } ↦ json) ↦ textus
 }
 
 functio reset_fixture(de textus name) → Store {
@@ -391,10 +391,6 @@ probandum "vivilite helpers" tag "vivilite" {
         adfirma (p.accipe(1) vel "") ≡ "b"
     }
 
-    proba "json escape protects quotes" {
-        adfirma json_escape("a\"b") ≡ "a\\\"b"
-    }
-
     proba "file-backed mailspace state transitions are stable" {
         fixum Store s ← reset_fixture("vivilite-stage1-mail")
         fixum textus root ← s.root
@@ -417,7 +413,7 @@ probandum "vivilite helpers" tag "vivilite" {
         adfirma count_work(store(root ↦ textus), "task", "open", "codex") ≡ 1
         adfirma count_work(store(root ↦ textus), "need", "open", "codex") ≡ 1
         adfirma count_work(store(root ↦ textus), "want", "open", "codex") ≡ 1
-        adfirma board_json(store(root ↦ textus), "codex") ≡ "{\"mailspace\":\"vivilite\",\"lane\":\"file\",\"for\":\"codex\",\"actionable\":2,\"tasks\":1,\"needs\":1,\"wants\":1,\"task_items\":[{\"handle\":\"t-1\",\"subject\":\"task one\",\"from\":\"reviewer\"}],\"need_items\":[{\"handle\":\"n-2\",\"subject\":\"need one\",\"from\":\"reviewer\"}],\"want_items\":[{\"handle\":\"w-3\",\"subject\":\"want one\",\"from\":\"reviewer\"}]}"
+        adfirma board_json(store(root ↦ textus), "codex") ≡ "{\"actionable\":2,\"for\":\"codex\",\"lane\":\"file\",\"mailspace\":\"vivilite\",\"need_items\":[{\"from\":\"reviewer\",\"handle\":\"n-2\",\"subject\":\"need one\"}],\"needs\":1,\"task_items\":[{\"from\":\"reviewer\",\"handle\":\"t-1\",\"subject\":\"task one\"}],\"tasks\":1,\"want_items\":[{\"from\":\"reviewer\",\"handle\":\"w-3\",\"subject\":\"want one\"}],\"wants\":1}"
         rewrite_work(store(root ↦ textus), "t-1", "done", "")
         rewrite_work(store(root ↦ textus), "w-3", "open", "task")
         adfirma count_work(store(root ↦ textus), "task", "open", "codex") ≡ 1

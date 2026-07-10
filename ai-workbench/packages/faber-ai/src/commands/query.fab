@@ -115,7 +115,7 @@ functio dot(de lista<fractus> left, de lista<fractus> right) → fractus ⇥ tex
 functio compara_textus(textus a, textus b) → numerus {
     si a ≡ b ergo redde 0
 
-    varia lista<textus> duo ← ["" + a, "" + b]
+    varia lista<textus> duo ← ["§"(a), "§"(b)]
     duo.ordina()
 
     si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
@@ -145,22 +145,22 @@ functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus 
         varia textus best_text ← ""
         varia fractus best_score ← 0.0
         itera ex records fixum item {
-            si selected_ne(selected, "" + item.id) ≠ verum {
-                fixum textus item_id ← "" + item.id
+            si selected_ne(selected, "§"(item.id)) ≠ verum {
+                fixum textus item_id ← "§"(item.id)
                 fixum fractus score ← dot(item.values, query)
                 si better_ne(score, item_id, best_score, best_id, found) {
                     best_id ← item_id
-                    best_text ← "" + item.text
+                    best_text ← "§"(item.text)
                     best_score ← score
                     found ← (verum)
                 }
             }
         }
         si found ≠ verum ergo redde out
-        fixum textus selected_id ← "" + best_id
+        fixum textus selected_id ← "§"(best_id)
         out.appende(ScoredRecord {
             rank = out.longitudo() + 1,
-            id = "" + selected_id,
+            id = "§"(selected_id),
             text = best_text,
             score = best_score
         })
@@ -238,19 +238,19 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         redde
     }
     si solum.exstat(index_path) ≠ verum {
-        emit_error("index artifact not found: " + index_path, formatum)
+        emit_error("index artifact not found: §"(index_path), formatum)
         redde
     }
     si solum.regularene(index_path) ≠ verum aut solum.legibilene(index_path) ≠ verum {
-        emit_error("index artifact unreadable: " + index_path, formatum)
+        emit_error("index artifact unreadable: §"(index_path), formatum)
         redde
     }
     si solum.exstat(query_vector_path) ≠ verum {
-        emit_error("query vector not found: " + query_vector_path, formatum)
+        emit_error("query vector not found: §"(query_vector_path), formatum)
         redde
     }
     si solum.regularene(query_vector_path) ≠ verum aut solum.legibilene(query_vector_path) ≠ verum {
-        emit_error("query vector unreadable: " + query_vector_path, formatum)
+        emit_error("query vector unreadable: §"(query_vector_path), formatum)
         redde
     }
 
@@ -260,19 +260,19 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         fixum Stage3Index index ← parse_stage3_index(index_wire)
         fixum QueryVector query_vector ← parse_query_vector(query_wire)
         si index.formatum ≠ "fvi-stage3-index" {
-            emit_error("unsupported index artifact format: " + index.formatum, formatum)
+            emit_error("unsupported index artifact format: §"(index.formatum), formatum)
             redde
         }
         si query_vector.formatum ≠ "fvi-stage3-query-vector" {
-            emit_error("unsupported query vector format: " + query_vector.formatum, formatum)
+            emit_error("unsupported query vector format: §"(query_vector.formatum), formatum)
             redde
         }
         si index.metric ≠ "cosine" {
-            emit_error("unsupported query metric: " + index.metric, formatum)
+            emit_error("unsupported query metric: §"(index.metric), formatum)
             redde
         }
         si index.normalization ≠ "l2" {
-            emit_error("unsupported index normalization: " + index.normalization, formatum)
+            emit_error("unsupported index normalization: §"(index.normalization), formatum)
             redde
         }
         si index.input_vectors ≤ 0 {
@@ -288,7 +288,7 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
             redde
         }
         si query_vector.normalization ≠ "l2" {
-            emit_error("unsupported query vector normalization: " + query_vector.normalization, formatum)
+            emit_error("unsupported query vector normalization: §"(query_vector.normalization), formatum)
             redde
         }
         varia numerus actual_vectors ← 0
@@ -312,6 +312,6 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         emit_ok(query, top, index.metric, ranked(index.vectors, query_vector.values, top), formatum)
     }
     cape err {
-        emit_error("malformed query input: " + err, formatum)
+        emit_error("malformed query input: §"(err), formatum)
     }
 }

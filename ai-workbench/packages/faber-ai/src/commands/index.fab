@@ -90,11 +90,11 @@ functio index_document(textus model, textus source, numerus input_vectors, numer
     redde Stage3Index {
         formatum = "fvi-stage3-index",
         source_format = "fvi-stage2",
-        model = "" + model,
-        source = "" + source,
+        model = "§"(model),
+        source = "§"(source),
         input_vectors = input_vectors,
         dimensions = dimensions,
-        metric = "" + metric,
+        metric = "§"(metric),
         normalization = "l2",
         vectors = vectors,
         diagnostics = []
@@ -166,15 +166,15 @@ functio emit_error(textus diagnosticum, textus formatum) → vacuum {
 
 functio curre(textus vectors_path, textus out_path, textus formatum, textus metric) → vacuum {
     si metric ≠ "cosine" {
-        emit_error("unsupported index metric: " + metric, formatum)
+        emit_error("unsupported index metric: §"(metric), formatum)
         redde
     }
     si solum.exstat(vectors_path) ≠ verum {
-        emit_error("vector artifact not found: " + vectors_path, formatum)
+        emit_error("vector artifact not found: §"(vectors_path), formatum)
         redde
     }
     si solum.regularene(vectors_path) ≠ verum aut solum.legibilene(vectors_path) ≠ verum {
-        emit_error("vector artifact unreadable: " + vectors_path, formatum)
+        emit_error("vector artifact unreadable: §"(vectors_path), formatum)
         redde
     }
 
@@ -182,15 +182,15 @@ functio curre(textus vectors_path, textus out_path, textus formatum, textus metr
     fac {
         fixum Stage2Document artifact ← parse_stage2(wire)
         si artifact.formatum ≠ "fvi-stage2" {
-            emit_error("unsupported vector artifact format: " + artifact.formatum, formatum)
+            emit_error("unsupported vector artifact format: §"(artifact.formatum), formatum)
             redde
         }
         si artifact.status ≠ "oracle-backed" et artifact.status ≠ "ok" {
-            emit_error("vector artifact has no embeddings: " + artifact.status, formatum)
+            emit_error("vector artifact has no embeddings: §"(artifact.status), formatum)
             redde
         }
         si artifact.normalization ≠ "l2" {
-            emit_error("unsupported vector normalization: " + artifact.normalization, formatum)
+            emit_error("unsupported vector normalization: §"(artifact.normalization), formatum)
             redde
         }
         si artifact.input_count ≤ 0 {
@@ -214,8 +214,8 @@ functio curre(textus vectors_path, textus out_path, textus formatum, textus metr
             emit_error("vector count mismatch: expected § got §"(artifact.input_count, actual_vectors), formatum)
             redde
         }
-        fixum textus model ← "" + artifact.model
-        fixum textus source ← "" + artifact.source
+        fixum textus model ← "§"(artifact.model)
+        fixum textus source ← "§"(artifact.source)
         fixum numerus input_vectors ← artifact.input_count
         fixum numerus dimensions ← artifact.dimensions
         fixum Stage3Index index ← index_document(model, source, input_vectors, dimensions, artifact.vectors, metric)
@@ -223,6 +223,6 @@ functio curre(textus vectors_path, textus out_path, textus formatum, textus metr
         emit_ok(model, source, input_vectors, dimensions, metric, out_path, formatum)
     }
     cape err {
-        emit_error("malformed vector artifact: " + err, formatum)
+        emit_error("malformed vector artifact: §"(err), formatum)
     }
 }

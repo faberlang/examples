@@ -24,13 +24,13 @@ incipit argumenta args {}
 @ operandus textus texts descriptio "Input text file"
 functio embed() argumenta args → vacuum {
     embedModule.curre(
-        "" + args.texts,
-        "" + args.model_alias,
-        "" + args.out,
-        "" + args.format,
-        "" + args.map,
-        "" + args.oracle_runner,
-        "" + args.oracle_label,
+        "§"(args.texts),
+        "§"(args.model_alias),
+        "§"(args.out),
+        "§"(args.format),
+        "§"(args.map),
+        "§"(args.oracle_runner),
+        "§"(args.oracle_label),
     )
 }
 
@@ -42,10 +42,10 @@ functio embed() argumenta args → vacuum {
 @ operandus textus vectors descriptio "Stage 2 vector artifact path"
 functio index() argumenta args → vacuum {
     indexModule.curre(
-        "" + args.vectors,
-        "" + args.out,
-        "" + args.format,
-        "" + args.metric,
+        "§"(args.vectors),
+        "§"(args.out),
+        "§"(args.format),
+        "§"(args.metric),
     )
 }
 
@@ -58,11 +58,11 @@ functio index() argumenta args → vacuum {
 @ operandus textus query_text descriptio "Query text"
 functio query() argumenta args → vacuum {
     queryModule.curre(
-        "" + args.index,
-        "" + args.query_text,
+        "§"(args.index),
+        "§"(args.query_text),
         args.top,
-        "" + args.format,
-        "" + args.query_vector,
+        "§"(args.format),
+        "§"(args.query_vector),
     )
 }
 
@@ -80,15 +80,15 @@ functio query() argumenta args → vacuum {
 @ operandus textus prompt descriptio "Prompt text file"
 functio generate() argumenta args → vacuum {
     generateModule.curre(
-        "" + args.prompt,
-        "" + args.model_alias,
-        "" + args.out,
-        "" + args.format,
-        "" + args.map,
-        "" + args.oracle_runner,
-        "" + args.oracle_label,
+        "§"(args.prompt),
+        "§"(args.model_alias),
+        "§"(args.out),
+        "§"(args.format),
+        "§"(args.map),
+        "§"(args.oracle_runner),
+        "§"(args.oracle_label),
         args.max_new_tokens,
-        "" + args.temperature,
+        "§"(args.temperature),
         args.seed,
     )
 }
@@ -105,13 +105,13 @@ functio generate() argumenta args → vacuum {
 @ operandus textus prompt descriptio "Prompt text file"
 functio chat() argumenta args → vacuum {
     chatModule.curre(
-        "" + args.prompt,
-        "" + args.model_alias,
-        "" + args.out,
-        "" + args.format,
-        "" + args.map,
-        "" + args.router_runner,
-        "" + args.router_label,
-        "" + args.router_url,
+        "§"(args.prompt),
+        "§"(args.model_alias),
+        "§"(args.out),
+        "§"(args.format),
+        "§"(args.map),
+        "§"(args.router_runner),
+        "§"(args.router_label),
+        "§"(args.router_url),
     )
 }
