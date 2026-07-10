@@ -238,7 +238,7 @@ functio inspect_text(lista<textus> aliases, textus target) → vacuum {
     nota "diagnostic: §"(diagnostic_for(aliases, target))
 }
 
-functio json_numerus_lista(lista<numerus> items) → textus {
+functio figura_textus(lista<numerus> items) → textus {
     varia textus out ← "["
     varia numerus i ← 0
     itera ex items fixum item {
@@ -343,7 +343,7 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
             nota "tensor_count: §"(summary.tensor_count)
             nota "estimated_bytes: §"(summary.estimated_bytes)
             itera ex summary.tensors fixum tensor {
-                nota "tensor: § § §"(tensor.nomen, tensor.dtype, json_numerus_lista(tensor.figura))
+                nota "tensor: § § §"(tensor.nomen, tensor.dtype, figura_textus(tensor.figura))
             }
             itera ex summary.diagnostics fixum diagnostic {
                 nota "diagnostic: §"(output_diagnostic(diagnostic.nuntius, display_path))
@@ -418,7 +418,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
             nota "quantization: §"(quantization_text)
             nota "estimated_bytes: §"(summary.estimated_bytes)
             itera ex summary.tensors fixum tensor {
-                nota "tensor: § § §"(tensor.nomen, tensor.dtype, json_numerus_lista(tensor.figura))
+                nota "tensor: § § §"(tensor.nomen, tensor.dtype, figura_textus(tensor.figura))
             }
             itera ex summary.diagnostics fixum diagnostic {
                 nota "diagnostic: §"(diagnostic.nuntius)
