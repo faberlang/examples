@@ -2,44 +2,48 @@
 
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
-importa ex "norma:chorda" privata chorda
+
+@ json
+@ privata
+genus ChatEventMetadata {
+    textus event
+    textus model
+    textus source
+    textus status
+    @ json { nomen = "router_model_id" }
+    textus router_model_id
+    textus runtime
+    @ json { nomen = "router_url" }
+    textus router_url
+}
+
+@ json
+@ privata
+genus DiagnosticEvent {
+    textus event
+    textus message
+}
+
+@ json
+@ privata
+genus ChatSummary {
+    textus model
+    textus source
+    textus status
+    @ json { nomen = "prompt_path" }
+    textus prompt_path
+    @ json { nomen = "output_path" }
+    textus output_path
+    @ json { nomen = "router_model_id" }
+    textus router_model_id
+    textus runtime
+    @ json { nomen = "router_url" }
+    textus router_url
+    lista<textus> diagnostics
+}
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
-}
-
-functio json_quote() → textus {
-    redde |22| ↦ textus
-}
-
-functio json_escape(textus value) → textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia lista<textus> partes ← vacua
-    varia numerus i ← 0
-    dum i < value.longitudo() {
-        fixum textus c ← value.sectio(i, i + 1)
-        si c ≡ q {
-            partes.appende(slash + q)
-        } sin c ≡ slash {
-            partes.appende(slash + slash)
-        } sin c ≡ "\n" {
-            partes.appende(slash + "n")
-        } sin c ≡ "\r" {
-            partes.appende(slash + "r")
-        } sin c ≡ "\t" {
-            partes.appende(slash + "t")
-        } secus {
-            partes.appende(c)
-        }
-        i ← i + 1
-    }
-    redde chorda.nexa(partes, "")
-}
-
-functio json_string(textus value) → textus {
-    fixum textus q ← json_quote()
-    redde q + json_escape(value) + q
 }
 
 functio quoted_value(textus line) → textus {
@@ -63,11 +67,12 @@ functio quoted_value(textus line) → textus {
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
-    redde line.initium(field + " = \"") et line.finis("\"")
+    fixum textus q ← |22| ↦ textus
+    redde line.initium("§ = §"(field, q)) et line.finis(q)
 }
 
 functio subset_field_candidate(textus line, textus field) → bivalens {
-    redde line.initium(field + " ") aut line.initium(field + "=")
+    redde line.initium("§ "(field)) aut line.initium("§="(field))
 }
 
 functio subset_line_supported(textus line) → bivalens {
@@ -100,7 +105,7 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
         si trimmed.initium("alias = ") {
             matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et trimmed.initium(field + " = ") {
+        si matched et trimmed.initium("§ = "(field)) {
             redde quoted_value(trimmed)
         }
     }
@@ -116,7 +121,7 @@ functio status_for(lista<textus> aliases, textus target) → textus {
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde "" + source
+    si source.longitudo() > 0 ergo redde "§"(source)
     redde target
 }
 
@@ -129,7 +134,37 @@ functio router_id_for(lista<textus> aliases, textus target) → textus {
 }
 
 functio blocked_diagnostic(textus target) → textus {
-    redde "Router-backed chat for " + target + " requires an explicit router runner or reachable local router"
+    redde "Router-backed chat for § requires an explicit router runner or reachable local router"(target)
+}
+
+@ privata
+functio render_chat_metadata(ChatEventMetadata eventum) → textus {
+    fac {
+        redde (eventum ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"event\":\"metadata\",\"model\":\"\",\"router_model_id\":\"\",\"router_url\":\"\",\"runtime\":\"\",\"source\":\"\",\"status\":\"error\"}"
+    }
+}
+
+@ privata
+functio render_diagnostic_event(DiagnosticEvent eventum) → textus {
+    fac {
+        redde (eventum ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"event\":\"diagnostic\",\"message\":\"json render failed\"}"
+    }
+}
+
+@ privata
+functio render_chat_summary(ChatSummary summarium) → textus {
+    fac {
+        redde (summarium ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"diagnostics\":[\"json render failed\"],\"model\":\"\",\"output_path\":\"\",\"prompt_path\":\"\",\"router_model_id\":\"\",\"router_url\":\"\",\"runtime\":\"\",\"source\":\"\",\"status\":\"error\"}"
+    }
 }
 
 functio event_metadata(
@@ -140,22 +175,22 @@ functio event_metadata(
     textus runtime,
     textus router_url,
 ) → textus {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "event" + q + ":" + json_string("metadata") + ","
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string(status) + ","
-    out ← out + q + "router_model_id" + q + ":" + json_string(router_id) + ","
-    out ← out + q + "runtime" + q + ":" + json_string(runtime) + ","
-    out ← out + q + "router_url" + q + ":" + json_string(router_url)
-    out ← out + "}"
-    redde out
+    redde render_chat_metadata(ChatEventMetadata {
+        event = "metadata",
+        model = target,
+        source = source,
+        status = status,
+        router_model_id = router_id,
+        runtime = runtime,
+        router_url = router_url
+    })
 }
 
 functio event_diagnostic(textus diagnosticum) → textus {
-    fixum textus q ← json_quote()
-    redde "{" + q + "event" + q + ":" + json_string("diagnostic") + "," + q + "message" + q + ":" + json_string(diagnosticum) + "}"
+    redde render_diagnostic_event(DiagnosticEvent {
+        event = "diagnostic",
+        message = diagnosticum
+    })
 }
 
 functio blocked_artifact(
@@ -165,7 +200,8 @@ functio blocked_artifact(
     textus router_id,
     textus router_url,
 ) → vacuum {
-    fixum textus body ← event_metadata(target, source, "blocked", router_id, "", router_url) + "\n" + event_diagnostic(blocked_diagnostic(target)) + "\n"
+    fixum textus diagnosticum ← blocked_diagnostic(target)
+    fixum textus body ← "§\n§\n"(event_metadata(target, source, "blocked", router_id, "", router_url), event_diagnostic(diagnosticum))
     solum.scribe(out_path, body)
 }
 
@@ -180,19 +216,17 @@ functio emit_summary_json(
     textus router_url,
     textus diagnosticum,
 ) → vacuum {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string(status) + ","
-    out ← out + q + "prompt_path" + q + ":" + json_string(prompt_path) + ","
-    out ← out + q + "output_path" + q + ":" + json_string(out_path) + ","
-    out ← out + q + "router_model_id" + q + ":" + json_string(router_id) + ","
-    out ← out + q + "runtime" + q + ":" + json_string(router_label) + ","
-    out ← out + q + "router_url" + q + ":" + json_string(router_url) + ","
-    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
-    out ← out + "}"
-    nota out
+    nota render_chat_summary(ChatSummary {
+        model = target,
+        source = source,
+        status = status,
+        prompt_path = prompt_path,
+        output_path = out_path,
+        router_model_id = router_id,
+        runtime = router_label,
+        router_url = router_url,
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio emit_summary_text(
@@ -305,17 +339,17 @@ functio curre(
     textus router_url,
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
-        emit_error(target, target, "alias map not found: " + map_path, formatum)
+        emit_error(target, target, "alias map not found: §"(map_path), formatum)
         redde
     }
     si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
-        emit_error(target, target, "alias map unreadable: " + map_path, formatum)
+        emit_error(target, target, "alias map unreadable: §"(map_path), formatum)
         redde
     }
 
-    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    fixum lista<textus> aliases ← solum.carpe(map_path)
     si alias_map_subset_supported(aliases) ≠ verum {
-        emit_error(target, target, "alias map outside supported subset: " + map_path, formatum)
+        emit_error(target, target, "alias map outside supported subset: §"(map_path), formatum)
         redde
     }
 
@@ -323,26 +357,26 @@ functio curre(
     fixum textus status ← status_for(aliases, target)
     fixum textus router_id ← router_id_for(aliases, target)
     si status ≠ "router-backed" {
-        emit_error(target, source, "chat requires router-backed model alias: " + target, formatum)
+        emit_error(target, source, "chat requires router-backed model alias: §"(target), formatum)
         redde
     }
     si router_id.longitudo() ≡ 0 {
-        emit_error(target, source, "router model id not found: " + target, formatum)
+        emit_error(target, source, "router model id not found: §"(target), formatum)
         redde
     }
 
     fixum textus local_path ← raw_local_path_for(aliases, target)
     si local_path.initium("/Users/ianzepp/ai/models/") ≠ verum {
-        emit_error(target, source, "router-backed GGUF must live under /Users/ianzepp/ai/models: " + target, formatum)
+        emit_error(target, source, "router-backed GGUF must live under /Users/ianzepp/ai/models: §"(target), formatum)
         redde
     }
 
     si solum.exstat(prompt_path) ≠ verum {
-        emit_error(target, source, "prompt file not found: " + prompt_path, formatum)
+        emit_error(target, source, "prompt file not found: §"(prompt_path), formatum)
         redde
     }
     si solum.regularene(prompt_path) ≠ verum aut solum.legibilene(prompt_path) ≠ verum {
-        emit_error(target, source, "prompt file unreadable: " + prompt_path, formatum)
+        emit_error(target, source, "prompt file unreadable: §"(prompt_path), formatum)
         redde
     }
 
@@ -353,11 +387,11 @@ functio curre(
     }
 
     si solum.exstat(router_runner) ≠ verum {
-        emit_error(target, source, "router runner not found: " + router_runner, formatum)
+        emit_error(target, source, "router runner not found: §"(router_runner), formatum)
         redde
     }
     si solum.regularene(router_runner) ≠ verum aut solum.legibilene(router_runner) ≠ verum {
-        emit_error(target, source, "router runner unreadable: " + router_runner, formatum)
+        emit_error(target, source, "router runner unreadable: §"(router_runner), formatum)
         redde
     }
 
@@ -366,19 +400,19 @@ functio curre(
     }
     fixum tabula<textus, valor> runner_result ← processus.captura(router_args(router_runner, prompt_path, out_path, target, source, router_id, local_path, router_label, router_url)) ↦ tabula<textus, valor>
     si result_status(runner_result) ≠ 0 {
-        emit_error(target, source, "router runner failed: " + runner_failure(runner_result), formatum)
+        emit_error(target, source, "router runner failed: §"(runner_failure(runner_result)), formatum)
         redde
     }
     si solum.exstat(out_path) ≠ verum {
-        emit_error(target, source, "router runner did not produce output: " + result_stdout(runner_result), formatum)
+        emit_error(target, source, "router runner did not produce output: §"(result_stdout(runner_result)), formatum)
         redde
     }
     si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
-        emit_error(target, source, "router runner output unreadable: " + out_path, formatum)
+        emit_error(target, source, "router runner output unreadable: §"(out_path), formatum)
         redde
     }
     si artifact_contains(out_path, "\"status\":\"router-backed\"") ≠ verum {
-        emit_error(target, source, "router runner output missing router-backed status: " + out_path, formatum)
+        emit_error(target, source, "router runner output missing router-backed status: §"(out_path), formatum)
         redde
     }
 

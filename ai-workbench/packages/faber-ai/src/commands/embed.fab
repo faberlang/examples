@@ -2,44 +2,50 @@
 
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
-importa ex "norma:chorda" privata chorda
 
+@ json
+@ privata
+genus VectorRecord {
+    textus id
+    textus text
+    lista<fractus> values
+}
+
+@ json
+@ privata
+genus Stage2Artifact {
+    @ json { nomen = "format" }
+    textus formatum
+    textus model
+    textus source
+    textus status
+    @ json { nomen = "input_count" }
+    numerus input_count
+    numerus dimensions
+    textus normalization
+    lista<VectorRecord> vectors
+    lista<textus> diagnostics
+}
+
+@ json
+@ privata
+genus EmbedResponse {
+    textus model
+    textus source
+    textus status
+    @ json { nomen = "input_count" }
+    numerus input_count
+    numerus dimensions
+    textus normalization
+    @ json { nomen = "vectors_path" }
+    textus vectors_path
+    textus oracle
+    lista<textus> diagnostics
+}
+
+@ privata
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
-}
-
-functio json_quote() → textus {
-    redde |22| ↦ textus
-}
-
-functio json_escape(textus value) → textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia lista<textus> partes ← vacua
-    varia numerus i ← 0
-    dum i < value.longitudo() {
-        fixum textus c ← value.sectio(i, i + 1)
-        si c ≡ q {
-            partes.appende(slash + q)
-        } sin c ≡ slash {
-            partes.appende(slash + slash)
-        } sin c ≡ "\n" {
-            partes.appende(slash + "n")
-        } sin c ≡ "\r" {
-            partes.appende(slash + "r")
-        } sin c ≡ "\t" {
-            partes.appende(slash + "t")
-        } secus {
-            partes.appende(c)
-        }
-        i ← i + 1
-    }
-    redde chorda.nexa(partes, "")
-}
-
-functio json_string(textus value) → textus {
-    fixum textus q ← json_quote()
-    redde q + json_escape(value) + q
 }
 
 functio quoted_value(textus line) → textus {
@@ -63,11 +69,12 @@ functio quoted_value(textus line) → textus {
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
-    redde line.initium(field + " = \"") et line.finis("\"")
+    fixum textus q ← |22| ↦ textus
+    redde line.initium("§ = §"(field, q)) et line.finis(q)
 }
 
 functio subset_field_candidate(textus line, textus field) → bivalens {
-    redde line.initium(field + " ") aut line.initium(field + "=")
+    redde line.initium("§ "(field)) aut line.initium("§="(field))
 }
 
 functio subset_line_supported(textus line) → bivalens {
@@ -100,7 +107,7 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
         si trimmed.initium("alias = ") {
             matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et trimmed.initium(field + " = ") {
+        si matched et trimmed.initium("§ = "(field)) {
             redde quoted_value(trimmed)
         }
     }
@@ -116,7 +123,7 @@ functio status_for(lista<textus> aliases, textus target) → textus {
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde "" + source
+    si source.longitudo() > 0 ergo redde "§"(source)
     redde target
 }
 
@@ -125,7 +132,7 @@ functio raw_local_path_for(lista<textus> aliases, textus target) → textus {
 }
 
 functio input_count(textus input_path) → numerus {
-    fixum lista<textus> lines ← solum.lege<lista<textus>>(input_path)
+    fixum lista<textus> lines ← solum.carpe(input_path)
     varia numerus count ← 0
     itera ex lines fixum line {
         si line.recide().longitudo() > 0 {
@@ -141,39 +148,57 @@ functio embedding_dimensions(textus target) → numerus {
 }
 
 functio blocked_diagnostic(textus target) → textus {
-    redde "Embedding execution for " + target + " not implemented; use an explicit oracle-backed runner"
+    redde "Embedding execution for § not implemented; use an explicit oracle-backed runner"(target)
+}
+
+@ privata
+functio render_stage2_artifact(Stage2Artifact artifact) → textus {
+    fac {
+        redde (artifact ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"diagnostics\":[\"json render failed\"],\"dimensions\":0,\"format\":\"fvi-stage2\",\"input_count\":0,\"model\":\"\",\"normalization\":\"\",\"source\":\"\",\"status\":\"error\",\"vectors\":[]}"
+    }
+}
+
+@ privata
+functio render_embed_response(EmbedResponse response) → textus {
+    fac {
+        redde (response ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"diagnostics\":[\"json render failed\"],\"dimensions\":0,\"input_count\":0,\"model\":\"\",\"normalization\":\"\",\"oracle\":\"\",\"source\":\"\",\"status\":\"error\",\"vectors_path\":\"\"}"
+    }
 }
 
 functio artifact_json(textus target, textus source, numerus count) → textus {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "format" + q + ":" + json_string("fvi-stage2") + ","
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string("blocked") + ","
-    out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
-    out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "normalization" + q + ":" + json_string("pending") + ","
-    out ← out + q + "vectors" + q + ":[],"
-    out ← out + q + "diagnostics" + q + ":[" + json_string(blocked_diagnostic(target)) + "]"
-    out ← out + "}"
-    redde out
+    fixum textus diagnosticum ← blocked_diagnostic(target)
+    redde render_stage2_artifact(Stage2Artifact {
+        formatum = "fvi-stage2",
+        model = target,
+        source = source,
+        status = "blocked",
+        input_count = count,
+        dimensions = 0,
+        normalization = "pending",
+        vectors = [],
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio emit_json(textus target, textus source, numerus count) → vacuum {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string("blocked") + ","
-    out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
-    out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "normalization" + q + ":" + json_string("pending") + ","
-    out ← out + q + "vectors_path" + q + ":" + json_string("") + ","
-    out ← out + q + "oracle" + q + ":" + json_string("") + ","
-    out ← out + q + "diagnostics" + q + ":[" + json_string(blocked_diagnostic(target)) + "]"
-    out ← out + "}"
-    nota out
+    fixum textus diagnosticum ← blocked_diagnostic(target)
+    nota render_embed_response(EmbedResponse {
+        model = target,
+        source = source,
+        status = "blocked",
+        input_count = count,
+        dimensions = 0,
+        normalization = "pending",
+        vectors_path = "",
+        oracle = "",
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio emit_text(textus target, textus source, numerus count) → vacuum {
@@ -187,20 +212,18 @@ functio emit_text(textus target, textus source, numerus count) → vacuum {
 }
 
 functio emit_oracle_json(textus target, textus source, numerus count, textus oracle_label) → vacuum {
-    fixum textus q ← json_quote()
     fixum numerus dimensions ← embedding_dimensions(target)
-    varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string("oracle-backed") + ","
-    out ← out + q + "input_count" + q + ":" + (count ↦ textus) + ","
-    out ← out + q + "dimensions" + q + ":" + (dimensions ↦ textus) + ","
-    out ← out + q + "normalization" + q + ":" + json_string("l2") + ","
-    out ← out + q + "vectors_path" + q + ":" + json_string("") + ","
-    out ← out + q + "oracle" + q + ":" + json_string(oracle_label) + ","
-    out ← out + q + "diagnostics" + q + ":[" + json_string("vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented") + "]"
-    out ← out + "}"
-    nota out
+    nota render_embed_response(EmbedResponse {
+        model = target,
+        source = source,
+        status = "oracle-backed",
+        input_count = count,
+        dimensions = dimensions,
+        normalization = "l2",
+        vectors_path = "",
+        oracle = oracle_label,
+        diagnostics = ["vectors produced by explicit oracle runner; Faber-owned transformer execution not implemented"]
+    })
 }
 
 functio emit_oracle_text(textus target, textus source, numerus count, textus oracle_label) → vacuum {
@@ -223,19 +246,17 @@ functio emit_oracle(textus target, textus source, numerus count, textus formatum
 }
 
 functio emit_error_json(textus target, textus diagnosticum) → vacuum {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(target) + ","
-    out ← out + q + "status" + q + ":" + json_string("error") + ","
-    out ← out + q + "input_count" + q + ":0,"
-    out ← out + q + "dimensions" + q + ":0,"
-    out ← out + q + "normalization" + q + ":" + json_string("") + ","
-    out ← out + q + "vectors_path" + q + ":" + json_string("") + ","
-    out ← out + q + "oracle" + q + ":" + json_string("") + ","
-    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
-    out ← out + "}"
-    nota out
+    nota render_embed_response(EmbedResponse {
+        model = "§"(target),
+        source = target,
+        status = "error",
+        input_count = 0,
+        dimensions = 0,
+        normalization = "",
+        vectors_path = "",
+        oracle = "",
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio emit_error_text(textus diagnosticum) → vacuum {
@@ -311,41 +332,41 @@ functio curre(
     textus oracle_label,
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
-        emit_error(target, "alias map not found: " + map_path, formatum)
+        emit_error(target, "alias map not found: §"(map_path), formatum)
         redde
     }
     si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
-        emit_error(target, "alias map unreadable: " + map_path, formatum)
+        emit_error(target, "alias map unreadable: §"(map_path), formatum)
         redde
     }
 
-    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    fixum lista<textus> aliases ← solum.carpe(map_path)
     si alias_map_subset_supported(aliases) ≠ verum {
-        emit_error(target, "alias map outside supported subset: " + map_path, formatum)
+        emit_error(target, "alias map outside supported subset: §"(map_path), formatum)
         redde
     }
 
     fixum textus status ← status_for(aliases, target)
     si status ≠ "local" {
-        emit_error(target, "embedding requires local model alias: " + target, formatum)
+        emit_error(target, "embedding requires local model alias: §"(target), formatum)
         redde
     }
 
     fixum textus local_path ← raw_local_path_for(aliases, target)
     si local_path.longitudo() ≡ 0 aut solum.exstat(local_path) ≠ verum {
-        emit_error(target, "local model file not found: " + target, formatum)
+        emit_error(target, "local model file not found: §"(target), formatum)
         redde
     }
     si solum.regularene(local_path) ≠ verum aut solum.legibilene(local_path) ≠ verum {
-        emit_error(target, "local model file unreadable: " + target, formatum)
+        emit_error(target, "local model file unreadable: §"(target), formatum)
         redde
     }
     si solum.exstat(input_path) ≠ verum {
-        emit_error(target, "input text file not found: " + input_path, formatum)
+        emit_error(target, "input text file not found: §"(input_path), formatum)
         redde
     }
     si solum.regularene(input_path) ≠ verum aut solum.legibilene(input_path) ≠ verum {
-        emit_error(target, "input text file unreadable: " + input_path, formatum)
+        emit_error(target, "input text file unreadable: §"(input_path), formatum)
         redde
     }
 
@@ -353,11 +374,11 @@ functio curre(
     fixum textus source ← source_for(aliases, target)
     si oracle_runner.longitudo() > 0 {
         si solum.exstat(oracle_runner) ≠ verum {
-            emit_error(target, "oracle runner not found: " + oracle_runner, formatum)
+            emit_error(target, "oracle runner not found: §"(oracle_runner), formatum)
             redde
         }
         si solum.regularene(oracle_runner) ≠ verum aut solum.legibilene(oracle_runner) ≠ verum {
-            emit_error(target, "oracle runner unreadable: " + oracle_runner, formatum)
+            emit_error(target, "oracle runner unreadable: §"(oracle_runner), formatum)
             redde
         }
         fixum textus model_dir ← solum.parens(local_path)
@@ -366,19 +387,19 @@ functio curre(
         }
         fixum tabula<textus, valor> runner_result ← processus.captura(oracle_args(oracle_runner, input_path, out_path, model_dir, target, source, oracle_label)) ↦ tabula<textus, valor>
         si result_status(runner_result) ≠ 0 {
-            emit_error(target, "oracle runner failed: " + runner_failure(runner_result), formatum)
+            emit_error(target, "oracle runner failed: §"(runner_failure(runner_result)), formatum)
             redde
         }
         si solum.exstat(out_path) ≠ verum {
-            emit_error(target, "oracle runner did not produce output: " + result_stdout(runner_result), formatum)
+            emit_error(target, "oracle runner did not produce output: §"(result_stdout(runner_result)), formatum)
             redde
         }
         si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
-            emit_error(target, "oracle runner output unreadable: " + out_path, formatum)
+            emit_error(target, "oracle runner output unreadable: §"(out_path), formatum)
             redde
         }
         si artifact_contains(out_path, "\"status\":\"oracle-backed\"") ≠ verum {
-            emit_error(target, "oracle runner output missing oracle-backed status: " + out_path, formatum)
+            emit_error(target, "oracle runner output missing oracle-backed status: §"(out_path), formatum)
             redde
         }
         emit_oracle(target, source, count, formatum, oracle_label)

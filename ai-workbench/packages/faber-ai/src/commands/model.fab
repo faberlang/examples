@@ -3,12 +3,43 @@
 importa ex "norma:solum" privata solum
 importa ex "norma:model" privata model
 
-functio format_jsonne(textus formatum) → bivalens {
-    redde formatum ≡ "json"
+@ json
+@ privata
+genus ModelTensorRecord {
+    @ json { nomen = "name" }
+    textus nomen
+    textus dtype
+    @ json { nomen = "shape" }
+    lista<numerus> figura
+    @ json { nomen = "parameter_count" }
+    numerus parameter_count
 }
 
-functio json_quote() → textus {
-    redde |22| ↦ textus
+@ json
+@ privata
+genus ModelInspectResponse {
+    textus alias
+    textus source
+    textus status
+    @ json { nomen = "format" }
+    textus formatum
+    @ json { nomen = "local_path" }
+    textus local_path
+    @ json { nomen = "router_model_id" }
+    textus router_model_id
+    lista<textus> files
+    lista<ModelTensorRecord> tensors
+    @ json { nomen = "tensor_count" }
+    numerus tensor_count
+    lista<textus> shards
+    textus quantization
+    @ json { nomen = "estimated_bytes" }
+    numerus estimated_bytes
+    lista<textus> diagnostics
+}
+
+functio format_jsonne(textus formatum) → bivalens {
+    redde formatum ≡ "json"
 }
 
 functio quoted_value(textus line) → textus {
@@ -32,11 +63,12 @@ functio quoted_value(textus line) → textus {
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
-    redde line.initium(field + " = \"") et line.finis("\"")
+    fixum textus q ← |22| ↦ textus
+    redde line.initium("§ = §"(field, q)) et line.finis(q)
 }
 
 functio subset_field_candidate(textus line, textus field) → bivalens {
-    redde line.initium(field + " ") aut line.initium(field + "=")
+    redde line.initium("§ "(field)) aut line.initium("§="(field))
 }
 
 functio subset_line_supported(textus line) → bivalens {
@@ -69,7 +101,7 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
         si trimmed.initium("alias = ") {
             matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et trimmed.initium(field + " = ") {
+        si matched et trimmed.initium("§ = "(field)) {
             redde quoted_value(trimmed)
         }
     }
@@ -169,27 +201,27 @@ probandum "model alias inspection" tag "ai-workbench" {
 }
 
 functio inspect_json(lista<textus> aliases, textus target) → vacuum {
-    fixum textus q ← json_quote()
-    fixum textus alias_json ←
-        "{" +
-        q + "alias" + q + ":" + q + target + q + "," +
-        q + "source" + q + ":" + q + source_for(aliases, target) + q + "," +
-        q + "status" + q + ":" + q + status_for(aliases, target) + q + "," +
-        q + "format" + q + ":" + q + format_for(aliases, target) + q + ","
-    fixum textus location_json ←
-        q + "local_path" + q + ":" + q + local_path_for(aliases, target) + q + "," +
-        q + "router_model_id" + q + ":" + q + router_id_for(aliases, target) + q + ","
-    fixum textus inventory_json ←
-        q + "files" + q + ":[]," +
-        q + "tensors" + q + ":[]," +
-        q + "tensor_count" + q + ":0," +
-        q + "shards" + q + ":[]," +
-        q + "quantization" + q + ":" + q + "" + q + "," +
-        q + "estimated_bytes" + q + ":0,"
-    fixum textus diagnostics_json ←
-        q + "diagnostics" + q + ":[" + q + diagnostic_for(aliases, target) + q + "]" +
-        "}"
-    nota alias_json + location_json + inventory_json + diagnostics_json
+    fixum textus source ← source_for(aliases, target)
+    fixum textus status ← status_for(aliases, target)
+    fixum textus formatum ← format_for(aliases, target)
+    fixum textus local_path ← local_path_for(aliases, target)
+    fixum textus router_id ← router_id_for(aliases, target)
+    fixum textus diagnosticum ← diagnostic_for(aliases, target)
+    nota render_model_response(ModelInspectResponse {
+        alias = target,
+        source = source,
+        status = status,
+        formatum = formatum,
+        local_path = local_path,
+        router_model_id = router_id,
+        files = [],
+        tensors = [],
+        tensor_count = 0,
+        shards = [],
+        quantization = "",
+        estimated_bytes = 0,
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio inspect_text(lista<textus> aliases, textus target) → vacuum {
@@ -206,31 +238,45 @@ functio inspect_text(lista<textus> aliases, textus target) → vacuum {
     nota "diagnostic: §"(diagnostic_for(aliases, target))
 }
 
-functio json_textus_lista(lista<textus> items) → textus {
-    fixum textus q ← json_quote()
-    varia textus out ← "["
-    varia numerus i ← 0
-    itera ex items fixum item {
-        si i > 0 {
-            out ← out + ","
-        }
-        out ← out + q + item + q
-        i ← i + 1
-    }
-    redde out + "]"
-}
-
 functio json_numerus_lista(lista<numerus> items) → textus {
     varia textus out ← "["
     varia numerus i ← 0
     itera ex items fixum item {
         si i > 0 {
-            out ← out + ","
+            out ← "§,"(out)
         }
-        out ← out + (item ↦ textus)
+        out ← "§§"(out, item ↦ textus)
         i ← i + 1
     }
-    redde out + "]"
+    redde "§]"(out)
+}
+
+@ privata
+functio render_model_response(ModelInspectResponse response) → textus {
+    fac {
+        redde (response ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"alias\":\"\",\"diagnostics\":[\"json render failed\"],\"estimated_bytes\":0,\"files\":[],\"format\":\"unknown\",\"local_path\":\"\",\"quantization\":\"\",\"router_model_id\":\"\",\"shards\":[],\"source\":\"\",\"status\":\"error\",\"tensor_count\":0,\"tensors\":[]}"
+    }
+}
+
+functio inspect_error_json(textus target, textus source, textus formatum, textus local_path, textus router_id, textus diagnosticum) → vacuum {
+    nota render_model_response(ModelInspectResponse {
+        alias = target,
+        source = source,
+        status = "error",
+        formatum = formatum,
+        local_path = local_path,
+        router_model_id = router_id,
+        files = [],
+        tensors = [],
+        tensor_count = 0,
+        shards = [],
+        quantization = "",
+        estimated_bytes = 0,
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio output_files(lista<textus> files, textus display_path) → lista<textus> {
@@ -259,56 +305,35 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
         fixum octeti data ← solum.partem(read_path, 0, 16777216)
         fixum _ summary ← model.tempta_safetensors_summarium(alias, source, display_path, data)
         si format_jsonne(formatum) {
-            fixum textus q ← json_quote()
-            varia textus tensors_json ← "["
-            varia numerus tensor_index ← 0
+            varia lista<ModelTensorRecord> tensors ← vacua
             itera ex summary.tensors fixum tensor {
-                si tensor_index > 0 {
-                    tensors_json ← tensors_json + ","
-                }
-                tensors_json ←
-                    tensors_json +
-                    "{" +
-                    q + "name" + q + ":" + q + tensor.nomen + q + "," +
-                    q + "dtype" + q + ":" + q + tensor.dtype + q + "," +
-                    q + "shape" + q + ":" + json_numerus_lista(tensor.figura) + "," +
-                    q + "parameter_count" + q + ":" + (tensor.parameter_count ↦ textus) +
-                    "}"
-                tensor_index ← tensor_index + 1
+                tensors.appende(ModelTensorRecord {
+                    nomen = tensor.nomen,
+                    dtype = tensor.dtype,
+                    figura = tensor.figura,
+                    parameter_count = tensor.parameter_count
+                })
             }
-            tensors_json ← tensors_json + "]"
 
-            varia textus diagnostics_json ← "["
-            varia numerus diagnostic_index ← 0
+            varia lista<textus> diagnostics ← vacua
             itera ex summary.diagnostics fixum diagnostic {
-                si diagnostic_index > 0 {
-                    diagnostics_json ← diagnostics_json + ","
-                }
-                diagnostics_json ← diagnostics_json + q + output_diagnostic(diagnostic.nuntius, display_path) + q
-                diagnostic_index ← diagnostic_index + 1
+                diagnostics.appende(output_diagnostic(diagnostic.nuntius, display_path))
             }
-            diagnostics_json ← diagnostics_json + "]"
-
-            fixum textus head_json ←
-                "{" +
-                q + "alias" + q + ":" + q + summary.alias + q + "," +
-                q + "source" + q + ":" + q + summary.source + q + "," +
-                q + "status" + q + ":" + q + summary.status + q + "," +
-                q + "format" + q + ":" + q + summary.formatum + q + ","
-            fixum textus location_json ←
-                q + "local_path" + q + ":" + q + summary.local_path + q + "," +
-                q + "router_model_id" + q + ":" + q + "" + q + ","
-            fixum textus inventory_json ←
-                q + "files" + q + ":" + json_textus_lista(output_files(summary.files, display_path)) + "," +
-                q + "tensors" + q + ":" + tensors_json + "," +
-                q + "tensor_count" + q + ":" + (summary.tensor_count ↦ textus) + "," +
-                q + "shards" + q + ":" + json_textus_lista(summary.shards) + "," +
-                q + "quantization" + q + ":" + q + summary.quantization + q + "," +
-                q + "estimated_bytes" + q + ":" + (summary.estimated_bytes ↦ textus) + ","
-            fixum textus diagnostics_field_json ←
-                q + "diagnostics" + q + ":" + diagnostics_json +
-                "}"
-            nota head_json + location_json + inventory_json + diagnostics_field_json
+            nota render_model_response(ModelInspectResponse {
+                alias = summary.alias,
+                source = summary.source,
+                status = summary.status,
+                formatum = summary.formatum,
+                local_path = summary.local_path,
+                router_model_id = "",
+                files = output_files(summary.files, display_path),
+                tensors = tensors,
+                tensor_count = summary.tensor_count,
+                shards = summary.shards,
+                quantization = summary.quantization,
+                estimated_bytes = summary.estimated_bytes,
+                diagnostics = diagnostics
+            })
         } secus {
             nota "alias: §"(summary.alias)
             nota "source: §"(summary.source)
@@ -326,28 +351,8 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
         }
     }
     cape err {
-        fixum textus q ← json_quote()
         si format_jsonne(formatum) {
-            fixum textus head_json ←
-                "{" +
-                q + "alias" + q + ":" + q + alias + q + "," +
-                q + "source" + q + ":" + q + source + q + "," +
-                q + "status" + q + ":" + q + "error" + q + "," +
-                q + "format" + q + ":" + q + "safetensors" + q + ","
-            fixum textus location_json ←
-                q + "local_path" + q + ":" + q + display_path + q + "," +
-                q + "router_model_id" + q + ":" + q + "" + q + ","
-            fixum textus inventory_json ←
-                q + "files" + q + ":[]," +
-                q + "tensors" + q + ":[]," +
-                q + "tensor_count" + q + ":0," +
-                q + "shards" + q + ":[]," +
-                q + "quantization" + q + ":" + q + "" + q + "," +
-                q + "estimated_bytes" + q + ":0,"
-            fixum textus diagnostics_json ←
-                q + "diagnostics" + q + ":[" + q + "safetensors metadata error: " + err.nuntius + q + "]" +
-                "}"
-            nota head_json + location_json + inventory_json + diagnostics_json
+            inspect_error_json(alias, source, "safetensors", display_path, "", "safetensors metadata error: §"(err.nuntius))
         } secus {
             nota "alias: §"(alias)
             nota "source: §"(source)
@@ -360,74 +365,54 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
 }
 
 functio inspect_local_gguf(textus alias, textus source, textus read_path, textus display_path, textus router_model_id, textus formatum) → vacuum {
+    fixum textus router_id_output ← "§"(router_model_id)
     fac {
         varia numerus prefix_bytes ← 16777216
-        si router_model_id.longitudo() > 0 et display_path.longitudo() ≡ 0 {
+        si router_id_output.longitudo() > 0 et display_path.longitudo() ≡ 0 {
             prefix_bytes ← 65536
         }
         fixum octeti data ← solum.partem(read_path, 0, prefix_bytes)
         fixum numerus file_size ← solum.mensura(read_path)
-        fixum _ summary ← model.tempta_gguf_summarium(alias, source, display_path, router_model_id, data, file_size)
-        fixum textus quantization_text ← gguf_quantization_for(read_path, router_model_id, summary.quantization)
+        fixum _ summary ← model.tempta_gguf_summarium(alias, source, display_path, router_id_output, data, file_size)
+        fixum textus quantization_text ← gguf_quantization_for(read_path, router_id_output, summary.quantization)
         si format_jsonne(formatum) {
-            fixum textus q ← json_quote()
-            varia textus tensors_json ← "["
-            varia numerus tensor_index ← 0
+            varia lista<ModelTensorRecord> tensors ← vacua
             itera ex summary.tensors fixum tensor {
-                si tensor_index > 0 {
-                    tensors_json ← tensors_json + ","
-                }
-                tensors_json ←
-                    tensors_json +
-                    "{" +
-                    q + "name" + q + ":" + q + tensor.nomen + q + "," +
-                    q + "dtype" + q + ":" + q + tensor.dtype + q + "," +
-                    q + "shape" + q + ":" + json_numerus_lista(tensor.figura) + "," +
-                    q + "parameter_count" + q + ":" + (tensor.parameter_count ↦ textus) +
-                    "}"
-                tensor_index ← tensor_index + 1
+                tensors.appende(ModelTensorRecord {
+                    nomen = tensor.nomen,
+                    dtype = tensor.dtype,
+                    figura = tensor.figura,
+                    parameter_count = tensor.parameter_count
+                })
             }
-            tensors_json ← tensors_json + "]"
 
-            varia textus diagnostics_json ← "["
-            varia numerus diagnostic_index ← 0
+            varia lista<textus> diagnostics ← vacua
             itera ex summary.diagnostics fixum diagnostic {
-                si diagnostic_index > 0 {
-                    diagnostics_json ← diagnostics_json + ","
-                }
-                diagnostics_json ← diagnostics_json + q + diagnostic.nuntius + q
-                diagnostic_index ← diagnostic_index + 1
+                diagnostics.appende(diagnostic.nuntius)
             }
-            diagnostics_json ← diagnostics_json + "]"
-
-            fixum textus head_json ←
-                "{" +
-                q + "alias" + q + ":" + q + summary.alias + q + "," +
-                q + "source" + q + ":" + q + summary.source + q + "," +
-                q + "status" + q + ":" + q + summary.status + q + "," +
-                q + "format" + q + ":" + q + summary.formatum + q + ","
-            fixum textus location_json ←
-                q + "local_path" + q + ":" + q + summary.local_path + q + "," +
-                q + "router_model_id" + q + ":" + q + router_model_id + q + ","
-            fixum textus inventory_json ←
-                q + "files" + q + ":" + json_textus_lista(summary.files) + "," +
-                q + "tensors" + q + ":" + tensors_json + "," +
-                q + "tensor_count" + q + ":" + (summary.tensor_count ↦ textus) + "," +
-                q + "shards" + q + ":" + json_textus_lista(summary.shards) + "," +
-                q + "quantization" + q + ":" + q + quantization_text + q + "," +
-                q + "estimated_bytes" + q + ":" + (summary.estimated_bytes ↦ textus) + ","
-            fixum textus diagnostics_field_json ←
-                q + "diagnostics" + q + ":" + diagnostics_json +
-                "}"
-            nota head_json + location_json + inventory_json + diagnostics_field_json
+            nota render_model_response(ModelInspectResponse {
+                alias = summary.alias,
+                source = summary.source,
+                status = summary.status,
+                formatum = summary.formatum,
+                local_path = summary.local_path,
+                router_model_id = "§"(router_id_output),
+                files = summary.files,
+                tensors = tensors,
+                tensor_count = summary.tensor_count,
+                shards = summary.shards,
+                quantization = quantization_text,
+                estimated_bytes = summary.estimated_bytes,
+                diagnostics = diagnostics
+            })
         } secus {
             nota "alias: §"(summary.alias)
             nota "source: §"(summary.source)
             nota "status: §"(summary.status)
             nota "format: §"(summary.formatum)
             nota "local_path: §"(summary.local_path)
-            si router_model_id.longitudo() > 0 {
-                nota "router_model_id: §"(router_model_id)
+            si router_id_output.longitudo() > 0 {
+                nota "router_model_id: §"(router_id_output)
             }
             nota "tensor_count: §"(summary.tensor_count)
             nota "quantization: §"(quantization_text)
@@ -441,36 +426,16 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
         }
     }
     cape err {
-        fixum textus q ← json_quote()
         si format_jsonne(formatum) {
-            fixum textus head_json ←
-                "{" +
-                q + "alias" + q + ":" + q + alias + q + "," +
-                q + "source" + q + ":" + q + source + q + "," +
-                q + "status" + q + ":" + q + "error" + q + "," +
-                q + "format" + q + ":" + q + "gguf" + q + ","
-            fixum textus location_json ←
-                q + "local_path" + q + ":" + q + display_path + q + "," +
-                q + "router_model_id" + q + ":" + q + router_model_id + q + ","
-            fixum textus inventory_json ←
-                q + "files" + q + ":[]," +
-                q + "tensors" + q + ":[]," +
-                q + "tensor_count" + q + ":0," +
-                q + "shards" + q + ":[]," +
-                q + "quantization" + q + ":" + q + "" + q + "," +
-                q + "estimated_bytes" + q + ":0,"
-            fixum textus diagnostics_json ←
-                q + "diagnostics" + q + ":[" + q + "gguf metadata error: " + err.nuntius + q + "]" +
-                "}"
-            nota head_json + location_json + inventory_json + diagnostics_json
+            inspect_error_json(alias, source, "gguf", display_path, router_id_output, "gguf metadata error: §"(err.nuntius))
         } secus {
             nota "alias: §"(alias)
             nota "source: §"(source)
             nota "status: error"
             nota "format: gguf"
             nota "local_path: §"(display_path)
-            si router_model_id.longitudo() > 0 {
-                nota "router_model_id: §"(router_model_id)
+            si router_id_output.longitudo() > 0 {
+                nota "router_model_id: §"(router_id_output)
             }
             nota "diagnostic: gguf metadata error: §"(err.nuntius)
         }
@@ -478,27 +443,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
 }
 
 functio inspect_map_missing_json(textus target, textus map_path) → vacuum {
-    fixum textus q ← json_quote()
-    fixum textus head_json ←
-        "{" +
-        q + "alias" + q + ":" + q + target + q + "," +
-        q + "source" + q + ":" + q + map_path + q + "," +
-        q + "status" + q + ":" + q + "error" + q + "," +
-        q + "format" + q + ":" + q + "unknown" + q + ","
-    fixum textus location_json ←
-        q + "local_path" + q + ":" + q + "" + q + "," +
-        q + "router_model_id" + q + ":" + q + "" + q + ","
-    fixum textus inventory_json ←
-        q + "files" + q + ":[]," +
-        q + "tensors" + q + ":[]," +
-        q + "tensor_count" + q + ":0," +
-        q + "shards" + q + ":[]," +
-        q + "quantization" + q + ":" + q + "" + q + "," +
-        q + "estimated_bytes" + q + ":0,"
-    fixum textus diagnostics_json ←
-        q + "diagnostics" + q + ":[" + q + "alias map not found: " + map_path + q + "]" +
-        "}"
-    nota head_json + location_json + inventory_json + diagnostics_json
+    inspect_error_json(target, map_path, "unknown", "", "", "alias map not found: §"(map_path))
 }
 
 functio inspect_map_missing_text(textus target, textus map_path) → vacuum {
@@ -510,27 +455,7 @@ functio inspect_map_missing_text(textus target, textus map_path) → vacuum {
 }
 
 functio inspect_map_unreadable_json(textus target, textus map_path) → vacuum {
-    fixum textus q ← json_quote()
-    fixum textus head_json ←
-        "{" +
-        q + "alias" + q + ":" + q + target + q + "," +
-        q + "source" + q + ":" + q + map_path + q + "," +
-        q + "status" + q + ":" + q + "error" + q + "," +
-        q + "format" + q + ":" + q + "unknown" + q + ","
-    fixum textus location_json ←
-        q + "local_path" + q + ":" + q + "" + q + "," +
-        q + "router_model_id" + q + ":" + q + "" + q + ","
-    fixum textus inventory_json ←
-        q + "files" + q + ":[]," +
-        q + "tensors" + q + ":[]," +
-        q + "tensor_count" + q + ":0," +
-        q + "shards" + q + ":[]," +
-        q + "quantization" + q + ":" + q + "" + q + "," +
-        q + "estimated_bytes" + q + ":0,"
-    fixum textus diagnostics_json ←
-        q + "diagnostics" + q + ":[" + q + "alias map unreadable: " + map_path + q + "]" +
-        "}"
-    nota head_json + location_json + inventory_json + diagnostics_json
+    inspect_error_json(target, map_path, "unknown", "", "", "alias map unreadable: §"(map_path))
 }
 
 functio inspect_map_unreadable_text(textus target, textus map_path) → vacuum {
@@ -542,27 +467,7 @@ functio inspect_map_unreadable_text(textus target, textus map_path) → vacuum {
 }
 
 functio inspect_map_invalid_json(textus target, textus map_path) → vacuum {
-    fixum textus q ← json_quote()
-    fixum textus head_json ←
-        "{" +
-        q + "alias" + q + ":" + q + target + q + "," +
-        q + "source" + q + ":" + q + map_path + q + "," +
-        q + "status" + q + ":" + q + "error" + q + "," +
-        q + "format" + q + ":" + q + "unknown" + q + ","
-    fixum textus location_json ←
-        q + "local_path" + q + ":" + q + "" + q + "," +
-        q + "router_model_id" + q + ":" + q + "" + q + ","
-    fixum textus inventory_json ←
-        q + "files" + q + ":[]," +
-        q + "tensors" + q + ":[]," +
-        q + "tensor_count" + q + ":0," +
-        q + "shards" + q + ":[]," +
-        q + "quantization" + q + ":" + q + "" + q + "," +
-        q + "estimated_bytes" + q + ":0,"
-    fixum textus diagnostics_json ←
-        q + "diagnostics" + q + ":[" + q + "alias map outside supported subset: " + map_path + q + "]" +
-        "}"
-    nota head_json + location_json + inventory_json + diagnostics_json
+    inspect_error_json(target, map_path, "unknown", "", "", "alias map outside supported subset: §"(map_path))
 }
 
 functio inspect_map_invalid_text(textus target, textus map_path) → vacuum {
@@ -579,9 +484,9 @@ functio inspect_map_invalid_text(textus target, textus map_path) → vacuum {
 @ optio map longum "alias-map" typus textus vel "docs/campaigns/ai-workbench/model-aliases.toml" descriptio "Alias map TOML path"
 @ operandus textus target descriptio "Model alias or local file path"
 functio inspect() argumenta args → vacuum {
-    fixum textus map_path ← "" + args.map
-    fixum textus target ← "" + args.target
-    fixum textus output_format ← "" + args.format
+    fixum textus map_path ← "§"(args.map)
+    fixum textus target ← "§"(args.target)
+    fixum textus output_format ← "§"(args.format)
     si solum.exstat(target) et solum.regularene(target) et solum.legibilene(target) {
         si model.formatum("local", target) ≡ "safetensors" {
             inspect_local_safetensors(target, target, target, target, output_format)
@@ -610,7 +515,7 @@ functio inspect() argumenta args → vacuum {
         redde
     }
 
-    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    fixum lista<textus> aliases ← solum.carpe(map_path)
     si alias_map_subset_supported(aliases) ≠ verum {
         si format_jsonne(output_format) {
             inspect_map_invalid_json(target, map_path)

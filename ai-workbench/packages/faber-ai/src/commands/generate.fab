@@ -2,44 +2,49 @@
 
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
-importa ex "norma:chorda" privata chorda
+
+@ json
+@ privata
+genus GenerateEventMetadata {
+    textus event
+    textus model
+    textus source
+    textus status
+    textus runtime
+    @ json { nomen = "max_new_tokens" }
+    numerus max_new_tokens
+    textus temperature
+    numerus seed
+}
+
+@ json
+@ privata
+genus DiagnosticEvent {
+    textus event
+    textus message
+}
+
+@ json
+@ privata
+genus GenerateSummary {
+    textus model
+    textus source
+    textus status
+    @ json { nomen = "prompt_path" }
+    textus prompt_path
+    @ json { nomen = "output_path" }
+    textus output_path
+    bivalens streaming
+    textus oracle
+    @ json { nomen = "max_new_tokens" }
+    numerus max_new_tokens
+    textus temperature
+    numerus seed
+    lista<textus> diagnostics
+}
 
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
-}
-
-functio json_quote() → textus {
-    redde |22| ↦ textus
-}
-
-functio json_escape(textus value) → textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia lista<textus> partes ← vacua
-    varia numerus i ← 0
-    dum i < value.longitudo() {
-        fixum textus c ← value.sectio(i, i + 1)
-        si c ≡ q {
-            partes.appende(slash + q)
-        } sin c ≡ slash {
-            partes.appende(slash + slash)
-        } sin c ≡ "\n" {
-            partes.appende(slash + "n")
-        } sin c ≡ "\r" {
-            partes.appende(slash + "r")
-        } sin c ≡ "\t" {
-            partes.appende(slash + "t")
-        } secus {
-            partes.appende(c)
-        }
-        i ← i + 1
-    }
-    redde chorda.nexa(partes, "")
-}
-
-functio json_string(textus value) → textus {
-    fixum textus q ← json_quote()
-    redde q + json_escape(value) + q
 }
 
 functio quoted_value(textus line) → textus {
@@ -63,11 +68,12 @@ functio quoted_value(textus line) → textus {
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
-    redde line.initium(field + " = \"") et line.finis("\"")
+    fixum textus q ← |22| ↦ textus
+    redde line.initium("§ = §"(field, q)) et line.finis(q)
 }
 
 functio subset_field_candidate(textus line, textus field) → bivalens {
-    redde line.initium(field + " ") aut line.initium(field + "=")
+    redde line.initium("§ "(field)) aut line.initium("§="(field))
 }
 
 functio subset_line_supported(textus line) → bivalens {
@@ -100,7 +106,7 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
         si trimmed.initium("alias = ") {
             matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et trimmed.initium(field + " = ") {
+        si matched et trimmed.initium("§ = "(field)) {
             redde quoted_value(trimmed)
         }
     }
@@ -116,7 +122,7 @@ functio status_for(lista<textus> aliases, textus target) → textus {
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde "" + source
+    si source.longitudo() > 0 ergo redde "§"(source)
     redde target
 }
 
@@ -125,7 +131,37 @@ functio raw_local_path_for(lista<textus> aliases, textus target) → textus {
 }
 
 functio blocked_diagnostic(textus target) → textus {
-    redde "Generation execution for " + target + " not implemented; use an explicit oracle-backed runner"
+    redde "Generation execution for § not implemented; use an explicit oracle-backed runner"(target)
+}
+
+@ privata
+functio render_generate_metadata(GenerateEventMetadata eventum) → textus {
+    fac {
+        redde (eventum ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"event\":\"metadata\",\"max_new_tokens\":0,\"model\":\"\",\"runtime\":\"\",\"seed\":0,\"source\":\"\",\"status\":\"error\",\"temperature\":\"0\"}"
+    }
+}
+
+@ privata
+functio render_diagnostic_event(DiagnosticEvent eventum) → textus {
+    fac {
+        redde (eventum ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"event\":\"diagnostic\",\"message\":\"json render failed\"}"
+    }
+}
+
+@ privata
+functio render_generate_summary(GenerateSummary summarium) → textus {
+    fac {
+        redde (summarium ↦ json) ↦ textus
+    }
+    cape err {
+        redde "{\"diagnostics\":[\"json render failed\"],\"max_new_tokens\":0,\"model\":\"\",\"oracle\":\"\",\"output_path\":\"\",\"prompt_path\":\"\",\"seed\":0,\"source\":\"\",\"status\":\"error\",\"streaming\":false,\"temperature\":\"0\"}"
+    }
 }
 
 functio event_metadata(
@@ -137,23 +173,23 @@ functio event_metadata(
     textus temperature,
     numerus seed,
 ) → textus {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "event" + q + ":" + json_string("metadata") + ","
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string(status) + ","
-    out ← out + q + "runtime" + q + ":" + json_string(oracle_label) + ","
-    out ← out + q + "max_new_tokens" + q + ":" + (max_new_tokens ↦ textus) + ","
-    out ← out + q + "temperature" + q + ":" + json_string(temperature) + ","
-    out ← out + q + "seed" + q + ":" + (seed ↦ textus)
-    out ← out + "}"
-    redde out
+    redde render_generate_metadata(GenerateEventMetadata {
+        event = "metadata",
+        model = target,
+        source = source,
+        status = status,
+        runtime = oracle_label,
+        max_new_tokens = max_new_tokens,
+        temperature = temperature,
+        seed = seed
+    })
 }
 
 functio event_diagnostic(textus diagnosticum) → textus {
-    fixum textus q ← json_quote()
-    redde "{" + q + "event" + q + ":" + json_string("diagnostic") + "," + q + "message" + q + ":" + json_string(diagnosticum) + "}"
+    redde render_diagnostic_event(DiagnosticEvent {
+        event = "diagnostic",
+        message = diagnosticum
+    })
 }
 
 functio blocked_artifact(
@@ -165,7 +201,7 @@ functio blocked_artifact(
     numerus seed,
 ) → vacuum {
     fixum textus diagnosticum ← blocked_diagnostic(target)
-    fixum textus body ← event_metadata(target, source, "blocked", "", max_new_tokens, temperature, seed) + "\n" + event_diagnostic(diagnosticum) + "\n"
+    fixum textus body ← "§\n§\n"(event_metadata(target, source, "blocked", "", max_new_tokens, temperature, seed), event_diagnostic(diagnosticum))
     solum.scribe(out_path, body)
 }
 
@@ -182,21 +218,19 @@ functio emit_summary_json(
     numerus seed,
     textus diagnosticum,
 ) → vacuum {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "model" + q + ":" + json_string(target) + ","
-    out ← out + q + "source" + q + ":" + json_string(source) + ","
-    out ← out + q + "status" + q + ":" + json_string(status) + ","
-    out ← out + q + "prompt_path" + q + ":" + json_string(prompt_path) + ","
-    out ← out + q + "output_path" + q + ":" + json_string(out_path) + ","
-    out ← out + q + "streaming" + q + ":" + (streaming ↦ textus) + ","
-    out ← out + q + "oracle" + q + ":" + json_string(oracle_label) + ","
-    out ← out + q + "max_new_tokens" + q + ":" + (max_new_tokens ↦ textus) + ","
-    out ← out + q + "temperature" + q + ":" + json_string(temperature) + ","
-    out ← out + q + "seed" + q + ":" + (seed ↦ textus) + ","
-    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
-    out ← out + "}"
-    nota out
+    nota render_generate_summary(GenerateSummary {
+        model = target,
+        source = source,
+        status = status,
+        prompt_path = prompt_path,
+        output_path = out_path,
+        streaming = streaming,
+        oracle = oracle_label,
+        max_new_tokens = max_new_tokens,
+        temperature = temperature,
+        seed = seed,
+        diagnostics = [diagnosticum]
+    })
 }
 
 functio emit_summary_text(
@@ -316,42 +350,42 @@ functio curre(
     numerus seed,
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
-        emit_error(target, target, "alias map not found: " + map_path, formatum)
+        emit_error(target, target, "alias map not found: §"(map_path), formatum)
         redde
     }
     si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
-        emit_error(target, target, "alias map unreadable: " + map_path, formatum)
+        emit_error(target, target, "alias map unreadable: §"(map_path), formatum)
         redde
     }
 
-    fixum lista<textus> aliases ← solum.lege<lista<textus>>(map_path)
+    fixum lista<textus> aliases ← solum.carpe(map_path)
     si alias_map_subset_supported(aliases) ≠ verum {
-        emit_error(target, target, "alias map outside supported subset: " + map_path, formatum)
+        emit_error(target, target, "alias map outside supported subset: §"(map_path), formatum)
         redde
     }
 
     fixum textus source ← source_for(aliases, target)
     fixum textus status ← status_for(aliases, target)
     si status ≠ "local" {
-        emit_error(target, source, "generation requires local model alias: " + target, formatum)
+        emit_error(target, source, "generation requires local model alias: §"(target), formatum)
         redde
     }
 
     fixum textus local_path ← raw_local_path_for(aliases, target)
     si local_path.longitudo() ≡ 0 aut solum.exstat(local_path) ≠ verum {
-        emit_error(target, source, "local model index not found: " + target, formatum)
+        emit_error(target, source, "local model index not found: §"(target), formatum)
         redde
     }
     si solum.regularene(local_path) ≠ verum aut solum.legibilene(local_path) ≠ verum {
-        emit_error(target, source, "local model index unreadable: " + target, formatum)
+        emit_error(target, source, "local model index unreadable: §"(target), formatum)
         redde
     }
     si solum.exstat(prompt_path) ≠ verum {
-        emit_error(target, source, "prompt file not found: " + prompt_path, formatum)
+        emit_error(target, source, "prompt file not found: §"(prompt_path), formatum)
         redde
     }
     si solum.regularene(prompt_path) ≠ verum aut solum.legibilene(prompt_path) ≠ verum {
-        emit_error(target, source, "prompt file unreadable: " + prompt_path, formatum)
+        emit_error(target, source, "prompt file unreadable: §"(prompt_path), formatum)
         redde
     }
 
@@ -362,11 +396,11 @@ functio curre(
     }
 
     si solum.exstat(oracle_runner) ≠ verum {
-        emit_error(target, source, "oracle runner not found: " + oracle_runner, formatum)
+        emit_error(target, source, "oracle runner not found: §"(oracle_runner), formatum)
         redde
     }
     si solum.regularene(oracle_runner) ≠ verum aut solum.legibilene(oracle_runner) ≠ verum {
-        emit_error(target, source, "oracle runner unreadable: " + oracle_runner, formatum)
+        emit_error(target, source, "oracle runner unreadable: §"(oracle_runner), formatum)
         redde
     }
 
@@ -376,19 +410,19 @@ functio curre(
     fixum textus model_dir ← solum.parens(local_path)
     fixum tabula<textus, valor> runner_result ← processus.captura(oracle_args(oracle_runner, prompt_path, out_path, model_dir, target, source, oracle_label, max_new_tokens, temperature, seed)) ↦ tabula<textus, valor>
     si result_status(runner_result) ≠ 0 {
-        emit_error(target, source, "oracle runner failed: " + runner_failure(runner_result), formatum)
+        emit_error(target, source, "oracle runner failed: §"(runner_failure(runner_result)), formatum)
         redde
     }
     si solum.exstat(out_path) ≠ verum {
-        emit_error(target, source, "oracle runner did not produce output: " + result_stdout(runner_result), formatum)
+        emit_error(target, source, "oracle runner did not produce output: §"(result_stdout(runner_result)), formatum)
         redde
     }
     si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
-        emit_error(target, source, "oracle runner output unreadable: " + out_path, formatum)
+        emit_error(target, source, "oracle runner output unreadable: §"(out_path), formatum)
         redde
     }
     si artifact_contains(out_path, "\"status\":\"oracle-backed\"") ≠ verum {
-        emit_error(target, source, "oracle runner output missing oracle-backed status: " + out_path, formatum)
+        emit_error(target, source, "oracle runner output missing oracle-backed status: §"(out_path), formatum)
         redde
     }
 
