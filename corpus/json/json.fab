@@ -5,6 +5,8 @@ category = "type"
 canonical = true
 +++
 
+importa ex "norma:json" privata json
+
 @ json
 genus Payload {
     @ json { nomen = "wire_name" }
@@ -18,8 +20,19 @@ incipit {
 
     fixum Payload payload ← narrowed ↦ Payload
     fixum json encoded ← payload ↦ json
-    fixum textus wire ← encoded ↦ textus
+    fixum textus wire ← json.pange(encoded)
+    fixum json ∪ nihil tentativa ← json.tempta(wire)
 
     nota payload.name
     nota wire
+    nota tentativa
+
+    fac {
+        fixum json reparsed ← json.solve(wire)
+        fixum Payload roundtrip ← reparsed ↦ Payload
+        nota roundtrip.name
+    }
+    cape err {
+        nota err
+    }
 }
