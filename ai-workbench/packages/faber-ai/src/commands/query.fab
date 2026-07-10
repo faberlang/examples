@@ -2,296 +2,101 @@
 
 importa ex "norma:solum" privata solum
 
+@ json
+@ privata
 genus VectorRecord {
     textus id
     textus text
     lista<fractus> values
 }
 
+@ json
+@ privata
+genus Stage3Index {
+    @ json { nomen = "format" }
+    textus formatum
+    @ json { nomen = "source_format" }
+    textus source_format
+    textus model
+    textus source
+    @ json { nomen = "input_vectors" }
+    numerus input_vectors
+    numerus dimensions
+    textus metric
+    textus normalization
+    lista<VectorRecord> vectors
+    lista<textus> diagnostics
+}
+
+@ json
+@ privata
+genus QueryVector {
+    @ json { nomen = "format" }
+    textus formatum
+    textus model
+    numerus dimensions
+    textus normalization
+    textus query
+    lista<fractus> values
+    lista<textus> diagnostics
+}
+
+@ json
+@ privata
 genus ScoredRecord {
+    numerus rank
     textus id
     textus text
     fractus score
 }
 
+@ json
+@ privata
+genus QueryCommandResponse {
+    textus status
+    textus query
+    numerus top
+    textus metric
+    lista<ScoredRecord> results
+    lista<textus> diagnostics
+}
+
+@ privata
 functio format_jsonne(textus formatum) → bivalens {
     redde formatum ≡ "json"
 }
 
-functio json_quote() → textus {
-    redde |22| ↦ textus
+@ privata
+functio parse_stage3_index(textus wire) → Stage3Index ⇥ textus {
+    fixum json documentum ← wire ↦ json
+    redde documentum ↦ Stage3Index
 }
 
-functio json_escape(textus value) → textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia textus out ← ""
-    varia numerus i ← 0
-    dum i < value.longitudo() {
-        fixum textus c ← value.sectio(i, i + 1)
-        si c ≡ q {
-            out ← out + slash + q
-        } sin c ≡ slash {
-            out ← out + slash + slash
-        } sin c ≡ "\n" {
-            out ← out + slash + "n"
-        } sin c ≡ "\r" {
-            out ← out + slash + "r"
-        } sin c ≡ "\t" {
-            out ← out + slash + "t"
-        } secus {
-            out ← out + c
-        }
-        i ← i + 1
+@ privata
+functio parse_query_vector(textus wire) → QueryVector ⇥ textus {
+    fixum json documentum ← wire ↦ json
+    redde documentum ↦ QueryVector
+}
+
+@ privata
+functio render_query_response(QueryCommandResponse response) → textus {
+    fac {
+        redde (response ↦ json) ↦ textus
     }
-    redde out
-}
-
-functio json_string(textus value) → textus {
-    fixum textus q ← json_quote()
-    redde q + json_escape(value) + q
-}
-
-functio find_from(textus s, textus needle, numerus start) → numerus {
-    fixum numerus n ← needle.longitudo()
-    varia numerus i ← start
-    dum i + n ≤ s.longitudo() {
-        si s.sectio(i, i + n) ≡ needle ergo redde i
-        i ← i + 1
+    cape err {
+        redde "{\"diagnostics\":[\"json render failed\"],\"metric\":\"\",\"query\":\"\",\"results\":[],\"status\":\"error\",\"top\":0}"
     }
-    redde -1
 }
-
-functio json_string_end(textus documentum, numerus start) → numerus ⇥ textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia bivalens escaped ← falsum
-    varia numerus i ← start
-    dum i < documentum.longitudo() {
-        fixum textus c ← documentum.sectio(i, i + 1)
-        si escaped {
-            escaped ← (falsum)
-        } sin c ≡ slash {
-            escaped ← (verum)
-        } sin c ≡ q {
-            redde i
-        }
-        i ← i + 1
-    }
-    iace "unterminated JSON string"
-}
-
-functio json_unescape(textus value) → textus ⇥ textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia textus out ← ""
-    varia numerus i ← 0
-    dum i < value.longitudo() {
-        fixum textus c ← value.sectio(i, i + 1)
-        si c ≡ slash {
-            si i + 1 ≥ value.longitudo() ergo iace "unterminated JSON escape"
-            fixum textus escaped ← value.sectio(i + 1, i + 2)
-            si escaped ≡ q {
-                out ← out + q
-            } sin escaped ≡ slash {
-                out ← out + slash
-            } sin escaped ≡ "n" {
-                out ← out + "\n"
-            } sin escaped ≡ "r" {
-                out ← out + "\r"
-            } sin escaped ≡ "t" {
-                out ← out + "\t"
-            } secus {
-                iace "unsupported JSON string escape: §"(escaped)
-            }
-            i ← i + 2
-        } secus {
-            out ← out + c
-            i ← i + 1
-        }
-    }
-    redde out
-}
-
-functio field_textus(textus documentum, textus field) → textus ⇥ textus {
-    fixum textus pattern ← "\"" + field + "\":\""
-    fixum numerus start ← find_from(documentum, pattern, 0)
-    si start < 0 ergo iace "missing artifact field: §"(field)
-    fixum numerus value_start ← start + pattern.longitudo()
-    fixum numerus value_end ← json_string_end(documentum, value_start)
-    redde json_unescape(documentum.sectio(value_start, value_end))
-}
-
-functio est_digita(textus c) → bivalens {
-    redde c ≡ "0" aut c ≡ "1" aut c ≡ "2" aut c ≡ "3" aut c ≡ "4" aut c ≡ "5" aut c ≡ "6" aut c ≡ "7" aut c ≡ "8" aut c ≡ "9"
-}
-
-functio field_numerus(textus documentum, textus field) → numerus ⇥ textus {
-    fixum textus pattern ← "\"" + field + "\":"
-    fixum numerus start ← find_from(documentum, pattern, 0)
-    si start < 0 ergo iace "missing artifact field: §"(field)
-    varia numerus i ← start + pattern.longitudo()
-    varia textus digits ← ""
-    dum i < documentum.longitudo() {
-        fixum textus c ← documentum.sectio(i, i + 1)
-        si est_digita(c) {
-            digits ← digits + c
-        } sin c ≡ "-" {
-            si digits.longitudo() > 0 ergo iace "invalid numeric artifact field: §"(field)
-            digits ← digits + c
-        } sin c ≡ " " {
-            si digits.longitudo() > 0 ergo redde digits ↦ numerus
-        } sin c ≡ "," aut c ≡ "}" aut c ≡ "]" {
-            si digits.longitudo() > 0 ergo redde digits ↦ numerus
-            iace "empty numeric artifact field: §"(field)
-        } secus {
-            iace "invalid numeric artifact field: §"(field)
-        }
-        i ← i + 1
-    }
-    si digits.longitudo() > 0 ergo redde digits ↦ numerus
-    iace "empty numeric artifact field: §"(field)
-}
-
-functio array_end(textus documentum, numerus start) → numerus ⇥ textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia numerus depth ← 0
-    varia bivalens in_string ← falsum
-    varia bivalens escaped ← falsum
-    varia numerus i ← start
-    dum i < documentum.longitudo() {
-        fixum textus c ← documentum.sectio(i, i + 1)
-        si in_string {
-            si escaped {
-                escaped ← (falsum)
-            } sin c ≡ slash {
-                escaped ← (verum)
-            } sin c ≡ q {
-                in_string ← (falsum)
-            }
-        } sin c ≡ q {
-            in_string ← (verum)
-        } sin c ≡ "[" {
-            depth ← depth + 1
-        } sin c ≡ "]" {
-            depth ← depth - 1
-            si depth ≡ 0 ergo redde i
-        }
-        i ← i + 1
-    }
-    iace "unterminated artifact array"
-}
-
-functio object_end(textus documentum, numerus start) → numerus ⇥ textus {
-    fixum textus q ← json_quote()
-    fixum textus slash ← |5C| ↦ textus
-    varia numerus depth ← 0
-    varia bivalens in_string ← falsum
-    varia bivalens escaped ← falsum
-    varia numerus i ← start
-    dum i < documentum.longitudo() {
-        fixum textus c ← documentum.sectio(i, i + 1)
-        si in_string {
-            si escaped {
-                escaped ← (falsum)
-            } sin c ≡ slash {
-                escaped ← (verum)
-            } sin c ≡ q {
-                in_string ← (falsum)
-            }
-        } sin c ≡ q {
-            in_string ← (verum)
-        } sin c ≡ "{" {
-            depth ← depth + 1
-        } sin c ≡ "}" {
-            depth ← depth - 1
-            si depth ≡ 0 ergo redde i
-        }
-        i ← i + 1
-    }
-    iace "unterminated artifact object"
-}
-
-functio field_array_payload(textus documentum, textus field) → textus ⇥ textus {
-    fixum textus pattern ← "\"" + field + "\":["
-    fixum numerus start ← find_from(documentum, pattern, 0)
-    si start < 0 ergo iace "missing artifact field: §"(field)
-    fixum numerus array_start ← start + pattern.longitudo() - 1
-    fixum numerus array_finish ← array_end(documentum, array_start)
-    redde documentum.sectio(array_start + 1, array_finish)
-}
-
-functio parse_fractus_list(textus payload) → lista<fractus> ⇥ textus {
-    varia lista<fractus> values ← vacua
-    varia textus current ← ""
-    varia bivalens saw_digit ← falsum
-    varia numerus i ← 0
-    dum i < payload.longitudo() {
-        fixum textus c ← payload.sectio(i, i + 1)
-        si est_digita(c) {
-            current ← current + c
-            saw_digit ← (verum)
-        } sin c ≡ "-" aut c ≡ "." {
-            current ← current + c
-        } sin c ≡ "," aut c ≡ " " {
-            si current.longitudo() > 0 {
-                si saw_digit ≠ verum ergo iace "invalid vector value token"
-                values.appende(current ↦ fractus)
-                current ← ""
-                saw_digit ← (falsum)
-            }
-        } secus {
-            iace "unsupported vector value token: §"(c)
-        }
-        i ← i + 1
-    }
-    si current.longitudo() > 0 {
-        si saw_digit ≠ verum ergo iace "invalid vector value token"
-        values.appende(current ↦ fractus)
-    }
-    redde values
-}
-
-functio vectors_payload(textus documentum) → textus ⇥ textus {
-    redde field_array_payload(documentum, "vectors")
-}
-
-functio parse_records(textus documentum, numerus dimensions) → lista<VectorRecord> ⇥ textus {
-    fixum textus payload ← vectors_payload(documentum)
-    varia lista<VectorRecord> records ← vacua
-    varia numerus search ← 0
-    dum search < payload.longitudo() {
-        fixum numerus object_start ← find_from(payload, "{", search)
-        si object_start < 0 ergo redde records
-        fixum numerus object_finish ← object_end(payload, object_start)
-        fixum textus item ← payload.sectio(object_start, object_finish + 1)
-        fixum lista<fractus> values ← parse_fractus_list(field_array_payload(item, "values"))
-        si values.longitudo() ≠ dimensions {
-            iace "index vector dimensions mismatch: expected § got §"(dimensions, values.longitudo())
-        }
-        records.appende(VectorRecord {
-            id = field_textus(item, "id"),
-            text = field_textus(item, "text"),
-            values = values
-        })
-        search ← object_finish + 1
-    }
-    redde records
-}
-
-functio query_values(textus documentum) → lista<fractus> ⇥ textus {
-    redde parse_fractus_list(field_array_payload(documentum, "values"))
-}
-
-functio selected_ne(lista<textus> selected, textus id) → bivalens {
+@ privata
+functio selected_ne(de lista<textus> selected, textus id) → bivalens {
     itera ex selected fixum used {
         si used ≡ id ergo redde verum
     }
     redde falsum
 }
 
-functio dot(lista<fractus> left, lista<fractus> right) → fractus ⇥ textus {
+@ privata
+functio dot(de lista<fractus> left, de lista<fractus> right) → fractus ⇥ textus {
     si left.longitudo() ≠ right.longitudo() {
         iace "dot product dimension mismatch: expected § got §"(left.longitudo(), right.longitudo())
     }
@@ -306,6 +111,7 @@ functio dot(lista<fractus> left, lista<fractus> right) → fractus ⇥ textus {
     redde total
 }
 
+@ privata
 functio compara_textus(textus a, textus b) → numerus {
     si a ≡ b ergo redde 0
 
@@ -316,6 +122,7 @@ functio compara_textus(textus a, textus b) → numerus {
     redde 1
 }
 
+@ privata
 functio better_ne(fractus score, textus id, fractus best_score, textus best_id, bivalens found) → bivalens {
     si found ≠ verum ergo redde verum
     si score > best_score ergo redde verum
@@ -323,7 +130,8 @@ functio better_ne(fractus score, textus id, fractus best_score, textus best_id, 
     redde falsum
 }
 
-functio ranked(lista<VectorRecord> records, lista<fractus> query, numerus top) → lista<ScoredRecord> ⇥ textus {
+@ privata
+functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus top) → lista<ScoredRecord> ⇥ textus {
     varia lista<ScoredRecord> out ← vacua
     varia lista<textus> selected ← vacua
     varia numerus limit ← top
@@ -333,70 +141,58 @@ functio ranked(lista<VectorRecord> records, lista<fractus> query, numerus top) �
 
     dum out.longitudo() < limit {
         varia bivalens found ← falsum
-        varia ScoredRecord best ← ScoredRecord { id = "", text = "", score = 0.0 }
-        itera ex records fixum record {
-            si selected_ne(selected, "" + record.id) ≠ verum {
-                fixum textus record_id ← "" + record.id
-                fixum fractus score ← dot(record.values, query)
-                si better_ne(score, record_id, best.score, "" + best.id, found) {
-                    best ← ScoredRecord { id = record_id, text = "" + record.text, score = score }
+        varia textus best_id ← ""
+        varia textus best_text ← ""
+        varia fractus best_score ← 0.0
+        itera ex records fixum item {
+            si selected_ne(selected, "" + item.id) ≠ verum {
+                fixum textus item_id ← "" + item.id
+                fixum fractus score ← dot(item.values, query)
+                si better_ne(score, item_id, best_score, best_id, found) {
+                    best_id ← item_id
+                    best_text ← "" + item.text
+                    best_score ← score
                     found ← (verum)
                 }
             }
         }
         si found ≠ verum ergo redde out
-        fixum textus selected_id ← "" + best.id
-        out.appende(best)
+        fixum textus selected_id ← "" + best_id
+        out.appende(ScoredRecord {
+            rank = out.longitudo() + 1,
+            id = "" + selected_id,
+            text = best_text,
+            score = best_score
+        })
         selected.appende(selected_id)
     }
     redde out
 }
 
-functio results_json(lista<ScoredRecord> results) → textus {
-    fixum textus q ← json_quote()
-    varia textus out ← "["
-    varia numerus rank ← 1
-    itera ex results fixum result {
-        si rank > 1 {
-            out ← out + ","
-        }
-        out ← out + "{"
-        out ← out + q + "rank" + q + ":" + (rank ↦ textus) + ","
-        out ← out + q + "id" + q + ":" + json_string("" + result.id) + ","
-        out ← out + q + "text" + q + ":" + json_string("" + result.text) + ","
-        out ← out + q + "score" + q + ":" + (result.score ↦ textus)
-        out ← out + "}"
-        rank ← rank + 1
-    }
-    out ← out + "]"
-    redde out
-}
-
+@ privata
 functio emit_json(textus query, numerus top, textus metric, lista<ScoredRecord> results) → vacuum {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "status" + q + ":" + q + "ok" + q + ","
-    out ← out + q + "query" + q + ":" + json_string(query) + ","
-    out ← out + q + "top" + q + ":" + (top ↦ textus) + ","
-    out ← out + q + "metric" + q + ":" + json_string(metric) + ","
-    out ← out + q + "results" + q + ":" + results_json(results) + ","
-    out ← out + q + "diagnostics" + q + ":[]"
-    out ← out + "}"
-    nota out
+    nota render_query_response(QueryCommandResponse {
+        status = "ok",
+        query = query,
+        top = top,
+        metric = metric,
+        results = results,
+        diagnostics = []
+    })
 }
 
+@ privata
 functio emit_text(textus query, numerus top, textus metric, lista<ScoredRecord> results) → vacuum {
     nota "status: ok"
     nota "query: §"(query)
     nota "top: §"(top)
     nota "metric: §"(metric)
-    varia numerus rank ← 1
     itera ex results fixum result {
-        nota "result §: § § §"(rank, result.id, result.score, result.text)
-        rank ← rank + 1
+        nota "result §: § § §"(result.rank, result.id, result.score, result.text)
     }
 }
 
+@ privata
 functio emit_ok(textus query, numerus top, textus metric, lista<ScoredRecord> results, textus formatum) → vacuum {
     si format_jsonne(formatum) {
         emit_json(query, top, metric, results)
@@ -405,24 +201,25 @@ functio emit_ok(textus query, numerus top, textus metric, lista<ScoredRecord> re
     }
 }
 
+@ privata
 functio emit_error_json(textus diagnosticum) → vacuum {
-    fixum textus q ← json_quote()
-    varia textus out ← "{"
-    out ← out + q + "status" + q + ":" + q + "error" + q + ","
-    out ← out + q + "query" + q + ":" + q + "" + q + ","
-    out ← out + q + "top" + q + ":0,"
-    out ← out + q + "metric" + q + ":" + q + "" + q + ","
-    out ← out + q + "results" + q + ":[],"
-    out ← out + q + "diagnostics" + q + ":[" + json_string(diagnosticum) + "]"
-    out ← out + "}"
-    nota out
+    nota render_query_response(QueryCommandResponse {
+        status = "error",
+        query = "",
+        top = 0,
+        metric = "",
+        results = [],
+        diagnostics = [diagnosticum]
+    })
 }
 
+@ privata
 functio emit_error_text(textus diagnosticum) → vacuum {
     nota "status: error"
     nota "diagnostic: §"(diagnosticum)
 }
 
+@ privata
 functio emit_error(textus diagnosticum, textus formatum) → vacuum {
     si format_jsonne(formatum) {
         emit_error_json(diagnosticum)
@@ -457,60 +254,62 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         redde
     }
 
-    fixum textus index_doc ← solum.lege<textus>(index_path)
-    fixum textus query_doc ← solum.lege<textus>(query_vector_path)
+    fixum textus index_wire ← solum.lege<textus>(index_path)
+    fixum textus query_wire ← solum.lege<textus>(query_vector_path)
     fac {
-        fixum textus artifact_format ← field_textus(index_doc, "format")
-        si artifact_format ≠ "fvi-stage3-index" {
-            emit_error("unsupported index artifact format: " + artifact_format, formatum)
+        fixum Stage3Index index ← parse_stage3_index(index_wire)
+        fixum QueryVector query_vector ← parse_query_vector(query_wire)
+        si index.formatum ≠ "fvi-stage3-index" {
+            emit_error("unsupported index artifact format: " + index.formatum, formatum)
             redde
         }
-        fixum textus query_format ← field_textus(query_doc, "format")
-        si query_format ≠ "fvi-stage3-query-vector" {
-            emit_error("unsupported query vector format: " + query_format, formatum)
+        si query_vector.formatum ≠ "fvi-stage3-query-vector" {
+            emit_error("unsupported query vector format: " + query_vector.formatum, formatum)
             redde
         }
-        fixum textus metric ← field_textus(index_doc, "metric")
-        si metric ≠ "cosine" {
-            emit_error("unsupported query metric: " + metric, formatum)
+        si index.metric ≠ "cosine" {
+            emit_error("unsupported query metric: " + index.metric, formatum)
             redde
         }
-        fixum textus normalization ← field_textus(index_doc, "normalization")
-        si normalization ≠ "l2" {
-            emit_error("unsupported index normalization: " + normalization, formatum)
+        si index.normalization ≠ "l2" {
+            emit_error("unsupported index normalization: " + index.normalization, formatum)
             redde
         }
-        fixum numerus input_vectors ← field_numerus(index_doc, "input_vectors")
-        fixum numerus dimensions ← field_numerus(index_doc, "dimensions")
-        si input_vectors ≤ 0 {
+        si index.input_vectors ≤ 0 {
             emit_error("index artifact is empty", formatum)
             redde
         }
-        si dimensions ≤ 0 {
+        si index.dimensions ≤ 0 {
             emit_error("index artifact dimensions must be positive", formatum)
             redde
         }
-        fixum numerus query_dimensions ← field_numerus(query_doc, "dimensions")
-        si query_dimensions ≠ dimensions {
-            emit_error("query vector dimensions mismatch: expected § got §"(dimensions, query_dimensions), formatum)
+        si query_vector.dimensions ≠ index.dimensions {
+            emit_error("query vector dimensions mismatch: expected § got §"(index.dimensions, query_vector.dimensions), formatum)
             redde
         }
-        fixum textus query_normalization ← field_textus(query_doc, "normalization")
-        si query_normalization ≠ "l2" {
-            emit_error("unsupported query vector normalization: " + query_normalization, formatum)
+        si query_vector.normalization ≠ "l2" {
+            emit_error("unsupported query vector normalization: " + query_vector.normalization, formatum)
             redde
         }
-        fixum lista<VectorRecord> records ← parse_records(index_doc, dimensions)
-        si records.longitudo() ≠ input_vectors {
-            emit_error("index vector count mismatch: expected § got §"(input_vectors, records.longitudo()), formatum)
+        varia numerus actual_vectors ← 0
+        itera ex index.vectors fixum item {
+            fixum numerus actual_dimensions ← item.values.longitudo()
+            si actual_dimensions ≠ index.dimensions {
+                emit_error("index vector dimensions mismatch: expected § got §"(index.dimensions, actual_dimensions), formatum)
+                redde
+            }
+            actual_vectors ← actual_vectors + 1
+        }
+        si actual_vectors ≠ index.input_vectors {
+            emit_error("index vector count mismatch: expected § got §"(index.input_vectors, actual_vectors), formatum)
             redde
         }
-        fixum lista<fractus> values ← query_values(query_doc)
-        si values.longitudo() ≠ dimensions {
-            emit_error("query vector dimensions mismatch: expected § got §"(dimensions, values.longitudo()), formatum)
+        fixum numerus actual_query_dimensions ← query_vector.values.longitudo()
+        si actual_query_dimensions ≠ index.dimensions {
+            emit_error("query vector dimensions mismatch: expected § got §"(index.dimensions, actual_query_dimensions), formatum)
             redde
         }
-        emit_ok(query, top, metric, ranked(records, values, top), formatum)
+        emit_ok(query, top, index.metric, ranked(index.vectors, query_vector.values, top), formatum)
     }
     cape err {
         emit_error("malformed query input: " + err, formatum)
