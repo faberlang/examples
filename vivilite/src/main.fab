@@ -349,13 +349,21 @@ functio sqlite_count(de textus database, de textus who, de textus role) → nume
     redde count ↦ numerus
 }
 
-functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus role, de textus kind) → vacuum ⇥ textus {
-    fixum valor effect ← sqlite.exsequi("§/.vivi/mail.sqlite"(s.root), "UPDATE messages SET local_role = 'done' WHERE message_id = (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(message_id) END FROM messages WHERE account = ?1 AND substr(message_id, 5, 7) = ?2 AND local_role = ?3)", [who ↦ valor, handle ↦ valor, role ↦ valor])
-    fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
-    fixum valor changed ← fields.accipe("rows_changed")
-    si (changed ↦ numerus) ≠ 1 {
+functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus role, de textus kind, de textus note) → vacuum ⇥ textus {
+    fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+    fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = ?3", [who ↦ valor, handle ↦ valor, role ↦ valor])
+    si rows.longitudo() ≠ 1 {
         iace "open § not found: §"(kind, handle)
     }
+    fixum valor row ← rows.accipe(0)
+    fixum tabula<textus, valor> item ← row ↦ tabula<textus, valor>
+    fixum valor message_id ← item.accipe("message_id")
+    fixum valor content_id ← item.accipe("content_id")
+    fixum valor subject ← item.accipe("subject")
+    varia lista<valor> statements ← vacua
+    statements.appende(sqlite_statement("UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = ?3", [who ↦ valor, message_id, role ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'moved', ?2, ?2, ?3, ?4, ?5, 'done', ?2, ?2, ?6, NULLIF(?7, ''))", ["§ done"(kind) ↦ valor, who ↦ valor, message_id, content_id, role ↦ valor, subject, note ↦ valor]))
+    sqlite.exsequi_batch(database, statements)
 }
 
 functio sqlite_want_promote(de Store s, de textus who, de textus handle, de textus note) → vacuum ⇥ textus {
@@ -609,7 +617,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     }
     sin (top ≡ "task" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
         fac {
-            sqlite_work_done(s, who, op, "tasks", "task")
+            sqlite_work_done(s, who, op, "tasks", "task", note)
             nota "done §"(op)
         }
         cape err {
@@ -618,7 +626,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     }
     sin (top ≡ "need" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
         fac {
-            sqlite_work_done(s, who, op, "needs", "need")
+            sqlite_work_done(s, who, op, "needs", "need", note)
             nota "done §"(op)
         }
         cape err {
@@ -627,7 +635,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     }
     sin (top ≡ "want" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
         fac {
-            sqlite_work_done(s, who, op, "wants", "want")
+            sqlite_work_done(s, who, op, "wants", "want", note)
             nota "done §"(op)
         }
         cape err {

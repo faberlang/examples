@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves implemented; Unit D mail/work-item creation includes recipient and sent-copy parity; want-to-need promotion with optional event notes implemented
+**Status:** Units A-C task/need/want-to-done moves and event-note parity implemented; Unit D mail/work-item creation includes recipient and sent-copy parity; want-to-need promotion with optional event notes implemented
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -14,8 +14,10 @@ or report an error. They never fall back to the file-backed `.vivilite` lane.
 
 `vivilite task done <handle> --for <identity>` moves exactly one open task from
 `tasks` to `done`. The update binds identity and handle, constrains the original
-role, and rejects zero or multiple affected rows. Other work-item transitions
-remain on the Stage 3 map rather than sharing an implicit generic mutation.
+role, and rejects zero or multiple matches. The move and its regular Vivi
+`task done` event commit in one batch, preserving optional `--note` text.
+Other work-item transitions remain on the Stage 3 map rather than sharing an
+implicit generic mutation.
 
 Product proof uses a fresh regular Vivi fixture:
 
@@ -34,16 +36,18 @@ live project mailspace.
 ## Unit B — Complete One Need
 
 `vivilite need done <handle> --for <identity>` applies the same exact-one move
-to an open `needs` row. The SQLite statement binds the identity, handle, and
-original role; a task with the same handle prefix cannot satisfy the update.
+and `need done` event to an open `needs` row. The SQLite statements bind the
+identity, handle, and original role; a task with the same handle prefix cannot
+satisfy the update.
 The regular Vivi status oracle must report `needs_open = 0`, `done = 1`, and
 unchanged task/want totals.
 
 ## Unit C — Complete One Want
 
 `vivilite want done <handle> --for <identity>` moves exactly one open `wants`
-row to `done`. The same identity, handle, and original-role constraints prevent
-the command from closing another work-item kind. The regular Vivi status oracle
+row to `done` and appends the matching `want done` event. The same identity,
+handle, and original-role constraints prevent the command from closing another
+work-item kind. The regular Vivi status oracle
 must report `wants_open = 0`, `done = 1`, and unchanged task/need totals.
 
 ## Unit D — Chart Message and Work-Item Creation
