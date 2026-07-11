@@ -344,11 +344,35 @@ functio sqlite_count(de textus database, de textus who, de textus role) → nume
     redde count ↦ numerus
 }
 
+functio sqlite_items(de textus database, de textus who, de textus role) → lista<BoardItemJson> ⇥ textus {
+    fixum lista<valor> rows ← sqlite.quaere(
+        database,
+        "SELECT m.message_id AS handle, md.subject AS subject, md.from_addr AS sender FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND m.local_role = ?2 ORDER BY m.updated_at DESC, m.message_id ASC",
+        [who ↦ valor, role ↦ valor]
+    )
+    varia lista<BoardItemJson> items ← vacua
+    itera ex rows fixum row {
+        fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+        fixum valor handle ← fields.accipe("handle") vel ("" ↦ valor)
+        fixum valor subject ← fields.accipe("subject") vel ("" ↦ valor)
+        fixum valor sender ← fields.accipe("sender") vel ("" ↦ valor)
+        items.appende(BoardItemJson {
+            handle = handle ↦ textus,
+            subject = subject ↦ textus,
+            from = sender ↦ textus
+        })
+    }
+    redde items
+}
+
 functio sqlite_board_json(de Store s, de textus who) → textus ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum numerus tasks ← sqlite_count(database, who, "tasks")
     fixum numerus needs ← sqlite_count(database, who, "needs")
     fixum numerus wants ← sqlite_count(database, who, "wants")
+    fixum lista<BoardItemJson> task_items ← sqlite_items(database, who, "tasks")
+    fixum lista<BoardItemJson> need_items ← sqlite_items(database, who, "needs")
+    fixum lista<BoardItemJson> want_items ← sqlite_items(database, who, "wants")
     redde (BoardJson {
         mailspace = "vivi",
         lane = "sqlite-read",
@@ -357,9 +381,9 @@ functio sqlite_board_json(de Store s, de textus who) → textus ⇥ textus {
         tasks = tasks,
         needs = needs,
         wants = wants,
-        task_items = [],
-        need_items = [],
-        want_items = []
+        task_items = task_items,
+        need_items = need_items,
+        want_items = want_items
     } ↦ json) ↦ textus
 }
 

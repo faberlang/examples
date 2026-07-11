@@ -16,9 +16,10 @@ The file-backed lane stores data under `.vivilite/`:
 
 When `<root>/.vivi/mail.sqlite` exists, `board --json` reads task, need, and
 want totals through the `sqlite:sqlite` package and reports lane
-`sqlite-read`. This first read-only slice deliberately leaves item arrays empty;
-full regular-Vivi JSON parity remains the next Stage 2 delivery unit. Other
-commands continue to use the file-backed lane.
+`sqlite-read`. The read-only lane also fills task, need, and want item arrays
+from regular Vivi message metadata. Full `mailspace status --json` parity
+remains a later Stage 2 delivery unit. Other commands continue to use the
+file-backed lane.
 
 ## Commands
 

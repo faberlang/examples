@@ -179,9 +179,9 @@ Acceptance:
 ### Stage 2 - Regular Vivi Read Oracle
 
 Delivery chart: [`stage-2-sqlite-read-delivery.md`](stage-2-sqlite-read-delivery.md).
-Unit A now proves SQLite-backed board totals against a regular Vivi fixture.
-The output labels its lane `sqlite-read` and leaves item arrays empty until the
-remaining list/board parity units land.
+Units A-B now prove SQLite-backed board totals and work-item arrays against a
+regular Vivi fixture. The output labels its lane `sqlite-read`; full
+multi-identity mailspace status parity remains.
 
 After `sqlite:sqlite` read support exists, generate fixture mailspaces with
 regular `vivi`, then read them with ViviLite:
