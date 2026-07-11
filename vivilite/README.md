@@ -58,6 +58,7 @@ The compiled test harness uses runtime filesystem routes for disposable fixture
 setup. The SQLite write lane supports exact-one completion for open tasks,
 needs, and wants, plus regular-Vivi-readable creation and sender sent-copy
 parity for every send kind. SQLite-backed want promotion moves exactly one open
-want into `needs` and records the regular Vivi move event. Other mutations remain
+want into `needs` and records the regular Vivi move event, including an optional
+`--note`. Other mutations remain
 file-backed until their regular Vivi storage semantics are implemented and proven
 against disposable fixtures.

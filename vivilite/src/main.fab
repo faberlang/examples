@@ -358,7 +358,7 @@ functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus 
     }
 }
 
-functio sqlite_want_promote(de Store s, de textus who, de textus handle) → vacuum ⇥ textus {
+functio sqlite_want_promote(de Store s, de textus who, de textus handle, de textus note) → vacuum ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = 'wants'", [who ↦ valor, handle ↦ valor])
     si rows.longitudo() ≠ 1 {
@@ -371,7 +371,7 @@ functio sqlite_want_promote(de Store s, de textus who, de textus handle) → vac
     fixum valor subject ← item.accipe("subject")
     varia lista<valor> statements ← vacua
     statements.appende(sqlite_statement("UPDATE messages SET local_role = 'needs', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = 'wants'", [who ↦ valor, message_id]))
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), 'want promote', 'moved', ?1, ?1, ?2, ?3, 'wants', 'needs', ?1, ?1, ?4, NULL)", [who ↦ valor, message_id, content_id, subject]))
+    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), 'want promote', 'moved', ?1, ?1, ?2, ?3, 'wants', 'needs', ?1, ?1, ?4, NULLIF(?5, ''))", [who ↦ valor, message_id, content_id, subject, note ↦ valor]))
     sqlite.exsequi_batch(database, statements)
 }
 
@@ -550,6 +550,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     fixum textus to ← arg(args, "--to", who)
     fixum textus subject ← arg(args, "--subject", "(no subject)")
     fixum textus body ← arg(args, "--body", "")
+    fixum textus note ← arg(args, "--note", "")
     si top ≡ "mailspace" et subcmd ≡ "init" {
         ensure_store(store(s.root))
         nota "initialized §"(s.dir)
@@ -640,7 +641,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     sin top ≡ "want" et subcmd ≡ "promote" {
         si solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
             fac {
-                sqlite_want_promote(s, who, op)
+                sqlite_want_promote(s, who, op, note)
                 nota "promoted §"(op)
             }
             cape err {
@@ -713,6 +714,7 @@ probandum "vivilite helpers" tag "vivilite" {
 @ optio toid typus textus longum "to" descriptio "Recipient identity" ubique vel ""
 @ optio subject typus textus longum "subject" descriptio "Message or work subject" ubique vel "(no subject)"
 @ optio body typus textus longum "body" descriptio "Message or work body" ubique vel ""
+@ optio note typus textus longum "note" descriptio "Work-item transition note" ubique vel ""
 @ optio name typus textus longum "name" descriptio "Identity name" ubique vel ""
 @ optio address typus textus longum "address" descriptio "Identity address" ubique vel ""
 @ operandus ceteri textus operands
@@ -723,6 +725,7 @@ incipit argumenta args {
     fixum textus toid ← args.toid
     fixum textus subject ← args.subject
     fixum textus body ← args.body
+    fixum textus note ← args.note
     fixum textus name ← args.name
     fixum textus address ← args.address
     operands.appende("--for")
@@ -739,6 +742,10 @@ incipit argumenta args {
     operands.appende(subject)
     operands.appende("--body")
     operands.appende(body)
+    si note.longitudo() > 0 {
+        operands.appende("--note")
+        operands.appende(note)
+    }
     si name.longitudo() > 0 {
         operands.appende("--name")
         operands.appende(name)
