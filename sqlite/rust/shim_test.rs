@@ -1,4 +1,4 @@
-use super::{exsequi, quaere, scalar, transactio};
+use super::{exsequi, exsequi_batch, quaere, scalar, sha256_hex, transactio};
 use faber::Valor;
 use std::collections::BTreeMap;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -71,6 +71,91 @@ fn aggregate_parameters_fail_before_sql_execution() {
 }
 
 #[test]
+fn sha256_hex_matches_canonical_vectors() {
+    assert_eq!(
+        sha256_hex(Vec::new()),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+    assert_eq!(
+        sha256_hex(b"abc".to_vec()),
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    );
+}
+
+#[test]
+fn batch_commits_all_statements_on_success() {
+    let path = fixture_path("batch-success");
+    let via = path.display().to_string();
+    exsequi(
+        via.clone(),
+        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)".to_owned(),
+        Vec::new(),
+    )
+    .expect("create table");
+
+    let effects = exsequi_batch(
+        via.clone(),
+        vec![
+            batch_statement("INSERT INTO item(name) VALUES (?1)", "prima"),
+            batch_statement("INSERT INTO item(name) VALUES (?1)", "secunda"),
+        ],
+    )
+    .expect("commit batch");
+
+    assert_eq!(effects.len(), 2);
+    assert_eq!(
+        scalar(via, "SELECT COUNT(*) FROM item".to_owned(), Vec::new()).expect("count rows"),
+        Some(Valor::Numerus(2))
+    );
+    std::fs::remove_file(path).expect("remove fixture database");
+}
+
+#[test]
+fn batch_rolls_back_every_statement_on_failure() {
+    let path = fixture_path("batch-rollback");
+    let via = path.display().to_string();
+    exsequi(
+        via.clone(),
+        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)".to_owned(),
+        Vec::new(),
+    )
+    .expect("create table");
+
+    exsequi_batch(
+        via.clone(),
+        vec![
+            batch_statement("INSERT INTO item(name) VALUES (?1)", "idem"),
+            batch_statement("INSERT INTO item(name) VALUES (?1)", "idem"),
+        ],
+    )
+    .expect_err("duplicate insert must fail the batch");
+
+    assert_eq!(
+        scalar(via, "SELECT COUNT(*) FROM item".to_owned(), Vec::new()).expect("count rows"),
+        Some(Valor::Numerus(0))
+    );
+    std::fs::remove_file(path).expect("remove fixture database");
+}
+
+fn batch_statement(sql: &str, param: &str) -> Valor {
+    Valor::Tabula(std::collections::BTreeMap::from([
+        ("sql".to_owned(), Valor::Textus(sql.to_owned())),
+        (
+            "params".to_owned(),
+            Valor::Lista(vec![Valor::Textus(param.to_owned())]),
+        ),
+    ]))
+}
+
+fn fixture_path(label: &str) -> std::path::PathBuf {
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock")
+        .as_nanos();
+    std::env::temp_dir().join(format!("faber-sqlite-{label}-{stamp}.sqlite"))
+}
+
+#[test]
 fn transaction_commits_all_steps() {
     let stamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -89,8 +174,14 @@ fn transaction_commits_all_steps() {
     let effect = transactio(
         via.clone(),
         vec![
-            step("INSERT INTO item(name) VALUES (?1)", vec![Valor::Textus("a".into())]),
-            step("INSERT INTO item(name) VALUES (?1)", vec![Valor::Textus("b".into())]),
+            step(
+                "INSERT INTO item(name) VALUES (?1)",
+                vec![Valor::Textus("a".into())],
+            ),
+            step(
+                "INSERT INTO item(name) VALUES (?1)",
+                vec![Valor::Textus("b".into())],
+            ),
         ],
     )
     .expect("commit");
@@ -127,9 +218,15 @@ fn transaction_rolls_back_on_step_error() {
     let err = transactio(
         via.clone(),
         vec![
-            step("INSERT INTO item(name) VALUES (?1)", vec![Valor::Textus("solo".into())]),
+            step(
+                "INSERT INTO item(name) VALUES (?1)",
+                vec![Valor::Textus("solo".into())],
+            ),
             // UNIQUE violation after first insert — whole batch must roll back.
-            step("INSERT INTO item(name) VALUES (?1)", vec![Valor::Textus("solo".into())]),
+            step(
+                "INSERT INTO item(name) VALUES (?1)",
+                vec![Valor::Textus("solo".into())],
+            ),
         ],
     )
     .expect_err("duplicate should fail");

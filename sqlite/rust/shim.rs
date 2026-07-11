@@ -1,6 +1,7 @@
 use faber::Valor;
 use rusqlite::types::{Value, ValueRef};
 use rusqlite::{params_from_iter, Connection, Row};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
 pub fn exsequi(via: String, sql: String, params: Vec<Valor>) -> Result<Valor, String> {
@@ -10,13 +11,56 @@ pub fn exsequi(via: String, sql: String, params: Vec<Valor>) -> Result<Valor, St
         .execute(&sql, params_from_iter(params))
         .map_err(sqlite_error)?;
     let rows_changed = i64::try_from(rows_changed).map_err(|error| error.to_string())?;
-    Ok(Valor::Tabula(BTreeMap::from([
+    Ok(execution_effect(
+        rows_changed,
+        connection.last_insert_rowid(),
+    ))
+}
+
+pub fn exsequi_batch(via: String, statements: Vec<Valor>) -> Result<Vec<Valor>, String> {
+    let statements = statements
+        .into_iter()
+        .map(read_batch_statement)
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut connection = Connection::open(via).map_err(sqlite_error)?;
+    let transaction = connection.transaction().map_err(sqlite_error)?;
+    let mut effects = Vec::with_capacity(statements.len());
+
+    for (sql, params) in statements {
+        let rows_changed = transaction
+            .execute(&sql, params_from_iter(params))
+            .map_err(sqlite_error)?;
+        let rows_changed = i64::try_from(rows_changed).map_err(|error| error.to_string())?;
+        effects.push(execution_effect(
+            rows_changed,
+            transaction.last_insert_rowid(),
+        ));
+    }
+
+    transaction.commit().map_err(sqlite_error)?;
+    Ok(effects)
+}
+
+fn execution_effect(rows_changed: i64, last_insert_id: i64) -> Valor {
+    Valor::Tabula(BTreeMap::from([
         ("rows_changed".to_owned(), Valor::Numerus(rows_changed)),
-        (
-            "last_insert_id".to_owned(),
-            Valor::Numerus(connection.last_insert_rowid()),
-        ),
-    ])))
+        ("last_insert_id".to_owned(), Valor::Numerus(last_insert_id)),
+    ]))
+}
+
+fn read_batch_statement(statement: Valor) -> Result<(String, Vec<Value>), String> {
+    let Valor::Tabula(mut fields) = statement else {
+        return Err("SQLite batch statements must be valor tables".to_owned());
+    };
+    let sql = match fields.remove("sql") {
+        Some(Valor::Textus(sql)) => sql,
+        _ => return Err("SQLite batch statement field 'sql' must be textus".to_owned()),
+    };
+    let params = match fields.remove("params") {
+        Some(Valor::Lista(params)) => bind_values(params)?,
+        _ => return Err("SQLite batch statement field 'params' must be lista<valor>".to_owned()),
+    };
+    Ok((sql, params))
 }
 
 pub fn quaere(via: String, sql: String, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
@@ -69,7 +113,10 @@ pub fn transactio(via: String, steps: Vec<Valor>) -> Result<Valor, String> {
     let last_insert_id = tx.last_insert_rowid();
     tx.commit().map_err(sqlite_error)?;
     Ok(Valor::Tabula(BTreeMap::from([
-        ("rows_changed".to_owned(), Valor::Numerus(rows_changed_total)),
+        (
+            "rows_changed".to_owned(),
+            Valor::Numerus(rows_changed_total),
+        ),
         ("last_insert_id".to_owned(), Valor::Numerus(last_insert_id)),
     ])))
 }
@@ -99,6 +146,10 @@ fn parse_transaction_step(step: Valor, index: usize) -> Result<(String, Vec<Valo
         }
     };
     Ok((sql, params))
+}
+
+pub fn sha256_hex(bytes: Vec<u8>) -> String {
+    format!("{:x}", Sha256::digest(bytes))
 }
 
 fn bind_values(params: Vec<Valor>) -> Result<Vec<Value>, String> {

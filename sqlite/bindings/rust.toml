@@ -1,6 +1,9 @@
 [functions."sqlite:sqlite.exsequi"]
 symbol = "crate::shim::exsequi"
 
+[functions."sqlite:sqlite.exsequi_batch"]
+symbol = "crate::shim::exsequi_batch"
+
 [functions."sqlite:sqlite.quaere"]
 symbol = "crate::shim::quaere"
 
@@ -9,6 +12,9 @@ symbol = "crate::shim::scalar"
 
 [functions."sqlite:sqlite.transactio"]
 symbol = "crate::shim::transactio"
+
+[functions."sqlite:sqlite.sha256_hex"]
+symbol = "crate::shim::sha256_hex"
 
 [shim]
 path = "rust/shim.rs"

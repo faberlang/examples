@@ -21,12 +21,52 @@ genus WorkItem {
     textus body
 }
 
+@ privata
+genus SQLiteStatement {
+    textus sql
+    lista<valor> params
+}
+
 @ json
 @ privata
 genus StatusJson {
     textus status
     textus lane
     numerus identities
+}
+
+@ json
+@ privata
+genus ViviIdentityStatusJson {
+    textus identity
+    textus address
+    numerus actionable_open
+    numerus inbox_unread
+    numerus tasks_open
+    numerus needs_open
+    numerus wants_open
+    numerus done
+}
+
+@ json
+@ privata
+genus ViviStatusTotalsJson {
+    numerus actionable_open
+    numerus inbox_unread
+    numerus tasks_open
+    numerus needs_open
+    numerus wants_open
+}
+
+@ json
+@ privata
+genus ViviMailspaceStatusJson {
+    bivalens found
+    textus name
+    textus root
+    textus store
+    lista<ViviIdentityStatusJson> identities
+    ViviStatusTotalsJson totals
 }
 
 @ json
@@ -42,29 +82,23 @@ genus BoardItemJson {
 genus BoardJson {
     textus mailspace
     textus lane
-    @ json { nomen = "for" }
+    @ json {nomen = "for" }
     textus who
     numerus actionable
     numerus tasks
     numerus needs
     numerus wants
-    @ json { nomen = "task_items" }
+    @ json {nomen = "task_items" }
     lista<BoardItemJson> task_items
-    @ json { nomen = "need_items" }
+    @ json {nomen = "need_items" }
     lista<BoardItemJson> need_items
-    @ json { nomen = "want_items" }
+    @ json {nomen = "want_items" }
     lista<BoardItemJson> want_items
 }
 
 functio store(de textus root) → Store {
     fixum textus dir_path ← "§/.vivilite"(root)
-    redde Store {
-        root = root ↦ textus,
-        dir = dir_path ↦ textus,
-        identities = "§/identities.tsv"(dir_path),
-        mail = "§/mail.tsv"(dir_path),
-        work = "§/work.tsv"(dir_path),
-    }
+    redde Store { root = root ↦ textus, dir = dir_path ↦ textus, identities = "§/identities.tsv"(dir_path), mail = "§/mail.tsv"(dir_path), work = "§/work.tsv"(dir_path) }
 }
 
 functio split(de textus s, de textus separator) → lista<textus> {
@@ -77,7 +111,8 @@ functio split(de textus s, de textus separator) → lista<textus> {
             partes.appende(s.sectio(initium, i))
             i ← i + sep_len
             initium ← i
-        } secus {
+        }
+        secus {
             i ← i + 1
         }
     }
@@ -136,15 +171,7 @@ functio cat(de textus left, de textus right) → textus {
 
 functio work_from_line(de textus line) → WorkItem {
     fixum lista<textus> p ← split(line, "\t")
-    redde WorkItem {
-        handle = p.accipe(0) vel "",
-        kind = p.accipe(1) vel "",
-        status = p.accipe(2) vel "",
-        from = p.accipe(3) vel "",
-        to = p.accipe(4) vel "",
-        subject = p.accipe(5) vel "",
-        body = p.accipe(6) vel "",
-    }
+    redde WorkItem { handle = p.accipe(0) vel "", kind = p.accipe(1) vel "", status = p.accipe(2) vel "", from = p.accipe(3) vel "", to = p.accipe(4) vel "", subject = p.accipe(5) vel "", body = p.accipe(6) vel "" }
 }
 
 functio work_line(de WorkItem item) → textus {
@@ -165,7 +192,7 @@ functio count_work(de Store s, de textus kind, de textus status, de textus who) 
     itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
-            si item.kind ≡ kind et item.status ≡ status et item.to ≡ who {
+            si (item.kind ≡ kind et item.status ≡ status) et item.to ≡ who {
                 count ← count + 1
             }
         }
@@ -178,12 +205,8 @@ functio list_work_json(de Store s, de textus kind, de textus who) → lista<Boar
     itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
-            si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
-                items.appende(BoardItemJson {
-                    handle = item.handle,
-                    subject = item.subject,
-                    from = item.from
-                })
+            si (item.kind ≡ kind et item.status ≡ "open") et item.to ≡ who {
+                items.appende(BoardItemJson { handle = item.handle, subject = item.subject, from = item.from })
             }
         }
     }
@@ -194,12 +217,9 @@ functio print_status(de Store s, bivalens json) → vacuum {
     ensure_store(store(s.root ↦ textus))
     fixum numerus identities ← count_identities(store(s.root ↦ textus))
     si json {
-        nota (StatusJson {
-            status = "ok",
-            lane = "file",
-            identities = identities
-        } ↦ json) ↦ textus
-    } secus {
+        nota (StatusJson { status = "ok", lane = "file", identities = identities } ↦ json) ↦ textus
+    }
+    secus {
         nota "lane: file"
         nota "identities: §"(identities)
     }
@@ -265,7 +285,7 @@ functio work_list(de Store s, de textus kind, de textus who) → vacuum {
     itera ex read_lines(s.work ↦ textus) fixum line {
         si line.longitudo() > 0 {
             fixum WorkItem item ← work_from_line(line)
-            si item.kind ≡ kind et item.status ≡ "open" et item.to ≡ who {
+            si (item.kind ≡ kind et item.status ≡ "open") et item.to ≡ who {
                 nota "§  §"(item.handle, item.subject)
             }
         }
@@ -318,49 +338,143 @@ functio board_json(de Store s, de textus who) → textus {
     fixum lista<BoardItemJson> task_items ← list_work_json(store(s.root ↦ textus), "task", who)
     fixum lista<BoardItemJson> need_items ← list_work_json(store(s.root ↦ textus), "need", who)
     fixum lista<BoardItemJson> want_items ← list_work_json(store(s.root ↦ textus), "want", who)
-    redde (BoardJson {
-        mailspace = "vivilite",
-        lane = "file",
-        who = who ↦ textus,
-        actionable = tasks + needs,
-        tasks = tasks,
-        needs = needs,
-        wants = wants,
-        task_items = task_items,
-        need_items = need_items,
-        want_items = want_items
-    } ↦ json) ↦ textus
+    redde (BoardJson { mailspace = "vivilite", lane = "file", who = who ↦ textus, actionable = tasks + needs, tasks = tasks, needs = needs, wants = wants, task_items = task_items, need_items = need_items, want_items = want_items } ↦ json) ↦ textus
 }
 
 functio sqlite_count(de textus database, de textus who, de textus role) → numerus ⇥ textus {
-    fixum lista<valor> rows ← sqlite.quaere(
-        database,
-        "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = ?2",
-        [who ↦ valor, role ↦ valor]
-    )
+    fixum lista<valor> rows ← sqlite.quaere(database, "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = ?2", [who ↦ valor, role ↦ valor])
     fixum valor row ← rows.accipe(0)
     fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
     fixum valor count ← fields.accipe("count")
     redde count ↦ numerus
 }
 
+functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus role, de textus kind) → vacuum ⇥ textus {
+    fixum valor effect ← sqlite.exsequi("§/.vivi/mail.sqlite"(s.root), "UPDATE messages SET local_role = 'done' WHERE message_id = (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(message_id) END FROM messages WHERE account = ?1 AND substr(message_id, 5, 7) = ?2 AND local_role = ?3)", [who ↦ valor, handle ↦ valor, role ↦ valor])
+    fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
+    fixum valor changed ← fields.accipe("rows_changed")
+    si (changed ↦ numerus) ≠ 1 {
+        iace "open § not found: §"(kind, handle)
+    }
+}
+
+functio sqlite_statement(de textus sql, lista<valor> params) → valor {
+    redde SQLiteStatement { sql = sql ↦ textus, params = params } ↦ valor
+}
+
+functio vivi_address(de textus identity, de textus mailspace) → textus {
+    redde "§@§.local"(identity, mailspace)
+}
+
+functio compose_vivi_message(de textus mailspace, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus {
+    varia textus normalized_body ← body ↦ textus
+    si body.longitudo() ≡ 0 aut body.sectio(body.longitudo() - 1, body.longitudo()) ≠ "\n" {
+        normalized_body ← cat(body, "\r\n")
+    }
+    varia textus eml ← cat("From: ", vivi_address(from, mailspace))
+    eml ← cat(eml, "\r\nTo: ")
+    eml ← cat(eml, vivi_address(to, mailspace))
+    eml ← cat(eml, "\r\nSubject: ")
+    eml ← cat(eml, subject)
+    eml ← cat(eml, "\r\nX-Vivi-Kind: ")
+    eml ← cat(eml, kind)
+    eml ← cat(eml, "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n")
+    redde cat(eml, normalized_body)
+}
+
+functio sqlite_work_send(de Store s, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus ⇥ textus {
+    fixum lista<textus> names ← vivi_config_names(s)
+    fixum textus mailspace ← names.accipe(0) vel ""
+    si mailspace.longitudo() ≡ 0 {
+        iace "Vivi mailspace name is missing"
+    }
+    fixum textus eml ← compose_vivi_message(mailspace, kind, from, to, subject, body)
+    fixum octeti eml_bytes ← (eml ↦ textus) ↦ octeti
+    fixum numerus byte_size ← eml_bytes.longitudo()
+    fixum textus content_id ← sqlite.sha256_hex(eml_bytes)
+    fixum textus message_id ← "local-§-§-§"(to, kind, content_id)
+    fixum textus blob_relpath ← "blobs/§/§/§.eml"(content_id.sectio(0, 2), content_id.sectio(2, 4), content_id)
+    fixum textus blob_path ← "§/.vivi/§"(s.root, blob_relpath)
+    fixum bivalens blob_existed ← solum.exstat(blob_path)
+    si blob_existed ≠ verum {
+        solum.crea("§/.vivi/blobs/§/§"(s.root, content_id.sectio(0, 2), content_id.sectio(2, 4)))
+        solum.scribe(blob_path, eml)
+    }
+    varia lista<valor> statements ← vacua
+    statements.appende(sqlite_statement("INSERT INTO blobs (content_id, blob_relpath, byte_size, rfc_message_id, parsed_at) VALUES (?1, ?2, ?3, NULL, datetime('now')) ON CONFLICT(content_id) DO NOTHING", [content_id ↦ valor, blob_relpath ↦ valor, byte_size ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO message_metadata (content_id, date, from_addr, to_addr, cc_addr, bcc_addr, subject, normalized_message_id) VALUES (?1, datetime('now'), ?2, ?3, '', '', ?4, NULL) ON CONFLICT(content_id) DO UPDATE SET from_addr = excluded.from_addr, to_addr = excluded.to_addr, subject = excluded.subject", [content_id ↦ valor, vivi_address(from, mailspace) ↦ valor, vivi_address(to, mailspace) ↦ valor, subject ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = excluded.local_role, updated_at = excluded.updated_at, deleted_at = NULL", [message_id ↦ valor, to ↦ valor, content_id ↦ valor, "§s"(kind) ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", ["§ send"(kind) ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, "§s"(kind) ↦ valor, subject ↦ valor]))
+    sqlite.exsequi_batch("§/.vivi/mail.sqlite"(s.root), statements)
+    redde message_id
+}
+
+functio sqlite_unread(de textus database, de textus who) → numerus ⇥ textus {
+    fixum lista<valor> rows ← sqlite.quaere(database, "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = 'inbox' AND read_state = 0", [who ↦ valor])
+    fixum valor row ← rows.accipe(0)
+    fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+    fixum valor count ← fields.accipe("count")
+    redde count ↦ numerus
+}
+
+functio vivi_config_names(de Store s) → lista<textus> {
+    varia lista<textus> names ← vacua
+    itera ex read_lines("§/.vivi/mailspace.toml"(s.root)) fixum line {
+        si line.longitudo() > 9 et line.sectio(0, 8) ≡ «name = \"» {
+            names.appende(line.sectio(8, line.longitudo() - 1))
+        }
+    }
+    redde names
+}
+
+functio sqlite_status_json(de Store s) → textus ⇥ textus {
+    fixum lista<textus> names ← vivi_config_names(s)
+    fixum textus mailspace ← names.accipe(0) vel ""
+    fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+    varia lista<ViviIdentityStatusJson> identities ← vacua
+    varia numerus actionable_total ← 0
+    varia numerus unread_total ← 0
+    varia numerus tasks_total ← 0
+    varia numerus needs_total ← 0
+    varia numerus wants_total ← 0
+    varia numerus i ← 1
+    dum i < names.longitudo() {
+        fixum textus identity ← names.accipe(i) vel ""
+        fixum numerus tasks ← sqlite_count(database, identity, "tasks")
+        fixum numerus needs ← sqlite_count(database, identity, "needs")
+        fixum numerus wants ← sqlite_count(database, identity, "wants")
+        fixum numerus done ← sqlite_count(database, identity, "done")
+        fixum numerus unread ← sqlite_unread(database, identity)
+        fixum numerus actionable ← tasks + needs
+        identities.appende(ViviIdentityStatusJson { identity = identity ↦ textus, address = "§@§.local"(identity, mailspace), actionable_open = actionable, inbox_unread = unread, tasks_open = tasks, needs_open = needs, wants_open = wants, done = done })
+        actionable_total ← actionable_total + actionable
+        unread_total ← unread_total + unread
+        tasks_total ← tasks_total + tasks
+        needs_total ← needs_total + needs
+        wants_total ← wants_total + wants
+        i ← i + 1
+    }
+    redde (ViviMailspaceStatusJson { found = verum, name = mailspace, root = s.root ↦ textus, store = database, identities = identities, totals = ViviStatusTotalsJson { actionable_open = actionable_total, inbox_unread = unread_total, tasks_open = tasks_total, needs_open = needs_total, wants_open = wants_total } } ↦ json) ↦ textus
+}
+
+functio print_vivi_status(de Store s) → vacuum {
+    fac {
+        nota sqlite_status_json(s)
+    }
+    cape err {
+        mone err
+    }
+}
+
 functio sqlite_items(de textus database, de textus who, de textus role) → lista<BoardItemJson> ⇥ textus {
-    fixum lista<valor> rows ← sqlite.quaere(
-        database,
-        "SELECT m.message_id AS handle, md.subject AS subject, md.from_addr AS sender FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND m.local_role = ?2 ORDER BY m.updated_at DESC, m.message_id ASC",
-        [who ↦ valor, role ↦ valor]
-    )
+    fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS handle, md.subject AS subject, md.from_addr AS sender FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND m.local_role = ?2 ORDER BY m.updated_at DESC, m.message_id ASC", [who ↦ valor, role ↦ valor])
     varia lista<BoardItemJson> items ← vacua
     itera ex rows fixum row {
         fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
         fixum valor handle ← fields.accipe("handle") vel ("" ↦ valor)
         fixum valor subject ← fields.accipe("subject") vel ("" ↦ valor)
         fixum valor sender ← fields.accipe("sender") vel ("" ↦ valor)
-        items.appende(BoardItemJson {
-            handle = handle ↦ textus,
-            subject = subject ↦ textus,
-            from = sender ↦ textus
-        })
+        items.appende(BoardItemJson { handle = handle ↦ textus, subject = subject ↦ textus, from = sender ↦ textus })
     }
     redde items
 }
@@ -373,18 +487,7 @@ functio sqlite_board_json(de Store s, de textus who) → textus ⇥ textus {
     fixum lista<BoardItemJson> task_items ← sqlite_items(database, who, "tasks")
     fixum lista<BoardItemJson> need_items ← sqlite_items(database, who, "needs")
     fixum lista<BoardItemJson> want_items ← sqlite_items(database, who, "wants")
-    redde (BoardJson {
-        mailspace = "vivi",
-        lane = "sqlite-read",
-        who = who ↦ textus,
-        actionable = tasks + needs,
-        tasks = tasks,
-        needs = needs,
-        wants = wants,
-        task_items = task_items,
-        need_items = need_items,
-        want_items = want_items
-    } ↦ json) ↦ textus
+    redde (BoardJson { mailspace = "vivi", lane = "sqlite-read", who = who ↦ textus, actionable = tasks + needs, tasks = tasks, needs = needs, wants = wants, task_items = task_items, need_items = need_items, want_items = want_items } ↦ json) ↦ textus
 }
 
 functio print_board(de Store s, de textus who) → vacuum {
@@ -396,7 +499,8 @@ functio print_board(de Store s, de textus who) → vacuum {
         cape err {
             mone err
         }
-    } secus {
+    }
+    secus {
         nota board_json(s, who)
     }
 }
@@ -438,55 +542,102 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     si top ≡ "mailspace" et subcmd ≡ "init" {
         ensure_store(store(s.root))
         nota "initialized §"(s.dir)
-    } sin top ≡ "mailspace" et subcmd ≡ "status" {
-        print_status(s, has(args, "--json"))
-    } sin top ≡ "mailspace" et subcmd ≡ "identity" et op ≡ "add" {
+    }
+    sin top ≡ "mailspace" et subcmd ≡ "status" {
+        si solum.exstat("§/.vivi/mail.sqlite"(s.root)) et has(args, "--json") {
+            print_vivi_status(s)
+        }
+        secus {
+            print_status(s, has(args, "--json"))
+        }
+    }
+    sin (top ≡ "mailspace" et subcmd ≡ "identity") et op ≡ "add" {
         identity_add(s, arg(args, "--name", who), arg(args, "--address", "§@local"(who)))
-    } sin top ≡ "mailspace" et subcmd ≡ "identity" et op ≡ "list" {
+    }
+    sin (top ≡ "mailspace" et subcmd ≡ "identity") et op ≡ "list" {
         identity_list(s)
-    } sin top ≡ "mail" et subcmd ≡ "send" {
+    }
+    sin top ≡ "mail" et subcmd ≡ "send" {
         send_mail(s, from, to, subject, body)
-    } sin top ≡ "mail" et subcmd ≡ "list" {
+    }
+    sin top ≡ "mail" et subcmd ≡ "list" {
         mail_list(s, who)
-    } sin top ≡ "mail" et subcmd ≡ "show" {
+    }
+    sin top ≡ "mail" et subcmd ≡ "show" {
         mail_show(s, op)
-    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "send" {
+    }
+    sin (((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "send") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+        fac {
+            fixum textus handle ← sqlite_work_send(s, top, from, to, subject, body)
+            nota "sent §"(handle)
+        }
+        cape err {
+            mone err
+        }
+    }
+    sin ((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "send" {
         work_send(s, top, from, to, subject, body)
-    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "list" {
+    }
+    sin ((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "list" {
         work_list(s, top, who)
-    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "show" {
+    }
+    sin ((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "show" {
         work_show(s, op)
-    } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "done" {
-        fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
-        si solum.exstat(database) {
-            fac {
-                sqlite_mark_done(database, who, op)
-                nota "done §"(op)
-            }
-            cape err {
-                mone err
-            }
-        } secus {
-            rewrite_work(s, op, "done", "")
+    }
+    sin (top ≡ "task" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+        fac {
+            sqlite_work_done(s, who, op, "tasks", "task")
             nota "done §"(op)
         }
-    } sin top ≡ "want" et subcmd ≡ "promote" {
+        cape err {
+            mone err
+        }
+    }
+    sin (top ≡ "need" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+        fac {
+            sqlite_work_done(s, who, op, "needs", "need")
+            nota "done §"(op)
+        }
+        cape err {
+            mone err
+        }
+    }
+    sin (top ≡ "want" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+        fac {
+            sqlite_work_done(s, who, op, "wants", "want")
+            nota "done §"(op)
+        }
+        cape err {
+            mone err
+        }
+    }
+    sin ((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "done" {
+        rewrite_work(s, op, "done", "")
+        nota "done §"(op)
+    }
+    sin top ≡ "want" et subcmd ≡ "promote" {
         rewrite_work(s, op, "open", "task")
         nota "promoted §"(op)
-    } sin top ≡ "board" {
+    }
+    sin top ≡ "board" {
         print_board(s, who)
-    } secus {
+    }
+    secus {
         nota "usage: vivilite mailspace|mail|task|need|want|board ..."
     }
 }
 
 probandum "vivilite helpers" tag "vivilite" {
+    proba "Vivi message composition is canonical before hashing" {
+        fixum textus eml ← compose_vivi_message("fixture", "task", "hunter", "reviewer", "proof", "body")
+        adfirma eml ≡ "From: hunter@fixture.local\r\nTo: reviewer@fixture.local\r\nSubject: proof\r\nX-Vivi-Kind: task\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nbody\r\n"
+        adfirma sqlite.sha256_hex(eml ↦ octeti) ≡ "e970fd325a05f8ccd12922083e043592c0c5f1c8085c9f866611ab50c4d2f1bc"
+    }
     proba "split separates tab fields" {
         fixum lista<textus> p ← split("a\tb\tc", "\t")
         adfirma p.longitudo() ≡ 3
         adfirma (p.accipe(1) vel "") ≡ "b"
     }
-
     proba "file-backed mailspace state transitions are stable" {
         fixum Store s ← reset_fixture("vivilite-stage1-mail")
         fixum textus root ← s.root
@@ -499,7 +650,6 @@ probandum "vivilite helpers" tag "vivilite" {
         adfirma (mail.accipe(2) vel "") ≡ "codex"
         adfirma (mail.accipe(3) vel "") ≡ "reviewer"
     }
-
     proba "work items update board totals and handles" {
         fixum Store s ← reset_fixture("vivilite-stage1-work")
         fixum textus root ← s.root
@@ -509,7 +659,7 @@ probandum "vivilite helpers" tag "vivilite" {
         adfirma count_work(store(root ↦ textus), "task", "open", "codex") ≡ 1
         adfirma count_work(store(root ↦ textus), "need", "open", "codex") ≡ 1
         adfirma count_work(store(root ↦ textus), "want", "open", "codex") ≡ 1
-        adfirma board_json(store(root ↦ textus), "codex") ≡ "{\"actionable\":2,\"for\":\"codex\",\"lane\":\"file\",\"mailspace\":\"vivilite\",\"need_items\":[{\"from\":\"reviewer\",\"handle\":\"n-2\",\"subject\":\"need one\"}],\"needs\":1,\"task_items\":[{\"from\":\"reviewer\",\"handle\":\"t-1\",\"subject\":\"task one\"}],\"tasks\":1,\"want_items\":[{\"from\":\"reviewer\",\"handle\":\"w-3\",\"subject\":\"want one\"}],\"wants\":1}"
+        adfirma board_json(store(root ↦ textus), "codex") ≡ «{\"actionable\":2,\"for\":\"codex\",\"lane\":\"file\",\"mailspace\":\"vivilite\",\"need_items\":[{\"from\":\"reviewer\",\"handle\":\"n-2\",\"subject\":\"need one\"}],\"needs\":1,\"task_items\":[{\"from\":\"reviewer\",\"handle\":\"t-1\",\"subject\":\"task one\"}],\"tasks\":1,\"want_items\":[{\"from\":\"reviewer\",\"handle\":\"w-3\",\"subject\":\"want one\"}],\"wants\":1}»
         rewrite_work(store(root ↦ textus), "t-1", "done", "")
         rewrite_work(store(root ↦ textus), "w-3", "open", "task")
         adfirma count_work(store(root ↦ textus), "task", "open", "codex") ≡ 1
@@ -521,15 +671,15 @@ probandum "vivilite helpers" tag "vivilite" {
 @ cli "vivilite"
 @ versio "0.1.0"
 @ descriptio "File-backed local mailspace example"
-@ optio project longum "project" typus textus vel "." ubique descriptio "Project root containing .vivilite"
-@ optio json longum "json" typus bivalens ubique descriptio "Emit JSON output where supported"
-@ optio forid longum "for" typus textus vel "codex" ubique descriptio "Recipient identity filter"
-@ optio fromid longum "from" typus textus vel "" ubique descriptio "Sender identity"
-@ optio toid longum "to" typus textus vel "" ubique descriptio "Recipient identity"
-@ optio subject longum "subject" typus textus vel "(no subject)" ubique descriptio "Message or work subject"
-@ optio body longum "body" typus textus vel "" ubique descriptio "Message or work body"
-@ optio name longum "name" typus textus vel "" ubique descriptio "Identity name"
-@ optio address longum "address" typus textus vel "" ubique descriptio "Identity address"
+@ optio project typus textus longum "project" descriptio "Project root containing .vivilite" ubique vel "."
+@ optio json typus bivalens longum "json" descriptio "Emit JSON output where supported" ubique
+@ optio forid typus textus longum "for" descriptio "Recipient identity filter" ubique vel "codex"
+@ optio fromid typus textus longum "from" descriptio "Sender identity" ubique vel ""
+@ optio toid typus textus longum "to" descriptio "Recipient identity" ubique vel ""
+@ optio subject typus textus longum "subject" descriptio "Message or work subject" ubique vel "(no subject)"
+@ optio body typus textus longum "body" descriptio "Message or work body" ubique vel ""
+@ optio name typus textus longum "name" descriptio "Identity name" ubique vel ""
+@ optio address typus textus longum "address" descriptio "Identity address" ubique vel ""
 @ operandus ceteri textus operands
 incipit argumenta args {
     varia lista<textus> operands ← args.operands

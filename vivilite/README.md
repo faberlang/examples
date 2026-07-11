@@ -17,9 +17,12 @@ The file-backed lane stores data under `.vivilite/`:
 When `<root>/.vivi/mail.sqlite` exists, `board --json` reads task, need, and
 want totals through the `sqlite:sqlite` package and reports lane
 `sqlite-read`. The read-only lane also fills task, need, and want item arrays
-from regular Vivi message metadata. Full `mailspace status --json` parity
-remains a later Stage 2 delivery unit. Other commands continue to use the
-file-backed lane.
+from regular Vivi message metadata. `mailspace status --json` reads every
+configured identity and emits the same identity rows and aggregate totals as
+regular Vivi. Task, need, and want sends compose canonical UTF-8 messages,
+store SHA-256-addressed blobs, and atomically insert the corresponding blob,
+metadata, message, and delivery-event catalog rows. Other commands continue to
+use the file-backed lane.
 
 ## Commands
 
@@ -50,3 +53,10 @@ cargo run --manifest-path ../faber/Cargo.toml -- check vivilite
 cargo run --manifest-path ../faber/Cargo.toml -- test vivilite
 cargo run --manifest-path ../faber/Cargo.toml -- run vivilite -- board --for codex --json --project vivilite/fixtures/demo
 ```
+
+The compiled test harness uses runtime filesystem routes for disposable fixture
+setup. The SQLite write lane supports exact-one completion for open tasks,
+needs, and wants, plus regular-Vivi-readable creation for those work kinds.
+Mail creation, sent-copy creation, and want promotion remain file-backed until
+their regular Vivi storage semantics are implemented and proven against
+disposable fixtures.

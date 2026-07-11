@@ -1,6 +1,6 @@
 # ViviLite SQLite Read Delivery
 
-**Status:** Units A-B board totals and item arrays proven; full status parity remains
+**Status:** Units A-C board reads and multi-identity status parity proven
 **Consumer stage:** ViviLite Stage 2 (SQLite package goal Stage 3)
 **Write policy:** read-only fixture databases; no ViviLite mutation
 
@@ -39,9 +39,10 @@ SQLite provides per-identity message state from `messages`:
 | unread inbox | `account = ?1 AND local_role = 'inbox' AND read_state = 0` |
 | actionable | open tasks + open needs |
 
-All identity and role values are bound parameters. Counts use
-`sqlite.scalar`; list and board items use `sqlite.quaere` with deterministic
-ordering by the same stable fields regular Vivi uses.
+All identity and role values are bound parameters. Counts and item rows use
+`sqlite.quaere`; count rows avoid the still-open `valor ∪ nihil` scalar
+narrowing limitation. Lists use deterministic ordering by the same stable
+fields regular Vivi uses.
 
 ## Delivery Units
 
@@ -69,12 +70,36 @@ come from a parameterized `messages` + `message_metadata` join with stable
   regular Vivi JSON.
 - Preserve handle, subject, sender, recipient, and ordering.
 
-### Unit C — board
+### Unit C — multi-identity mailspace status
 
-- Compose status totals with capped task/need/want lists.
-- Match regular Vivi `board --json` semantically; object field order is not an
-  acceptance requirement.
-- Keep the file-backed board lane explicit for projects without `.vivi`.
+Status: complete in packet (2026-07-10). A two-identity regular Vivi fixture
+matches ViviLite semantically for the complete status JSON object, including
+per-identity counts and aggregate totals.
+
+Read `.vivi/mailspace.toml` for the authoritative mailspace name and ordered
+identity names. For every identity, emit:
+
+| JSON field | Source |
+| --- | --- |
+| `identity` | config identity name |
+| `address` | `<identity>@<mailspace>.local` |
+| `actionable_open` | tasks + needs |
+| `inbox_unread` | unread inbox count |
+| `tasks_open` | tasks count |
+| `needs_open` | needs count |
+| `wants_open` | wants count |
+| `done` | done count |
+
+The root object is exactly `found`, `name`, `root`, `store`, `identities`, and
+`totals`. Totals sum actionable, unread, task, need, and want counts across all
+identities; regular Vivi does not include `done` in totals. Paths use the
+operator-supplied project spelling, matching the oracle rather than forcing
+canonicalization. Compare JSON semantically; object field order is not an
+acceptance requirement.
+
+Keep the file-backed status lane explicit for projects without `.vivi`. Once a
+`.vivi/mail.sqlite` store is selected, parsing or query failures are errors and
+must not silently fall back to `.vivilite`.
 
 ## Fixture And Oracle
 
@@ -83,11 +108,12 @@ Use a new temporary project for every run:
 ```bash
 vivi mailspace init --project <fixture>
 vivi mailspace identity add codex --project <fixture>
-vivi task send --project <fixture> --from codex --to codex --subject task --body body
-vivi need send --project <fixture> --from codex --to codex --subject need --body body
+vivi mailspace identity add reviewer --project <fixture>
+vivi task send --project <fixture> --from reviewer --to codex --subject task --body body
+vivi need send --project <fixture> --from codex --to reviewer --subject need --body body
 vivi want send --project <fixture> --from codex --to codex --subject want --body body
-vivi board --project <fixture> --for codex --json > expected.json
-faber run vivilite -- board --project <fixture> --for codex --json > actual.json
+vivi mailspace status --project <fixture> --json > expected.json
+faber run vivilite -- mailspace status --project <fixture> --json > actual.json
 ```
 
 Compare parsed JSON values, not serialized field order. ViviLite must not write
@@ -100,7 +126,11 @@ to the fixture during this stage.
   parameter rejection.
 - ViviLite baseline build: passes after `b24f1ff` fixes borrowed-text moves.
 - ViviLite baseline tests: one passes; two remain environment-gated on the
-  pre-existing unsupported `solum:temporarium` host route.
+  unsupported `solum:temporarium` frame route. The Radix kernel manifest and
+  MIR stepper already define the route, but pinned `faber-runtime` `8b9e938`
+  does not dispatch it. Runtime ownership is outside this packet lane; need
+  `ee6d44f` routes the focused implementation and test to hunter-1. The tests
+  remain enabled so this gap stays visible.
 - `SQLiteEffect` remains represented as `valor` at the Stage 2 binding boundary;
   this read-only delivery uses `quaere` and `scalar` and does not depend on that
   return ABI.
