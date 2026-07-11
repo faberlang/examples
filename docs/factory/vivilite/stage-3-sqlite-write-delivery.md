@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves implemented in packet
+**Status:** Units A-C task/need/want-to-done moves implemented; Unit D creation chart complete
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -46,8 +46,42 @@ row to `done`. The same identity, handle, and original-role constraints prevent
 the command from closing another work-item kind. The regular Vivi status oracle
 must report `wants_open = 0`, `done = 1`, and unchanged task/need totals.
 
+## Unit D — Chart Message and Work-Item Creation
+
+Regular Vivi creation is not a single `messages` insert. One logical send
+creates shared RFC 5322 bytes and their SHA-256 content identity, persists the
+blob, upserts `blobs` and `message_metadata`, creates one recipient row plus a
+sent-copy row in `messages`, and appends the corresponding `mailspace_events`.
+Work-item creation additionally writes `X-Vivi-Kind` and selects the open role
+for that kind (`tasks`, `needs`, or `wants`).
+
+The current `sqlite:sqlite` binding cannot implement that invariant honestly:
+each `exsequi` call opens a new connection and executes one statement, so a
+multi-table send cannot be atomic; the Faber surface also has no SHA-256 helper
+for the canonical content ID. Directly inventing IDs or omitting blob/event
+rows would create storage that regular Vivi cannot treat as a faithful send.
+
+The implementation sequence is therefore:
+
+1. Add a SQLite transaction/batch binding that keeps one connection, binds all
+   values, commits only after every statement succeeds, and rolls back on any
+   error.
+2. Expose canonical SHA-256 bytes-to-hex hashing to Faber, preferably through a
+   general runtime/library seam rather than ViviLite-specific Rust.
+3. Compose the exact regular Vivi message bytes, including `X-Vivi-Kind` for
+   work items, then write the blob and all catalog/event rows as one logical
+   operation.
+4. Prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
+   regular Vivi must list/show the created item, report the expected sent copy
+   and open-role totals, and read the persisted body bytes. A forced mid-write
+   failure must leave every table and blob path unchanged.
+
+Until those prerequisites land, creation commands continue on the file-backed
+lane even when `.vivi/mail.sqlite` exists. They must not partially populate the
+regular Vivi database.
+
 ## Later Units
 
-- Message creation with the full regular Vivi content/index shape.
+- Message and work-item creation after the Unit D prerequisites land.
 - Transactions or batch mutation only when a multi-row invariant requires
   atomicity.

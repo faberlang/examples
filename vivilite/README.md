@@ -52,7 +52,7 @@ cargo run --manifest-path ../faber/Cargo.toml -- run vivilite -- board --for cod
 ```
 
 The compiled test harness uses runtime filesystem routes for disposable fixture
-setup. The SQLite write lane currently supports one bounded mutation:
-`task done` moves an open task to `done` for the selected identity. Other write
-commands remain file-backed until their regular Vivi storage semantics are
-implemented and proven against disposable fixtures.
+setup. The SQLite write lane supports exact-one completion for open tasks,
+needs, and wants. Creation and other write commands remain file-backed until
+their regular Vivi storage semantics are implemented and proven against
+disposable fixtures.
