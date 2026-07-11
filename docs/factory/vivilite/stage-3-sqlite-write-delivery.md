@@ -1,6 +1,8 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves implemented; Unit D atomic batch and SHA-256 prerequisites complete
+**Status:** Complete — task/need/want completion, want-to-need promotion, and
+mail/work-item creation match the regular Vivi oracle, including event-note
+parity and atomic rollback proof
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -14,8 +16,10 @@ or report an error. They never fall back to the file-backed `.vivilite` lane.
 
 `vivilite task done <handle> --for <identity>` moves exactly one open task from
 `tasks` to `done`. The update binds identity and handle, constrains the original
-role, and rejects zero or multiple affected rows. Other work-item transitions
-remain on the Stage 3 map rather than sharing an implicit generic mutation.
+role, and rejects zero or multiple matches. The move and its regular Vivi
+`task done` event commit in one batch, preserving optional `--note` text.
+Other work-item transitions remain on the Stage 3 map rather than sharing an
+implicit generic mutation.
 
 Product proof uses a fresh regular Vivi fixture:
 
@@ -34,16 +38,18 @@ live project mailspace.
 ## Unit B — Complete One Need
 
 `vivilite need done <handle> --for <identity>` applies the same exact-one move
-to an open `needs` row. The SQLite statement binds the identity, handle, and
-original role; a task with the same handle prefix cannot satisfy the update.
+and `need done` event to an open `needs` row. The SQLite statements bind the
+identity, handle, and original role; a task with the same handle prefix cannot
+satisfy the update.
 The regular Vivi status oracle must report `needs_open = 0`, `done = 1`, and
 unchanged task/want totals.
 
 ## Unit C — Complete One Want
 
 `vivilite want done <handle> --for <identity>` moves exactly one open `wants`
-row to `done`. The same identity, handle, and original-role constraints prevent
-the command from closing another work-item kind. The regular Vivi status oracle
+row to `done` and appends the matching `want done` event. The same identity,
+handle, and original-role constraints prevent the command from closing another
+work-item kind. The regular Vivi status oracle
 must report `wants_open = 0`, `done = 1`, and unchanged task/need totals.
 
 ## Unit D — Chart Message and Work-Item Creation
@@ -69,20 +75,32 @@ The implementation sequence is therefore:
    and rolls back on any error.
 2. **Complete:** expose canonical SHA-256 bytes-to-hex hashing to Faber through
    the SQLite package binding seam rather than ViviLite-specific Rust.
-3. Compose the exact regular Vivi message bytes, including `X-Vivi-Kind` for
-   work items, then write the blob and all catalog/event rows as one logical
-   operation.
-4. Prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
+3. **Complete:** compose the exact regular Vivi message bytes, including
+   `X-Vivi-Kind` only for work items, then write the blob, recipient row, sender's
+   read `sent` row, and matching catalog/event rows as one logical operation.
+4. **Complete:** prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
    regular Vivi must list/show the created item, report the expected sent copy
    and open-role totals, and read the persisted body bytes. A forced mid-write
-   failure must leave every table and blob path unchanged.
+   failure must leave every table and blob path unchanged. The send path now
+   creates a new content-addressed blob only after the catalog transaction
+   commits, so a rejected batch cannot orphan a blob. Run
+   `./scripta/verify-vivilite-sqlite-writes.sh` from the examples repository to
+   exercise the product oracle on a disposable fixture.
 
-Until those prerequisites land, creation commands continue on the file-backed
-lane even when `.vivi/mail.sqlite` exists. They must not partially populate the
-regular Vivi database.
+Before those prerequisites landed, creation commands remained on the
+file-backed lane even when `.vivi/mail.sqlite` existed. The completed SQLite
+lane now either populates the regular Vivi database atomically or leaves it
+unchanged.
 
-## Later Units
+## Closeout
 
-- Message and work-item creation after the Unit D prerequisites land.
-- Transactions or batch mutation only when a multi-row invariant requires
-  atomicity.
+- **Complete:** promote exactly one open want to `needs` and append the regular
+  Vivi `want promote` move event, including optional `--note` text (or SQL
+  `NULL` when omitted).
+- **Complete:** create mail and work items after the Unit D transaction, hashing,
+  and canonical-message prerequisites landed.
+- **Complete:** use batch transactions only for creation's multi-row atomicity
+  invariant; exact-one moves remain single-statement mutations.
+
+There are no remaining Stage 3 write-delivery units. Future regular Vivi
+compatibility work belongs to a new stage rather than reopening this delivery.
