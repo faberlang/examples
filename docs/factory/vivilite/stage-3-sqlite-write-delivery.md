@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Unit A task-to-done move implemented in packet
+**Status:** Units A-B task/need-to-done moves implemented in packet
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -31,10 +31,17 @@ The regular Vivi status oracle must report `tasks_open = 0`, `done = 1`, and no
 other identity or total changes. Tests and product proof must never point at a
 live project mailspace.
 
+## Unit B — Complete One Need
+
+`vivilite need done <handle> --for <identity>` applies the same exact-one move
+to an open `needs` row. The SQLite statement binds the identity, handle, and
+original role; a task with the same handle prefix cannot satisfy the update.
+The regular Vivi status oracle must report `needs_open = 0`, `done = 1`, and
+unchanged task/want totals.
+
 ## Later Units
 
-- Need and want completion, only after their exact regular Vivi semantics are
-  verified.
+- Want completion, only after its exact regular Vivi semantics are verified.
 - Message creation with the full regular Vivi content/index shape.
 - Transactions or batch mutation only when a multi-row invariant requires
   atomicity.
