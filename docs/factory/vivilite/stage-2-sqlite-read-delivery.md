@@ -39,9 +39,10 @@ SQLite provides per-identity message state from `messages`:
 | unread inbox | `account = ?1 AND local_role = 'inbox' AND read_state = 0` |
 | actionable | open tasks + open needs |
 
-All identity and role values are bound parameters. Counts use
-`sqlite.scalar`; list and board items use `sqlite.quaere` with deterministic
-ordering by the same stable fields regular Vivi uses.
+All identity and role values are bound parameters. Counts and item rows use
+`sqlite.quaere`; count rows avoid the still-open `valor ∪ nihil` scalar
+narrowing limitation. Lists use deterministic ordering by the same stable
+fields regular Vivi uses.
 
 ## Delivery Units
 
@@ -69,12 +70,34 @@ come from a parameterized `messages` + `message_metadata` join with stable
   regular Vivi JSON.
 - Preserve handle, subject, sender, recipient, and ordering.
 
-### Unit C — board
+### Unit C — multi-identity mailspace status
 
-- Compose status totals with capped task/need/want lists.
-- Match regular Vivi `board --json` semantically; object field order is not an
-  acceptance requirement.
-- Keep the file-backed board lane explicit for projects without `.vivi`.
+Status: charted; implementation waits for Unit B to land on examples main.
+
+Read `.vivi/mailspace.toml` for the authoritative mailspace name and ordered
+identity names. For every identity, emit:
+
+| JSON field | Source |
+| --- | --- |
+| `identity` | config identity name |
+| `address` | `<identity>@<mailspace>.local` |
+| `actionable_open` | tasks + needs |
+| `inbox_unread` | unread inbox count |
+| `tasks_open` | tasks count |
+| `needs_open` | needs count |
+| `wants_open` | wants count |
+| `done` | done count |
+
+The root object is exactly `found`, `name`, `root`, `store`, `identities`, and
+`totals`. Totals sum actionable, unread, task, need, and want counts across all
+identities; regular Vivi does not include `done` in totals. Paths use the
+operator-supplied project spelling, matching the oracle rather than forcing
+canonicalization. Compare JSON semantically; object field order is not an
+acceptance requirement.
+
+Keep the file-backed status lane explicit for projects without `.vivi`. Once a
+`.vivi/mail.sqlite` store is selected, parsing or query failures are errors and
+must not silently fall back to `.vivilite`.
 
 ## Fixture And Oracle
 
