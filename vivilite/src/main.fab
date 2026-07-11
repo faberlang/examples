@@ -378,6 +378,19 @@ functio sqlite_count(de textus database, de textus who, de textus role) → nume
     redde count ↦ numerus
 }
 
+functio sqlite_task_done(de Store s, de textus who, de textus handle) → vacuum ⇥ textus {
+    fixum valor effect ← sqlite.exsequi(
+        "§/.vivi/mail.sqlite"(s.root),
+        "UPDATE messages SET local_role = 'done' WHERE message_id = (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(message_id) END FROM messages WHERE account = ?1 AND substr(message_id, 5, 7) = ?2 AND local_role = 'tasks')",
+        [who ↦ valor, handle ↦ valor]
+    )
+    fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
+    fixum valor changed ← fields.accipe("rows_changed")
+    si (changed ↦ numerus) ≠ 1 {
+        iace "open task not found: §"(handle)
+    }
+}
+
 functio sqlite_unread(de textus database, de textus who) → numerus ⇥ textus {
     fixum lista<valor> rows ← sqlite.quaere(
         database,
@@ -562,6 +575,14 @@ functio route(de lista<textus> args, de Store s) → vacuum {
         work_list(s, top, who)
     } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "show" {
         work_show(s, op)
+    } sin top ≡ "task" et subcmd ≡ "done" et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+        fac {
+            sqlite_task_done(s, who, op)
+            nota "done §"(op)
+        }
+        cape err {
+            mone err
+        }
     } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "done" {
         rewrite_work(s, op, "done", "")
         nota "done §"(op)
