@@ -31,6 +31,40 @@ genus StatusJson {
 
 @ json
 @ privata
+genus ViviIdentityStatusJson {
+    textus identity
+    textus address
+    numerus actionable_open
+    numerus inbox_unread
+    numerus tasks_open
+    numerus needs_open
+    numerus wants_open
+    numerus done
+}
+
+@ json
+@ privata
+genus ViviStatusTotalsJson {
+    numerus actionable_open
+    numerus inbox_unread
+    numerus tasks_open
+    numerus needs_open
+    numerus wants_open
+}
+
+@ json
+@ privata
+genus ViviMailspaceStatusJson {
+    bivalens found
+    textus name
+    textus root
+    textus store
+    lista<ViviIdentityStatusJson> identities
+    ViviStatusTotalsJson totals
+}
+
+@ json
+@ privata
 genus BoardItemJson {
     textus handle
     textus subject
@@ -344,6 +378,89 @@ functio sqlite_count(de textus database, de textus who, de textus role) → nume
     redde count ↦ numerus
 }
 
+functio sqlite_unread(de textus database, de textus who) → numerus ⇥ textus {
+    fixum lista<valor> rows ← sqlite.quaere(
+        database,
+        "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = 'inbox' AND read_state = 0",
+        [who ↦ valor]
+    )
+    fixum valor row ← rows.accipe(0)
+    fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+    fixum valor count ← fields.accipe("count")
+    redde count ↦ numerus
+}
+
+functio vivi_config_names(de Store s) → lista<textus> {
+    varia lista<textus> names ← vacua
+    itera ex read_lines("§/.vivi/mailspace.toml"(s.root)) fixum line {
+        si line.longitudo() > 9 et line.sectio(0, 8) ≡ "name = \"" {
+            names.appende(line.sectio(8, line.longitudo() - 1))
+        }
+    }
+    redde names
+}
+
+functio sqlite_status_json(de Store s) → textus ⇥ textus {
+    fixum lista<textus> names ← vivi_config_names(s)
+    fixum textus mailspace ← names.accipe(0) vel ""
+    fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+    varia lista<ViviIdentityStatusJson> identities ← vacua
+    varia numerus actionable_total ← 0
+    varia numerus unread_total ← 0
+    varia numerus tasks_total ← 0
+    varia numerus needs_total ← 0
+    varia numerus wants_total ← 0
+    varia numerus i ← 1
+    dum i < names.longitudo() {
+        fixum textus identity ← names.accipe(i) vel ""
+        fixum numerus tasks ← sqlite_count(database, identity, "tasks")
+        fixum numerus needs ← sqlite_count(database, identity, "needs")
+        fixum numerus wants ← sqlite_count(database, identity, "wants")
+        fixum numerus done ← sqlite_count(database, identity, "done")
+        fixum numerus unread ← sqlite_unread(database, identity)
+        fixum numerus actionable ← tasks + needs
+        identities.appende(ViviIdentityStatusJson {
+            identity = identity ↦ textus,
+            address = "§@§.local"(identity, mailspace),
+            actionable_open = actionable,
+            inbox_unread = unread,
+            tasks_open = tasks,
+            needs_open = needs,
+            wants_open = wants,
+            done = done
+        })
+        actionable_total ← actionable_total + actionable
+        unread_total ← unread_total + unread
+        tasks_total ← tasks_total + tasks
+        needs_total ← needs_total + needs
+        wants_total ← wants_total + wants
+        i ← i + 1
+    }
+    redde (ViviMailspaceStatusJson {
+        found = verum,
+        name = mailspace,
+        root = s.root ↦ textus,
+        store = database,
+        identities = identities,
+        totals = ViviStatusTotalsJson {
+            actionable_open = actionable_total,
+            inbox_unread = unread_total,
+            tasks_open = tasks_total,
+            needs_open = needs_total,
+            wants_open = wants_total
+        }
+    } ↦ json) ↦ textus
+}
+
+functio print_vivi_status(de Store s) → vacuum {
+    fac {
+        nota sqlite_status_json(s)
+    }
+    cape err {
+        mone err
+    }
+}
+
 functio sqlite_items(de textus database, de textus who, de textus role) → lista<BoardItemJson> ⇥ textus {
     fixum lista<valor> rows ← sqlite.quaere(
         database,
@@ -424,7 +541,11 @@ functio route(de lista<textus> args, de Store s) → vacuum {
         ensure_store(store(s.root))
         nota "initialized §"(s.dir)
     } sin top ≡ "mailspace" et subcmd ≡ "status" {
-        print_status(s, has(args, "--json"))
+        si solum.exstat("§/.vivi/mail.sqlite"(s.root)) et has(args, "--json") {
+            print_vivi_status(s)
+        } secus {
+            print_status(s, has(args, "--json"))
+        }
     } sin top ≡ "mailspace" et subcmd ≡ "identity" et op ≡ "add" {
         identity_add(s, arg(args, "--name", who), arg(args, "--address", "§@local"(who)))
     } sin top ≡ "mailspace" et subcmd ≡ "identity" et op ≡ "list" {

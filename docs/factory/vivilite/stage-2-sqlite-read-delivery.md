@@ -1,6 +1,6 @@
 # ViviLite SQLite Read Delivery
 
-**Status:** Units A-B board totals and item arrays proven; full status parity remains
+**Status:** Units A-C board reads and multi-identity status parity proven
 **Consumer stage:** ViviLite Stage 2 (SQLite package goal Stage 3)
 **Write policy:** read-only fixture databases; no ViviLite mutation
 
@@ -72,7 +72,9 @@ come from a parameterized `messages` + `message_metadata` join with stable
 
 ### Unit C — multi-identity mailspace status
 
-Status: charted; implementation waits for Unit B to land on examples main.
+Status: complete in packet (2026-07-10). A two-identity regular Vivi fixture
+matches ViviLite semantically for the complete status JSON object, including
+per-identity counts and aggregate totals.
 
 Read `.vivi/mailspace.toml` for the authoritative mailspace name and ordered
 identity names. For every identity, emit:
@@ -106,11 +108,12 @@ Use a new temporary project for every run:
 ```bash
 vivi mailspace init --project <fixture>
 vivi mailspace identity add codex --project <fixture>
-vivi task send --project <fixture> --from codex --to codex --subject task --body body
-vivi need send --project <fixture> --from codex --to codex --subject need --body body
+vivi mailspace identity add reviewer --project <fixture>
+vivi task send --project <fixture> --from reviewer --to codex --subject task --body body
+vivi need send --project <fixture> --from codex --to reviewer --subject need --body body
 vivi want send --project <fixture> --from codex --to codex --subject want --body body
-vivi board --project <fixture> --for codex --json > expected.json
-faber run vivilite -- board --project <fixture> --for codex --json > actual.json
+vivi mailspace status --project <fixture> --json > expected.json
+faber run vivilite -- mailspace status --project <fixture> --json > actual.json
 ```
 
 Compare parsed JSON values, not serialized field order. ViviLite must not write
