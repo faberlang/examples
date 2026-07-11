@@ -201,6 +201,11 @@ Acceptance:
 
 ### Stage 3 - Regular Vivi Write Compatibility
 
+**Status:** Complete. The delivery is tracked in
+[`stage-3-sqlite-write-delivery.md`](stage-3-sqlite-write-delivery.md); the
+disposable regular Vivi oracle covers task/need/want completion,
+want-to-need promotion, all four send kinds, sent copies, and atomic rollback.
+
 Add writes to regular Vivi-compatible storage only after read parity:
 
 - send a task/need/want with ViviLite;

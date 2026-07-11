@@ -1,6 +1,8 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves and event-note parity implemented; Unit D mail/work-item creation has repeatable regular Vivi oracle and rollback proof; want-to-need promotion with optional event notes implemented
+**Status:** Complete — task/need/want completion, want-to-need promotion, and
+mail/work-item creation match the regular Vivi oracle, including event-note
+parity and atomic rollback proof
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -85,15 +87,20 @@ The implementation sequence is therefore:
    `./scripta/verify-vivilite-sqlite-writes.sh` from the examples repository to
    exercise the product oracle on a disposable fixture.
 
-Until those prerequisites land, creation commands continue on the file-backed
-lane even when `.vivi/mail.sqlite` exists. They must not partially populate the
-regular Vivi database.
+Before those prerequisites landed, creation commands remained on the
+file-backed lane even when `.vivi/mail.sqlite` existed. The completed SQLite
+lane now either populates the regular Vivi database atomically or leaves it
+unchanged.
 
-## Later Units
+## Closeout
 
 - **Complete:** promote exactly one open want to `needs` and append the regular
   Vivi `want promote` move event, including optional `--note` text (or SQL
   `NULL` when omitted).
-- Message and work-item creation after the Unit D prerequisites land.
-- Transactions or batch mutation only when a multi-row invariant requires
-  atomicity.
+- **Complete:** create mail and work items after the Unit D transaction, hashing,
+  and canonical-message prerequisites landed.
+- **Complete:** use batch transactions only for creation's multi-row atomicity
+  invariant; exact-one moves remain single-statement mutations.
+
+There are no remaining Stage 3 write-delivery units. Future regular Vivi
+compatibility work belongs to a new stage rather than reopening this delivery.
