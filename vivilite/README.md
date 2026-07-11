@@ -14,9 +14,11 @@ The file-backed lane stores data under `.vivilite/`:
   work.tsv
 ```
 
-It never reads or writes a project `.vivi/mail.sqlite` store. SQLite-backed
-regular Vivi read parity belongs to a later stage after the Faber SQLite
-package exists.
+When `<root>/.vivi/mail.sqlite` exists, `board --json` reads task, need, and
+want totals through the `sqlite:sqlite` package and reports lane
+`sqlite-read`. This first read-only slice deliberately leaves item arrays empty;
+full regular-Vivi JSON parity remains the next Stage 2 delivery unit. Other
+commands continue to use the file-backed lane.
 
 ## Commands
 

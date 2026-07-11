@@ -1,7 +1,6 @@
 # ViviLite SQLite Read Delivery
 
-**Status:** charted; product implementation blocked on Faber native-library
-application attachment (`7ad9804`)
+**Status:** Unit A board totals proven; Units B-C item parity remain
 **Consumer stage:** ViviLite Stage 2 (SQLite package goal Stage 3)
 **Write policy:** read-only fixture databases; no ViviLite mutation
 
@@ -22,8 +21,9 @@ The consumer patch begins after a real application package proves all of these:
    a path dependency.
 5. `faber run` links bundled `rusqlite` and executes the binary.
 
-Current failure: steps 1–3 pass, but step 4 is absent and Rust fails with
-`E0433` for the unresolved `sqlite` crate. Need `7ad9804` owns that seam.
+The attachment gate landed in Faber at `d9dd406`. A real ViviLite product run
+now compiles the generated SQLite crate, links bundled `rusqlite`, and reads
+regular Vivi fixture totals.
 
 ## Read Model
 
@@ -46,6 +46,11 @@ ordering by the same stable fields regular Vivi uses.
 ## Delivery Units
 
 ### Unit A — status totals
+
+Status: board totals proof complete (2026-07-10). The first product slice reads
+task, need, and want totals for `--for`, reports `lane = "sqlite-read"`, and
+keeps item arrays empty so partial parity is visible. Full multi-identity
+`mailspace status --json` remains with Units B-C.
 
 - Read `mailspace.toml` for name and identities.
 - Query the six counts above for every identity.

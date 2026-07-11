@@ -1,6 +1,7 @@
 # ViviLite file-backed local mailspace exemplum.
 
 importa ex "norma:solum" privata solum
+importa ex "sqlite:sqlite" privata sqlite
 
 genus Store {
     textus root
@@ -331,6 +332,51 @@ functio board_json(de Store s, de textus who) → textus {
     } ↦ json) ↦ textus
 }
 
+functio sqlite_count(de textus database, de textus who, de textus role) → numerus ⇥ textus {
+    fixum lista<valor> rows ← sqlite.quaere(
+        database,
+        "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = ?2",
+        [who ↦ valor, role ↦ valor]
+    )
+    fixum valor row ← rows.accipe(0)
+    fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+    fixum valor count ← fields.accipe("count")
+    redde count ↦ numerus
+}
+
+functio sqlite_board_json(de Store s, de textus who) → textus ⇥ textus {
+    fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+    fixum numerus tasks ← sqlite_count(database, who, "tasks")
+    fixum numerus needs ← sqlite_count(database, who, "needs")
+    fixum numerus wants ← sqlite_count(database, who, "wants")
+    redde (BoardJson {
+        mailspace = "vivi",
+        lane = "sqlite-read",
+        who = who ↦ textus,
+        actionable = tasks + needs,
+        tasks = tasks,
+        needs = needs,
+        wants = wants,
+        task_items = [],
+        need_items = [],
+        want_items = []
+    } ↦ json) ↦ textus
+}
+
+functio print_board(de Store s, de textus who) → vacuum {
+    fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+    si solum.exstat(database) {
+        fac {
+            nota sqlite_board_json(s, who)
+        }
+        cape err {
+            mone err
+        }
+    } secus {
+        nota board_json(s, who)
+    }
+}
+
 functio reset_fixture(de textus name) → Store {
     fixum Store s ← store("§/§"(solum.temporarium(), name))
     solum.crea(s.dir ↦ textus)
@@ -378,7 +424,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
         rewrite_work(s, op, "open", "task")
         nota "promoted §"(op)
     } sin top ≡ "board" {
-        nota board_json(s, who)
+        print_board(s, who)
     } secus {
         nota "usage: vivilite mailspace|mail|task|need|want|board ..."
     }
