@@ -1,6 +1,6 @@
 # ViviLite SQLite Read Delivery
 
-**Status:** Unit A board totals proven; Units B-C item parity remain
+**Status:** Units A-B board totals and item arrays proven; full status parity remains
 **Consumer stage:** ViviLite Stage 2 (SQLite package goal Stage 3)
 **Write policy:** read-only fixture databases; no ViviLite mutation
 
@@ -59,6 +59,10 @@ keeps item arrays empty so partial parity is visible. Full multi-identity
   `.vivi` store was selected.
 
 ### Unit B — work lists
+
+Status: complete in packet (2026-07-10). Board task, need, and want arrays now
+come from a parameterized `messages` + `message_metadata` join with stable
+`updated_at DESC, message_id ASC` ordering.
 
 - Query task, need, and want message rows by identity and role.
 - Join `messages`, `blobs`, and `message_metadata` only for fields required by
