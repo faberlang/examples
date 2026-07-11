@@ -508,11 +508,7 @@ functio print_board(de Store s, de textus who) → vacuum {
 # G8 DB5: mark open work done in regular Vivi's mail.sqlite (read/write reverse oracle).
 # Handle is messages.message_id as emitted by sqlite-read board items.
 functio sqlite_mark_done(de textus database, de textus who, de textus handle) → vacuum ⇥ textus {
-    fixum valor effect ← sqlite.exsequi(
-        database,
-        "UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE message_id = ?1 AND account = ?2 AND local_role IN ('tasks', 'needs', 'wants')",
-        [handle ↦ valor, who ↦ valor]
-    )
+    fixum valor effect ← sqlite.exsequi(database, "UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE message_id = ?1 AND account = ?2 AND local_role IN ('tasks', 'needs', 'wants')", [handle ↦ valor, who ↦ valor])
     fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
     fixum valor changed ← fields.accipe("rows_changed") vel (0 ↦ valor)
     si (changed ↦ numerus) ≡ 0 {
