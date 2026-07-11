@@ -420,10 +420,6 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
     fixum textus blob_relpath ← "blobs/§/§/§.eml"(content_id.sectio(0, 2), content_id.sectio(2, 4), content_id)
     fixum textus blob_path ← "§/.vivi/§"(s.root, blob_relpath)
     fixum bivalens blob_existed ← solum.exstat(blob_path)
-    si blob_existed ≠ verum {
-        solum.crea("§/.vivi/blobs/§/§"(s.root, content_id.sectio(0, 2), content_id.sectio(2, 4)))
-        solum.scribe(blob_path, eml)
-    }
     varia lista<valor> statements ← vacua
     statements.appende(sqlite_statement("INSERT INTO blobs (content_id, blob_relpath, byte_size, rfc_message_id, parsed_at) VALUES (?1, ?2, ?3, NULL, datetime('now')) ON CONFLICT(content_id) DO NOTHING", [content_id ↦ valor, blob_relpath ↦ valor, byte_size ↦ valor]))
     statements.appende(sqlite_statement("INSERT INTO message_metadata (content_id, date, from_addr, to_addr, cc_addr, bcc_addr, subject, normalized_message_id) VALUES (?1, datetime('now'), ?2, ?3, '', '', ?4, NULL) ON CONFLICT(content_id) DO UPDATE SET from_addr = excluded.from_addr, to_addr = excluded.to_addr, subject = excluded.subject", [content_id ↦ valor, vivi_address(from, mailspace) ↦ valor, vivi_address(to, mailspace) ↦ valor, subject ↦ valor]))
@@ -432,6 +428,10 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
     statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'sent_copy_created', ?2, ?2, ?3, ?4, NULL, 'sent', ?2, ?2, ?5, NULL)", [command ↦ valor, from ↦ valor, sent_message_id ↦ valor, content_id ↦ valor, subject ↦ valor]))
     statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", [command ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, role ↦ valor, subject ↦ valor]))
     sqlite.exsequi_batch("§/.vivi/mail.sqlite"(s.root), statements)
+    si blob_existed ≠ verum {
+        solum.crea("§/.vivi/blobs/§/§"(s.root, content_id.sectio(0, 2), content_id.sectio(2, 4)))
+        solum.scribe(blob_path, eml)
+    }
     redde message_id
 }
 

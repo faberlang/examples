@@ -75,7 +75,9 @@ The implementation sequence is therefore:
 4. Prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
    regular Vivi must list/show the created item, report the expected sent copy
    and open-role totals, and read the persisted body bytes. A forced mid-write
-   failure must leave every table and blob path unchanged.
+   failure must leave every table and blob path unchanged. The send path now
+   creates a new content-addressed blob only after the catalog transaction
+   commits, so a rejected batch cannot orphan a blob.
 
 Until those prerequisites land, creation commands continue on the file-backed
 lane even when `.vivi/mail.sqlite` exists. They must not partially populate the
