@@ -108,10 +108,10 @@ functio ensure_store(de Store s) → vacuum {
 functio arg(de lista<textus> args, de textus flag, de textus def) → textus {
     varia numerus i ← 0
     dum i < args.longitudo() {
-        si (args.accipe(i) vel "") ≡ flag ergo redde args.accipe(i + 1) vel def
+        si (args.accipe(i) vel "") ≡ flag ergo redde args.accipe(i + 1) vel (def ↦ textus)
         i ← i + 1
     }
-    redde def
+    redde def ↦ textus
 }
 
 functio has(de lista<textus> args, de textus flag) → bivalens {
@@ -122,7 +122,7 @@ functio has(de lista<textus> args, de textus flag) → bivalens {
 }
 
 functio positional(de lista<textus> args, numerus index, de textus def) → textus {
-    redde args.accipe(index) vel def
+    redde args.accipe(index) vel (def ↦ textus)
 }
 
 functio row(de textus value) → textus {
@@ -320,7 +320,7 @@ functio board_json(de Store s, de textus who) → textus {
     redde (BoardJson {
         mailspace = "vivilite",
         lane = "file",
-        who = who,
+        who = who ↦ textus,
         actionable = tasks + needs,
         tasks = tasks,
         needs = needs,
