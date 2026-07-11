@@ -47,6 +47,60 @@ pub fn scalar(via: String, sql: String, params: Vec<Valor>) -> Result<Option<Val
         .transpose()
 }
 
+/// Run `steps` atomically. Each step is a `valor` tabula with keys:
+/// - `sql` (`textus`)
+/// - `params` (`lista<valor>` of scalars; empty/missing → no binds)
+///
+/// On any error the whole transaction rolls back. Success returns a tabula
+/// `{ rows_changed, last_insert_id }` for the cumulative effect.
+pub fn transactio(via: String, steps: Vec<Valor>) -> Result<Valor, String> {
+    let mut connection = Connection::open(via).map_err(sqlite_error)?;
+    let tx = connection.transaction().map_err(sqlite_error)?;
+    let mut rows_changed_total: i64 = 0;
+    for (index, step) in steps.into_iter().enumerate() {
+        let (sql, params) = parse_transaction_step(step, index)?;
+        let params = bind_values(params)?;
+        let changed = tx
+            .execute(&sql, params_from_iter(params))
+            .map_err(sqlite_error)?;
+        let changed = i64::try_from(changed).map_err(|error| error.to_string())?;
+        rows_changed_total = rows_changed_total.saturating_add(changed);
+    }
+    let last_insert_id = tx.last_insert_rowid();
+    tx.commit().map_err(sqlite_error)?;
+    Ok(Valor::Tabula(BTreeMap::from([
+        ("rows_changed".to_owned(), Valor::Numerus(rows_changed_total)),
+        ("last_insert_id".to_owned(), Valor::Numerus(last_insert_id)),
+    ])))
+}
+
+fn parse_transaction_step(step: Valor, index: usize) -> Result<(String, Vec<Valor>), String> {
+    let Valor::Tabula(fields) = step else {
+        return Err(format!(
+            "transaction step {index} must be a tabula with sql and params"
+        ));
+    };
+    let sql = match fields.get("sql") {
+        Some(Valor::Textus(sql)) => sql.clone(),
+        Some(_) => {
+            return Err(format!("transaction step {index} field sql must be textus"));
+        }
+        None => {
+            return Err(format!("transaction step {index} missing sql field"));
+        }
+    };
+    let params = match fields.get("params") {
+        Some(Valor::Lista(params)) => params.clone(),
+        Some(Valor::Nihil) | None => Vec::new(),
+        Some(_) => {
+            return Err(format!(
+                "transaction step {index} field params must be lista<valor>"
+            ));
+        }
+    };
+    Ok((sql, params))
+}
+
 fn bind_values(params: Vec<Valor>) -> Result<Vec<Value>, String> {
     params.into_iter().map(bind_value).collect()
 }

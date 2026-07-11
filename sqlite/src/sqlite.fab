@@ -1,3 +1,6 @@
 functio exsequi(textus via, textus sql, lista<valor> params) → valor ⇥ textus
 functio quaere(textus via, textus sql, lista<valor> params) → lista<valor> ⇥ textus
 functio scalar(textus via, textus sql, lista<valor> params) → valor ∪ nihil ⇥ textus
+# Atomic batch: each step is a tabula with textus "sql" and lista<valor> "params".
+# All steps commit together or roll back; no connection handle is exposed.
+functio transactio(textus via, lista<valor> steps) → valor ⇥ textus
