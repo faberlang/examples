@@ -358,6 +358,23 @@ functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus 
     }
 }
 
+functio sqlite_want_promote(de Store s, de textus who, de textus handle) → vacuum ⇥ textus {
+    fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+    fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = 'wants'", [who ↦ valor, handle ↦ valor])
+    si rows.longitudo() ≠ 1 {
+        iace "open want not found: §"(handle)
+    }
+    fixum valor row ← rows.accipe(0)
+    fixum tabula<textus, valor> item ← row ↦ tabula<textus, valor>
+    fixum valor message_id ← item.accipe("message_id")
+    fixum valor content_id ← item.accipe("content_id")
+    fixum valor subject ← item.accipe("subject")
+    varia lista<valor> statements ← vacua
+    statements.appende(sqlite_statement("UPDATE messages SET local_role = 'needs', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = 'wants'", [who ↦ valor, message_id]))
+    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), 'want promote', 'moved', ?1, ?1, ?2, ?3, 'wants', 'needs', ?1, ?1, ?4, NULL)", [who ↦ valor, message_id, content_id, subject]))
+    sqlite.exsequi_batch(database, statements)
+}
+
 functio sqlite_statement(de textus sql, lista<valor> params) → valor {
     redde SQLiteStatement { sql = sql ↦ textus, params = params } ↦ valor
 }
@@ -621,8 +638,19 @@ functio route(de lista<textus> args, de Store s) → vacuum {
         nota "done §"(op)
     }
     sin top ≡ "want" et subcmd ≡ "promote" {
-        rewrite_work(s, op, "open", "task")
-        nota "promoted §"(op)
+        si solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+            fac {
+                sqlite_want_promote(s, who, op)
+                nota "promoted §"(op)
+            }
+            cape err {
+                mone err
+            }
+        }
+        secus {
+            rewrite_work(s, op, "open", "task")
+            nota "promoted §"(op)
+        }
     }
     sin top ≡ "board" {
         print_board(s, who)

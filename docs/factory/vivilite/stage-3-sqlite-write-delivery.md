@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves implemented; Unit D mail/work-item creation includes recipient and sent-copy parity
+**Status:** Units A-C task/need/want-to-done moves implemented; Unit D mail/work-item creation includes recipient and sent-copy parity; want-to-need promotion implemented
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -83,6 +83,9 @@ regular Vivi database.
 
 ## Later Units
 
+- **Complete:** promote exactly one open want to `needs` and append the regular
+  Vivi `want promote` move event. ViviLite does not yet expose the optional
+  regular-Vivi `--note` surface.
 - Message and work-item creation after the Unit D prerequisites land.
 - Transactions or batch mutation only when a multi-row invariant requires
   atomicity.

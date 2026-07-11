@@ -57,5 +57,7 @@ cargo run --manifest-path ../faber/Cargo.toml -- run vivilite -- board --for cod
 The compiled test harness uses runtime filesystem routes for disposable fixture
 setup. The SQLite write lane supports exact-one completion for open tasks,
 needs, and wants, plus regular-Vivi-readable creation and sender sent-copy
-parity for every send kind. Want promotion remains file-backed until its regular
-Vivi storage semantics are implemented and proven against disposable fixtures.
+parity for every send kind. SQLite-backed want promotion moves exactly one open
+want into `needs` and records the regular Vivi move event. Other mutations remain
+file-backed until their regular Vivi storage semantics are implemented and proven
+against disposable fixtures.
