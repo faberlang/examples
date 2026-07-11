@@ -401,6 +401,21 @@ functio print_board(de Store s, de textus who) → vacuum {
     }
 }
 
+# G8 DB5: mark open work done in regular Vivi's mail.sqlite (read/write reverse oracle).
+# Handle is messages.message_id as emitted by sqlite-read board items.
+functio sqlite_mark_done(de textus database, de textus who, de textus handle) → vacuum ⇥ textus {
+    fixum valor effect ← sqlite.exsequi(
+        database,
+        "UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE message_id = ?1 AND account = ?2 AND local_role IN ('tasks', 'needs', 'wants')",
+        [handle ↦ valor, who ↦ valor]
+    )
+    fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
+    fixum valor changed ← fields.accipe("rows_changed") vel (0 ↦ valor)
+    si (changed ↦ numerus) ≡ 0 {
+        iace "no open work item for handle §"(handle)
+    }
+}
+
 functio reset_fixture(de textus name) → Store {
     fixum Store s ← store("§/§"(solum.temporarium(), name))
     solum.crea(s.dir ↦ textus)
@@ -442,8 +457,19 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "show" {
         work_show(s, op)
     } sin (top ≡ "task" aut top ≡ "need" aut top ≡ "want") et subcmd ≡ "done" {
-        rewrite_work(s, op, "done", "")
-        nota "done §"(op)
+        fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
+        si solum.exstat(database) {
+            fac {
+                sqlite_mark_done(database, who, op)
+                nota "done §"(op)
+            }
+            cape err {
+                mone err
+            }
+        } secus {
+            rewrite_work(s, op, "done", "")
+            nota "done §"(op)
+        }
     } sin top ≡ "want" et subcmd ≡ "promote" {
         rewrite_work(s, op, "open", "task")
         nota "promoted §"(op)
