@@ -126,7 +126,11 @@ to the fixture during this stage.
   parameter rejection.
 - ViviLite baseline build: passes after `b24f1ff` fixes borrowed-text moves.
 - ViviLite baseline tests: one passes; two remain environment-gated on the
-  pre-existing unsupported `solum:temporarium` host route.
+  unsupported `solum:temporarium` frame route. The Radix kernel manifest and
+  MIR stepper already define the route, but pinned `faber-runtime` `8b9e938`
+  does not dispatch it. Runtime ownership is outside this packet lane; need
+  `ee6d44f` routes the focused implementation and test to hunter-1. The tests
+  remain enabled so this gap stays visible.
 - `SQLiteEffect` remains represented as `valor` at the Stage 2 binding boundary;
   this read-only delivery uses `quaere` and `scalar` and does not depend on that
   return ABI.

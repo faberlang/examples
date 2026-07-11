@@ -50,3 +50,9 @@ cargo run --manifest-path ../faber/Cargo.toml -- check vivilite
 cargo run --manifest-path ../faber/Cargo.toml -- test vivilite
 cargo run --manifest-path ../faber/Cargo.toml -- run vivilite -- board --for codex --json --project vivilite/fixtures/demo
 ```
+
+The compiled test harness currently reports one pass and two environment-gated
+failures because the frame runtime does not yet dispatch the declared
+`solum:temporarium` route used by fixture setup. Product `run` validation is
+available and exercises the SQLite read lane; the runtime route is tracked
+separately rather than hiding the two tests behind skips.
