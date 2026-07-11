@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves implemented; Unit D atomic batch prerequisite complete, SHA-256 prerequisite open
+**Status:** Units A-C task/need/want-to-done moves implemented; Unit D atomic batch and SHA-256 prerequisites complete
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -58,17 +58,17 @@ for that kind (`tasks`, `needs`, or `wants`).
 The `sqlite:sqlite.exsequi_batch` binding now keeps one connection and one
 transaction across a list of parameterized statements, commits only after all
 statements succeed, and rolls the entire batch back when any statement fails.
-The remaining prerequisite is a Faber-visible SHA-256 helper for the canonical
-content ID. Directly inventing IDs or omitting blob/event rows would create
-storage that regular Vivi cannot treat as a faithful send.
+The `sqlite:sqlite.sha256_hex` binding now exposes canonical bytes-to-lowercase-
+hex SHA-256 hashing to Faber. Directly inventing IDs or omitting blob/event rows
+would create storage that regular Vivi cannot treat as a faithful send.
 
 The implementation sequence is therefore:
 
 1. **Complete:** add a SQLite transaction/batch binding that keeps one
    connection, binds all values, commits only after every statement succeeds,
    and rolls back on any error.
-2. Expose canonical SHA-256 bytes-to-hex hashing to Faber, preferably through a
-   general runtime/library seam rather than ViviLite-specific Rust.
+2. **Complete:** expose canonical SHA-256 bytes-to-hex hashing to Faber through
+   the SQLite package binding seam rather than ViviLite-specific Rust.
 3. Compose the exact regular Vivi message bytes, including `X-Vivi-Kind` for
    work items, then write the blob and all catalog/event rows as one logical
    operation.

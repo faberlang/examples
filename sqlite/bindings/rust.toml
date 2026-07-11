@@ -10,5 +10,8 @@ symbol = "crate::shim::quaere"
 [functions."sqlite:sqlite.scalar"]
 symbol = "crate::shim::scalar"
 
+[functions."sqlite:sqlite.sha256_hex"]
+symbol = "crate::shim::sha256_hex"
+
 [shim]
 path = "rust/shim.rs"

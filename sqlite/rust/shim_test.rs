@@ -1,4 +1,4 @@
-use super::{exsequi, exsequi_batch, quaere, scalar};
+use super::{exsequi, exsequi_batch, quaere, scalar, sha256_hex};
 use faber::Valor;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -60,6 +60,18 @@ fn aggregate_parameters_fail_before_sql_execution() {
     )
     .expect_err("aggregate parameter must fail");
     assert!(error.contains("scalar valor"));
+}
+
+#[test]
+fn sha256_hex_matches_canonical_vectors() {
+    assert_eq!(
+        sha256_hex(Vec::new()),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+    assert_eq!(
+        sha256_hex(b"abc".to_vec()),
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    );
 }
 
 #[test]

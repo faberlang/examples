@@ -1,6 +1,7 @@
 use faber::Valor;
 use rusqlite::types::{Value, ValueRef};
 use rusqlite::{params_from_iter, Connection, Row};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
 pub fn exsequi(via: String, sql: String, params: Vec<Valor>) -> Result<Valor, String> {
@@ -88,6 +89,10 @@ pub fn scalar(via: String, sql: String, params: Vec<Valor>) -> Result<Option<Val
         .map_err(sqlite_error)?
         .map(|row| row.get_ref(0).map(read_value).map_err(sqlite_error))
         .transpose()
+}
+
+pub fn sha256_hex(bytes: Vec<u8>) -> String {
+    format!("{:x}", Sha256::digest(bytes))
 }
 
 fn bind_values(params: Vec<Valor>) -> Result<Vec<Value>, String> {
