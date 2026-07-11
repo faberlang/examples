@@ -521,6 +521,15 @@ functio route(de lista<textus> args, de Store s) → vacuum {
             mone err
         }
     }
+    sin (top ≡ "want" et subcmd ≡ "done") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+        fac {
+            sqlite_work_done(s, who, op, "wants", "want")
+            nota "done §"(op)
+        }
+        cape err {
+            mone err
+        }
+    }
     sin ((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "done" {
         rewrite_work(s, op, "done", "")
         nota "done §"(op)
