@@ -178,6 +178,10 @@ Acceptance:
 
 ### Stage 2 - Regular Vivi Read Oracle
 
+Delivery chart: [`stage-2-sqlite-read-delivery.md`](stage-2-sqlite-read-delivery.md).
+The chart records the current native-library application attachment blocker,
+the exact read model, and fixture-first resume sequence.
+
 After `sqlite:sqlite` read support exists, generate fixture mailspaces with
 regular `vivi`, then read them with ViviLite:
 
