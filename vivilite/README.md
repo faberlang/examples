@@ -52,6 +52,7 @@ From the `examples/` repo root:
 cargo run --manifest-path ../faber/Cargo.toml -- check vivilite
 cargo run --manifest-path ../faber/Cargo.toml -- test vivilite
 cargo run --manifest-path ../faber/Cargo.toml -- run vivilite -- board --for codex --json --project vivilite/fixtures/demo
+./scripta/verify-vivilite-sqlite-writes.sh
 ```
 
 The compiled test harness uses runtime filesystem routes for disposable fixture

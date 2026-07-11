@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves and event-note parity implemented; Unit D mail/work-item creation includes recipient and sent-copy parity; want-to-need promotion with optional event notes implemented
+**Status:** Units A-C task/need/want-to-done moves and event-note parity implemented; Unit D mail/work-item creation has repeatable regular Vivi oracle and rollback proof; want-to-need promotion with optional event notes implemented
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -76,12 +76,14 @@ The implementation sequence is therefore:
 3. **Complete:** compose the exact regular Vivi message bytes, including
    `X-Vivi-Kind` only for work items, then write the blob, recipient row, sender's
    read `sent` row, and matching catalog/event rows as one logical operation.
-4. Prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
+4. **Complete:** prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
    regular Vivi must list/show the created item, report the expected sent copy
    and open-role totals, and read the persisted body bytes. A forced mid-write
    failure must leave every table and blob path unchanged. The send path now
    creates a new content-addressed blob only after the catalog transaction
-   commits, so a rejected batch cannot orphan a blob.
+   commits, so a rejected batch cannot orphan a blob. Run
+   `./scripta/verify-vivilite-sqlite-writes.sh` from the examples repository to
+   exercise the product oracle on a disposable fixture.
 
 Until those prerequisites land, creation commands continue on the file-backed
 lane even when `.vivi/mail.sqlite` exists. They must not partially populate the
