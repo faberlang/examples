@@ -1,6 +1,6 @@
 # ViviLite SQLite Write Delivery
 
-**Status:** Units A-C task/need/want-to-done moves implemented; Unit D work-item creation includes recipient and sent-copy parity
+**Status:** Units A-C task/need/want-to-done moves implemented; Unit D mail/work-item creation includes recipient and sent-copy parity
 **Consumer stage:** ViviLite Stage 3 (SQLite package goal Stage 4)
 **Fixture policy:** mutate disposable regular Vivi fixtures only
 
@@ -70,7 +70,7 @@ The implementation sequence is therefore:
 2. **Complete:** expose canonical SHA-256 bytes-to-hex hashing to Faber through
    the SQLite package binding seam rather than ViviLite-specific Rust.
 3. **Complete:** compose the exact regular Vivi message bytes, including
-   `X-Vivi-Kind` for work items, then write the blob, recipient row, sender's
+   `X-Vivi-Kind` only for work items, then write the blob, recipient row, sender's
    read `sent` row, and matching catalog/event rows as one logical operation.
 4. Prove each `mail|task|need|want send` against a fresh regular Vivi fixture:
    regular Vivi must list/show the created item, report the expected sent copy

@@ -376,13 +376,15 @@ functio compose_vivi_message(de textus mailspace, de textus kind, de textus from
     eml ← cat(eml, vivi_address(to, mailspace))
     eml ← cat(eml, "\r\nSubject: ")
     eml ← cat(eml, subject)
-    eml ← cat(eml, "\r\nX-Vivi-Kind: ")
-    eml ← cat(eml, kind)
+    si kind.longitudo() > 0 {
+        eml ← cat(eml, "\r\nX-Vivi-Kind: ")
+        eml ← cat(eml, kind)
+    }
     eml ← cat(eml, "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n")
     redde cat(eml, normalized_body)
 }
 
-functio sqlite_work_send(de Store s, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus ⇥ textus {
+functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, de textus to, de textus subject, de textus body) → textus ⇥ textus {
     fixum lista<textus> names ← vivi_config_names(s)
     fixum textus mailspace ← names.accipe(0) vel ""
     si mailspace.longitudo() ≡ 0 {
@@ -392,8 +394,12 @@ functio sqlite_work_send(de Store s, de textus kind, de textus from, de textus t
     fixum octeti eml_bytes ← (eml ↦ textus) ↦ octeti
     fixum numerus byte_size ← eml_bytes.longitudo()
     fixum textus content_id ← sqlite.sha256_hex(eml_bytes)
-    fixum textus message_id ← "local-§-§-§"(to, kind, content_id)
+    fixum textus message_id ← "local-§-§-§"(to, role, content_id)
     fixum textus sent_message_id ← "local-§-sent-§"(from, content_id)
+    varia textus command ← "mail send"
+    si kind.longitudo() > 0 {
+        command ← "§ send"(kind)
+    }
     fixum textus blob_relpath ← "blobs/§/§/§.eml"(content_id.sectio(0, 2), content_id.sectio(2, 4), content_id)
     fixum textus blob_path ← "§/.vivi/§"(s.root, blob_relpath)
     fixum bivalens blob_existed ← solum.exstat(blob_path)
@@ -404,10 +410,10 @@ functio sqlite_work_send(de Store s, de textus kind, de textus from, de textus t
     varia lista<valor> statements ← vacua
     statements.appende(sqlite_statement("INSERT INTO blobs (content_id, blob_relpath, byte_size, rfc_message_id, parsed_at) VALUES (?1, ?2, ?3, NULL, datetime('now')) ON CONFLICT(content_id) DO NOTHING", [content_id ↦ valor, blob_relpath ↦ valor, byte_size ↦ valor]))
     statements.appende(sqlite_statement("INSERT INTO message_metadata (content_id, date, from_addr, to_addr, cc_addr, bcc_addr, subject, normalized_message_id) VALUES (?1, datetime('now'), ?2, ?3, '', '', ?4, NULL) ON CONFLICT(content_id) DO UPDATE SET from_addr = excluded.from_addr, to_addr = excluded.to_addr, subject = excluded.subject", [content_id ↦ valor, vivi_address(from, mailspace) ↦ valor, vivi_address(to, mailspace) ↦ valor, subject ↦ valor]))
-    statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = excluded.local_role, updated_at = excluded.updated_at, deleted_at = NULL", [message_id ↦ valor, to ↦ valor, content_id ↦ valor, "§s"(kind) ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = excluded.local_role, updated_at = excluded.updated_at, deleted_at = NULL", [message_id ↦ valor, to ↦ valor, content_id ↦ valor, role ↦ valor]))
     statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, 'sent', 1, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = 'sent', read_state = 1, updated_at = excluded.updated_at, deleted_at = NULL", [sent_message_id ↦ valor, from ↦ valor, content_id ↦ valor]))
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'sent_copy_created', ?2, ?2, ?3, ?4, NULL, 'sent', ?2, ?2, ?5, NULL)", ["§ send"(kind) ↦ valor, from ↦ valor, sent_message_id ↦ valor, content_id ↦ valor, subject ↦ valor]))
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", ["§ send"(kind) ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, "§s"(kind) ↦ valor, subject ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'sent_copy_created', ?2, ?2, ?3, ?4, NULL, 'sent', ?2, ?2, ?5, NULL)", [command ↦ valor, from ↦ valor, sent_message_id ↦ valor, content_id ↦ valor, subject ↦ valor]))
+    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", [command ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, role ↦ valor, subject ↦ valor]))
     sqlite.exsequi_batch("§/.vivi/mail.sqlite"(s.root), statements)
     redde message_id
 }
@@ -546,7 +552,18 @@ functio route(de lista<textus> args, de Store s) → vacuum {
         identity_list(s)
     }
     sin top ≡ "mail" et subcmd ≡ "send" {
-        send_mail(s, from, to, subject, body)
+        si solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
+            fac {
+                fixum textus handle ← sqlite_send(s, "", "inbox", from, to, subject, body)
+                nota "sent §"(handle)
+            }
+            cape err {
+                mone err
+            }
+        }
+        secus {
+            send_mail(s, from, to, subject, body)
+        }
     }
     sin top ≡ "mail" et subcmd ≡ "list" {
         mail_list(s, who)
@@ -556,7 +573,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     }
     sin (((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "send") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
         fac {
-            fixum textus handle ← sqlite_work_send(s, top, from, to, subject, body)
+            fixum textus handle ← sqlite_send(s, top, "§s"(top), from, to, subject, body)
             nota "sent §"(handle)
         }
         cape err {
@@ -620,6 +637,8 @@ probandum "vivilite helpers" tag "vivilite" {
         fixum textus eml ← compose_vivi_message("fixture", "task", "hunter", "reviewer", "proof", "body")
         adfirma eml ≡ "From: hunter@fixture.local\r\nTo: reviewer@fixture.local\r\nSubject: proof\r\nX-Vivi-Kind: task\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nbody\r\n"
         adfirma sqlite.sha256_hex(eml ↦ octeti) ≡ "e970fd325a05f8ccd12922083e043592c0c5f1c8085c9f866611ab50c4d2f1bc"
+        fixum textus mail ← compose_vivi_message("fixture", "", "hunter", "reviewer", "proof", "body")
+        adfirma mail ≡ "From: hunter@fixture.local\r\nTo: reviewer@fixture.local\r\nSubject: proof\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nbody\r\n"
     }
     proba "split separates tab fields" {
         fixum lista<textus> p ← split("a\tb\tc", "\t")

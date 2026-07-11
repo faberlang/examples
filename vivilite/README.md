@@ -19,7 +19,7 @@ want totals through the `sqlite:sqlite` package and reports lane
 `sqlite-read`. The read-only lane also fills task, need, and want item arrays
 from regular Vivi message metadata. `mailspace status --json` reads every
 configured identity and emits the same identity rows and aggregate totals as
-regular Vivi. Task, need, and want sends compose canonical UTF-8 messages,
+regular Vivi. Mail, task, need, and want sends compose canonical UTF-8 messages,
 store SHA-256-addressed blobs, and atomically insert the corresponding blob,
 metadata, recipient, sender `sent` copy, and event catalog rows. Other commands
 continue to use the file-backed lane.
@@ -57,6 +57,5 @@ cargo run --manifest-path ../faber/Cargo.toml -- run vivilite -- board --for cod
 The compiled test harness uses runtime filesystem routes for disposable fixture
 setup. The SQLite write lane supports exact-one completion for open tasks,
 needs, and wants, plus regular-Vivi-readable creation and sender sent-copy
-parity for those work kinds. Mail creation and want promotion remain
-file-backed until their regular Vivi storage semantics are implemented and
-proven against disposable fixtures.
+parity for every send kind. Want promotion remains file-backed until its regular
+Vivi storage semantics are implemented and proven against disposable fixtures.
