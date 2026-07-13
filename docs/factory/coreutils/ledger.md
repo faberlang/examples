@@ -63,7 +63,7 @@
 | `join` | 4 | slice | — | two sorted file operands, stdin `-` second file, default field-1 inner join | other join fields/options, diagnostics | Continue options or ship milestone |
 | `paste` | 4 | slice | — | stdin single-stream passthrough, blank-line preservation, `-s` tab join, `-s -d` ASCII delimiter cycling, empty delimiter | multiple files/streams, delimiter escapes, `-z`, byte-exact missing-final-newline behavior, diagnostics | Continue streams/delimiters/diagnostics or ship milestone |
 | `split` | 4 | slice | — | stdin `-l N` line chunks, default `x` prefix, `aa`/`ab`/… suffix files via `norma:solum.scribe` | file input, byte chunks, other options | Continue options or ship milestone |
-| `od` | 4 | slice | — | stdin default `-t o2` octal dump, empty/single/multi-byte lines | file operands, other formats | Continue formats/options or ship milestone |
+| `od` | 4 | slice | — | stdin default `-t o2` octal dump, empty/single/multi-byte lines; `-t x1` byte-wise hex fixtures | file operands, address radix/options, other formats | Continue address/options or ship milestone |
 | `cksum` | 4 | slice | — | stdin POSIX CRC + byte count, newline-terminated Tier A fixtures | file operands, other algorithms | Continue file/algorithms or ship milestone |
 
 ## Mixed — stdin slice first, file second

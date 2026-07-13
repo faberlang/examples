@@ -55,6 +55,42 @@ functio octal_padded(numerus n, numerus width) → textus {
     redde zeroes(width - raw.longitudo()) + raw
 }
 
+functio hex_digit(numerus n) → textus {
+    elige n {
+        casu 0 { redde "0" }
+        casu 1 { redde "1" }
+        casu 2 { redde "2" }
+        casu 3 { redde "3" }
+        casu 4 { redde "4" }
+        casu 5 { redde "5" }
+        casu 6 { redde "6" }
+        casu 7 { redde "7" }
+        casu 8 { redde "8" }
+        casu 9 { redde "9" }
+        casu 10 { redde "a" }
+        casu 11 { redde "b" }
+        casu 12 { redde "c" }
+        casu 13 { redde "d" }
+        casu 14 { redde "e" }
+        casu 15 { redde "f" }
+        ceterum { redde "0" }
+    }
+}
+
+functio hex_padded(numerus n, numerus width) → textus {
+    varia textus raw ← ""
+    varia numerus value ← n
+    si value ≡ 0 ergo raw ← "0"
+
+    dum value > 0 {
+        raw ← hex_digit(value ∧ 15) + raw
+        value ← value ⇒ 4
+    }
+
+    si raw.longitudo() ≥ width ergo redde raw
+    redde zeroes(width - raw.longitudo()) + raw
+}
+
 functio word_le(lista<numerus> bytes, numerus index) → numerus {
     fixum numerus b0 ← bytes.accipe(index) vel 0
     varia numerus b1 ← 0
@@ -64,7 +100,7 @@ functio word_le(lista<numerus> bytes, numerus index) → numerus {
     redde b0 ∨ (b1 ⇐ 8)
 }
 
-functio od_linea(numerus address, lista<numerus> bytes, numerus start) → textus {
+functio od_linea_o2(numerus address, lista<numerus> bytes, numerus start) → textus {
     varia textus linea ← octal_padded(address, 7)
     varia numerus i ← start
     varia numerus groups ← 0
@@ -82,7 +118,21 @@ functio od_linea(numerus address, lista<numerus> bytes, numerus start) → textu
     redde linea
 }
 
-functio od_stdin(lista<numerus> bytes) → lista<textus> {
+functio od_linea_x1(numerus address, lista<numerus> bytes, numerus start) → textus {
+    varia textus linea ← octal_padded(address, 7)
+    varia numerus i ← start
+    varia numerus groups ← 0
+
+    dum i < bytes.longitudo() et groups < 16 {
+        linea ← linea + " " + hex_padded(bytes.accipe(i) vel 0, 2)
+        i ← i + 1
+        groups ← groups + 1
+    }
+
+    redde linea
+}
+
+functio od_stdin(lista<numerus> bytes, textus forma) → lista<textus> {
     varia lista<textus> lineae ← vacua
     varia numerus address ← 0
     varia numerus i ← 0
@@ -93,7 +143,11 @@ functio od_stdin(lista<numerus> bytes) → lista<textus> {
     }
 
     dum i < bytes.longitudo() {
-        lineae.appende(od_linea(address, bytes, i))
+        si forma ≡ "x1" {
+            lineae.appende(od_linea_x1(address, bytes, i))
+        } secus {
+            lineae.appende(od_linea_o2(address, bytes, i))
+        }
         fixum numerus remaining ← bytes.longitudo() - i
         si remaining ≥ 16 {
             i ← i + 16
@@ -110,16 +164,26 @@ functio od_stdin(lista<numerus> bytes) → lista<textus> {
 probandum "od formatting" tag "coreutils" {
     proba "empty stdin emits only the base address line" {
         fixum lista<numerus> empty ← vacua
-        adfirma od_stdin(empty) ≡ ["0000000"]
+        fixum textus forma ← "o2"
+        adfirma od_stdin(empty, forma) ≡ ["0000000"]
+    }
+    proba "default o2 groups little-endian two-byte words" {
+        fixum textus forma ← "o2"
+        adfirma od_stdin([97, 10], forma) ≡ ["0000000 005141", "0000002"]
+    }
+    proba "x1 format emits individual hexadecimal bytes" {
+        fixum textus forma ← "x1"
+        adfirma od_stdin([97, 10], forma) ≡ ["0000000 61 0a", "0000002"]
     }
 }
 
 @ cli "od"
 @ descriptio "GNU coreutils od stdin parity exemplum"
+@ optio forma typus textus brevis "t" descriptio "select output format"
 @ operandus ceteri textus operands
 incipit argumenta args {
     fixum lista<numerus> bytes ← lege_octeti_stdin()
-    itera ex od_stdin(bytes) fixum linea {
+    itera ex od_stdin(bytes, args.forma vel "o2") fixum linea {
         gnu_stdio.scribe_linea(linea)
     }
 }

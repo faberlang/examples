@@ -30,3 +30,25 @@ stdout = "0000000 005141\n0000002"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "x1-single-char-line"
+lane = "stepper"
+tier = "A"
+args = ["-t", "x1"]
+stdin = "a\n"
+stdout = "0000000 61 0a\n0000002"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "x1-hello-line"
+lane = "stepper"
+tier = "A"
+args = ["-t", "x1"]
+stdin = "hello\n"
+stdout = "0000000 68 65 6c 6c 6f 0a\n0000006"
+stderr = ""
+exit = 0
+stdout_newline = true
