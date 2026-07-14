@@ -1,3 +1,13 @@
++++
+term = "tensor"
+kind = "method"
+category = "collection"
+canonical = false
+summary = "Tensor reduction methods for summa and media."
+syntax = "tensor.summa() | tensor.media()"
+related = ["tensor", "fractus", "lista"]
++++
+
 # tensor reductions — summa (element-type fold) and media (float mean)
 #
 # WHY: summa reduces to the element type (integer overflow is author

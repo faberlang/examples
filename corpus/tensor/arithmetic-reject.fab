@@ -1,3 +1,13 @@
++++
+term = "tensor"
+kind = "reject"
+category = "collection"
+canonical = false
+summary = "Tensor arithmetic rejects non-numeric elements and mixed numeric widths."
+syntax = "tensor.addita(other)"
+related = ["tensor", "typus", "conversio"]
++++
+
 # tensor arithmetic reject cases — expected compile failure
 #
 # WHY: documents the typecheck contract for elementwise tensor arithmetic.

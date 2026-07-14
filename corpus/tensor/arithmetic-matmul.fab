@@ -1,3 +1,13 @@
++++
+term = "tensor"
+kind = "method"
+category = "collection"
+canonical = false
+summary = "Tensor rank-2 matrix multiplication with static shape checking."
+syntax = "tensor.matmul(other)"
+related = ["tensor", "fractus", "lista"]
++++
+
 # tensor rank-2 matrix multiply
 #
 # WHY: matmul is the linear-algebra cornerstone the tensor arithmetic family

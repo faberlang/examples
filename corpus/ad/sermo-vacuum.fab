@@ -1,3 +1,13 @@
++++
+term = "ad"
+kind = "endpoint"
+category = "conversio"
+canonical = false
+summary = "ad sermo materialization can drain a stream as vacuum."
+syntax = "ad 'runtime:echo' (payload) ↦ vacuum"
+related = ["ad", "sermo", "vacuum"]
++++
+
 # Exemplar: `sermo ↦ vacuum` drains the stream without extracting data.
 #
 # The exemplar just confirms compilation and no runtime error. `vacuum`
