@@ -4,9 +4,58 @@
   "dtype": "f32",
   "shape": [1],
   "tolerance": 0.0001,
+  "contract": "examples-owned scalar toy training/session oracle only; not PyTorch equivalence, not optimizer/session workflow support",
+  "inputs": {
+    "initial_weight": 0.0,
+    "x": 2.0,
+    "y": 4.0,
+    "rate": 0.25,
+    "steps": 2
+  },
   "reference": {
     "weights": [2.0, 2.0],
     "losses": [16.0, 0.0]
   },
+  "derivation": {
+    "prediction": "weight * x",
+    "loss": "(weight * x - y)^2",
+    "d_weight": "(weight * x - y) * x",
+    "update": "weight - rate * d_weight"
+  },
+  "session_contract": {
+    "artifact": "single scalar parameter plus fixed scalar sample",
+    "state": ["weight"],
+    "events": [
+      {
+        "step": 0,
+        "launch": "rung4_step_kernel",
+        "previous_weight": 0.0,
+        "loss": 16.0,
+        "next_weight": 2.0
+      },
+      {
+        "step": 1,
+        "launch": "rung4_step_kernel",
+        "previous_weight": 2.0,
+        "loss": 0.0,
+        "next_weight": 2.0
+      }
+    ]
+  },
+  "current_output_checked_floor": {
+    "semantic_check": "faber check gpu-workload/rung-4-toy-train.fab",
+    "script_runtime": "blocked by unsupported cuda:launch sermo route before stepper provider runtime",
+    "expected_sidecar": "oracle packet for future producer gates, not current stdout",
+    "device_training": 0,
+    "session_lifecycle": 0,
+    "optimizer_workflow": 0,
+    "pytorch_equivalence": 0
+  },
+  "blockers": [
+    "cuda:launch stepper provider runtime is not available for executable examples script runs",
+    "dense autograd evidence is currently rung3 oracle/proximity evidence, not generated-gradient/device training proof",
+    "no examples-owned optimizer or session lifecycle artifact exists beyond this scalar oracle map"
+  ],
+  "next_task_shape": "Add an examples-local runner or fixture that can replay the two session events against a real producer once cuda:launch and dense autograd outputs are available; keep optimizer/session APIs out of core until separately assigned.",
   "source": "hand-computed two-step scalar linear-regression fixture"
 }
