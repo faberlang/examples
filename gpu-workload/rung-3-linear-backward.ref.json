@@ -14,6 +14,9 @@
     "loss": 4.0,
     "d_weight": 8.0
   },
+  "output_reference": {
+    "loss": 4.0
+  },
   "derivation": {
     "loss": "(x * weight - target)^2",
     "d_weight": "2 * (x * weight - target) * x"

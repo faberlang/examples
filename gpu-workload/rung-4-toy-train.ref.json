@@ -16,6 +16,10 @@
     "weights": [2.0, 2.0],
     "losses": [16.0, 0.0]
   },
+  "output_reference": {
+    "weights": [2.0, 2.0],
+    "losses": [16.0, 0.0]
+  },
   "derivation": {
     "prediction": "weight * x",
     "loss": "(weight * x - y)^2",

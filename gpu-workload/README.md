@@ -19,12 +19,14 @@ The hand-derived gradient is:
 `d_weight = 2 * (x * weight - target) * x = 8.0`
 
 `gpu-workload/rung-3-linear-backward.ref.json` is the consumer oracle for that
-future AIR grad seed. The current output-checked device/autograd floor remains
-`0`: the rung source emits only the scalar forward loss and does not claim that
-AIR, CUDA, or training infrastructure has produced the gradient.
-Accordingly, `gpu-workload/rung-3-linear-backward.expected` records only the
-current emitted forward-loss result; `d_weight = 8.0` belongs to the reference
-oracle and future acceptance target.
+future AIR grad seed. The `reference` object records the full future oracle,
+while `output_reference` records the values emitted by the current source.
+The current output-checked device/autograd floor remains `0`: the rung source
+emits only the scalar forward loss and does not claim that AIR, CUDA, or training
+infrastructure has produced the gradient. Accordingly,
+`gpu-workload/rung-3-linear-backward.expected` records only the current emitted
+forward-loss result; `d_weight = 8.0` belongs to the reference oracle and future
+acceptance target.
 
 ## Rung 4 toy-train/session contract
 
