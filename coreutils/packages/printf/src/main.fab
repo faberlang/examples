@@ -591,9 +591,92 @@ functio float_textus(textus raw, numerus precision) → textus {
     redde "§.§"(integer, rounded_fraction(fraction, active_precision))
 }
 
+functio trim_leading_zeroes(textus value) → textus {
+    varia numerus i ← 0
+    dum i < value.longitudo() et value.sectio(i, i + 1) ≡ "0" {
+        i ← i + 1
+    }
+    si i ≥ value.longitudo() ergo redde ""
+    redde value.sectio(i, value.longitudo())
+}
+
+functio first_nonzero_index(textus value) → numerus {
+    varia numerus i ← 0
+    dum i < value.longitudo() {
+        si value.sectio(i, i + 1) ≠ "0" ergo redde i
+        i ← i + 1
+    }
+    redde -1
+}
+
+functio unsigned_decimal_parts(textus raw) → lista<textus> {
+    fixum numerus initium ← signum_offset(raw)
+    fixum textus unsigned ← raw.sectio(initium, raw.longitudo())
+    fixum numerus dot ← punctum_index(unsigned)
+    si dot ≥ 0 ergo redde [unsigned.sectio(0, dot), unsigned.sectio(dot + 1, unsigned.longitudo())]
+    redde [unsigned, ""]
+}
+
+functio exponent_digits(numerus exponent) → textus {
+    varia numerus value ← exponent
+    si value < 0 {
+        value ← 0 - value
+    }
+    si value < 10 ergo redde "0§"(value)
+    redde "§"(value)
+}
+
+functio exponent_letter(bivalens uppercase) → textus {
+    si uppercase ergo redde "E"
+    redde "e"
+}
+
+functio float_sign(textus raw) → textus {
+    si raw.initium("-") ergo redde "-"
+    redde ""
+}
+
+functio exponent_suffix(numerus exponent, bivalens uppercase) → textus {
+    fixum textus littera ← exponent_letter(uppercase)
+    si exponent < 0 ergo redde "§-§"(littera, exponent_digits(exponent))
+    redde "§+§"(littera, exponent_digits(exponent))
+}
+
+functio normalize_rounded_mantissa(textus mantissa, numerus exponent, numerus precision) → lista<textus> {
+    si mantissa.initium("10") {
+        varia numerus active_precision ← precision
+        si active_precision < 0 {
+            active_precision ← 6
+        }
+        si active_precision ≡ 0 ergo redde ["1", "§"(exponent + 1)]
+        redde ["1." + zeroes(active_precision), "§"(exponent + 1)]
+    }
+    redde [mantissa, "§"(exponent)]
+}
+
 functio exponent_textus(textus raw, numerus precision, bivalens uppercase) → textus {
-    si uppercase ergo redde float_textus(raw, precision) + "E+00"
-    redde float_textus(raw, precision) + "e+00"
+    fixum textus signum ← float_sign(raw)
+    fixum lista<textus> parts ← unsigned_decimal_parts(raw)
+    fixum textus integer ← trim_leading_zeroes(parts[0])
+    fixum textus fraction ← parts[1]
+    varia numerus exponent ← 0
+    varia textus mantissa_raw ← "0"
+
+    si integer.longitudo() > 0 {
+        exponent ← integer.longitudo() - 1
+        mantissa_raw ← integer.sectio(0, 1) + "." + (integer.sectio(1, integer.longitudo()) + fraction)
+    }
+    secus {
+        fixum numerus first ← first_nonzero_index(fraction)
+        si first ≥ 0 {
+            exponent ← 0 - (first + 1)
+            mantissa_raw ← fraction.sectio(first, first + 1) + "." + fraction.sectio(first + 1, fraction.longitudo())
+        }
+    }
+
+    fixum textus rounded ← float_textus(mantissa_raw, precision)
+    fixum lista<textus> normalized ← normalize_rounded_mantissa(rounded, exponent, precision)
+    redde signum + normalized[0] + exponent_suffix(normalized[1] ↦ numerus ⇥ 0, uppercase)
 }
 
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
@@ -904,9 +987,14 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%.0f\n", "1.6"]) ≡ "2\n"
         adfirma printf_textus(["%f\n", "1.2345678"]) ≡ "1.234568\n"
     }
-    proba "exponent floating format renders bounded exponent-zero decimals" {
+    proba "exponent floating format normalizes mantissa and exponent" {
         adfirma printf_textus(["%e\n", "1.25"]) ≡ "1.250000e+00\n"
         adfirma printf_textus(["%.2E\n", "1.256"]) ≡ "1.26E+00\n"
+        adfirma printf_textus(["%e\n", "10"]) ≡ "1.000000e+01\n"
+        adfirma printf_textus(["%e\n", "0.125"]) ≡ "1.250000e-01\n"
+        adfirma printf_textus(["%.2e\n", "99.99"]) ≡ "1.00e+02\n"
+        adfirma printf_textus(["%.0e\n", "9.6"]) ≡ "1e+01\n"
+        adfirma printf_textus(["%.2E\n", "0.01256"]) ≡ "1.26E-02\n"
     }
 }
 

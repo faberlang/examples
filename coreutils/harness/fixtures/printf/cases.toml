@@ -393,3 +393,58 @@ stdout = "1.26E+00\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "float-exponent-positive-magnitude"
+lane = "stepper"
+tier = "A"
+args = ["%e\\n", "10"]
+stdin = ""
+stdout = "1.000000e+01\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-exponent-negative-magnitude"
+lane = "stepper"
+tier = "A"
+args = ["%e\\n", "0.125"]
+stdin = ""
+stdout = "1.250000e-01\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-exponent-rounding-carry"
+lane = "stepper"
+tier = "A"
+args = ["%.2e\\n", "99.99"]
+stdin = ""
+stdout = "1.00e+02\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-exponent-zero-precision-carry"
+lane = "stepper"
+tier = "A"
+args = ["%.0e\\n", "9.6"]
+stdin = ""
+stdout = "1e+01\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-exponent-upper-negative-magnitude"
+lane = "stepper"
+tier = "A"
+args = ["%.2E\\n", "0.01256"]
+stdin = ""
+stdout = "1.26E-02\n"
+stderr = ""
+exit = 0
+stdout_newline = true
