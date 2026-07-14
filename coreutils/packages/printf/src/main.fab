@@ -45,7 +45,7 @@ functio digitne(textus ch) → bivalens {
 }
 
 functio speciesne(textus ch) → bivalens {
-    redde (((((((ch ≡ "s" aut ch ≡ "b") aut ch ≡ "d") aut ch ≡ "i") aut ch ≡ "u") aut ch ≡ "x") aut ch ≡ "X") aut ch ≡ "o") aut ch ≡ "f"
+    redde (((((((((ch ≡ "s" aut ch ≡ "b") aut ch ≡ "d") aut ch ≡ "i") aut ch ≡ "u") aut ch ≡ "x") aut ch ≡ "X") aut ch ≡ "o") aut ch ≡ "f") aut ch ≡ "e") aut ch ≡ "E"
 }
 
 functio spatia(numerus count) → textus {
@@ -429,6 +429,11 @@ functio float_textus(textus raw, numerus precision) → textus {
     redde "§.§"(integer, rounded_fraction(fraction, active_precision))
 }
 
+functio exponent_textus(textus raw, numerus precision, bivalens uppercase) → textus {
+    si uppercase ergo redde float_textus(raw, precision) + "E+00"
+    redde float_textus(raw, precision) + "e+00"
+}
+
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
     varia textus out ← ""
     varia numerus i ← 0
@@ -481,7 +486,19 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                                             arg_index ← arg_index + 1
                                         }
                                         secus {
-                                            out ← (out + "%") + immediate
+                                            si next ≡ "e" {
+                                                out ← out + pad_width(exponent_textus(argumentum(args, arg_index), precision, falsum), width)
+                                                arg_index ← arg_index + 1
+                                            }
+                                            secus {
+                                                si next ≡ "E" {
+                                                    out ← out + pad_width(exponent_textus(argumentum(args, arg_index), precision, verum), width)
+                                                    arg_index ← arg_index + 1
+                                                }
+                                                secus {
+                                                    out ← (out + "%") + immediate
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -596,6 +613,10 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%.2f\n", "1.256"]) ≡ "1.26\n"
         adfirma printf_textus(["%.0f\n", "1.6"]) ≡ "2\n"
         adfirma printf_textus(["%f\n", "1.2345678"]) ≡ "1.234568\n"
+    }
+    proba "exponent floating format renders bounded exponent-zero decimals" {
+        adfirma printf_textus(["%e\n", "1.25"]) ≡ "1.250000e+00\n"
+        adfirma printf_textus(["%.2E\n", "1.256"]) ≡ "1.26E+00\n"
     }
 }
 

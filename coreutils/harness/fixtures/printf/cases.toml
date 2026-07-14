@@ -250,3 +250,25 @@ stdout = "1.234568\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "float-exponent-lower-default-precision"
+lane = "stepper"
+tier = "A"
+args = ["%e\\n", "1.25"]
+stdin = ""
+stdout = "1.250000e+00\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-exponent-upper-explicit-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.2E\\n", "1.256"]
+stdin = ""
+stdout = "1.26E+00\n"
+stderr = ""
+exit = 0
+stdout_newline = true
