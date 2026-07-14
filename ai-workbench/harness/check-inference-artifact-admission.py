@@ -10,26 +10,13 @@ import tempfile
 import tomllib
 from typing import Any
 
+from claim_gates import FORBIDDEN_INFERENCE_CLAIMS, false_claim_failures
 
 EXPECTED_FORMAT = "faber-ai-inference-artifact-admission-v0"
 EXPECTED_MODEL_FORMAT = "faber-ai-model-artifact-v0"
 EXPECTED_TOKENIZER_FORMAT = "faber-ai-tokenizer-v0"
 ALLOWED_TENSOR_DTYPES = {"BF16", "F8_E4M3"}
-FORBIDDEN_TRUE_CLAIMS = [
-    "faber_owned_inference",
-    "owned_model_runtime",
-    "llama_cpp_parity",
-    "llama_cpp_equivalence",
-    "gguf_runtime",
-    "transformer_execution",
-    "transformer_runtime",
-    "quantized_kernel_support",
-    "gpu_runtime",
-    "public_inference",
-    "public_product_release",
-    "model_blobs_in_git",
-    "implicit_model_downloads",
-]
+FORBIDDEN_TRUE_CLAIMS = FORBIDDEN_INFERENCE_CLAIMS
 RUNTIME_KINDS = {"gguf", "transformer-runtime"}
 
 
@@ -114,6 +101,10 @@ def validate_tokenizer(artifact: dict[str, Any]) -> list[str]:
     return failures
 
 
+def validate_artifact_claims(artifact: dict[str, Any], label: str) -> list[str]:
+    return false_claim_failures(artifact.get("claims"), label=label, require_all=True)
+
+
 def validate_logits_events(events: list[dict[str, Any]], vocab: dict[str, int]) -> list[str]:
     failures: list[str] = []
     event_names = [event.get("event") for event in events]
@@ -122,18 +113,8 @@ def validate_logits_events(events: list[dict[str, Any]], vocab: dict[str, int]) 
         return failures
     by_name = {event["event"]: event for event in events}
     metadata = by_name["metadata"]
-    for key in (
-        "faber_owned_inference",
-        "llama_cpp_equivalence",
-        "gguf_runtime",
-        "transformer_runtime",
-        "quantized_kernel_support",
-        "gpu_runtime",
-        "model_blobs_in_git",
-        "implicit_model_downloads",
-    ):
-        if metadata.get("claims", {}).get(key) is not False:
-            fail(failures, f"logits metadata claim {key} must remain false")
+    for issue in false_claim_failures(metadata.get("claims"), label="logits metadata", require_all=True):
+        fail(failures, issue)
     logits_event = by_name["logits"]
     logits = logits_event.get("values", [])
     if logits_event.get("dtype") != "f32":
@@ -207,9 +188,8 @@ def main() -> int:
         fail(failures, "admission boundary must remain local-ops")
     if "fixture artifacts only" not in boundary.get("scope", ""):
         fail(failures, "admission boundary scope must stay parse/validation only")
-    for key in FORBIDDEN_TRUE_CLAIMS:
-        if contract_doc["guarded_claims"].get(key) is not False:
-            fail(failures, f"guarded claim {key} must remain false")
+    for issue in false_claim_failures(contract_doc["guarded_claims"], label="guarded", require_all=True):
+        fail(failures, issue)
 
     accepted = contract_doc.get("accepted_artifact", [])
     malformed = contract_doc.get("malformed_artifact", [])
@@ -229,9 +209,13 @@ def main() -> int:
             artifact = read_json(path_for(root, row["artifact"]))
             for issue in validate_tensor_metadata(artifact):
                 fail(failures, f"{row['id']}: {issue}")
+            for issue in validate_artifact_claims(artifact, row["id"]):
+                fail(failures, f"{row['id']}: {issue}")
         elif row["kind"] == "tokenizer":
             artifact = read_json(path_for(root, row["artifact"]))
             for issue in validate_tokenizer(artifact):
+                fail(failures, f"{row['id']}: {issue}")
+            for issue in validate_artifact_claims(artifact, row["id"]):
                 fail(failures, f"{row['id']}: {issue}")
         elif row["kind"] == "token-logits-jsonl":
             try:
@@ -255,9 +239,13 @@ def main() -> int:
             fail(failures, f"{row['id']} must record a rejection reason")
         issues: list[str] = []
         if row["kind"] == "tensor-metadata":
-            issues = validate_tensor_metadata(read_json(artifact))
+            artifact_payload = read_json(artifact)
+            issues = validate_tensor_metadata(artifact_payload)
+            issues.extend(validate_artifact_claims(artifact_payload, row["id"]))
         elif row["kind"] == "tokenizer":
-            issues = validate_tokenizer(read_json(artifact))
+            artifact_payload = read_json(artifact)
+            issues = validate_tokenizer(artifact_payload)
+            issues.extend(validate_artifact_claims(artifact_payload, row["id"]))
         elif row["kind"] == "token-logits-jsonl":
             issues = validate_logits_events(load_events(artifact), vocab)
         elif row["kind"] in RUNTIME_KINDS:

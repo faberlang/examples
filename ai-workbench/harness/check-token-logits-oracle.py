@@ -8,22 +8,9 @@ import sys
 import tempfile
 from typing import Any
 
+from claim_gates import FORBIDDEN_INFERENCE_CLAIMS, false_claim_failures
 
-FORBIDDEN_TRUE_CLAIMS = [
-    "faber_owned_inference",
-    "owned_model_runtime",
-    "llama_cpp_parity",
-    "llama_cpp_equivalence",
-    "gguf_runtime",
-    "transformer_execution",
-    "transformer_runtime",
-    "quantized_kernel_support",
-    "gpu_runtime",
-    "public_inference",
-    "public_product_release",
-    "model_blobs_in_git",
-    "implicit_model_downloads",
-]
+FORBIDDEN_TRUE_CLAIMS = FORBIDDEN_INFERENCE_CLAIMS
 
 
 def workspace_root() -> pathlib.Path:
@@ -46,6 +33,7 @@ def main() -> int:
     root = workspace_root()
     oracle = root / "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
     expected = root / "examples/ai-workbench/harness/fixtures/generate/tiny-token-logits.expected.jsonl"
+    bad_claims = root / "examples/ai-workbench/harness/fixtures/generate/tiny-token-logits.bad-claims.jsonl"
     model = root / "examples/ai-workbench/harness/fixtures/model-artifact/tiny-model.fma.json"
     prompt = root / "examples/ai-workbench/harness/fixtures/generate/prompt.txt"
     artifact = json.loads(model.read_text(encoding="utf-8"))
@@ -54,6 +42,10 @@ def main() -> int:
     expected_token_ids = encode(prompt.read_text(encoding="utf-8").strip(), vocab, unknown_id)
     failures: list[str] = []
     expected_events = load_events(expected)
+    bad_events = load_events(bad_claims)
+    bad_metadata = next((event for event in bad_events if event.get("event") == "metadata"), {})
+    if not false_claim_failures(bad_metadata.get("claims"), label="bad metadata", require_all=True):
+        fail(failures, "bad token/logits metadata claim fixture must fail claim gate")
 
     with tempfile.TemporaryDirectory(prefix="faber-ai-token-logits-") as temp:
         out = pathlib.Path(temp) / "token-logits.jsonl"
@@ -104,9 +96,8 @@ def main() -> int:
                 fail(failures, "metadata status must be oracle-backed")
             if metadata.get("fixture") != "tiny-token-logits-oracle-v0":
                 fail(failures, "metadata fixture marker mismatch")
-            for key in FORBIDDEN_TRUE_CLAIMS:
-                if metadata.get("claims", {}).get(key) is not False:
-                    fail(failures, f"metadata claim {key} must remain false")
+            for issue in false_claim_failures(metadata.get("claims"), label="metadata", require_all=True):
+                fail(failures, issue)
 
             prefill = by_name.get("prefill", {})
             if prefill.get("token_ids") != expected_token_ids:

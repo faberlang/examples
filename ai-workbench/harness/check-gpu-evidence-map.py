@@ -6,20 +6,9 @@ import pathlib
 import sys
 import tomllib
 
+from claim_gates import FORBIDDEN_INFERENCE_CLAIMS, false_claim_failures
 
-FORBIDDEN_TRUE_CLAIMS = [
-    "faber_owned_inference",
-    "llama_cpp_equivalence",
-    "gguf_runtime",
-    "transformer_runtime",
-    "quantized_kernel_support",
-    "gpu_runtime",
-    "device_logits_execution",
-    "device_softmax_execution",
-    "device_training",
-    "implicit_model_downloads",
-    "model_blobs_in_git",
-]
+FORBIDDEN_TRUE_CLAIMS = FORBIDDEN_INFERENCE_CLAIMS
 
 EXPECTED_RUNG_ARTIFACTS = {
     "matmul-shape-precedent": ("examples/gpu-workload/rung-0-matmul.ref.json", 0),
@@ -74,9 +63,8 @@ def main() -> int:
     if "gpu-evidence-map.toml" not in gpu_readme:
         fail(failures, "GPU workload README must link gpu-evidence-map.toml")
 
-    for key in FORBIDDEN_TRUE_CLAIMS:
-        if evidence["guarded_claims"].get(key) is not False:
-            fail(failures, f"guarded claim {key} must remain false")
+    for issue in false_claim_failures(evidence["guarded_claims"], label="guarded", require_all=True):
+        fail(failures, issue)
 
     bridge_steps = {step["id"]: step for step in evidence.get("bridge_step", [])}
     for step_id in ("cpu-tokenization", "cpu-logits-vector", *EXPECTED_RUNG_ARTIFACTS.keys()):

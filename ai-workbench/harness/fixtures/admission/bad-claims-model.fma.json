@@ -50,9 +50,8 @@
     "scope": "canonical metadata and tokenizer fixture values; no tensor bytes in git"
   },
   "diagnostics": [
-    "metadata-only model artifact fixture",
-    "tokenizer fixture only; no runtime tokenization engine claimed",
-    "Faber-owned inference not implemented"
+    "metadata-only model artifact fixture with intentionally bad claim flag",
+    "tokenizer fixture only; no runtime tokenization engine claimed"
   ],
   "claims": {
     "faber_owned_inference": false,
@@ -71,7 +70,7 @@
     "device_logits_execution": false,
     "device_softmax_execution": false,
     "device_training": false,
-    "public_inference": false,
+    "public_inference": true,
     "public_product_release": false,
     "model_downloads": false,
     "model_blobs_in_git": false,

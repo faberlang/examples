@@ -5,18 +5,9 @@ import pathlib
 import sys
 import tomllib
 
+from claim_gates import FORBIDDEN_INFERENCE_CLAIMS, false_claim_failures
 
-FORBIDDEN_TRUE_CLAIMS = [
-    "faber_owned_inference",
-    "llama_cpp_equivalence",
-    "gguf_runtime",
-    "transformer_runtime",
-    "quantized_kernel_support",
-    "gpu_runtime",
-    "model_blobs_in_git",
-    "implicit_model_downloads",
-    "public_product_release",
-]
+FORBIDDEN_TRUE_CLAIMS = FORBIDDEN_INFERENCE_CLAIMS
 
 
 def workspace_root() -> pathlib.Path:
@@ -66,9 +57,8 @@ def main() -> int:
     ):
         require_path(root, failures, contract[key])
 
-    for key in FORBIDDEN_TRUE_CLAIMS:
-        if fixture_map["guarded_claims"].get(key) is not False:
-            fail(failures, f"guarded claim {key} must remain false")
+    for issue in false_claim_failures(fixture_map["guarded_claims"], label="guarded", require_all=True):
+        fail(failures, issue)
 
     evidence = fixture_map.get("evidence", [])
     evidence_ids = {item["id"] for item in evidence}
