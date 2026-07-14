@@ -256,7 +256,8 @@ no-newline fixtures. `echo -e` now covers the declared `\n`, `\t`, `\r`, and
 `%i`, positive `%u`, positive `%o`, and positive `%x`/`%X` integer formats;
 missing `%d` arguments now format as `0`; bounded positive `%f` with
 fixed-decimal rounding, bounded exponent-zero `%e`/`%E`, simple field width,
-and string precision are covered. Next useful Stage 3 slices are
+string precision, and positive dynamic `*` width/precision are covered. Next
+useful Stage 3 slices are
 additional `printf` numeric formats/diagnostics, `printenv` unset lookup once
 optional env read exists, or remaining `echo` escapes/options.
 

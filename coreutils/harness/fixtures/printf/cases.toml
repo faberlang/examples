@@ -175,6 +175,28 @@ exit = 0
 stdout_newline = true
 
 [[case]]
+id = "dynamic-string-width"
+lane = "stepper"
+tier = "A"
+args = ["%*s\\n", "5", "hi"]
+stdin = ""
+stdout = "   hi\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "dynamic-string-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.*s\\n", "3", "hello"]
+stdin = ""
+stdout = "hel\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
 id = "float-integer-default-precision"
 lane = "stepper"
 tier = "A"
@@ -247,6 +269,17 @@ tier = "A"
 args = ["%f\\n", "1.2345678"]
 stdin = ""
 stdout = "1.234568\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "dynamic-float-width-precision"
+lane = "stepper"
+tier = "A"
+args = ["%*.*f\\n", "8", "2", "1.256"]
+stdin = ""
+stdout = "    1.26\n"
 stderr = ""
 exit = 0
 stdout_newline = true

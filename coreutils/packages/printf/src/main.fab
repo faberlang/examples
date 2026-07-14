@@ -73,7 +73,7 @@ functio format_species_index(textus formatum, numerus initium) → numerus {
     dum i < formatum.longitudo() {
         fixum textus ch ← formatum.sectio(i, i + 1)
         si speciesne(ch) ergo redde i
-        si digitne(ch) aut ch ≡ "." {
+        si (digitne(ch) aut ch ≡ ".") aut ch ≡ "*" {
             i ← i + 1
         }
         secus {
@@ -84,6 +84,8 @@ functio format_species_index(textus formatum, numerus initium) → numerus {
 }
 
 functio format_width(textus formatum, numerus initium, numerus species_index) → numerus {
+    si initium < species_index et formatum.sectio(initium, initium + 1) ≡ "*" ergo redde 0
+
     varia numerus i ← initium
     dum i < species_index et digitne(formatum.sectio(i, i + 1)) {
         i ← i + 1
@@ -96,11 +98,27 @@ functio format_precision(textus formatum, numerus initium, numerus species_index
     varia numerus i ← initium
     dum i < species_index {
         si formatum.sectio(i, i + 1) ≡ "." {
+            si i + 1 < species_index et formatum.sectio(i + 1, i + 2) ≡ "*" ergo redde -1
             redde formatum.sectio(i + 1, species_index) ↦ numerus ⇥ 0
         }
         i ← i + 1
     }
     redde -1
+}
+
+functio format_dynamic_widthne(textus formatum, numerus initium, numerus species_index) → bivalens {
+    redde initium < species_index et formatum.sectio(initium, initium + 1) ≡ "*"
+}
+
+functio format_dynamic_precisionne(textus formatum, numerus initium, numerus species_index) → bivalens {
+    varia numerus i ← initium
+    dum i < species_index {
+        si formatum.sectio(i, i + 1) ≡ "." {
+            redde i + 1 < species_index et formatum.sectio(i + 1, i + 2) ≡ "*"
+        }
+        i ← i + 1
+    }
+    redde falsum
 }
 
 functio trunc_precision(textus value, numerus precision) → textus {
@@ -130,6 +148,12 @@ functio numerus_specierum(textus formatum) → numerus {
                 fixum textus species ← formatum.sectio(species_index, species_index + 1)
                 si speciesne(species) {
                     n ← n + 1
+                    si format_dynamic_widthne(formatum, i + 1, species_index) {
+                        n ← n + 1
+                    }
+                    si format_dynamic_precisionne(formatum, i + 1, species_index) {
+                        n ← n + 1
+                    }
                     i ← species_index + 1
                 }
                 secus {
@@ -445,12 +469,20 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
             fixum textus immediate ← formatum.sectio(i + 1, i + 2)
             fixum numerus species_index ← format_species_index(formatum, i + 1)
             fixum textus next ← formatum.sectio(species_index, species_index + 1)
-            fixum numerus width ← format_width(formatum, i + 1, species_index)
-            fixum numerus precision ← format_precision(formatum, i + 1, species_index)
+            varia numerus width ← format_width(formatum, i + 1, species_index)
+            varia numerus precision ← format_precision(formatum, i + 1, species_index)
             si next ≡ "%" {
                 out ← out + "%"
             }
             secus {
+                si format_dynamic_widthne(formatum, i + 1, species_index) {
+                    width ← argumentum_numerus(args, arg_index)
+                    arg_index ← arg_index + 1
+                }
+                si format_dynamic_precisionne(formatum, i + 1, species_index) {
+                    precision ← argumentum_numerus(args, arg_index)
+                    arg_index ← arg_index + 1
+                }
                 si next ≡ "s" {
                     out ← out + pad_width(trunc_precision(argumentum(args, arg_index), precision), width)
                     arg_index ← arg_index + 1
@@ -600,6 +632,11 @@ probandum "printf formatting" tag "coreutils" {
     proba "simple width and string precision are applied" {
         adfirma printf_textus(["%5s\n", "hi"]) ≡ "   hi\n"
         adfirma printf_textus(["%.3s\n", "hello"]) ≡ "hel\n"
+    }
+    proba "dynamic width and precision consume numeric operands" {
+        adfirma printf_textus(["%*s\n", "5", "hi"]) ≡ "   hi\n"
+        adfirma printf_textus(["%.*s\n", "3", "hello"]) ≡ "hel\n"
+        adfirma printf_textus(["%*.*f\n", "8", "2", "1.256"]) ≡ "    1.26\n"
     }
     proba "integer-valued floating format uses fixed decimal precision" {
         adfirma printf_textus(["%f\n", "1"]) ≡ "1.000000\n"
