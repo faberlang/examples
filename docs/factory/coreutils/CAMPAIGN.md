@@ -251,9 +251,10 @@ no-newline calls must live in the package entry unit today — shared
 provider under `--interpret` (residual linker gap).
 **Evidence (2026-07-14)**: `printf` now uses entry-unit `norma:consolum.dic`
 for raw output and passes stepper parity for both newline-terminated and
-no-newline fixtures. Next useful Stage 3 slices are `printf` numeric
+no-newline fixtures. `echo -e` now covers the declared `\n`, `\t`, and `\\`
+escape subset. Next useful Stage 3 slices are `printf` numeric
 formats/diagnostics, `printenv` unset lookup once optional env read exists, or
-`echo -e` escapes.
+remaining `echo` escapes/options.
 
 ### Stage 4 — Stdin/Text Utilities Track
 

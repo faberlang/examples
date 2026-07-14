@@ -32,7 +32,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | `true` | 1 | complete | — | no-op, ignored args, exit 0; inline proba helper coverage | — | Rust ship milestone later |
 | `false` | 1 | complete | — | no-op, ignored args, exit 1; inline proba helper coverage | — | Rust ship milestone later |
-| `echo` | 2–3 | slice | — | operands joined by spaces, trailing newline, leading `-E` no-op, leading `-n` via `norma:consolum.dic`; inline proba | `-e` escapes, combined short opts | Continue `-e` or ship milestone |
+| `echo` | 2–3 | slice | — | operands joined by spaces, trailing newline, leading `-E` no-op, leading `-n` via `norma:consolum.dic`, leading `-e` for `\n`/`\t`/`\\`; inline proba | remaining escapes, combined short opts | Continue remaining escapes/options or ship milestone |
 | `yes` | 3 | slice | — | default `y`, custom operand, harness-capped stdout | infinite output termination | Continue operands or ship milestone |
 | `pwd` | 3 | slice | — | logical cwd print | physical `-P` (Tier B) | Continue options or ship milestone |
 | `basename` | 3 | slice | — | path operand, slash normalization, root/empty path, suffix operand, `-s`/`--suffix`, multiple paths with `-s` | missing/extra operand diagnostics, `-a`, `-z` | Continue diagnostics/options or ship milestone |

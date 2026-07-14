@@ -4,9 +4,14 @@ importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 # Leading GNU echo options recognized in this slice.
 # -E is a historical no-op once escapes are off by default.
+# -e enables the small escape subset declared in this package goal.
 # -n suppresses the trailing newline.
 functio optio_noop_e(textus arg) → bivalens {
     redde arg ≡ "-E"
+}
+
+functio optio_effugia_e(textus arg) → bivalens {
+    redde arg ≡ "-e"
 }
 
 functio optio_suppressit_novam_lineam(textus arg) → bivalens {
@@ -16,19 +21,24 @@ functio optio_suppressit_novam_lineam(textus arg) → bivalens {
 genus EchoOperanda {
     lista<textus> verba
     bivalens novam_lineam
+    bivalens effugia
 }
 
 functio echo_operanda(lista<textus> args) → EchoOperanda {
     varia lista<textus> operanda ← vacua
     varia numerus pars ← 0
     varia bivalens novam_lineam ← verum
+    varia bivalens effugia ← falsum
 
     itera ex args fixum arg {
         si pars ≡ 0 et optio_suppressit_novam_lineam(arg) {
             novam_lineam ← falsum
         }
+        sin pars ≡ 0 et optio_effugia_e(arg) {
+            effugia ← verum
+        }
         sin pars ≡ 0 et optio_noop_e(arg) {
-            tacet
+            effugia ← falsum
         }
         secus {
             pars ← 1
@@ -36,11 +46,52 @@ functio echo_operanda(lista<textus> args) → EchoOperanda {
         }
     }
 
-    redde EchoOperanda { verba = operanda, novam_lineam = novam_lineam }
+    redde EchoOperanda { verba = operanda, novam_lineam = novam_lineam, effugia = effugia }
+}
+
+functio echo_effugia(textus s) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+
+    dum i < s.longitudo() {
+        fixum textus ch ← s.sectio(i, i + 1)
+        si ch ≡ "\\" et i + 1 < s.longitudo() {
+            fixum textus next ← s.sectio(i + 1, i + 2)
+            si next ≡ "n" {
+                out ← out + "\n"
+            }
+            secus {
+                si next ≡ "t" {
+                    out ← out + "\t"
+                }
+                secus {
+                    si next ≡ "\\" {
+                        out ← out + "\\"
+                    }
+                    secus {
+                        out ← out + next
+                    }
+                }
+            }
+            i ← i + 2
+        }
+        secus {
+            out ← out + ch
+            i ← i + 1
+        }
+    }
+
+    redde out
+}
+
+functio echo_textus_ex_plan(EchoOperanda plan) → textus {
+    fixum textus textus ← gnu_format.inter_spatia(plan.verba)
+    si plan.effugia ergo redde echo_effugia(textus)
+    redde textus
 }
 
 functio echo_textus(lista<textus> args) → textus {
-    redde gnu_format.inter_spatia(echo_operanda(args).verba)
+    redde echo_textus_ex_plan(echo_operanda(args))
 }
 
 functio echo_novam_lineam(lista<textus> args) → bivalens {
@@ -88,6 +139,11 @@ probandum "echo formatting" tag "coreutils" {
         adfirma echo_textus(["-n", "-E", "x"]) ≡ "x"
         adfirma echo_novam_lineam(["-n", "-E", "x"]) ≡ falsum
     }
+    proba "-e expands the declared escape subset" {
+        adfirma echo_textus(["-e", "a\\nb"]) ≡ "a\nb"
+        adfirma echo_textus(["-e", "a\\tb"]) ≡ "a\tb"
+        adfirma echo_textus(["-e", "a\\\\b"]) ≡ "a\\b"
+    }
 }
 
 @ cli "echo"
@@ -95,8 +151,9 @@ probandum "echo formatting" tag "coreutils" {
 @ operandus ceteri textus words
 incipit argumenta args {
     fixum EchoOperanda plan ← echo_operanda(args.words)
-    fixum textus textus ← gnu_format.inter_spatia(plan.verba)
-    si plan.novam_lineam {
+    fixum bivalens novam_lineam ← plan.novam_lineam
+    fixum textus textus ← echo_textus_ex_plan(plan)
+    si novam_lineam {
         gnu_stdio.scribe_linea(textus)
     }
     secus {

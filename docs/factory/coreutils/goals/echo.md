@@ -1,6 +1,6 @@
 # Goal: coreutils — `echo`
 
-**Status**: stepper-slice (`-n` landed 2026-07-08)
+**Status**: stepper-slice (`-n` landed 2026-07-08; `-e` subset landed 2026-07-14)
 **Campaign**: [`../CAMPAIGN.md`](../CAMPAIGN.md)
 **Ledger row**: [`../ledger.md`](../ledger.md) § Tier 0
 **Parity contract**: [`../parity-contract.md`](../parity-contract.md)
@@ -8,14 +8,15 @@
 
 ## Utility
 
-GNU coreutils `echo` — Tier A operand slice, leading `-E` no-op, and `-n`
-raw no-newline stdout.
+GNU coreutils `echo` — Tier A operand slice, leading `-E` no-op, `-n` raw
+no-newline stdout, and a small leading `-e` escape subset.
 
 ## Objective
 
 Implement `echo` as a Faber package that prints operands joined by spaces,
 supports leading `-E` as a no-op, and supports leading `-n` without a trailing
-newline via `norma:consolum.dic` on the package-MIR host bridge.
+newline via `norma:consolum.dic` on the package-MIR host bridge. The current
+`-e` slice expands `\n`, `\t`, and `\\`.
 
 ## Capability matrix
 
@@ -27,12 +28,14 @@ newline via `norma:consolum.dic` on the package-MIR host bridge.
 | `-E` after first operand | yes | pending | Treated as an operand |
 | leading `-n` | yes | pending | Package entry calls `consolum.dic` |
 | `-n` after first operand | yes | pending | Treated as an operand |
-| `-e` escapes | no | pending | Deferred; not implemented in this slice |
+| leading `-e` escapes | slice | pending | Expands `\n`, `\t`, and `\\` |
 
 ## Unsupported-in-stepper policy
 
-`-e` escape interpretation remains deferred. Combined short options such as
-`-ne` are not declared in this slice.
+The `-e` slice intentionally covers only `\n`, `\t`, and `\\`. GNU's `\c`,
+octal/hex escapes, alert/backspace/form-feed/carriage-return/vertical-tab
+escapes, and combined short options such as `-ne` are not declared in this
+slice.
 
 Raw no-newline write must be invoked from the **package entry unit** (or a
 module linked so package MIR rewrites `norma:consolum` providers). A helper in
@@ -61,7 +64,9 @@ faber run --interpret coreutils/packages/echo -- -n hello
 
 - 2026-07-08: `echo -n` stepper parity 11/11 after `KernelModule::Consolum`
   (`dic`/`scribe`/`mone`) + host `write_stdout_raw` landed in radix/`faber`.
-- Inline `proba` covers operand join, `-E`, `-n` flag parsing, and combinations.
+- 2026-07-14: leading `-e` expands the declared `\n`, `\t`, and `\\` subset.
+- Inline `proba` covers operand join, `-E`, `-n` flag parsing, `-e` escape
+  expansion, and combinations.
 - Harness `stdout_newline = false` is strict (does not strip trailing newlines).
 
 ## Lowers from
