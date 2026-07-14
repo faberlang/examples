@@ -18,7 +18,8 @@ The current numeric slice supports plain decimal `%d`, `%i`, positive `%u`,
 positive octal `%o`, positive lowercase `%x`, and positive uppercase `%X`
 conversions, bounded positive fractional `%f` with fixed-decimal rounding, plus
 bounded exponent-zero `%e`/`%E`, simple positive field width, string precision,
-and positive dynamic `*` width/precision for declared cases.
+positive dynamic `*` width/precision, and negative dynamic width left alignment
+for declared cases.
 
 ## Deliverables
 
@@ -47,7 +48,7 @@ and positive dynamic `*` width/precision for declared cases.
 | bounded exponent-zero `%e` / `%E` | slice | pending | Positive already-normalized decimal operands; default precision 6; explicit `.N` precision |
 | simple field width | slice | pending | Right-aligns supported conversions with spaces |
 | string precision | slice | pending | Truncates `%s`/`%b` rendered text |
-| positive dynamic `*` width / precision | slice | pending | Covered for `%*s`, `%.*s`, and `%*.*f`; consumes numeric operands |
+| dynamic `*` width / precision | slice | pending | Covered for `%*s`, `%.*s`, and `%*.*f`; negative width left-aligns `%*s`/`%*d`; consumes numeric operands |
 | other numeric formats | no | pending | Deferred |
 
 ## Unsupported-in-stepper policy
@@ -60,10 +61,9 @@ Unsupported format directives are emitted literally in this slice rather than
 claimed as GNU-compatible behavior. No fixture exercises unsupported
 directives.
 
-The numeric slice intentionally avoids flags, negative dynamic widths,
-diagnostics for missing dynamic operands, full exponent normalization, negative
-unsigned wrapping/overflow behavior, quoted-character operands, and invalid
-numeric argument diagnostics.
+The numeric slice intentionally avoids flags, diagnostics for missing dynamic
+operands, full exponent normalization, negative unsigned wrapping/overflow
+behavior, quoted-character operands, and invalid numeric argument diagnostics.
 
 ## Acceptance
 
@@ -86,7 +86,7 @@ faber test coreutils/packages/printf
   `%s` arguments, `%b` basic escapes, and plain `%d`/`%i`/`%u`/`%o`/`%x`/`%X`
   integer formatting, bounded positive `%f` including fixed-decimal rounding,
   bounded exponent-zero `%e`/`%E`, simple width, string precision, and positive
-  dynamic `*` width/precision.
+  dynamic `*` width/precision plus negative dynamic width left alignment.
 - Stepper fixtures cover both newline-terminated GNU parity cases and raw
   no-newline output through `norma:consolum.dic`; the numeric slice adds
   decimal integer fixtures and missing `%d` argument behavior.

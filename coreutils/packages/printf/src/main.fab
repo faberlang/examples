@@ -128,6 +128,11 @@ functio trunc_precision(textus value, numerus precision) → textus {
 }
 
 functio pad_width(textus value, numerus width) → textus {
+    si width < 0 {
+        fixum numerus magnitude ← 0 - width
+        si value.longitudo() ≥ magnitude ergo redde value
+        redde value + spatia(magnitude - value.longitudo())
+    }
     si value.longitudo() ≥ width ergo redde value
     redde spatia(width - value.longitudo()) + value
 }
@@ -637,6 +642,10 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%*s\n", "5", "hi"]) ≡ "   hi\n"
         adfirma printf_textus(["%.*s\n", "3", "hello"]) ≡ "hel\n"
         adfirma printf_textus(["%*.*f\n", "8", "2", "1.256"]) ≡ "    1.26\n"
+    }
+    proba "negative dynamic width left-aligns formatted text" {
+        adfirma printf_textus(["%*s|\n", "-5", "hi"]) ≡ "hi   |\n"
+        adfirma printf_textus(["%*d|\n", "-5", "42"]) ≡ "42   |\n"
     }
     proba "integer-valued floating format uses fixed decimal precision" {
         adfirma printf_textus(["%f\n", "1"]) ≡ "1.000000\n"

@@ -186,12 +186,34 @@ exit = 0
 stdout_newline = true
 
 [[case]]
+id = "negative-dynamic-string-width"
+lane = "stepper"
+tier = "A"
+args = ["%*s|\\n", "-5", "hi"]
+stdin = ""
+stdout = "hi   |\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
 id = "dynamic-string-precision"
 lane = "stepper"
 tier = "A"
 args = ["%.*s\\n", "3", "hello"]
 stdin = ""
 stdout = "hel\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "negative-dynamic-decimal-width"
+lane = "stepper"
+tier = "A"
+args = ["%*d|\\n", "-5", "42"]
+stdin = ""
+stdout = "42   |\n"
 stderr = ""
 exit = 0
 stdout_newline = true
