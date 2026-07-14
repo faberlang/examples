@@ -55,6 +55,7 @@ def main() -> int:
         "model_artifact_floor",
         "session_lifecycle",
         "gpu_workload_contract",
+        "gpu_evidence_map",
         "generate_oracle_fixture",
         "generate_cases",
         "token_logits_oracle_fixture",

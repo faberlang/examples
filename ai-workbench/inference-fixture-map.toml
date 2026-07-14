@@ -9,6 +9,7 @@ current_blocked_surface = "blocked Faber-owned transformer/GGUF inference runtim
 model_artifact_floor = "examples/ai-workbench/model-artifact-floor.toml"
 session_lifecycle = "examples/ai-workbench/session-lifecycle.toml"
 gpu_workload_contract = "examples/gpu-workload/rung-4-toy-train.ref.json"
+gpu_evidence_map = "examples/ai-workbench/gpu-evidence-map.toml"
 generate_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/fake_generate_oracle.py"
 generate_cases = "examples/ai-workbench/harness/fixtures/generate/cases.toml"
 token_logits_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"

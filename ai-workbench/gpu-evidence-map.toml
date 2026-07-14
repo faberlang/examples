@@ -1,0 +1,93 @@
+# Examples-owned bridge from CPU token/logits oracle evidence to GPU workload floors.
+
+[gpu_evidence_map]
+status = "evidence-map"
+scope = "CPU oracle to systems-lane evidence only"
+cpu_oracle = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
+cpu_oracle_checker = "examples/ai-workbench/harness/check-token-logits-oracle.py"
+inference_fixture_map = "examples/ai-workbench/inference-fixture-map.toml"
+gpu_workload_readme = "examples/gpu-workload/README.md"
+selected_bridge = "logits-vector-before-device-execution"
+current_state = "oracle-backed CPU JSONL"
+blocked_state = "blocked output-checked GPU logits execution"
+
+[guarded_claims]
+faber_owned_inference = false
+llama_cpp_equivalence = false
+gguf_runtime = false
+transformer_runtime = false
+quantized_kernel_support = false
+gpu_runtime = false
+device_logits_execution = false
+device_softmax_execution = false
+device_training = false
+implicit_model_downloads = false
+model_blobs_in_git = false
+
+[[bridge_step]]
+id = "cpu-tokenization"
+artifact = "examples/ai-workbench/harness/fixtures/model-artifact/tiny-model.fma.json"
+state = "checked"
+evidence = "Token ids are derived by the tiny token/logits checker from the checked-in tokenizer fixture."
+systems_lane = "none"
+blocked_by = "Tokenizer runtime ownership remains outside gpu-workload."
+
+[[bridge_step]]
+id = "cpu-logits-vector"
+artifact = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
+state = "checked"
+evidence = "The oracle emits one deterministic f32 logits vector with vocab_size matching the tiny tokenizer."
+systems_lane = "pre-device CPU oracle"
+blocked_by = "No Faber-owned tensor loader or transformer forward runtime feeds this vector."
+
+[[bridge_step]]
+id = "matmul-shape-precedent"
+artifact = "examples/gpu-workload/rung-0-matmul.ref.json"
+state = "reference-only"
+evidence = "Rung 0 records a hand-computed CPU matmul oracle that is relevant to future logits-producing linear layers."
+systems_lane = "matmul"
+blocked_by = "Rung 0 is not connected to the token/logits oracle and does not prove device inference execution."
+
+[[bridge_step]]
+id = "softmax-reduction-precedent"
+artifact = "examples/gpu-workload/rung-1-softmax.ref.json"
+state = "reference-only"
+evidence = "Rung 1 records a stable-softmax CPU oracle relevant to future logits-to-probability checks."
+systems_lane = "softmax/reduction"
+blocked_by = "The token/logits oracle stops at logits plus argmax; no device softmax or sampling path is claimed."
+
+[[bridge_step]]
+id = "mlp-forward-precedent"
+artifact = "examples/gpu-workload/rung-2-mlp-forward.ref.json"
+state = "reference-only"
+evidence = "Rung 2 records a two-matmul forward oracle relevant to future tiny-forward decomposition."
+systems_lane = "two-matmul forward"
+blocked_by = "Bias, activation, shape, and actual tensor runtime execution remain producer gaps."
+
+[[bridge_step]]
+id = "autograd-training-boundary"
+artifact = "examples/gpu-workload/rung-3-linear-backward.ref.json"
+state = "oracle-boundary"
+evidence = "Rung 3 keeps generated-gradient/device-autograd proof out of current claims."
+systems_lane = "autograd"
+blocked_by = "Inference logits fixture is forward-only and does not claim backward/autograd evidence."
+
+[[bridge_step]]
+id = "session-launch-boundary"
+artifact = "examples/gpu-workload/rung-4-toy-train.ref.json"
+state = "oracle-boundary"
+evidence = "Rung 4 records session/update event boundaries while cuda:launch remains blocked."
+systems_lane = "session launch"
+blocked_by = "No executable cuda:launch provider runtime is available for the logits oracle."
+
+[[follow_up_want]]
+subject = "[P1][examples][ai-workbench] add CPU logits expected sidecar"
+body = "If a golden file is desired, add a checked JSONL sidecar for the tiny token/logits oracle output while keeping the deriving checker."
+
+[[follow_up_want]]
+subject = "[P1][examples][gpu-workload] add logits-vector rung map"
+body = "Add a gpu-workload reference rung for a standalone logits vector operation only after the owning runtime/tensor lane selects the operation shape."
+
+[[follow_up_want]]
+subject = "[P1][runtime/radix] replay tiny logits oracle through real tensor execution"
+body = "Outside examples, define the first runtime-owned tensor execution path that can replay the tiny logits oracle without claiming llama.cpp equivalence."

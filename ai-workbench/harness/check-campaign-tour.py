@@ -15,6 +15,7 @@ TOUR_STEPS = [
     ("model artifact floor", "check-model-artifact-floor.py"),
     ("inference fixture map", "check-inference-fixture-map.py"),
     ("token/logits oracle", "check-token-logits-oracle.py"),
+    ("GPU evidence map", "check-gpu-evidence-map.py"),
     ("chat", "check-chat.py"),
     ("session lifecycle", "check-session-lifecycle.py"),
     ("product install path", "check-product-install-path.py"),

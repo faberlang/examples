@@ -56,6 +56,7 @@ python3 examples/ai-workbench/harness/check-session-lifecycle.py
 python3 examples/ai-workbench/harness/check-model-artifact-floor.py
 python3 examples/ai-workbench/harness/check-inference-fixture-map.py
 python3 examples/ai-workbench/harness/check-token-logits-oracle.py
+python3 examples/ai-workbench/harness/check-gpu-evidence-map.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -169,6 +170,19 @@ Validate the map with:
 ```bash
 python3 examples/ai-workbench/harness/check-inference-fixture-map.py
 python3 examples/ai-workbench/harness/check-token-logits-oracle.py
+```
+
+`gpu-evidence-map.toml` connects that CPU token/logits oracle to the
+systems-lane GPU workload floors. The bridge is deliberately one-way evidence:
+it records matmul, softmax/reduction, MLP-forward, autograd, and session-launch
+precedents from `gpu-workload/` while keeping GPU logits execution,
+Faber-owned inference, llama.cpp/GGUF runtime, quantized kernels, implicit
+downloads, and model blobs as non-claims.
+
+Validate the bridge with:
+
+```bash
+python3 examples/ai-workbench/harness/check-gpu-evidence-map.py
 ```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may

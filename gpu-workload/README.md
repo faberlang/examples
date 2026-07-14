@@ -57,3 +57,18 @@ Validate the examples-owned oracle packet with:
 ```bash
 python3 scripta/check-gpu-workload-contracts.py
 ```
+
+## AI Workbench Logits Bridge
+
+`examples/ai-workbench/gpu-evidence-map.toml` records how the AI workbench CPU
+token/logits oracle sits before the systems-lane GPU workload floors. It links
+the oracle-backed logits vector to existing matmul, softmax/reduction,
+MLP-forward, autograd, and session-launch reference evidence without claiming
+GPU runtime, device logits execution, Faber-owned inference, GGUF runtime, or
+llama.cpp equivalence.
+
+Validate the bridge with:
+
+```bash
+python3 ai-workbench/harness/check-gpu-evidence-map.py
+```
