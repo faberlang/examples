@@ -151,3 +151,25 @@ stdout = "FF\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "string-width"
+lane = "stepper"
+tier = "A"
+args = ["%5s\\n", "hi"]
+stdin = ""
+stdout = "   hi\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "string-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.3s\\n", "hello"]
+stdin = ""
+stdout = "hel\n"
+stderr = ""
+exit = 0
+stdout_newline = true

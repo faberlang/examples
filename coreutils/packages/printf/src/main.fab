@@ -40,6 +40,70 @@ functio printf_escape(textus s) → textus {
     redde out
 }
 
+functio digitne(textus ch) → bivalens {
+    redde (((((ch ≡ "0" aut ch ≡ "1") aut ch ≡ "2") aut ch ≡ "3") aut ch ≡ "4") aut ch ≡ "5") aut (((ch ≡ "6" aut ch ≡ "7") aut ch ≡ "8") aut ch ≡ "9")
+}
+
+functio speciesne(textus ch) → bivalens {
+    redde ((((((ch ≡ "s" aut ch ≡ "b") aut ch ≡ "d") aut ch ≡ "i") aut ch ≡ "u") aut ch ≡ "x") aut ch ≡ "X") aut ch ≡ "o"
+}
+
+functio spatia(numerus count) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < count {
+        out ← out + " "
+        i ← i + 1
+    }
+    redde out
+}
+
+functio format_species_index(textus formatum, numerus initium) → numerus {
+    varia numerus i ← initium
+    dum i < formatum.longitudo() {
+        fixum textus ch ← formatum.sectio(i, i + 1)
+        si speciesne(ch) ergo redde i
+        si digitne(ch) aut ch ≡ "." {
+            i ← i + 1
+        }
+        secus {
+            redde initium
+        }
+    }
+    redde initium
+}
+
+functio format_width(textus formatum, numerus initium, numerus species_index) → numerus {
+    varia numerus i ← initium
+    dum i < species_index et digitne(formatum.sectio(i, i + 1)) {
+        i ← i + 1
+    }
+    si i ≡ initium ergo redde 0
+    redde formatum.sectio(initium, i) ↦ numerus ⇥ 0
+}
+
+functio format_precision(textus formatum, numerus initium, numerus species_index) → numerus {
+    varia numerus i ← initium
+    dum i < species_index {
+        si formatum.sectio(i, i + 1) ≡ "." {
+            redde formatum.sectio(i + 1, species_index) ↦ numerus ⇥ 0
+        }
+        i ← i + 1
+    }
+    redde -1
+}
+
+functio trunc_precision(textus value, numerus precision) → textus {
+    si precision < 0 ergo redde value
+    si value.longitudo() ≤ precision ergo redde value
+    redde value.sectio(0, precision)
+}
+
+functio pad_width(textus value, numerus width) → textus {
+    si value.longitudo() ≥ width ergo redde value
+    redde spatia(width - value.longitudo()) + value
+}
+
 functio numerus_specierum(textus formatum) → numerus {
     varia numerus n ← 0
     varia numerus i ← 0
@@ -52,9 +116,11 @@ functio numerus_specierum(textus formatum) → numerus {
                 i ← i + 2
             }
             secus {
-                si ((((((next ≡ "s" aut next ≡ "b") aut next ≡ "d") aut next ≡ "i") aut next ≡ "u") aut next ≡ "x") aut next ≡ "X") aut next ≡ "o" {
+                fixum numerus species_index ← format_species_index(formatum, i + 1)
+                fixum textus species ← formatum.sectio(species_index, species_index + 1)
+                si speciesne(species) {
                     n ← n + 1
-                    i ← i + 2
+                    i ← species_index + 1
                 }
                 secus {
                     i ← i + 2
@@ -261,42 +327,46 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
     dum i < formatum.longitudo() {
         fixum textus ch ← formatum.sectio(i, i + 1)
         si ch ≡ "%" et i + 1 < formatum.longitudo() {
-            fixum textus next ← formatum.sectio(i + 1, i + 2)
+            fixum textus immediate ← formatum.sectio(i + 1, i + 2)
+            fixum numerus species_index ← format_species_index(formatum, i + 1)
+            fixum textus next ← formatum.sectio(species_index, species_index + 1)
+            fixum numerus width ← format_width(formatum, i + 1, species_index)
+            fixum numerus precision ← format_precision(formatum, i + 1, species_index)
             si next ≡ "%" {
                 out ← out + "%"
             }
             secus {
                 si next ≡ "s" {
-                    out ← out + argumentum(args, arg_index)
+                    out ← out + pad_width(trunc_precision(argumentum(args, arg_index), precision), width)
                     arg_index ← arg_index + 1
                 }
                 secus {
                     si next ≡ "b" {
-                        out ← out + printf_escape(argumentum(args, arg_index))
+                        out ← out + pad_width(trunc_precision(printf_escape(argumentum(args, arg_index)), precision), width)
                         arg_index ← arg_index + 1
                     }
                     secus {
                         si (next ≡ "d" aut next ≡ "i") aut next ≡ "u" {
-                            out ← out + "§"(argumentum_numerus(args, arg_index))
+                            out ← out + pad_width("§"(argumentum_numerus(args, arg_index)), width)
                             arg_index ← arg_index + 1
                         }
                         secus {
                             si next ≡ "x" {
-                                out ← out + hex_textus(argumentum_numerus(args, arg_index), falsum)
+                                out ← out + pad_width(hex_textus(argumentum_numerus(args, arg_index), falsum), width)
                                 arg_index ← arg_index + 1
                             }
                             secus {
                                 si next ≡ "X" {
-                                    out ← out + hex_textus(argumentum_numerus(args, arg_index), verum)
+                                    out ← out + pad_width(hex_textus(argumentum_numerus(args, arg_index), verum), width)
                                     arg_index ← arg_index + 1
                                 }
                                 secus {
                                     si next ≡ "o" {
-                                        out ← out + octal_textus(argumentum_numerus(args, arg_index))
+                                        out ← out + pad_width(octal_textus(argumentum_numerus(args, arg_index)), width)
                                         arg_index ← arg_index + 1
                                     }
                                     secus {
-                                        out ← (out + "%") + next
+                                        out ← (out + "%") + immediate
                                     }
                                 }
                             }
@@ -304,7 +374,12 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                     }
                 }
             }
-            i ← i + 2
+            si speciesne(next) {
+                i ← species_index + 1
+            }
+            secus {
+                i ← i + 2
+            }
         }
         secus {
             si ch ≡ "\\" {
@@ -388,6 +463,10 @@ probandum "printf formatting" tag "coreutils" {
     proba "octal and uppercase hexadecimal formats render positive integers" {
         adfirma printf_textus(["%o\n", "8"]) ≡ "10\n"
         adfirma printf_textus(["%X\n", "255"]) ≡ "FF\n"
+    }
+    proba "simple width and string precision are applied" {
+        adfirma printf_textus(["%5s\n", "hi"]) ≡ "   hi\n"
+        adfirma printf_textus(["%.3s\n", "hello"]) ≡ "hel\n"
     }
 }
 
