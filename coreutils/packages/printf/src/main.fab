@@ -1,4 +1,4 @@
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "norma:consolum" privata consolum
 
 functio printf_escape(textus s) → textus {
     varia textus out ← ""
@@ -10,23 +10,28 @@ functio printf_escape(textus s) → textus {
             fixum textus next ← s.sectio(i + 1, i + 2)
             si next ≡ "n" {
                 out ← out + "\n"
-            } secus {
+            }
+            secus {
                 si next ≡ "t" {
                     out ← out + "\t"
-                } secus {
+                }
+                secus {
                     si next ≡ "r" {
                         out ← out + "\r"
-                    } secus {
+                    }
+                    secus {
                         si next ≡ "\\" {
                             out ← out + "\\"
-                        } secus {
+                        }
+                        secus {
                             out ← out + next
                         }
                     }
                 }
             }
             i ← i + 2
-        } secus {
+        }
+        secus {
             out ← out + ch
             i ← i + 1
         }
@@ -45,15 +50,18 @@ functio numerus_specierum(textus formatum) → numerus {
             fixum textus next ← formatum.sectio(i + 1, i + 2)
             si next ≡ "%" {
                 i ← i + 2
-            } secus {
+            }
+            secus {
                 si next ≡ "s" aut next ≡ "b" {
                     n ← n + 1
                     i ← i + 2
-                } secus {
+                }
+                secus {
                     i ← i + 2
                 }
             }
-        } secus {
+        }
+        secus {
             i ← i + 1
         }
     }
@@ -76,25 +84,30 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
             fixum textus next ← formatum.sectio(i + 1, i + 2)
             si next ≡ "%" {
                 out ← out + "%"
-            } secus {
+            }
+            secus {
                 si next ≡ "s" {
                     out ← out + argumentum(args, arg_index)
                     arg_index ← arg_index + 1
-                } secus {
+                }
+                secus {
                     si next ≡ "b" {
                         out ← out + printf_escape(argumentum(args, arg_index))
                         arg_index ← arg_index + 1
-                    } secus {
-                        out ← out + "%" + next
+                    }
+                    secus {
+                        out ← (out + "%") + next
                     }
                 }
             }
             i ← i + 2
-        } secus {
+        }
+        secus {
             si ch ≡ "\\" {
                 out ← out + printf_escape(formatum.sectio(i, i + 2))
                 i ← i + 2
-            } secus {
+            }
+            secus {
                 out ← out + ch
                 i ← i + 1
             }
@@ -131,11 +144,7 @@ functio printf_textus(lista<textus> operands) → textus {
 
 functio scribe_printf(textus out) → vacuum {
     si out.longitudo() > 0 {
-        si out.finis("\n") {
-            gnu_stdio.scribe_linea(out.sectio(0, out.longitudo() - 1))
-        } secus {
-            gnu_stdio.scribe_linea(out)
-        }
+        consolum.dic(out)
     }
 }
 
@@ -143,25 +152,23 @@ probandum "printf formatting" tag "coreutils" {
     proba "plain format text is preserved" {
         adfirma printf_textus(["hello\n"]) ≡ "hello\n"
     }
-
     proba "percent escape emits one percent" {
         adfirma printf_textus(["%%\n"]) ≡ "%\n"
     }
-
     proba "string substitution consumes one argument" {
         adfirma printf_textus(["%s\n", "hello"]) ≡ "hello\n"
     }
-
     proba "string format repeats for extra arguments" {
         adfirma printf_textus(["%s\n", "a", "b"]) ≡ "a\nb\n"
     }
-
     proba "missing string argument formats as empty text" {
         adfirma printf_textus(["x%sy\n"]) ≡ "xy\n"
     }
-
     proba "percent-b expands basic escapes in argument" {
         adfirma printf_textus(["%b\n", "a\\nb"]) ≡ "a\nb\n"
+    }
+    proba "raw output does not require a trailing newline" {
+        adfirma printf_textus(["%s", "raw"]) ≡ "raw"
     }
 }
 

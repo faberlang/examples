@@ -249,9 +249,11 @@ range operands through local option parsing.
 no-newline calls must live in the package entry unit today — shared
 `common/gnu/*` imports of `norma:consolum` still leave an unresolved package
 provider under `--interpret` (residual linker gap).
-**Next useful slice**: broader `printf` raw no-newline parity (entry-unit
-`consolum.dic`), or `printenv` unset lookup once optional env read exists;
-`-e` escapes remain deferred for `echo`.
+**Evidence (2026-07-14)**: `printf` now uses entry-unit `norma:consolum.dic`
+for raw output and passes stepper parity for both newline-terminated and
+no-newline fixtures. Next useful Stage 3 slices are `printf` numeric
+formats/diagnostics, `printenv` unset lookup once optional env read exists, or
+`echo -e` escapes.
 
 ### Stage 4 — Stdin/Text Utilities Track
 

@@ -52,3 +52,25 @@ stdout = "a\nb\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "plain-no-newline-format"
+lane = "stepper"
+tier = "A"
+args = ["hello"]
+stdin = ""
+stdout = "hello"
+stderr = ""
+exit = 0
+stdout_newline = false
+
+[[case]]
+id = "string-substitution-no-newline"
+lane = "stepper"
+tier = "A"
+args = ["%s", "hello"]
+stdin = ""
+stdout = "hello"
+stderr = ""
+exit = 0
+stdout_newline = false

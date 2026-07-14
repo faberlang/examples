@@ -13,8 +13,7 @@ GNU coreutils `printf` — Stage 3 deterministic formatter slice.
 ## Objective
 
 Implement a small Faber package that matches GNU `printf` for the declared
-newline-terminated stepper cases while keeping the pure formatter logic ready
-for raw-output parity once the stdout surface supports it.
+stepper cases, including newline-terminated formats and raw no-newline output.
 
 ## Deliverables
 
@@ -32,20 +31,16 @@ for raw-output parity once the stdout surface supports it.
 | `%s` | slice | pending | Missing string argument becomes empty text |
 | repeated format for extra arguments | slice | pending | Covered for one `%s` per format |
 | `%b` | slice | pending | Supports basic `\n`, `\t`, `\r`, `\\` escapes |
-| raw no-newline output | ready | pending | `norma:consolum.dic` package-MIR bridge landed 2026-07-08; call from package entry unit (not only via `common/gnu`) |
+| raw no-newline output | slice | pending | Uses `norma:consolum.dic` from this package unit |
 | missing format operand diagnostic | no | pending | Deferred usage-error surface |
 | numeric formats | no | pending | Deferred |
 | field widths / precision | no | pending | Deferred |
 
 ## Unsupported-in-stepper policy
 
-GNU `printf` does not append an implicit newline. The current coreutils package
-stdout helper is line-oriented (`gnu_stdio.scribe_linea` delegates to `nota`),
-so stepper parity fixtures only cover formats whose GNU output already ends in
-a newline; the package trims that final newline before delegating to the line
-writer. `norma:consolum.dic` is the intended raw text primitive, but
-`faber run --interpret` currently rejects package MIR library imports such as
-`norma:consolum`, so raw no-newline parity waits on that compiler/runtime gap.
+GNU `printf` does not append an implicit newline. This slice writes the rendered
+text directly through `norma:consolum.dic` from the package unit, so stepper
+fixtures can include both newline-terminated and raw no-newline cases.
 
 Unsupported format directives are emitted literally in this slice rather than
 claimed as GNU-compatible behavior. No fixture exercises unsupported
@@ -70,8 +65,8 @@ faber test coreutils/packages/printf
 
 - Inline `proba` cases cover plain text, `%%`, `%s`, format repetition, missing
   `%s` arguments, and `%b` basic escapes.
-- Stepper fixtures cover only newline-terminated GNU parity cases because raw
-  no-newline stdout is blocked outside this package scope.
+- Stepper fixtures cover both newline-terminated GNU parity cases and raw
+  no-newline output through `norma:consolum.dic`.
 
 ## Lowers from
 
