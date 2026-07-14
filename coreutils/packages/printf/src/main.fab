@@ -344,6 +344,68 @@ functio fraction_precision(textus fraction, numerus precision) → textus {
     redde fraction + zeroes(precision - fraction.longitudo())
 }
 
+functio decimal_value(textus digit) → numerus {
+    si digit ≡ "1" ergo redde 1
+    si digit ≡ "2" ergo redde 2
+    si digit ≡ "3" ergo redde 3
+    si digit ≡ "4" ergo redde 4
+    si digit ≡ "5" ergo redde 5
+    si digit ≡ "6" ergo redde 6
+    si digit ≡ "7" ergo redde 7
+    si digit ≡ "8" ergo redde 8
+    si digit ≡ "9" ergo redde 9
+    redde 0
+}
+
+functio round_fractionne(textus fraction, numerus precision) → bivalens {
+    si precision < 0 ergo redde falsum
+    si fraction.longitudo() ≤ precision ergo redde falsum
+    redde decimal_value(fraction.sectio(precision, precision + 1)) ≥ 5
+}
+
+functio round_carries(textus fraction, numerus precision) → bivalens {
+    si non round_fractionne(fraction, precision) ergo redde falsum
+    si precision ≤ 0 ergo redde verum
+
+    fixum textus kept ← fraction_precision(fraction, precision)
+    varia numerus i ← 0
+    dum i < kept.longitudo() {
+        si kept.sectio(i, i + 1) ≡ "9" {
+            i ← i + 1
+        }
+        secus {
+            redde falsum
+        }
+    }
+    redde verum
+}
+
+functio rounded_fraction(textus fraction, numerus precision) → textus {
+    fixum textus kept ← fraction_precision(fraction, precision)
+    si non round_fractionne(fraction, precision) ergo redde kept
+    si precision ≤ 0 ergo redde ""
+
+    varia textus out ← kept
+    varia numerus i ← precision - 1
+    varia bivalens carry ← verum
+    dum i ≥ 0 et carry {
+        fixum numerus value ← decimal_value(out.sectio(i, i + 1))
+        si value < 9 {
+            out ← (out.sectio(0, i) + hex_digit(value + 1)) + out.sectio(i + 1, out.longitudo())
+            carry ← falsum
+        }
+        secus {
+            out ← (out.sectio(0, i) + "0") + out.sectio(i + 1, out.longitudo())
+            i ← i - 1
+        }
+    }
+    redde out
+}
+
+functio increment_integer_text(textus integer) → textus {
+    redde "§"((integer ↦ numerus ⇥ 0) + 1)
+}
+
 functio float_textus(textus raw, numerus precision) → textus {
     varia numerus active_precision ← precision
     si active_precision < 0 {
@@ -360,8 +422,11 @@ functio float_textus(textus raw, numerus precision) → textus {
     si integer.longitudo() ≡ 0 {
         integer ← "0"
     }
+    si round_carries(fraction, active_precision) {
+        integer ← increment_integer_text(integer)
+    }
     si active_precision ≡ 0 ergo redde integer
-    redde "§.§"(integer, fraction_precision(fraction, active_precision))
+    redde "§.§"(integer, rounded_fraction(fraction, active_precision))
 }
 
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
@@ -526,6 +591,11 @@ probandum "printf formatting" tag "coreutils" {
     proba "fractional floating format preserves bounded fractional text" {
         adfirma printf_textus(["%f\n", "1.5"]) ≡ "1.500000\n"
         adfirma printf_textus(["%.2f\n", "1.25"]) ≡ "1.25\n"
+    }
+    proba "fractional floating format rounds bounded positive decimals" {
+        adfirma printf_textus(["%.2f\n", "1.256"]) ≡ "1.26\n"
+        adfirma printf_textus(["%.0f\n", "1.6"]) ≡ "2\n"
+        adfirma printf_textus(["%f\n", "1.2345678"]) ≡ "1.234568\n"
     }
 }
 

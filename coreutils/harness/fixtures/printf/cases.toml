@@ -217,3 +217,36 @@ stdout = "1.25\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "float-rounded-explicit-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.2f\\n", "1.256"]
+stdin = ""
+stdout = "1.26\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-rounded-zero-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.0f\\n", "1.6"]
+stdin = ""
+stdout = "2\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-rounded-default-precision"
+lane = "stepper"
+tier = "A"
+args = ["%f\\n", "1.2345678"]
+stdin = ""
+stdout = "1.234568\n"
+stderr = ""
+exit = 0
+stdout_newline = true
