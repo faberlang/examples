@@ -96,3 +96,14 @@ stdout = "7\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "unsigned-decimal-format"
+lane = "stepper"
+tier = "A"
+args = ["%u\\n", "42"]
+stdin = ""
+stdout = "42\n"
+stderr = ""
+exit = 0
+stdout_newline = true

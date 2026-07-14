@@ -52,7 +52,7 @@ functio numerus_specierum(textus formatum) → numerus {
                 i ← i + 2
             }
             secus {
-                si ((next ≡ "s" aut next ≡ "b") aut next ≡ "d") aut next ≡ "i" {
+                si (((next ≡ "s" aut next ≡ "b") aut next ≡ "d") aut next ≡ "i") aut next ≡ "u" {
                     n ← n + 1
                     i ← i + 2
                 }
@@ -100,7 +100,7 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                         arg_index ← arg_index + 1
                     }
                     secus {
-                        si next ≡ "d" aut next ≡ "i" {
+                        si (next ≡ "d" aut next ≡ "i") aut next ≡ "u" {
                             out ← out + "§"(argumentum_numerus(args, arg_index))
                             arg_index ← arg_index + 1
                         }
@@ -183,6 +183,7 @@ probandum "printf formatting" tag "coreutils" {
     proba "decimal numeric formats parse integer arguments" {
         adfirma printf_textus(["%d\n", "42"]) ≡ "42\n"
         adfirma printf_textus(["%i\n", "7"]) ≡ "7\n"
+        adfirma printf_textus(["%u\n", "42"]) ≡ "42\n"
     }
 }
 
