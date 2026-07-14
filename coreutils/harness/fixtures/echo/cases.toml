@@ -151,3 +151,14 @@ stdout = "a\\b"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "e-carriage-return-escape"
+lane = "stepper"
+tier = "A"
+args = ["-e", "a\\rb"]
+stdin = ""
+stdout = "a\rb"
+stderr = ""
+exit = 0
+stdout_newline = true

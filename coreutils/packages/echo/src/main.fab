@@ -65,11 +65,16 @@ functio echo_effugia(textus s) → textus {
                     out ← out + "\t"
                 }
                 secus {
-                    si next ≡ "\\" {
-                        out ← out + "\\"
+                    si next ≡ "r" {
+                        out ← out + "\r"
                     }
                     secus {
-                        out ← out + next
+                        si next ≡ "\\" {
+                            out ← out + "\\"
+                        }
+                        secus {
+                            out ← out + next
+                        }
                     }
                 }
             }
@@ -142,6 +147,7 @@ probandum "echo formatting" tag "coreutils" {
     proba "-e expands the declared escape subset" {
         adfirma echo_textus(["-e", "a\\nb"]) ≡ "a\nb"
         adfirma echo_textus(["-e", "a\\tb"]) ≡ "a\tb"
+        adfirma echo_textus(["-e", "a\\rb"]) ≡ "a\rb"
         adfirma echo_textus(["-e", "a\\\\b"]) ≡ "a\\b"
     }
 }
