@@ -35,16 +35,22 @@ def false_claim_failures(
     *,
     label: str,
     require_all: bool,
-    allowed_unknown_claims: tuple[str, ...] = (),
+    allowed_false_unknown_claims: tuple[str, ...] = (),
+    allowed_true_claims: tuple[str, ...] = (),
 ) -> list[str]:
     failures: list[str] = []
     if not isinstance(claims, dict):
         return [f"{label} claims must be an object"]
     if require_all:
-        allowed = set(allowed_unknown_claims)
+        allowed_false = set(allowed_false_unknown_claims)
+        allowed_true = set(allowed_true_claims)
+        allowed = allowed_false | allowed_true
         known = set(FORBIDDEN_INFERENCE_CLAIMS) | allowed
         for key in sorted(set(claims) - known):
             failures.append(f"{label} claim {key} is unknown to the shared forbidden vocabulary")
+        for key in sorted(set(claims) & allowed_false):
+            if claims[key] is not False:
+                failures.append(f"{label} claim {key} must remain false")
     for key in FORBIDDEN_INFERENCE_CLAIMS:
         if key not in claims:
             if require_all:

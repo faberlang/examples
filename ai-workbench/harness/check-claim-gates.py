@@ -30,9 +30,31 @@ def main() -> int:
         unknown_exception,
         label="documented exception",
         require_all=True,
-        allowed_unknown_claims=("documented_local_metadata_claim",),
+        allowed_false_unknown_claims=("documented_local_metadata_claim",),
     ):
-        failures.append("documented unknown claim exception must pass when explicitly supplied")
+        failures.append(
+            "documented false unknown claim exception must pass when explicitly supplied"
+        )
+
+    true_unknown_exception = {**full_false, "documented_local_metadata_claim": True}
+    if not any(
+        "documented_local_metadata_claim" in issue
+        for issue in false_claim_failures(
+            true_unknown_exception,
+            label="documented true exception",
+            require_all=True,
+            allowed_false_unknown_claims=("documented_local_metadata_claim",),
+        )
+    ):
+        failures.append("documented false unknown claim exception must reject true values")
+
+    if false_claim_failures(
+        true_unknown_exception,
+        label="documented positive exception",
+        require_all=True,
+        allowed_true_claims=("documented_local_metadata_claim",),
+    ):
+        failures.append("documented positive exception must pass only through allowed_true_claims")
 
     if failures:
         for failure in failures:
