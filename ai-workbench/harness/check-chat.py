@@ -6,14 +6,17 @@ import pathlib
 import subprocess
 import sys
 import tomllib
+from typing import Any
+
+from artifact_metadata_claims import metadata_claim_failures
 
 
 def workspace_root() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parents[3]
 
 
-def load_events(path: pathlib.Path) -> list[dict[str, object]]:
-    events: list[dict[str, object]] = []
+def load_events(path: pathlib.Path) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
     for line in path.read_text().splitlines():
         if line.strip():
             events.append(json.loads(line))
@@ -118,6 +121,12 @@ def main() -> int:
                         failures.append(
                             f"{case['id']}: events={actual_events!r}, expected {expected_events!r}"
                         )
+                    claim_failures = metadata_claim_failures(events, label=case["id"])
+                    if case.get("expect_metadata_claim_failure", False):
+                        if not claim_failures:
+                            failures.append(f"{case['id']}: expected metadata claim gate failure")
+                    else:
+                        failures.extend(f"{case['id']}: {issue}" for issue in claim_failures)
         elif out_path.exists():
             failures.append(f"{case['id']}: unexpected output file {out_path}")
         out_path.unlink(missing_ok=True)
