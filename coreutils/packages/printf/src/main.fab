@@ -45,7 +45,7 @@ functio digitne(textus ch) → bivalens {
 }
 
 functio speciesne(textus ch) → bivalens {
-    redde ((((((ch ≡ "s" aut ch ≡ "b") aut ch ≡ "d") aut ch ≡ "i") aut ch ≡ "u") aut ch ≡ "x") aut ch ≡ "X") aut ch ≡ "o"
+    redde (((((((ch ≡ "s" aut ch ≡ "b") aut ch ≡ "d") aut ch ≡ "i") aut ch ≡ "u") aut ch ≡ "x") aut ch ≡ "X") aut ch ≡ "o") aut ch ≡ "f"
 }
 
 functio spatia(numerus count) → textus {
@@ -53,6 +53,16 @@ functio spatia(numerus count) → textus {
     varia numerus i ← 0
     dum i < count {
         out ← out + " "
+        i ← i + 1
+    }
+    redde out
+}
+
+functio zeroes(numerus count) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < count {
+        out ← out + "0"
         i ← i + 1
     }
     redde out
@@ -319,6 +329,14 @@ functio octal_textus(numerus n) → textus {
     redde out
 }
 
+functio float_textus(numerus n, numerus precision) → textus {
+    varia numerus active_precision ← precision
+    si active_precision < 0 {
+        active_precision ← 6
+    }
+    redde "§.§"(n, zeroes(active_precision))
+}
+
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
     varia textus out ← ""
     varia numerus i ← 0
@@ -366,7 +384,13 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                                         arg_index ← arg_index + 1
                                     }
                                     secus {
-                                        out ← (out + "%") + immediate
+                                        si next ≡ "f" {
+                                            out ← out + pad_width(float_textus(argumentum_numerus(args, arg_index), precision), width)
+                                            arg_index ← arg_index + 1
+                                        }
+                                        secus {
+                                            out ← (out + "%") + immediate
+                                        }
                                     }
                                 }
                             }
@@ -467,6 +491,10 @@ probandum "printf formatting" tag "coreutils" {
     proba "simple width and string precision are applied" {
         adfirma printf_textus(["%5s\n", "hi"]) ≡ "   hi\n"
         adfirma printf_textus(["%.3s\n", "hello"]) ≡ "hel\n"
+    }
+    proba "integer-valued floating format uses fixed decimal precision" {
+        adfirma printf_textus(["%f\n", "1"]) ≡ "1.000000\n"
+        adfirma printf_textus(["%.2f\n", "1"]) ≡ "1.00\n"
     }
 }
 

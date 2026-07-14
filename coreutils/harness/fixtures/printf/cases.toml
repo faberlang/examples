@@ -173,3 +173,25 @@ stdout = "hel\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "float-integer-default-precision"
+lane = "stepper"
+tier = "A"
+args = ["%f\\n", "1"]
+stdin = ""
+stdout = "1.000000\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-integer-explicit-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.2f\\n", "1"]
+stdin = ""
+stdout = "1.00\n"
+stderr = ""
+exit = 0
+stdout_newline = true

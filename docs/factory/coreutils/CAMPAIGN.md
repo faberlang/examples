@@ -254,10 +254,10 @@ for raw output and passes stepper parity for both newline-terminated and
 no-newline fixtures. `echo -e` now covers the declared `\n`, `\t`, `\r`, and
 `\\` escape subset. The `printf` numeric slice now covers plain decimal `%d`,
 `%i`, positive `%u`, positive `%o`, and positive `%x`/`%X` integer formats;
-missing `%d` arguments now format as `0`; simple field width and string
-precision are covered. Next useful Stage 3 slices are additional `printf`
-numeric formats/diagnostics, `printenv` unset lookup once optional env read
-exists, or remaining `echo` escapes/options.
+missing `%d` arguments now format as `0`; integer-valued `%f`, simple field
+width, and string precision are covered. Next useful Stage 3 slices are
+additional `printf` numeric formats/diagnostics, `printenv` unset lookup once
+optional env read exists, or remaining `echo` escapes/options.
 
 ### Stage 4 — Stdin/Text Utilities Track
 
