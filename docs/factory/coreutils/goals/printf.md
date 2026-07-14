@@ -14,6 +14,8 @@ GNU coreutils `printf` — Stage 3 deterministic formatter slice.
 
 Implement a small Faber package that matches GNU `printf` for the declared
 stepper cases, including newline-terminated formats and raw no-newline output.
+The current numeric slice supports plain decimal `%d` and `%i` conversions
+without flags, widths, or precision.
 
 ## Deliverables
 
@@ -33,7 +35,8 @@ stepper cases, including newline-terminated formats and raw no-newline output.
 | `%b` | slice | pending | Supports basic `\n`, `\t`, `\r`, `\\` escapes |
 | raw no-newline output | slice | pending | Uses `norma:consolum.dic` from this package unit |
 | missing format operand diagnostic | no | pending | Deferred usage-error surface |
-| numeric formats | no | pending | Deferred |
+| plain decimal `%d` / `%i` | slice | pending | Parses explicit integer text arguments |
+| other numeric formats | no | pending | Deferred |
 | field widths / precision | no | pending | Deferred |
 
 ## Unsupported-in-stepper policy
@@ -45,6 +48,10 @@ fixtures can include both newline-terminated and raw no-newline cases.
 Unsupported format directives are emitted literally in this slice rather than
 claimed as GNU-compatible behavior. No fixture exercises unsupported
 directives.
+
+The decimal numeric slice intentionally avoids missing numeric arguments, flags,
+width, precision, unsigned/octal/hex/floating formats, quoted-character
+operands, and invalid numeric argument diagnostics.
 
 ## Acceptance
 
@@ -64,9 +71,10 @@ faber test coreutils/packages/printf
 ## Evidence
 
 - Inline `proba` cases cover plain text, `%%`, `%s`, format repetition, missing
-  `%s` arguments, and `%b` basic escapes.
+  `%s` arguments, `%b` basic escapes, and plain `%d`/`%i` integer formatting.
 - Stepper fixtures cover both newline-terminated GNU parity cases and raw
-  no-newline output through `norma:consolum.dic`.
+  no-newline output through `norma:consolum.dic`; the numeric slice adds
+  explicit decimal integer fixtures.
 
 ## Lowers from
 

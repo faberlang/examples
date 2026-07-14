@@ -52,7 +52,7 @@ functio numerus_specierum(textus formatum) → numerus {
                 i ← i + 2
             }
             secus {
-                si next ≡ "s" aut next ≡ "b" {
+                si ((next ≡ "s" aut next ≡ "b") aut next ≡ "d") aut next ≡ "i" {
                     n ← n + 1
                     i ← i + 2
                 }
@@ -71,6 +71,10 @@ functio numerus_specierum(textus formatum) → numerus {
 
 functio argumentum(lista<textus> args, numerus index) → textus {
     redde args.accipe(index) vel ""
+}
+
+functio argumentum_numerus(lista<textus> args, numerus index) → numerus {
+    redde argumentum(args, index) ↦ numerus ⇥ 0
 }
 
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
@@ -96,7 +100,13 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                         arg_index ← arg_index + 1
                     }
                     secus {
-                        out ← (out + "%") + next
+                        si next ≡ "d" aut next ≡ "i" {
+                            out ← out + "§"(argumentum_numerus(args, arg_index))
+                            arg_index ← arg_index + 1
+                        }
+                        secus {
+                            out ← (out + "%") + next
+                        }
                     }
                 }
             }
@@ -169,6 +179,10 @@ probandum "printf formatting" tag "coreutils" {
     }
     proba "raw output does not require a trailing newline" {
         adfirma printf_textus(["%s", "raw"]) ≡ "raw"
+    }
+    proba "decimal numeric formats parse integer arguments" {
+        adfirma printf_textus(["%d\n", "42"]) ≡ "42\n"
+        adfirma printf_textus(["%i\n", "7"]) ≡ "7\n"
     }
 }
 
