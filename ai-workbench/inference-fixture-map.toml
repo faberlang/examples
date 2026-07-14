@@ -14,6 +14,7 @@ gpu_evidence_map = "examples/ai-workbench/gpu-evidence-map.toml"
 generate_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/fake_generate_oracle.py"
 generate_cases = "examples/ai-workbench/harness/fixtures/generate/cases.toml"
 token_logits_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
+token_logits_expected_sidecar = "examples/ai-workbench/harness/fixtures/generate/tiny-token-logits.expected.jsonl"
 token_logits_checker = "examples/ai-workbench/harness/check-token-logits-oracle.py"
 artifact_admission_checker = "examples/ai-workbench/harness/check-inference-artifact-admission.py"
 
@@ -57,7 +58,7 @@ id = "tiny-token-logits-oracle"
 surface = "generate"
 artifact = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
 state = "oracle-backed"
-claim = "A hermetic Python oracle derives prompt token ids and emits one deterministic logits vector plus next-token JSONL events."
+claim = "A hermetic Python oracle derives prompt token ids and emits one deterministic logits vector plus next-token JSONL events that match an expected sidecar."
 blocker = "The oracle is not Faber-owned tensor execution and does not load runtime model weights."
 
 [[evidence]]
@@ -91,12 +92,14 @@ outputs = [
   "one deterministic logits vector over the tiny vocab",
   "selected next token",
   "final text event",
+  "expected JSONL sidecar",
 ]
 runnable_now = true
 implementation_boundary = "Python harness/oracle fixture plus generated JSONL assertion only; no Faber/runtime tensor execution."
 done_when = [
   "checker derives token ids from tokenizer fixture",
   "checker validates logits length equals vocab size",
+  "checker compares generated JSONL against expected sidecar",
   "generate command can optionally consume the oracle without changing default blocked status",
   "all non-claims stay false",
 ]

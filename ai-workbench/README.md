@@ -194,6 +194,9 @@ metadata/tokenizer floor. It is deliberately fixture evidence, not runtime
 support: the runnable path is `generate` with an explicit oracle runner, while
 Faber-owned transformer/GGUF inference, quantized kernels, GPU runtime,
 implicit downloads, and llama.cpp equivalence remain non-claims.
+The token/logits checker derives token ids and logits from the tiny fixtures and
+also compares the emitted JSONL to
+`harness/fixtures/generate/tiny-token-logits.expected.jsonl`.
 
 Validate the map with:
 

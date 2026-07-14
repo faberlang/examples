@@ -60,6 +60,7 @@ def main() -> int:
         "generate_oracle_fixture",
         "generate_cases",
         "token_logits_oracle_fixture",
+        "token_logits_expected_sidecar",
         "token_logits_checker",
         "artifact_admission_checker",
     ):
@@ -97,9 +98,14 @@ def main() -> int:
             fail(failures, "selected fixture boundary must stay examples-local")
         for relative in selected["inputs"]:
             require_path(root, failures, relative)
+        require_path(root, failures, contract["token_logits_expected_sidecar"])
         required_outputs = {"prefill token ids", "one deterministic logits vector over the tiny vocab", "selected next token"}
         if not required_outputs.issubset(set(selected["outputs"])):
             fail(failures, "selected fixture must define token ids, logits, and next-token outputs")
+        if "expected JSONL sidecar" not in selected["outputs"]:
+            fail(failures, "selected fixture must define the expected JSONL sidecar")
+        if "checker compares generated JSONL against expected sidecar" not in selected["done_when"]:
+            fail(failures, "selected fixture must require sidecar comparison")
 
     blocked = candidates.get("faber-owned-tiny-forward")
     if blocked is None:

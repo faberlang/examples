@@ -11,11 +11,16 @@ from typing import Any
 
 FORBIDDEN_TRUE_CLAIMS = [
     "faber_owned_inference",
+    "owned_model_runtime",
+    "llama_cpp_parity",
     "llama_cpp_equivalence",
     "gguf_runtime",
+    "transformer_execution",
     "transformer_runtime",
     "quantized_kernel_support",
     "gpu_runtime",
+    "public_inference",
+    "public_product_release",
     "model_blobs_in_git",
     "implicit_model_downloads",
 ]
@@ -40,6 +45,7 @@ def encode(text: str, vocab: dict[str, int], unknown_id: int) -> list[int]:
 def main() -> int:
     root = workspace_root()
     oracle = root / "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
+    expected = root / "examples/ai-workbench/harness/fixtures/generate/tiny-token-logits.expected.jsonl"
     model = root / "examples/ai-workbench/harness/fixtures/model-artifact/tiny-model.fma.json"
     prompt = root / "examples/ai-workbench/harness/fixtures/generate/prompt.txt"
     artifact = json.loads(model.read_text(encoding="utf-8"))
@@ -47,6 +53,7 @@ def main() -> int:
     unknown_id = int(vocab[artifact["tokenizer"]["unknown_token"]])
     expected_token_ids = encode(prompt.read_text(encoding="utf-8").strip(), vocab, unknown_id)
     failures: list[str] = []
+    expected_events = load_events(expected)
 
     with tempfile.TemporaryDirectory(prefix="faber-ai-token-logits-") as temp:
         out = pathlib.Path(temp) / "token-logits.jsonl"
@@ -86,6 +93,8 @@ def main() -> int:
             fail(failures, "oracle did not produce output")
         else:
             events = load_events(out)
+            if events != expected_events:
+                fail(failures, "generated token/logits JSONL must match expected sidecar")
             event_names = [event.get("event") for event in events]
             if event_names != ["metadata", "prefill", "logits", "token", "final"]:
                 fail(failures, f"event sequence {event_names!r}")
