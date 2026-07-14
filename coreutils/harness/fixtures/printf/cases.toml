@@ -195,3 +195,25 @@ stdout = "1.00\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "float-fractional-default-precision"
+lane = "stepper"
+tier = "A"
+args = ["%f\\n", "1.5"]
+stdin = ""
+stdout = "1.500000\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "float-fractional-explicit-precision"
+lane = "stepper"
+tier = "A"
+args = ["%.2f\\n", "1.25"]
+stdin = ""
+stdout = "1.25\n"
+stderr = ""
+exit = 0
+stdout_newline = true

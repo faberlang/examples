@@ -329,12 +329,39 @@ functio octal_textus(numerus n) → textus {
     redde out
 }
 
-functio float_textus(numerus n, numerus precision) → textus {
+functio punctum_index(textus raw) → numerus {
+    varia numerus i ← 0
+    dum i < raw.longitudo() {
+        si raw.sectio(i, i + 1) ≡ "." ergo redde i
+        i ← i + 1
+    }
+    redde -1
+}
+
+functio fraction_precision(textus fraction, numerus precision) → textus {
+    si precision ≤ 0 ergo redde ""
+    si fraction.longitudo() ≥ precision ergo redde fraction.sectio(0, precision)
+    redde fraction + zeroes(precision - fraction.longitudo())
+}
+
+functio float_textus(textus raw, numerus precision) → textus {
     varia numerus active_precision ← precision
     si active_precision < 0 {
         active_precision ← 6
     }
-    redde "§.§"(n, zeroes(active_precision))
+
+    fixum numerus dot ← punctum_index(raw)
+    varia textus integer ← raw.sectio(0, raw.longitudo())
+    varia textus fraction ← ""
+    si dot ≥ 0 {
+        integer ← raw.sectio(0, dot)
+        fraction ← raw.sectio(dot + 1, raw.longitudo())
+    }
+    si integer.longitudo() ≡ 0 {
+        integer ← "0"
+    }
+    si active_precision ≡ 0 ergo redde integer
+    redde "§.§"(integer, fraction_precision(fraction, active_precision))
 }
 
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {
@@ -385,7 +412,7 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                                     }
                                     secus {
                                         si next ≡ "f" {
-                                            out ← out + pad_width(float_textus(argumentum_numerus(args, arg_index), precision), width)
+                                            out ← out + pad_width(float_textus(argumentum(args, arg_index), precision), width)
                                             arg_index ← arg_index + 1
                                         }
                                         secus {
@@ -495,6 +522,10 @@ probandum "printf formatting" tag "coreutils" {
     proba "integer-valued floating format uses fixed decimal precision" {
         adfirma printf_textus(["%f\n", "1"]) ≡ "1.000000\n"
         adfirma printf_textus(["%.2f\n", "1"]) ≡ "1.00\n"
+    }
+    proba "fractional floating format preserves bounded fractional text" {
+        adfirma printf_textus(["%f\n", "1.5"]) ≡ "1.500000\n"
+        adfirma printf_textus(["%.2f\n", "1.25"]) ≡ "1.25\n"
     }
 }
 
