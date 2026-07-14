@@ -1,4 +1,22 @@
 [[case]]
+id = "campaign-basic-minilm-json"
+args = [
+  "model",
+  "inspect",
+  "basic/minilm",
+  "--format",
+  "json",
+  "--alias-map",
+  "docs/campaigns/ai-workbench/model-aliases.toml",
+]
+stdout_contains = [
+  "\"alias\":\"basic/minilm\"",
+  "\"local_path\":\"\"",
+]
+compare_campaign = true
+exit = 0
+
+[[case]]
 id = "basic-minilm-local-json"
 args = [
   "model",
@@ -50,11 +68,18 @@ exit = 0
 
 [[case]]
 id = "unknown-text"
-args = ["model", "inspect", "not/a-known-alias"]
+args = [
+  "model",
+  "inspect",
+  "not/a-known-alias",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/subset-aliases.toml",
+]
 stdout_contains = [
   "status: unknown",
   "diagnostic: unknown alias or unsupported path",
 ]
+compare_campaign = false
 exit = 0
 
 [[case]]

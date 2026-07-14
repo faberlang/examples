@@ -109,6 +109,14 @@ def run_large_sparse_case(root: pathlib.Path, package: pathlib.Path, faber_manif
     return failures
 
 
+def compares_campaign(case: dict) -> bool:
+    return (
+        case.get("compare_campaign", True)
+        and "--format" in case["args"]
+        and "json" in case["args"]
+    )
+
+
 def main() -> int:
     root = workspace_root()
     cases_path = root / "examples/ai-workbench/harness/fixtures/model-inspect/cases.toml"
@@ -116,23 +124,21 @@ def main() -> int:
     package = root / "examples/ai-workbench/packages/faber-ai"
     faber_manifest = root / "faber/Cargo.toml"
 
-    if not aliases_path.exists():
-        print(
-            "BLOCK campaign alias map missing: "
-            f"{aliases_path}. Run this harness from the faberlang workspace; "
-            "standalone examples checkouts do not contain campaign docs. "
-            "This is codified by examples/ai-workbench/local-inventory-gaps.toml.",
-            file=sys.stderr,
-        )
-        return 2
-
     cases = tomllib.loads(cases_path.read_text())["case"]
-    aliases = {
-        item["alias"]: item
-        for item in tomllib.loads(aliases_path.read_text())["tiers"]
-    }
+    aliases = None
+    blocked_campaign_cases: list[str] = []
+    if aliases_path.exists():
+        aliases = {
+            item["alias"]: item
+            for item in tomllib.loads(aliases_path.read_text())["tiers"]
+        }
     failures: list[str] = []
+    executed_cases = 0
     for case in cases:
+        if aliases is None and compares_campaign(case):
+            blocked_campaign_cases.append(case["id"])
+            continue
+
         absent_path = case.get("absent_path")
         if absent_path:
             pathlib.Path(absent_path).unlink(missing_ok=True)
@@ -147,6 +153,11 @@ def main() -> int:
         unreadable_path = case.get("unreadable_path")
         if unreadable_path:
             path = pathlib.Path(unreadable_path)
+            try:
+                path.chmod(0o600)
+                path.unlink()
+            except FileNotFoundError:
+                pass
             path.write_text("[[tiers]]\n")
             path.chmod(0)
 
@@ -183,6 +194,7 @@ def main() -> int:
                 pass
         combined = result.stdout + result.stderr
         expected_exit = int(case["exit"])
+        executed_cases += 1
         if result.returncode != expected_exit:
             failures.append(
                 f"{case['id']}: exit {result.returncode}, expected {expected_exit}"
@@ -190,12 +202,11 @@ def main() -> int:
         for needle in case.get("stdout_contains", []):
             if needle not in result.stdout:
                 failures.append(f"{case['id']}: stdout missing {needle!r}")
-        if (
-            case.get("compare_campaign", True)
-            and "--format" in case["args"]
-            and "json" in case["args"]
-        ):
+        if compares_campaign(case):
             target = case["args"][2]
+            if aliases is None:
+                failures.append(f"{case['id']}: campaign aliases unavailable after execution")
+                continue
             expected = aliases.get(target)
             if expected is None:
                 failures.append(f"{case['id']}: no campaign alias for {target!r}")
@@ -220,12 +231,23 @@ def main() -> int:
             sys.stderr.write(combined)
 
     failures.extend(run_large_sparse_case(root, package, faber_manifest))
+    executed_cases += 1
 
     if failures:
         for failure in failures:
             print(f"FAIL {failure}", file=sys.stderr)
         return 1
-    print(f"ok: {len(cases) + 1} model-inspect cases")
+    if blocked_campaign_cases:
+        print(
+            "BLOCK campaign alias map missing: "
+            f"{aliases_path}. Skipped campaign comparison case(s): "
+            f"{', '.join(blocked_campaign_cases)}. Hermetic cases still ran. "
+            "This is codified by examples/ai-workbench/local-inventory-gaps.toml.",
+            file=sys.stderr,
+        )
+        print(f"ok: {executed_cases} model-inspect hermetic cases")
+        return 2
+    print(f"ok: {executed_cases} model-inspect cases")
     return 0
 
 

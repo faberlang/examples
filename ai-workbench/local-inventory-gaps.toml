@@ -21,7 +21,7 @@ implicit_model_blobs = false
 [[blockers]]
 id = "campaign-alias-map"
 step = "check-model-inspect.py"
-reason = "The campaign alias map is a workspace control-plane file, not a vendored examples artifact."
+reason = "Only campaign-comparison model-inspect rows require the workspace control-plane map; package-local hermetic rows must still run."
 required_path = "docs/campaigns/ai-workbench/model-aliases.toml"
 blocked_exit = 2
 
@@ -38,6 +38,12 @@ step = "check-product-install-path.py"
 reason = "The product install operator smoke requires local MiniLM safetensors metadata under the live inventory root."
 required_path = "/Users/ianzepp/ai/models"
 blocked_exit = 2
+
+[[hermetic_checks]]
+id = "model-inspect-local-fixtures"
+step = "check-model-inspect.py"
+fixture = "examples/ai-workbench/harness/fixtures/model-inspect/cases.toml"
+required = true
 
 [[hermetic_checks]]
 id = "missing-inventory-smoke"

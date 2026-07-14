@@ -85,7 +85,9 @@ metadata under `/Users/ianzepp/ai/models`. `check-campaign-tour.py` treats exit
 code 2 from those inventory-dependent checks as an intentional block, while
 hard failures still fail the tour. The package reuse checker uses the same
 blocked exit when only the workspace campaign alias status checks are
-unavailable.
+unavailable. The model-inspect checker still runs package-local safetensors,
+GGUF, alias-map, and diagnostic fixtures when the campaign map is absent; only
+the campaign-comparison row is skipped as an environment block.
 
 Validate the gap contract with:
 
