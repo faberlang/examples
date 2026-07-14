@@ -1,0 +1,112 @@
+# Examples-owned inference fixture map for the next honest runtime step.
+
+[inference_fixture_map]
+status = "fixture-map"
+scope = "examples-owned evidence packet only"
+selected_next_fixture = "tiny-token-logits-oracle"
+current_runnable_surface = "generate with explicit fake oracle runner"
+current_blocked_surface = "blocked Faber-owned transformer/GGUF inference runtime"
+model_artifact_floor = "examples/ai-workbench/model-artifact-floor.toml"
+session_lifecycle = "examples/ai-workbench/session-lifecycle.toml"
+gpu_workload_contract = "examples/gpu-workload/rung-4-toy-train.ref.json"
+generate_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/fake_generate_oracle.py"
+generate_cases = "examples/ai-workbench/harness/fixtures/generate/cases.toml"
+
+[guarded_claims]
+faber_owned_inference = false
+llama_cpp_equivalence = false
+gguf_runtime = false
+transformer_runtime = false
+quantized_kernel_support = false
+gpu_runtime = false
+model_blobs_in_git = false
+implicit_model_downloads = false
+public_product_release = false
+
+[[evidence]]
+id = "metadata-tokenizer-floor"
+surface = "model artifact floor"
+artifact = "examples/ai-workbench/model-artifact-floor.toml"
+state = "local-ops"
+claim = "Tiny metadata and tokenizer fixture exists without tensor bytes."
+blocker = "No runtime tensor loader or tokenization engine is claimed."
+
+[[evidence]]
+id = "oracle-backed-generate"
+surface = "generate"
+artifact = "examples/ai-workbench/harness/fixtures/generate/fake_generate_oracle.py"
+state = "oracle-backed"
+claim = "The command can stream JSONL events when an explicit oracle runner is supplied."
+blocker = "The default generate path remains blocked for Faber-owned model execution."
+
+[[evidence]]
+id = "router-backed-chat"
+surface = "chat"
+artifact = "examples/ai-workbench/harness/fixtures/chat/fake_chat_router.py"
+state = "router-backed"
+claim = "Chat can exercise adapter plumbing through an explicit router runner."
+blocker = "External router evidence is not local GGUF inference ownership."
+
+[[evidence]]
+id = "gpu-rung4-session-map"
+surface = "gpu workload"
+artifact = "examples/gpu-workload/rung-4-toy-train.ref.json"
+state = "oracle-map"
+claim = "A scalar session/update oracle records launch/event boundaries."
+blocker = "cuda:launch stepper provider and device training remain unavailable."
+
+[[candidate]]
+id = "tiny-token-logits-oracle"
+status = "next"
+description = "Add a hermetic prompt-token to logits to next-token JSONL oracle over the existing tiny tokenizer vocabulary."
+inputs = [
+  "examples/ai-workbench/harness/fixtures/model-artifact/tiny-model.fma.json",
+  "examples/ai-workbench/harness/fixtures/model-artifact/tokenizer-cases.json",
+  "examples/ai-workbench/harness/fixtures/generate/prompt.txt",
+]
+outputs = [
+  "metadata event",
+  "prefill token ids",
+  "one deterministic logits vector over the tiny vocab",
+  "selected next token",
+  "final text event",
+]
+runnable_now = true
+implementation_boundary = "Python harness/oracle fixture plus generated JSONL assertion only; no Faber/runtime tensor execution."
+done_when = [
+  "checker derives token ids from tokenizer fixture",
+  "checker validates logits length equals vocab size",
+  "generate command can optionally consume the oracle without changing default blocked status",
+  "all non-claims stay false",
+]
+
+[[candidate]]
+id = "faber-owned-tiny-forward"
+status = "blocked"
+description = "Execute the tiny token/logits fixture through Faber-owned tensor/runtime code."
+inputs = [
+  "tiny tokenizer ids",
+  "tiny model tensors",
+]
+outputs = [
+  "next-token logits",
+]
+runnable_now = false
+implementation_boundary = "Requires runtime/backend work outside examples."
+blockers = [
+  "No examples-owned tensor loader for model artifact tensors.",
+  "No Faber-owned transformer forward runtime.",
+  "No quantized kernel/packing execution path.",
+]
+
+[[follow_up_want]]
+subject = "[P1][examples][ai-workbench] add tiny token/logits oracle fixture"
+body = "Add a hermetic Python oracle and JSONL fixture for prompt token ids, one logits vector, next-token selection, and final text over tiny/inference-fixture; keep generate default blocked and enforce non-claims."
+
+[[follow_up_want]]
+subject = "[P1][runtime/radix] define minimal tensor artifact load boundary for tiny inference fixture"
+body = "Map the smallest non-production tensor loading/execution boundary needed to replay the examples tiny-token-logits oracle without model blobs or llama.cpp equivalence claims."
+
+[[follow_up_want]]
+subject = "[P2][examples][gpu-workload] connect CPU logits oracle to systems-lane matmul evidence"
+body = "Once the tiny logits oracle exists, map which substeps can reuse gpu-workload matmul/softmax rungs and which remain blocked by runtime/provider gaps."
