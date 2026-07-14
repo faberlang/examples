@@ -9,6 +9,7 @@ import tomllib
 
 
 TOUR_STEPS = [
+    ("claim gates", "check-claim-gates.py"),
     ("local inventory gaps", "check-local-inventory-gaps.py"),
     ("model inspect", "check-model-inspect.py"),
     ("embed", "check-embed.py"),

@@ -24,9 +24,27 @@
   },
   "claims": {
     "faber_owned_inference": false,
+    "owned_model_runtime": false,
+    "general_inference": false,
+    "llama_cpp_parity": false,
+    "llama_cpp_equivalence": false,
     "llama_cpp_runtime": false,
     "gguf_runtime": false,
-    "general_inference": false,
-    "public_product_release": false
+    "transformer_execution": false,
+    "transformer_runtime": false,
+    "quantized_kernel_support": false,
+    "gpu_execution": false,
+    "gpu_runtime": false,
+    "gpu_runtime_claims": false,
+    "device_logits_execution": false,
+    "device_softmax_execution": false,
+    "device_training": false,
+    "public_inference": false,
+    "public_product_release": false,
+    "model_downloads": false,
+    "model_blobs_in_git": false,
+    "implicit_model_downloads": false,
+    "implicit_model_blobs": false,
+    "pytorch_equivalence": false
   }
 }

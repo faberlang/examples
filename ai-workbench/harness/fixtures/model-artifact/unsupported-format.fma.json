@@ -27,6 +27,7 @@
     "model_downloads": false,
     "model_blobs_in_git": false,
     "implicit_model_downloads": false,
-    "implicit_model_blobs": false
+    "implicit_model_blobs": false,
+    "pytorch_equivalence": false
   }
 }

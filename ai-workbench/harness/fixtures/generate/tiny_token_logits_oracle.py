@@ -72,6 +72,7 @@ def main() -> int:
                 "model_blobs_in_git": False,
                 "implicit_model_downloads": False,
                 "implicit_model_blobs": False,
+                "pytorch_equivalence": False,
             },
         },
         {

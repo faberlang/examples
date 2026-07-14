@@ -5,18 +5,12 @@ import pathlib
 import sys
 import tomllib
 
+from claim_gates import false_claim_failures
+
 
 EXPECTED_ORDER = ["inspect", "embed", "index", "query", "generate", "chat"]
 EXPECTED_SURFACES = ["model inspect", "embed", "index", "query", "generate", "chat"]
 REQUIRED_LABELS = {"blocked", "oracle-backed", "router-backed", "local-ops", "faber-owned"}
-FORBIDDEN_TRUE_CLAIMS = [
-    "faber_owned_inference",
-    "pytorch_equivalence",
-    "public_product_release",
-    "model_blobs_in_git",
-    "implicit_model_downloads",
-    "gpu_runtime_claims",
-]
 
 
 def workspace_root() -> pathlib.Path:
@@ -49,9 +43,8 @@ def main() -> int:
         fail(failures, "lifecycle must point at the model artifact floor contract")
 
     guarded = lifecycle["guarded_claims"]
-    for key in FORBIDDEN_TRUE_CLAIMS:
-        if guarded.get(key) is not False:
-            fail(failures, f"guarded claim {key} must remain false")
+    for issue in false_claim_failures(guarded, label="guarded", require_all=True):
+        fail(failures, issue)
 
     stages = lifecycle["stages"]
     stage_order = [stage["lifecycle"] for stage in stages]

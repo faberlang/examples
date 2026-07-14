@@ -5,6 +5,8 @@ import pathlib
 import sys
 import tomllib
 
+from claim_gates import false_claim_failures
+
 
 def workspace_root() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parents[3]
@@ -37,9 +39,8 @@ def main() -> int:
     if gaps["missing_inventory_smoke"] != install_path["missing_inventory_smoke"]:
         failures.append("missing-inventory smoke must match package-reuse product install path")
 
-    for claim, value in inventory["guarded_claims"].items():
-        if value is not False:
-            failures.append(f"guarded claim {claim} must be false")
+    for issue in false_claim_failures(inventory["guarded_claims"], label="guarded", require_all=True):
+        failures.append(issue)
 
     blockers = {blocker["id"]: blocker for blocker in inventory["blockers"]}
     for required_id in ("operator-minilm-local-metadata",):

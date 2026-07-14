@@ -8,16 +8,10 @@ import sys
 import tomllib
 from typing import Any
 
+from claim_gates import false_claim_failures
 
 EXPECTED_FORMAT = "faber-ai-model-artifact-v0"
 EXPECTED_TOKENIZER_FORMAT = "faber-ai-tokenizer-v0"
-FORBIDDEN_TRUE_CLAIMS = [
-    "faber_owned_inference",
-    "llama_cpp_runtime",
-    "gguf_runtime",
-    "general_inference",
-    "public_product_release",
-]
 
 
 def workspace_root() -> pathlib.Path:
@@ -71,9 +65,8 @@ def main() -> int:
         fail(failures, "contract must stay local-ops now and future faber-owned")
 
     guarded = contract["guarded_claims"]
-    for key in FORBIDDEN_TRUE_CLAIMS + ["model_blobs_in_git", "implicit_model_downloads"]:
-        if guarded.get(key) is not False:
-            fail(failures, f"guarded claim {key} must remain false")
+    for issue in false_claim_failures(guarded, label="guarded", require_all=True):
+        fail(failures, issue)
 
     for key in contract["required_fields"]["top_level"]:
         if key not in valid:
@@ -141,9 +134,8 @@ def main() -> int:
     for diagnostic in contract["diagnostics"]["valid"]:
         if diagnostic not in valid.get("diagnostics", []):
             fail(failures, f"valid fixture missing diagnostic {diagnostic!r}")
-    for key in FORBIDDEN_TRUE_CLAIMS:
-        if valid.get("claims", {}).get(key) is not False:
-            fail(failures, f"valid fixture claim {key} must remain false")
+    for issue in false_claim_failures(valid.get("claims"), label="valid fixture", require_all=True):
+        fail(failures, issue)
 
     if unsupported.get("status") != "error":
         fail(failures, "unsupported fixture status must be error")
@@ -152,9 +144,8 @@ def main() -> int:
     diagnostics = "\n".join(unsupported.get("diagnostics", []))
     if floor["unsupported_format_diagnostic"] not in diagnostics:
         fail(failures, "unsupported fixture must carry unsupported-format diagnostic")
-    for key in FORBIDDEN_TRUE_CLAIMS:
-        if unsupported.get("claims", {}).get(key) is not False:
-            fail(failures, f"unsupported fixture claim {key} must remain false")
+    for issue in false_claim_failures(unsupported.get("claims"), label="unsupported fixture", require_all=True):
+        fail(failures, issue)
 
     generate_stage = next(stage for stage in lifecycle["stages"] if stage["lifecycle"] == "generate")
     lifecycle_inputs = " ".join(generate_stage["inputs"]).lower()
