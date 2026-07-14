@@ -120,6 +120,17 @@ exit = 0
 stdout_newline = true
 
 [[case]]
+id = "quoted-character-decimal"
+lane = "stepper"
+tier = "A"
+args = ["%d\\n", "'A"]
+stdin = ""
+stdout = "65\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
 id = "lower-hex-format"
 lane = "stepper"
 tier = "A"
@@ -131,12 +142,34 @@ exit = 0
 stdout_newline = true
 
 [[case]]
+id = "quoted-character-lower-hex"
+lane = "stepper"
+tier = "A"
+args = ["%x\\n", "'A"]
+stdin = ""
+stdout = "41\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
 id = "octal-format"
 lane = "stepper"
 tier = "A"
 args = ["%o\\n", "8"]
 stdin = ""
 stdout = "10\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "quoted-character-octal"
+lane = "stepper"
+tier = "A"
+args = ["%o\\n", "'A"]
+stdin = ""
+stdout = "101\n"
 stderr = ""
 exit = 0
 stdout_newline = true

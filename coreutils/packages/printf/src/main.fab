@@ -179,8 +179,47 @@ functio argumentum(lista<textus> args, numerus index) → textus {
     redde ""
 }
 
+functio textus_index_in(textus haystack, textus needle) → numerus {
+    varia numerus i ← 0
+    dum i < haystack.longitudo() {
+        si haystack.sectio(i, i + 1) ≡ needle ergo redde i
+        i ← i + 1
+    }
+    redde -1
+}
+
+functio ascii_quoted_value(textus ch) → numerus {
+    varia numerus idx ← textus_index_in("0123456789", ch)
+    si idx ≥ 0 ergo redde 48 + idx
+
+    idx ← textus_index_in("ABCDEFGHIJKLMNOPQRSTUVWXYZ", ch)
+    si idx ≥ 0 ergo redde 65 + idx
+
+    idx ← textus_index_in("abcdefghijklmnopqrstuvwxyz", ch)
+    si idx ≥ 0 ergo redde 97 + idx
+
+    elige ch {
+        casu " " {
+            redde 32
+        }
+        casu «\"» {
+            redde 34
+        }
+        casu "'" {
+            redde 39
+        }
+        ceterum  {
+            redde 0
+        }
+    }
+}
+
 functio argumentum_numerus(lista<textus> args, numerus index) → numerus {
-    redde argumentum(args, index) ↦ numerus ⇥ 0
+    fixum textus raw ← argumentum(args, index)
+    si raw.longitudo() ≥ 2 et (raw.sectio(0, 1) ≡ "'" aut raw.sectio(0, 1) ≡ «\"») {
+        redde ascii_quoted_value(raw.sectio(1, 2))
+    }
+    redde raw ↦ numerus ⇥ 0
 }
 
 functio hex_digit(numerus n) → textus {
@@ -623,6 +662,11 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%d\n", "42"]) ≡ "42\n"
         adfirma printf_textus(["%i\n", "7"]) ≡ "7\n"
         adfirma printf_textus(["%u\n", "42"]) ≡ "42\n"
+    }
+    proba "quoted character numeric operands use ASCII code" {
+        adfirma printf_textus(["%d\n", "'A"]) ≡ "65\n"
+        adfirma printf_textus(["%x\n", "'A"]) ≡ "41\n"
+        adfirma printf_textus(["%o\n", "'A"]) ≡ "101\n"
     }
     proba "missing numeric argument formats as zero" {
         adfirma printf_textus(["%d\n"]) ≡ "0\n"

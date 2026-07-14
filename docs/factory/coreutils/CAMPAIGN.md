@@ -254,7 +254,8 @@ for raw output and passes stepper parity for both newline-terminated and
 no-newline fixtures. `echo -e` now covers the declared `\n`, `\t`, `\r`, and
 `\\` escape subset. The `printf` numeric slice now covers plain decimal `%d`,
 `%i`, positive `%u`, positive `%o`, and positive `%x`/`%X` integer formats;
-missing `%d` arguments now format as `0`; bounded positive `%f` with
+missing `%d` arguments now format as `0`; ASCII quoted-character numeric
+operands are covered for selected formats; bounded positive `%f` with
 fixed-decimal rounding, bounded exponent-zero `%e`/`%E`, simple field width,
 string precision, positive dynamic `*` width/precision, and negative dynamic
 width left alignment are covered. Next useful Stage 3 slices are

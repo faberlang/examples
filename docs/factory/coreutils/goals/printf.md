@@ -16,10 +16,10 @@ Implement a small Faber package that matches GNU `printf` for the declared
 stepper cases, including newline-terminated formats and raw no-newline output.
 The current numeric slice supports plain decimal `%d`, `%i`, positive `%u`,
 positive octal `%o`, positive lowercase `%x`, and positive uppercase `%X`
-conversions, bounded positive fractional `%f` with fixed-decimal rounding, plus
-bounded exponent-zero `%e`/`%E`, simple positive field width, string precision,
-positive dynamic `*` width/precision, and negative dynamic width left alignment
-for declared cases.
+conversions, ASCII quoted-character numeric operands, bounded positive
+fractional `%f` with fixed-decimal rounding, plus bounded exponent-zero
+`%e`/`%E`, simple positive field width, string precision, positive dynamic `*`
+width/precision, and negative dynamic width left alignment for declared cases.
 
 ## Deliverables
 
@@ -44,6 +44,7 @@ for declared cases.
 | positive octal `%o` | slice | pending | Parses explicit non-negative integer text arguments |
 | positive lowercase hexadecimal `%x` | slice | pending | Parses explicit non-negative integer text arguments |
 | positive uppercase hexadecimal `%X` | slice | pending | Parses explicit non-negative integer text arguments |
+| ASCII quoted-character numeric operands | slice | pending | Covered for `%d`, `%x`, and `%o` with `'A` |
 | bounded fixed decimal `%f` | slice | pending | Default precision 6; explicit `.N` precision; positive decimal rounding |
 | bounded exponent-zero `%e` / `%E` | slice | pending | Positive already-normalized decimal operands; default precision 6; explicit `.N` precision |
 | simple field width | slice | pending | Right-aligns supported conversions with spaces |
@@ -63,7 +64,8 @@ directives.
 
 The numeric slice intentionally avoids flags, diagnostics for missing dynamic
 operands, full exponent normalization, negative unsigned wrapping/overflow
-behavior, quoted-character operands, and invalid numeric argument diagnostics.
+behavior, non-ASCII quoted-character operands, and invalid numeric argument
+diagnostics.
 
 ## Acceptance
 
@@ -84,9 +86,10 @@ faber test coreutils/packages/printf
 
 - Inline `proba` cases cover plain text, `%%`, `%s`, format repetition, missing
   `%s` arguments, `%b` basic escapes, and plain `%d`/`%i`/`%u`/`%o`/`%x`/`%X`
-  integer formatting, bounded positive `%f` including fixed-decimal rounding,
-  bounded exponent-zero `%e`/`%E`, simple width, string precision, and positive
-  dynamic `*` width/precision plus negative dynamic width left alignment.
+  integer formatting, ASCII quoted-character numeric operands, bounded positive
+  `%f` including fixed-decimal rounding, bounded exponent-zero `%e`/`%E`,
+  simple width, string precision, and positive dynamic `*` width/precision plus
+  negative dynamic width left alignment.
 - Stepper fixtures cover both newline-terminated GNU parity cases and raw
   no-newline output through `norma:consolum.dic`; the numeric slice adds
   decimal integer fixtures and missing `%d` argument behavior.
