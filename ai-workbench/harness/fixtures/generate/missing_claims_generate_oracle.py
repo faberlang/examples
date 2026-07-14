@@ -4,15 +4,10 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-
-from runner_claims import false_runner_claims  # noqa: E402
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Hermetic fake Stage 6 generate oracle")
+    parser = argparse.ArgumentParser(description="Hermetic generate oracle without claims")
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--model-dir", required=True)
@@ -37,10 +32,8 @@ def main() -> int:
             "max_new_tokens": int(args.max_new_tokens),
             "temperature": args.temperature,
             "seed": int(args.seed),
-            "claims": false_runner_claims(),
         },
         {"event": "token", "text": "Local"},
-        {"event": "token", "text": " inventory."},
         {"event": "final", "text": "Local inventory."},
     ]
     output.write_text("\n".join(json.dumps(event, separators=(",", ":")) for event in events) + "\n")

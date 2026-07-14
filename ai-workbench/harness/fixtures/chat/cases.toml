@@ -215,14 +215,41 @@ args = [
   "http://127.0.0.1:18173/v1",
 ]
 stdout_contains = [
-  "\"status\":\"router-backed\"",
-  "\"runtime\":\"bad-claims-router-fixture\"",
+  "\"status\":\"error\"",
+  "router runner artifact rejected",
+  "public_inference",
 ]
 out_path = "/tmp/faber-ai-chat-bad-claims-router.jsonl"
-expect_output_file = true
-artifact_events = ["metadata", "prompt", "message", "final"]
-artifact_contains = ["\"status\":\"router-backed\"", "\"public_inference\":true"]
-expect_metadata_claim_failure = true
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "router-missing-claims-json"
+args = [
+  "chat",
+  "examples/ai-workbench/harness/fixtures/chat/prompt.txt",
+  "--model",
+  "daily/qwen36-35b-a3b-q4",
+  "--out",
+  "/tmp/faber-ai-chat-missing-claims-router.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/chat/local-alias.toml",
+  "--router-runner",
+  "examples/ai-workbench/harness/fixtures/chat/missing_claims_chat_router.py",
+  "--router-label",
+  "missing-claims-router-fixture",
+  "--router-url",
+  "http://127.0.0.1:18173/v1",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "router runner artifact rejected",
+  "claims must be an object",
+]
+out_path = "/tmp/faber-ai-chat-missing-claims-router.jsonl"
+expect_output_file = false
 exit = 0
 
 [[case]]

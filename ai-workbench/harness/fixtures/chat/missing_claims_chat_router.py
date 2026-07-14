@@ -4,15 +4,10 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-
-from runner_claims import false_runner_claims  # noqa: E402
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Hermetic fake Stage 7 chat router")
+    parser = argparse.ArgumentParser(description="Hermetic chat router without claims")
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--model-alias", required=True)
@@ -35,7 +30,6 @@ def main() -> int:
             "router_model_id": args.router_model_id,
             "router_url": args.router_url,
             "local_path": args.local_path,
-            "claims": false_runner_claims(),
         },
         {"event": "prompt", "text": prompt},
         {"event": "message", "role": "assistant", "text": "The local router is an external runtime adapter."},

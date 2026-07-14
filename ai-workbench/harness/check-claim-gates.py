@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
+import pathlib
 import sys
+import tempfile
 
 from claim_gates import FORBIDDEN_INFERENCE_CLAIMS, false_claim_failures
+from runner_artifact_claim_gate import validate_runner_artifact
 
 
 def main() -> int:
@@ -55,6 +59,28 @@ def main() -> int:
         allowed_true_claims=("documented_local_metadata_claim",),
     ):
         failures.append("documented positive exception must pass only through allowed_true_claims")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        artifact = pathlib.Path(tmp) / "artifact.jsonl"
+        artifact.write_text(
+            json.dumps(
+                {
+                    "event": "metadata",
+                    "status": "oracle-backed",
+                    "claims": full_false,
+                },
+                separators=(",", ":"),
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        if validate_runner_artifact(artifact, "oracle-backed"):
+            failures.append("runner artifact gate must accept matching status with full false claims")
+        if not any(
+            "does not match" in issue
+            for issue in validate_runner_artifact(artifact, "router-backed")
+        ):
+            failures.append("runner artifact gate must reject metadata/status mismatch")
 
     if failures:
         for failure in failures:

@@ -323,9 +323,19 @@ functio runner_failure(tabula<textus, valor> result) → textus {
     redde result_stdout(result).recide()
 }
 
-functio artifact_contains(textus out_path, textus marker) → bivalens {
-    fixum textus artifact ← solum.lege<textus>(out_path)
-    redde artifact.continet(marker)
+functio runner_artifact_gate_args(textus out_path, textus expected_status) → lista<textus> {
+    redde [
+        "python3",
+        "examples/ai-workbench/harness/runner_artifact_claim_gate.py",
+        out_path,
+        expected_status,
+    ]
+}
+
+functio runner_artifact_gate_failure(tabula<textus, valor> result) → textus {
+    fixum textus stderr ← result_stderr(result).recide()
+    si stderr.longitudo() > 0 ergo redde stderr
+    redde result_stdout(result).recide()
 }
 
 functio curre(
@@ -411,8 +421,10 @@ functio curre(
         emit_error(target, source, "router runner output unreadable: §"(out_path), formatum)
         redde
     }
-    si artifact_contains(out_path, "\"status\":\"router-backed\"") ≠ verum {
-        emit_error(target, source, "router runner output missing router-backed status: §"(out_path), formatum)
+    fixum tabula<textus, valor> artifact_gate ← processus.captura(runner_artifact_gate_args(out_path, "router-backed")) ↦ tabula<textus, valor>
+    si result_status(artifact_gate) ≠ 0 {
+        emit_error(target, source, "router runner artifact rejected: §"(runner_artifact_gate_failure(artifact_gate)), formatum)
+        solum.dele(out_path)
         redde
     }
 

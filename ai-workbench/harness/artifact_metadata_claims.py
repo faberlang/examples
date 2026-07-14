@@ -15,8 +15,6 @@ def metadata_claim_failures(events: list[dict[str, Any]], *, label: str) -> list
             continue
         if event.get("status") not in CLAIM_GATED_METADATA_STATUSES:
             continue
-        if "claims" not in event:
-            continue
         failures.extend(
             false_claim_failures(
                 event.get("claims"),

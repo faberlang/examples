@@ -225,14 +225,45 @@ args = [
   "7",
 ]
 stdout_contains = [
-  "\"status\":\"oracle-backed\"",
-  "\"oracle\":\"bad-claims-generate-fixture\"",
+  "\"status\":\"error\"",
+  "oracle runner artifact rejected",
+  "public_inference",
 ]
 out_path = "/tmp/faber-ai-generate-bad-claims-oracle.jsonl"
-expect_output_file = true
-artifact_events = ["metadata", "token", "final"]
-artifact_contains = ["\"status\":\"oracle-backed\"", "\"public_inference\":true"]
-expect_metadata_claim_failure = true
+expect_output_file = false
+exit = 0
+
+[[case]]
+id = "oracle-missing-claims-json"
+args = [
+  "generate",
+  "examples/ai-workbench/harness/fixtures/generate/prompt.txt",
+  "--model",
+  "stretch/qwen3-4b-fp8",
+  "--out",
+  "/tmp/faber-ai-generate-missing-claims-oracle.jsonl",
+  "--format",
+  "json",
+  "--alias-map",
+  "examples/ai-workbench/harness/fixtures/generate/local-alias.toml",
+  "--oracle-runner",
+  "examples/ai-workbench/harness/fixtures/generate/missing_claims_generate_oracle.py",
+  "--oracle-label",
+  "missing-claims-generate-fixture",
+  "--max-new-tokens",
+  "4",
+  "--temperature",
+  "0",
+  "--seed",
+  "7",
+]
+stdout_contains = [
+  "\"status\":\"error\"",
+  "oracle runner artifact rejected",
+  "claims must be an object",
+]
+out_path = "/tmp/faber-ai-generate-missing-claims-oracle.jsonl"
+expect_output_file = false
 exit = 0
 
 [[case]]
