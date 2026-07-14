@@ -120,7 +120,8 @@ def compares_campaign(case: dict) -> bool:
 def main() -> int:
     root = workspace_root()
     cases_path = root / "examples/ai-workbench/harness/fixtures/model-inspect/cases.toml"
-    aliases_path = root / "docs/campaigns/ai-workbench/model-aliases.toml"
+    reuse_path = root / "examples/ai-workbench/package-reuse.toml"
+    aliases_path = root / tomllib.loads(reuse_path.read_text())["alias_contract"]["campaign_fixture"]
     package = root / "examples/ai-workbench/packages/faber-ai"
     faber_manifest = root / "faber/Cargo.toml"
 

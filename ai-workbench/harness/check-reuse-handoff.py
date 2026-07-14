@@ -30,6 +30,8 @@ def main() -> int:
         fail(failures, f"alias fields must stay {EXPECTED_FIELDS!r}")
     if handoff["alias_fields"]["campaign_fixture"] != package_reuse["alias_contract"]["campaign_fixture"]:
         fail(failures, "campaign fixture must match package-reuse alias contract")
+    if handoff["alias_fields"]["workspace_campaign_fixture"] != package_reuse["alias_contract"]["workspace_campaign_fixture"]:
+        fail(failures, "workspace campaign fixture must match package-reuse alias contract")
     if handoff["alias_fields"]["live_inventory_root"] != package_reuse["alias_contract"]["live_inventory_root"]:
         fail(failures, "live inventory root must match package-reuse alias contract")
     if handoff["alias_fields"]["host_path_redaction"] is not True:

@@ -63,8 +63,9 @@ python3 examples/ai-workbench/harness/check-gpu-evidence-map.py
 
 The initial package reports router-backed/missing status for the campaign model
 aliases. The harness compares JSON output against
-`docs/campaigns/ai-workbench/model-aliases.toml` so campaign/code divergence
-fails validation.
+`examples/ai-workbench/harness/fixtures/model-inspect/maps/campaign-aliases.toml`
+so alias source/status/router drift fails validation without requiring the
+workspace control-plane docs checkout.
 
 Operator-local absolute model paths are intentionally redacted from portable
 examples; live local path validation belongs to the workspace inventory. Binary
@@ -75,20 +76,19 @@ delivery spec before it is claimed complete.
 runtime path uses compiled `faber run`; the interpreter does not yet support
 that provider route.
 
-The harness is workspace-level validation, not standalone `examples` repo CI:
-it requires the campaign map under `docs/campaigns/ai-workbench/`. It checks
-`source`, `status`, and `router_model_id` against the campaign map and requires
-portable output to redact `local_path` to an empty string.
+The harness keeps a portable examples-owned campaign alias subset. It checks
+`source`, `status`, and `router_model_id` against that fixture and requires
+portable output to redact `local_path` to an empty string. The workspace
+control-plane map remains documented as
+`docs/campaigns/ai-workbench/model-aliases.toml`, but the examples tour no
+longer blocks when that external file is absent.
 
 `local-inventory-gaps.toml` codifies the environment-only gaps that can block
-the full tour: the workspace campaign alias map and live MiniLM safetensors
-metadata under `/Users/ianzepp/ai/models`. `check-campaign-tour.py` treats exit
-code 2 from those inventory-dependent checks as an intentional block, while
-hard failures still fail the tour. The package reuse checker uses the same
-blocked exit when only the workspace campaign alias status checks are
-unavailable. The model-inspect checker still runs package-local safetensors,
-GGUF, alias-map, and diagnostic fixtures when the campaign map is absent; only
-the campaign-comparison row is skipped as an environment block.
+the full tour: live MiniLM safetensors metadata under
+`/Users/ianzepp/ai/models`. `check-campaign-tour.py` treats exit code 2 from
+that inventory-dependent operator smoke as an intentional block, while hard
+failures still fail the tour. Campaign alias-map checks use the examples-owned
+fixture and should run hermetically.
 
 Validate the gap contract with:
 
@@ -99,12 +99,12 @@ python3 examples/ai-workbench/harness/check-local-inventory-gaps.py
 ## Stage 8 Package And Model Reuse
 
 `package-reuse.toml` is the Stage 8 install/reuse contract for the workbench. It
-keeps the campaign alias map as the hermetic fixture, `/Users/ianzepp/ai/models`
-as the live inventory root, and future Cista package/model metadata as the
-possible install-time mirror. The contract separates product CLI install from
-future systems reuse and explicitly excludes duplicate model downloads, model
-blobs in git, GPU claims, Faber-owned inference claims, and shipping a PyTorch
-replacement binary.
+keeps an examples-owned campaign alias subset as the hermetic fixture,
+`/Users/ianzepp/ai/models` as the live inventory root, and future Cista
+package/model metadata as the possible install-time mirror. The contract
+separates product CLI install from future systems reuse and explicitly excludes
+duplicate model downloads, model blobs in git, GPU claims, Faber-owned
+inference claims, and shipping a PyTorch replacement binary.
 
 Validate the contract with:
 
@@ -116,7 +116,7 @@ Stage 8B keeps the current operator path package-invoked until Cista bin
 packages and `cista run` are selected:
 
 ```bash
-cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json --alias-map docs/campaigns/ai-workbench/model-aliases.toml
+cargo run --manifest-path faber/Cargo.toml -- run examples/ai-workbench/packages/faber-ai -- model inspect basic/minilm --format json --alias-map examples/ai-workbench/harness/fixtures/model-inspect/maps/campaign-aliases.toml
 ```
 
 Validate that path and its missing-inventory diagnostic with:

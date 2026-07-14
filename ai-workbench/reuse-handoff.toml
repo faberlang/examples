@@ -7,7 +7,8 @@ mode = "product-first-oracle-honest"
 
 [alias_fields]
 required = ["alias", "source", "status", "local_path", "router_model_id"]
-campaign_fixture = "docs/campaigns/ai-workbench/model-aliases.toml"
+campaign_fixture = "examples/ai-workbench/harness/fixtures/model-inspect/maps/campaign-aliases.toml"
+workspace_campaign_fixture = "docs/campaigns/ai-workbench/model-aliases.toml"
 live_inventory_root = "/Users/ianzepp/ai/models"
 host_path_redaction = true
 

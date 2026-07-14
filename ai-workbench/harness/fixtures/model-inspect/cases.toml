@@ -7,7 +7,7 @@ args = [
   "--format",
   "json",
   "--alias-map",
-  "docs/campaigns/ai-workbench/model-aliases.toml",
+  "examples/ai-workbench/harness/fixtures/model-inspect/maps/campaign-aliases.toml",
 ]
 stdout_contains = [
   "\"alias\":\"basic/minilm\"",

@@ -1,0 +1,31 @@
+# Portable examples-owned campaign alias subset.
+# Local paths intentionally point at the operator inventory root and are not
+# expected to exist in this repo.
+
+[[tiers]]
+alias = "basic/minilm"
+status = "local"
+source = "sentence-transformers/all-MiniLM-L6-v2"
+local_path = "/Users/ianzepp/ai/models/all-MiniLM-L6-v2/model.safetensors"
+router_model_id = ""
+
+[[tiers]]
+alias = "mid/qwen3-embed-0.6b"
+status = "local"
+source = "Qwen/Qwen3-Embedding-0.6B"
+local_path = "/Users/ianzepp/ai/models/Qwen3-Embedding-0.6B/model.safetensors"
+router_model_id = ""
+
+[[tiers]]
+alias = "stretch/qwen3-4b-fp8"
+status = "local"
+source = "Qwen/Qwen3-4B-FP8"
+local_path = "/Users/ianzepp/ai/models/Qwen3-4B-FP8/model.safetensors"
+router_model_id = ""
+
+[[tiers]]
+alias = "daily/qwen36-35b-a3b-q4"
+status = "router-backed"
+source = "unsloth/Qwen3.6-35B-A3B-GGUF"
+local_path = ""
+router_model_id = "qwen36-35b-a3b-q4"

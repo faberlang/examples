@@ -34,11 +34,11 @@ def main() -> int:
     contract_path = root / "examples/ai-workbench/package-reuse.toml"
     manifest_path = root / "examples/ai-workbench/packages/faber-ai/faber.toml"
     main_path = root / "examples/ai-workbench/packages/faber-ai/src/main.fab"
-    aliases_path = root / "docs/campaigns/ai-workbench/model-aliases.toml"
     failures: list[str] = []
     blocked: list[str] = []
 
     contract = tomllib.loads(contract_path.read_text())
+    aliases_path = root / contract["alias_contract"]["campaign_fixture"]
     manifest = tomllib.loads(manifest_path.read_text())
     aliases = []
     if aliases_path.exists():
@@ -59,6 +59,10 @@ def main() -> int:
         fail(failures, "package entry mismatch between faber.toml and package-reuse.toml")
     if contract["alias_contract"]["decision"] != "hybrid":
         fail(failures, "alias contract must preserve the hybrid source-of-truth decision")
+    if not contract["alias_contract"]["campaign_fixture"].startswith("examples/ai-workbench/"):
+        fail(failures, "campaign fixture must be examples-owned for hermetic checks")
+    if not contract["alias_contract"]["workspace_campaign_fixture"].startswith("docs/campaigns/ai-workbench/"):
+        fail(failures, "workspace campaign fixture must remain documented separately")
     if contract["alias_contract"]["host_path_redaction"] is not True:
         fail(failures, "host path redaction must stay enabled for hermetic tests")
 
