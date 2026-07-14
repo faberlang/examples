@@ -33,6 +33,13 @@ required_path = "docs/campaigns/ai-workbench/model-aliases.toml"
 blocked_exit = 2
 
 [[blockers]]
+id = "product-install-campaign-alias-map"
+step = "check-product-install-path.py"
+reason = "The product install operator smoke requires the workspace control-plane alias map before checking live MiniLM metadata."
+required_path = "docs/campaigns/ai-workbench/model-aliases.toml"
+blocked_exit = 2
+
+[[blockers]]
 id = "operator-minilm-local-metadata"
 step = "check-product-install-path.py"
 reason = "The product install operator smoke requires local MiniLM safetensors metadata under the live inventory root."

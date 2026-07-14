@@ -45,7 +45,7 @@ def main() -> int:
         aliases = tomllib.loads(aliases_path.read_text())["tiers"]
     else:
         blocked.append(
-            "package reuse campaign alias checks blocked: missing "
+            "package-reuse-campaign-alias-map: package reuse campaign alias checks blocked: missing "
             f"{aliases_path}. This is codified by "
             "examples/ai-workbench/local-inventory-gaps.toml."
         )

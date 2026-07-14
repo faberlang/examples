@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 import subprocess
 import sys
 import tomllib
@@ -34,20 +35,24 @@ def tail(text: str, lines: int = 40) -> str:
     return "\n".join(text.splitlines()[-lines:])
 
 
-def documented_block_scripts(root: pathlib.Path) -> set[str]:
+BLOCK_RE = re.compile(r"^BLOCK (?P<id>[A-Za-z0-9_-]+):", re.MULTILINE)
+
+
+def documented_blockers(root: pathlib.Path) -> dict[str, set[str]]:
     gaps_path = root / "examples/ai-workbench/local-inventory-gaps.toml"
     gaps = tomllib.loads(gaps_path.read_text())
-    return {
-        blocker["step"]
-        for blocker in gaps.get("blockers", [])
-        if blocker.get("blocked_exit") == 2
-    }
+    blockers: dict[str, set[str]] = {}
+    for blocker in gaps.get("blockers", []):
+        if blocker.get("blocked_exit") != 2:
+            continue
+        blockers.setdefault(blocker["step"], set()).add(blocker["id"])
+    return blockers
 
 
 def main() -> int:
     root = workspace_root()
     harness_dir = root / "examples/ai-workbench/harness"
-    allowed_block_scripts = documented_block_scripts(root)
+    allowed_blockers = documented_blockers(root)
     failures: list[str] = []
     blocked: list[str] = []
 
@@ -62,11 +67,25 @@ def main() -> int:
         )
         combined = result.stdout + result.stderr
         if result.returncode == 2:
-            if script in allowed_block_scripts:
-                blocked.append(f"{label}: {script} reported an intentional environment block")
+            reported_ids = set(BLOCK_RE.findall(combined))
+            documented_ids = allowed_blockers.get(script, set())
+            undocumented_ids = reported_ids - documented_ids
+            if reported_ids and not undocumented_ids:
+                blocked.append(
+                    f"{label}: {script} reported documented block(s) "
+                    f"{', '.join(sorted(reported_ids))}"
+                )
                 sys.stderr.write(f"\n--- {label} blocked tail ---\n{tail(combined)}\n")
             else:
-                failures.append(f"{label}: {script} exited undocumented blocked status 2")
+                if not reported_ids:
+                    failures.append(
+                        f"{label}: {script} exited blocked status 2 without a stable blocker id"
+                    )
+                else:
+                    failures.append(
+                        f"{label}: {script} exited blocked status 2 with undocumented "
+                        f"blocker id(s) {', '.join(sorted(undocumented_ids))}"
+                    )
                 sys.stderr.write(f"\n--- {label} undocumented block tail ---\n{tail(combined)}\n")
         elif result.returncode != 0:
             failures.append(f"{label}: {script} exited {result.returncode}")

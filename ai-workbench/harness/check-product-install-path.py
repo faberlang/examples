@@ -113,7 +113,7 @@ def main() -> int:
     live_inventory_root = pathlib.Path(alias_contract["live_inventory_root"])
     if not campaign_fixture.exists():
         blocked.append(
-            "operator smoke blocked: missing campaign fixture "
+            "product-install-campaign-alias-map: operator smoke blocked: missing campaign fixture "
             f"{alias_contract['campaign_fixture']} "
             "(see examples/ai-workbench/local-inventory-gaps.toml)"
         )
@@ -136,7 +136,7 @@ def main() -> int:
                 and reports_missing_local_inventory(live, live_inventory_root)
             ):
                 blocked.append(
-                    "operator smoke blocked: live MiniLM safetensors metadata unavailable under "
+                    "operator-minilm-local-metadata: operator smoke blocked: live MiniLM safetensors metadata unavailable under "
                     f"{alias_contract['live_inventory_root']} "
                     "(see examples/ai-workbench/local-inventory-gaps.toml)"
                 )

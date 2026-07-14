@@ -239,7 +239,7 @@ def main() -> int:
         return 1
     if blocked_campaign_cases:
         print(
-            "BLOCK campaign alias map missing: "
+            "BLOCK campaign-alias-map: campaign alias map missing: "
             f"{aliases_path}. Skipped campaign comparison case(s): "
             f"{', '.join(blocked_campaign_cases)}. Hermetic cases still ran. "
             "This is codified by examples/ai-workbench/local-inventory-gaps.toml.",

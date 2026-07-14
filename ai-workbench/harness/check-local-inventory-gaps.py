@@ -43,6 +43,7 @@ def main() -> int:
     for required_id in (
         "campaign-alias-map",
         "package-reuse-campaign-alias-map",
+        "product-install-campaign-alias-map",
         "operator-minilm-local-metadata",
     ):
         blocker = blockers.get(required_id)
