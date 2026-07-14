@@ -35,6 +35,7 @@ faber_ai_does_not_own = [
 
 [validation]
 tour_harness = "examples/ai-workbench/harness/check-campaign-tour.py"
+lifecycle_harness = "examples/ai-workbench/harness/check-session-lifecycle.py"
 hermetic = true
 live_model_loads = false
 allow_blocked_oracle_labels = true

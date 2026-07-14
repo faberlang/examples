@@ -52,6 +52,7 @@ python3 examples/ai-workbench/harness/check-package-reuse.py
 python3 examples/ai-workbench/harness/check-product-install-path.py
 python3 examples/ai-workbench/harness/check-reuse-handoff.py
 python3 examples/ai-workbench/harness/check-campaign-tour.py
+python3 examples/ai-workbench/harness/check-session-lifecycle.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -111,6 +112,22 @@ with:
 ```bash
 python3 examples/ai-workbench/harness/check-reuse-handoff.py
 python3 examples/ai-workbench/harness/check-campaign-tour.py
+```
+
+`session-lifecycle.toml` is the North Star state map for one workbench session
+across inspect -> embed -> index -> query -> generate -> chat. It names each
+stage's input and output artifacts and keeps status ownership explicit:
+`blocked`, `oracle-backed`, `router-backed`, `local-ops`, and future
+`faber-owned`. The map is a contract boundary only; it does not claim
+Faber-owned inference, PyTorch equivalence, public release status, live GPU
+runtime, implicit model downloads, or model blobs in git. The campaign alias map
+path remains a workspace-external control-plane reference, not a vendored
+examples artifact.
+
+Validate the lifecycle map with:
+
+```bash
+python3 examples/ai-workbench/harness/check-session-lifecycle.py
 ```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may

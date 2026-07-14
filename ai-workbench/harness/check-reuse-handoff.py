@@ -59,6 +59,8 @@ def main() -> int:
     validation = handoff["validation"]
     if validation["tour_harness"] != "examples/ai-workbench/harness/check-campaign-tour.py":
         fail(failures, "handoff must point at the campaign tour harness")
+    if validation["lifecycle_harness"] != "examples/ai-workbench/harness/check-session-lifecycle.py":
+        fail(failures, "handoff must point at the session lifecycle harness")
     if validation["hermetic"] is not True or validation["live_model_loads"] is not False:
         fail(failures, "campaign tour must stay hermetic and avoid live model loads")
     if validation["allow_blocked_oracle_labels"] is not True:

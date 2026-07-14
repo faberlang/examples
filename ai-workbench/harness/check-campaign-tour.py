@@ -13,6 +13,7 @@ TOUR_STEPS = [
     ("query", "check-query.py"),
     ("generate", "check-generate.py"),
     ("chat", "check-chat.py"),
+    ("session lifecycle", "check-session-lifecycle.py"),
     ("product install path", "check-product-install-path.py"),
     ("reuse handoff", "check-reuse-handoff.py"),
 ]

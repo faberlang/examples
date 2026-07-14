@@ -1,0 +1,83 @@
+# AI workbench session lifecycle state map.
+
+[session_lifecycle]
+mode = "contract-map"
+order = ["inspect", "embed", "index", "query", "generate", "chat"]
+status_labels = ["blocked", "oracle-backed", "router-backed", "local-ops", "faber-owned"]
+current_scope = "portable examples and hermetic harness artifacts"
+campaign_reference = "docs/campaigns/ai-workbench/model-aliases.toml"
+campaign_reference_scope = "workspace-external control-plane fixture; examples keep portable contract references and do not vendor campaign docs"
+
+[guarded_claims]
+faber_owned_inference = false
+pytorch_equivalence = false
+public_product_release = false
+model_blobs_in_git = false
+implicit_model_downloads = false
+gpu_runtime_claims = false
+
+[[stages]]
+lifecycle = "inspect"
+surface = "model inspect"
+current_states = ["local-ops", "router-backed"]
+future_state = "faber-owned"
+inputs = ["alias map", "local safetensors/GGUF metadata fixture or redacted inventory alias"]
+outputs = ["metadata JSON/text"]
+artifact = "metadata JSON/text"
+next = "embed"
+ownership = "Faber owns alias lookup, redaction, and metadata shape; model execution is not involved."
+
+[[stages]]
+lifecycle = "embed"
+surface = "embed"
+current_states = ["blocked", "oracle-backed", "local-ops"]
+future_state = "faber-owned"
+inputs = ["text file", "alias map", "optional explicit oracle runner"]
+outputs = ["fvi-stage2 vector artifact"]
+artifact = "fvi-stage2"
+next = "index"
+ownership = "Default transformer execution is blocked; oracle-backed artifacts come only from explicit local runners."
+
+[[stages]]
+lifecycle = "index"
+surface = "index"
+current_states = ["local-ops"]
+future_state = "faber-owned"
+inputs = ["fvi-stage2 vector artifact"]
+outputs = ["fvi-stage3-index"]
+artifact = "fvi-stage3-index"
+next = "query"
+ownership = "Faber owns deterministic JSON validation and cosine index artifact construction over supplied vectors."
+
+[[stages]]
+lifecycle = "query"
+surface = "query"
+current_states = ["local-ops"]
+future_state = "faber-owned"
+inputs = ["fvi-stage3-index", "query text", "explicit fvi-stage3-query-vector"]
+outputs = ["ranked JSON/text results"]
+artifact = "ranked JSON/text results"
+next = "generate"
+ownership = "Faber owns deterministic cosine ranking over supplied query vectors; query text embedding remains outside this stage."
+
+[[stages]]
+lifecycle = "generate"
+surface = "generate"
+current_states = ["blocked", "oracle-backed", "local-ops"]
+future_state = "faber-owned"
+inputs = ["prompt file", "alias map", "optional explicit oracle runner"]
+outputs = ["generation JSON-lines"]
+artifact = "generation JSON-lines"
+next = "chat"
+ownership = "Default generation is blocked; oracle-backed events are produced only by explicit local runners."
+
+[[stages]]
+lifecycle = "chat"
+surface = "chat"
+current_states = ["blocked", "router-backed", "local-ops"]
+future_state = "faber-owned"
+inputs = ["prompt file", "alias map", "optional explicit router runner", "router URL"]
+outputs = ["chat JSON-lines"]
+artifact = "chat JSON-lines"
+next = ""
+ownership = "Router-backed chat uses an explicit external adapter; Faber-owned GGUF inference is not implemented."
