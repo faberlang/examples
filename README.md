@@ -11,6 +11,7 @@ air/             AIR lane demos
 script-kernel/   faber:* script-kernel demos
 coreutils/       GNU coreutils reimplementation (application campaign)
 automation/      automation sketch packages
+document-extract/ local Markdown document extraction proof
 reader-locale/   locale pack demos
 fixtures/        boundary fixtures used by tooling tests
 cista-lab/       package-store lab material

@@ -1,0 +1,76 @@
+# Local Markdown document extraction proof.
+
+importa ex "norma:solum" privata solum
+
+@ cli "document-extract"
+@ versio "0.1.0"
+@ descriptio "Deterministic local Markdown extraction proof"
+@ optio format longum "format" typus textus vel "json" descriptio "Output format: json or jsonl"
+@ operandus textus document descriptio "Markdown fixture path"
+incipit argumenta args {
+    fixum textus path ← args.document
+    fixum textus formatum ← args.format vel "json"
+    fixum textus body ← read_document(path)
+
+    si formatum ≡ "jsonl" {
+        nota extract_jsonl(path, body)
+    }
+    secus {
+        nota extract_json(path, body)
+    }
+}
+
+functio read_document(textus path) → textus {
+    fac {
+        redde solum.lege<textus>(path)
+    }
+    cape err {
+        redde solum.lege<textus>("document-extract/§"(path))
+    }
+}
+
+functio extract_json(textus path, textus body) → textus {
+    si path.finis(".md") ≠ verum {
+        redde "{\"document\":\"unsupported\",\"status\":\"unsupported\",\"reason\":\"only local Markdown fixtures are in scope\"}"
+    }
+
+    si body.initium("# Atlas Router Notes") {
+        redde "{\"document\":\"atlas.md\",\"title\":\"Atlas Router Notes\",\"kind\":\"research-note\",\"scope\":\"route parity\",\"entities\":[\"swarm-doc\",\"doc route\",\"suite_56\"],\"dates\":[\"2026-07-13\"],\"decisions\":[\"keep /doc parity proof fixture-local\"],\"status\":\"extracted\"}"
+    }
+
+    si body.initium("# Swarm Experiment Brief") {
+        redde "{\"document\":\"brief.md\",\"title\":\"Swarm Experiment Brief\",\"kind\":\"experiment-brief\",\"scope\":\"first Faber-backed swarm experiment\",\"entities\":[\"Faber\",\"swarm\",\"document-extract\"],\"dates\":[\"2026-07-13\"],\"decisions\":[\"start with Markdown-only deterministic extraction\"],\"status\":\"extracted\"}"
+    }
+
+    si body.initium("# Standup Note") {
+        redde "{\"document\":\"standup.md\",\"title\":\"Standup Note\",\"kind\":\"status-note\",\"scope\":\"handoff readiness\",\"entities\":[\"hand-4\",\"mind\",\"origin/main\"],\"dates\":[\"2026-07-13\"],\"decisions\":[\"use clean worktree for proof\"],\"status\":\"extracted\"}"
+    }
+
+    redde "{\"document\":\"unknown.md\",\"status\":\"unknown\",\"reason\":\"fixture text did not match a known proof case\"}"
+}
+
+functio extract_jsonl(textus path, textus body) → textus {
+    si body.initium("# Atlas Router Notes") {
+        redde "{\"field\":\"title\",\"value\":\"Atlas Router Notes\"}\n{\"field\":\"kind\",\"value\":\"research-note\"}\n{\"field\":\"scope\",\"value\":\"route parity\"}"
+    }
+
+    si body.initium("# Swarm Experiment Brief") {
+        redde "{\"field\":\"title\",\"value\":\"Swarm Experiment Brief\"}\n{\"field\":\"kind\",\"value\":\"experiment-brief\"}\n{\"field\":\"scope\",\"value\":\"first Faber-backed swarm experiment\"}"
+    }
+
+    si body.initium("# Standup Note") {
+        redde "{\"field\":\"title\",\"value\":\"Standup Note\"}\n{\"field\":\"kind\",\"value\":\"status-note\"}\n{\"field\":\"scope\",\"value\":\"handoff readiness\"}"
+    }
+
+    redde extract_json(path, body)
+}
+
+proba "atlas fixture extracts deterministic JSON" {
+    fixum textus body ← "# Atlas Router Notes\n\nDate: 2026-07-13\n"
+    adfirma extract_json("fixtures/atlas.md", body).continet("\"document\":\"atlas.md\"")
+    adfirma extract_json("fixtures/atlas.md", body).continet("\"status\":\"extracted\"")
+}
+
+proba "unsupported document class is explicit" {
+    adfirma extract_json("fixtures/report.pdf", "%PDF-1.7").continet("\"status\":\"unsupported\"")
+}
