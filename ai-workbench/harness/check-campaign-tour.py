@@ -7,6 +7,7 @@ import sys
 
 
 TOUR_STEPS = [
+    ("local inventory gaps", "check-local-inventory-gaps.py"),
     ("model inspect", "check-model-inspect.py"),
     ("embed", "check-embed.py"),
     ("index", "check-index.py"),
@@ -35,6 +36,7 @@ def main() -> int:
     root = workspace_root()
     harness_dir = root / "examples/ai-workbench/harness"
     failures: list[str] = []
+    blocked: list[str] = []
 
     for label, script in TOUR_STEPS:
         result = subprocess.run(
@@ -45,15 +47,23 @@ def main() -> int:
             stderr=subprocess.PIPE,
             timeout=300,
         )
-        if result.returncode != 0:
+        combined = result.stdout + result.stderr
+        if result.returncode == 2:
+            blocked.append(f"{label}: {script} reported an intentional environment block")
+            sys.stderr.write(f"\n--- {label} blocked tail ---\n{tail(combined)}\n")
+        elif result.returncode != 0:
             failures.append(f"{label}: {script} exited {result.returncode}")
-            combined = result.stdout + result.stderr
             sys.stderr.write(f"\n--- {label} failure tail ---\n{tail(combined)}\n")
 
     if failures:
         for failure in failures:
             print(f"FAIL {failure}", file=sys.stderr)
         return 1
+    if blocked:
+        for item in blocked:
+            print(f"BLOCK {item}", file=sys.stderr)
+        print(f"ok: campaign tour ({len(TOUR_STEPS)} steps, {len(blocked)} blocked environment step(s))")
+        return 0
     print(f"ok: campaign tour ({len(TOUR_STEPS)} steps)")
     return 0
 

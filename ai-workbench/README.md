@@ -48,6 +48,7 @@ python3 examples/ai-workbench/harness/check-model-inspect.py
 python3 examples/ai-workbench/harness/check-embed.py
 python3 examples/ai-workbench/harness/check-index.py
 python3 examples/ai-workbench/harness/check-query.py
+python3 examples/ai-workbench/harness/check-local-inventory-gaps.py
 python3 examples/ai-workbench/harness/check-package-reuse.py
 python3 examples/ai-workbench/harness/check-product-install-path.py
 python3 examples/ai-workbench/harness/check-reuse-handoff.py
@@ -77,6 +78,20 @@ The harness is workspace-level validation, not standalone `examples` repo CI:
 it requires the campaign map under `docs/campaigns/ai-workbench/`. It checks
 `source`, `status`, and `router_model_id` against the campaign map and requires
 portable output to redact `local_path` to an empty string.
+
+`local-inventory-gaps.toml` codifies the environment-only gaps that can block
+the full tour: the workspace campaign alias map and live MiniLM safetensors
+metadata under `/Users/ianzepp/ai/models`. `check-campaign-tour.py` treats exit
+code 2 from those inventory-dependent checks as an intentional block, while
+hard failures still fail the tour. The package reuse checker uses the same
+blocked exit when only the workspace campaign alias status checks are
+unavailable.
+
+Validate the gap contract with:
+
+```bash
+python3 examples/ai-workbench/harness/check-local-inventory-gaps.py
+```
 
 ## Stage 8 Package And Model Reuse
 

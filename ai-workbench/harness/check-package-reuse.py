@@ -36,10 +36,19 @@ def main() -> int:
     main_path = root / "examples/ai-workbench/packages/faber-ai/src/main.fab"
     aliases_path = root / "docs/campaigns/ai-workbench/model-aliases.toml"
     failures: list[str] = []
+    blocked: list[str] = []
 
     contract = tomllib.loads(contract_path.read_text())
     manifest = tomllib.loads(manifest_path.read_text())
-    aliases = tomllib.loads(aliases_path.read_text())["tiers"]
+    aliases = []
+    if aliases_path.exists():
+        aliases = tomllib.loads(aliases_path.read_text())["tiers"]
+    else:
+        blocked.append(
+            "package reuse campaign alias checks blocked: missing "
+            f"{aliases_path}. This is codified by "
+            "examples/ai-workbench/local-inventory-gaps.toml."
+        )
     main_text = main_path.read_text()
 
     if manifest["package"]["name"] != contract["package"]["name"]:
@@ -70,19 +79,20 @@ def main() -> int:
     if '@ imperia "model"' not in main_text:
         fail(failures, "missing model command group in main.fab")
 
-    seen_aliases = {item["alias"]: item for item in aliases}
-    for alias, status in EXPECTED_ALIASES.items():
-        item = seen_aliases.get(alias)
-        if item is None:
-            fail(failures, f"campaign alias missing: {alias}")
-            continue
-        if item["status"] != status:
-            fail(failures, f"{alias} status {item['status']!r} != {status!r}")
-        local_path = item.get("local_path", "")
-        if local_path and not local_path.startswith("/Users/ianzepp/ai/models/"):
-            fail(failures, f"{alias} local_path outside durable inventory: {local_path}")
-        if status == "router-backed" and not item.get("router_model_id"):
-            fail(failures, f"{alias} router-backed alias missing router_model_id")
+    if aliases:
+        seen_aliases = {item["alias"]: item for item in aliases}
+        for alias, status in EXPECTED_ALIASES.items():
+            item = seen_aliases.get(alias)
+            if item is None:
+                fail(failures, f"campaign alias missing: {alias}")
+                continue
+            if item["status"] != status:
+                fail(failures, f"{alias} status {item['status']!r} != {status!r}")
+            local_path = item.get("local_path", "")
+            if local_path and not local_path.startswith("/Users/ianzepp/ai/models/"):
+                fail(failures, f"{alias} local_path outside durable inventory: {local_path}")
+            if status == "router-backed" and not item.get("router_model_id"):
+                fail(failures, f"{alias} router-backed alias missing router_model_id")
 
     model_blobs = []
     for path in examples.rglob("*"):
@@ -101,6 +111,10 @@ def main() -> int:
         for failure in failures:
             print(f"FAIL {failure}", file=sys.stderr)
         return 1
+    if blocked:
+        for item in blocked:
+            print(f"BLOCK {item}", file=sys.stderr)
+        return 2
     print("ok: package reuse contract")
     return 0
 

@@ -118,9 +118,10 @@ def main() -> int:
 
     if not aliases_path.exists():
         print(
-            "FAIL campaign alias map missing: "
+            "BLOCK campaign alias map missing: "
             f"{aliases_path}. Run this harness from the faberlang workspace; "
-            "standalone examples checkouts do not contain campaign docs.",
+            "standalone examples checkouts do not contain campaign docs. "
+            "This is codified by examples/ai-workbench/local-inventory-gaps.toml.",
             file=sys.stderr,
         )
         return 2

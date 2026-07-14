@@ -1,0 +1,46 @@
+# AI Workbench local inventory gap contract.
+
+[local_inventory_gaps]
+status = "blocked-environment"
+scope = "workspace-local campaign inventory only"
+campaign_fixture = "docs/campaigns/ai-workbench/model-aliases.toml"
+live_inventory_root = "/Users/ianzepp/ai/models"
+operator_smoke = "model inspect basic/minilm --format json --alias-map docs/campaigns/ai-workbench/model-aliases.toml"
+missing_inventory_smoke = "model inspect basic/minilm --format json --alias-map examples/ai-workbench/harness/fixtures/model-inspect/maps/subset-aliases.toml"
+tour_blocked_exit = 2
+
+[guarded_claims]
+public_inference = false
+model_downloads = false
+llama_cpp_equivalence = false
+gguf_runtime = false
+transformer_runtime = false
+gpu_execution = false
+implicit_model_blobs = false
+
+[[blockers]]
+id = "campaign-alias-map"
+step = "check-model-inspect.py"
+reason = "The campaign alias map is a workspace control-plane file, not a vendored examples artifact."
+required_path = "docs/campaigns/ai-workbench/model-aliases.toml"
+blocked_exit = 2
+
+[[blockers]]
+id = "package-reuse-campaign-alias-map"
+step = "check-package-reuse.py"
+reason = "The package reuse contract checks campaign alias statuses only when the workspace control-plane map is available."
+required_path = "docs/campaigns/ai-workbench/model-aliases.toml"
+blocked_exit = 2
+
+[[blockers]]
+id = "operator-minilm-local-metadata"
+step = "check-product-install-path.py"
+reason = "The product install operator smoke requires local MiniLM safetensors metadata under the live inventory root."
+required_path = "/Users/ianzepp/ai/models"
+blocked_exit = 2
+
+[[hermetic_checks]]
+id = "missing-inventory-smoke"
+step = "check-product-install-path.py"
+fixture = "examples/ai-workbench/harness/fixtures/model-inspect/maps/subset-aliases.toml"
+required = true
