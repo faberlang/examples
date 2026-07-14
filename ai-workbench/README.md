@@ -55,6 +55,7 @@ python3 examples/ai-workbench/harness/check-campaign-tour.py
 python3 examples/ai-workbench/harness/check-session-lifecycle.py
 python3 examples/ai-workbench/harness/check-model-artifact-floor.py
 python3 examples/ai-workbench/harness/check-inference-fixture-map.py
+python3 examples/ai-workbench/harness/check-token-logits-oracle.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -156,17 +157,18 @@ python3 examples/ai-workbench/harness/check-model-artifact-floor.py
 
 ## Inference Fixture Map
 
-`inference-fixture-map.toml` selects the next examples-owned runnable inference
+`inference-fixture-map.toml` records the next examples-owned runnable inference
 fixture: a tiny prompt-token to logits/next-token oracle over the existing
-metadata/tokenizer floor. It is deliberately a fixture map, not runtime support:
-the currently runnable evidence is `generate` with an explicit fake oracle
-runner, while Faber-owned transformer/GGUF inference, quantized kernels, GPU
-runtime, implicit downloads, and llama.cpp equivalence remain non-claims.
+metadata/tokenizer floor. It is deliberately fixture evidence, not runtime
+support: the runnable path is `generate` with an explicit oracle runner, while
+Faber-owned transformer/GGUF inference, quantized kernels, GPU runtime,
+implicit downloads, and llama.cpp equivalence remain non-claims.
 
 Validate the map with:
 
 ```bash
 python3 examples/ai-workbench/harness/check-inference-fixture-map.py
+python3 examples/ai-workbench/harness/check-token-logits-oracle.py
 ```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may

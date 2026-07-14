@@ -4,13 +4,15 @@
 status = "fixture-map"
 scope = "examples-owned evidence packet only"
 selected_next_fixture = "tiny-token-logits-oracle"
-current_runnable_surface = "generate with explicit fake oracle runner"
+current_runnable_surface = "generate with explicit tiny token/logits oracle runner"
 current_blocked_surface = "blocked Faber-owned transformer/GGUF inference runtime"
 model_artifact_floor = "examples/ai-workbench/model-artifact-floor.toml"
 session_lifecycle = "examples/ai-workbench/session-lifecycle.toml"
 gpu_workload_contract = "examples/gpu-workload/rung-4-toy-train.ref.json"
 generate_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/fake_generate_oracle.py"
 generate_cases = "examples/ai-workbench/harness/fixtures/generate/cases.toml"
+token_logits_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
+token_logits_checker = "examples/ai-workbench/harness/check-token-logits-oracle.py"
 
 [guarded_claims]
 faber_owned_inference = false
@@ -40,6 +42,14 @@ claim = "The command can stream JSONL events when an explicit oracle runner is s
 blocker = "The default generate path remains blocked for Faber-owned model execution."
 
 [[evidence]]
+id = "tiny-token-logits-oracle"
+surface = "generate"
+artifact = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
+state = "oracle-backed"
+claim = "A hermetic Python oracle derives prompt token ids and emits one deterministic logits vector plus next-token JSONL events."
+blocker = "The oracle is not Faber-owned tensor execution and does not load runtime model weights."
+
+[[evidence]]
 id = "router-backed-chat"
 surface = "chat"
 artifact = "examples/ai-workbench/harness/fixtures/chat/fake_chat_router.py"
@@ -57,7 +67,7 @@ blocker = "cuda:launch stepper provider and device training remain unavailable."
 
 [[candidate]]
 id = "tiny-token-logits-oracle"
-status = "next"
+status = "implemented"
 description = "Add a hermetic prompt-token to logits to next-token JSONL oracle over the existing tiny tokenizer vocabulary."
 inputs = [
   "examples/ai-workbench/harness/fixtures/model-artifact/tiny-model.fma.json",
@@ -100,8 +110,8 @@ blockers = [
 ]
 
 [[follow_up_want]]
-subject = "[P1][examples][ai-workbench] add tiny token/logits oracle fixture"
-body = "Add a hermetic Python oracle and JSONL fixture for prompt token ids, one logits vector, next-token selection, and final text over tiny/inference-fixture; keep generate default blocked and enforce non-claims."
+subject = "[P1][examples][ai-workbench] add expected sidecar for tiny token/logits oracle"
+body = "Promote the tiny token/logits oracle output into a checked expected JSONL sidecar if the campaign wants a stable golden file in addition to the deriving checker."
 
 [[follow_up_want]]
 subject = "[P1][runtime/radix] define minimal tensor artifact load boundary for tiny inference fixture"

@@ -57,6 +57,8 @@ def main() -> int:
         "gpu_workload_contract",
         "generate_oracle_fixture",
         "generate_cases",
+        "token_logits_oracle_fixture",
+        "token_logits_checker",
     ):
         require_path(root, failures, contract[key])
 
@@ -69,6 +71,7 @@ def main() -> int:
     for required in {
         "metadata-tokenizer-floor",
         "oracle-backed-generate",
+        "tiny-token-logits-oracle",
         "router-backed-chat",
         "gpu-rung4-session-map",
     }:
@@ -84,8 +87,8 @@ def main() -> int:
     if selected is None:
         fail(failures, "selected next fixture must be present in candidate list")
     else:
-        if selected["status"] != "next" or selected["runnable_now"] is not True:
-            fail(failures, "tiny token/logits oracle must be marked as the runnable next fixture")
+        if selected["status"] != "implemented" or selected["runnable_now"] is not True:
+            fail(failures, "tiny token/logits oracle must be marked as implemented and runnable")
         if "Python harness/oracle fixture" not in selected["implementation_boundary"]:
             fail(failures, "selected fixture boundary must stay examples-local")
         for relative in selected["inputs"]:
