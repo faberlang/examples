@@ -89,6 +89,25 @@ exit = 0
 | `stdout_newline` | no | default: infer from `stdout` content |
 | `deferred` | no | if `true`, harness skips unless `--include-deferred` |
 | `skip_gnu` | no | if `true`, compare only across Faber backends (rare) |
+| `files` | no | map of relative file paths to exact expected UTF-8 contents after the command exits |
+| `dirs` | no | list of relative directory paths that must exist after the command exits |
+| `missing` | no | list of relative paths that must not exist after the command exits |
+
+### File-effect postconditions
+
+File-effect fixtures use `files`, `dirs`, and `missing` to make filesystem
+mutations part of parity evidence. The harness checks these postconditions for
+both Faber and GNU runs before a case counts as passed:
+
+- `files = { "path" = "contents" }` requires each path to be a regular file
+  whose bytes exactly match the declared UTF-8 contents.
+- `dirs = ["path"]` requires each path to be a directory.
+- `missing = ["path"]` requires each path to be absent.
+
+Paths are relative to the isolated fixture temp root or the case `cwd` when one
+is declared. Use these fields for utilities such as `cp`, `mv`, `rm`, `mkdir`,
+`touch`, and `split`; stdout/stderr/exit parity alone is not sufficient evidence
+for file-effect cases.
 
 ### Setup scripts
 
