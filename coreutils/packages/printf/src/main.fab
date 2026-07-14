@@ -52,7 +52,7 @@ functio numerus_specierum(textus formatum) → numerus {
                 i ← i + 2
             }
             secus {
-                si ((((next ≡ "s" aut next ≡ "b") aut next ≡ "d") aut next ≡ "i") aut next ≡ "u") aut next ≡ "x" {
+                si ((((((next ≡ "s" aut next ≡ "b") aut next ≡ "d") aut next ≡ "i") aut next ≡ "u") aut next ≡ "x") aut next ≡ "X") aut next ≡ "o" {
                     n ← n + 1
                     i ← i + 2
                 }
@@ -134,14 +134,120 @@ functio hex_digit(numerus n) → textus {
     }
 }
 
-functio hex_textus(numerus n) → textus {
+functio hex_digit_upper(numerus n) → textus {
+    elige n {
+        casu 0 {
+            redde "0"
+        }
+        casu 1 {
+            redde "1"
+        }
+        casu 2 {
+            redde "2"
+        }
+        casu 3 {
+            redde "3"
+        }
+        casu 4 {
+            redde "4"
+        }
+        casu 5 {
+            redde "5"
+        }
+        casu 6 {
+            redde "6"
+        }
+        casu 7 {
+            redde "7"
+        }
+        casu 8 {
+            redde "8"
+        }
+        casu 9 {
+            redde "9"
+        }
+        casu 10 {
+            redde "A"
+        }
+        casu 11 {
+            redde "B"
+        }
+        casu 12 {
+            redde "C"
+        }
+        casu 13 {
+            redde "D"
+        }
+        casu 14 {
+            redde "E"
+        }
+        casu 15 {
+            redde "F"
+        }
+        ceterum  {
+            redde "0"
+        }
+    }
+}
+
+functio octal_digit(numerus n) → textus {
+    elige n {
+        casu 0 {
+            redde "0"
+        }
+        casu 1 {
+            redde "1"
+        }
+        casu 2 {
+            redde "2"
+        }
+        casu 3 {
+            redde "3"
+        }
+        casu 4 {
+            redde "4"
+        }
+        casu 5 {
+            redde "5"
+        }
+        casu 6 {
+            redde "6"
+        }
+        casu 7 {
+            redde "7"
+        }
+        ceterum  {
+            redde "0"
+        }
+    }
+}
+
+functio hex_textus(numerus n, bivalens uppercase) → textus {
     varia textus out ← ""
     varia numerus value ← n
     si value ≡ 0 ergo redde "0"
 
     dum value > 0 {
-        out ← hex_digit(value ∧ 15) + out
+        si uppercase {
+            out ← hex_digit_upper(value ∧ 15) + out
+        }
+        secus {
+            out ← hex_digit(value ∧ 15) + out
+        }
         value ← value ⇒ 4
+    }
+
+    redde out
+}
+
+functio octal_textus(numerus n) → textus {
+    varia textus out ← ""
+    varia numerus value ← n
+    si value ≡ 0 ergo redde "0"
+
+    dum value > 0 {
+        out ← octal_digit(value ∧ 7) + out
+        value ← value ⇒ 3
     }
 
     redde out
@@ -176,11 +282,23 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                         }
                         secus {
                             si next ≡ "x" {
-                                out ← out + hex_textus(argumentum_numerus(args, arg_index))
+                                out ← out + hex_textus(argumentum_numerus(args, arg_index), falsum)
                                 arg_index ← arg_index + 1
                             }
                             secus {
-                                out ← (out + "%") + next
+                                si next ≡ "X" {
+                                    out ← out + hex_textus(argumentum_numerus(args, arg_index), verum)
+                                    arg_index ← arg_index + 1
+                                }
+                                secus {
+                                    si next ≡ "o" {
+                                        out ← out + octal_textus(argumentum_numerus(args, arg_index))
+                                        arg_index ← arg_index + 1
+                                    }
+                                    secus {
+                                        out ← (out + "%") + next
+                                    }
+                                }
                             }
                         }
                     }
@@ -266,6 +384,10 @@ probandum "printf formatting" tag "coreutils" {
     }
     proba "lowercase hexadecimal format renders positive integers" {
         adfirma printf_textus(["%x\n", "255"]) ≡ "ff\n"
+    }
+    proba "octal and uppercase hexadecimal formats render positive integers" {
+        adfirma printf_textus(["%o\n", "8"]) ≡ "10\n"
+        adfirma printf_textus(["%X\n", "255"]) ≡ "FF\n"
     }
 }
 

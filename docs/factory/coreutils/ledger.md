@@ -38,7 +38,7 @@
 | `basename` | 3 | slice | — | path operand, slash normalization, root/empty path, suffix operand, `-s`/`--suffix`, multiple paths with `-s` | missing/extra operand diagnostics, `-a`, `-z` | Continue diagnostics/options or ship milestone |
 | `dirname` | 3 | slice | — | simple path operands, multiple operands, trailing slash, repeated slash before basename, root path | options, no-operand diagnostics, `//` implementation-defined root | Continue diagnostics/options or ship milestone |
 | `printenv` | 3 | slice | — | set name operand via `norma:processus` | unset lookup (`lege` fails closed), full env dump | Continue optional lookup / ship milestone |
-| `printf` | 3 | slice | — | plain text, raw no-newline output, `%%`, `%s`, repeated `%s`, `%b` basic escapes, plain `%d`/`%i` decimal integers with missing numeric argument as `0`, positive `%u`, positive lowercase `%x`; inline proba formatting coverage | other numeric formats, widths/precision, usage diagnostics | Continue numeric formats/options or ship milestone |
+| `printf` | 3 | slice | — | plain text, raw no-newline output, `%%`, `%s`, repeated `%s`, `%b` basic escapes, plain `%d`/`%i` decimal integers with missing numeric argument as `0`, positive `%u`, positive `%o`, positive `%x`/`%X`; inline proba formatting coverage | floating formats, widths/precision, usage diagnostics | Continue numeric formats/options or ship milestone |
 | `seq` | 3 | slice | — | integer `LAST`, `FIRST LAST`, `FIRST INCREMENT LAST`, positive/negative increments, empty finite ranges, `-s SEP`, integer `-w`; inline proba range/format coverage | zero-increment diagnostics, invalid operand diagnostics, floats, `-f`, help/version, locale | Continue diagnostics/options or ship milestone |
 
 ## Stdin / text — stepper-friendly

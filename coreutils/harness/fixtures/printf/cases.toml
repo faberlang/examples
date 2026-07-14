@@ -129,3 +129,25 @@ stdout = "ff\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "octal-format"
+lane = "stepper"
+tier = "A"
+args = ["%o\\n", "8"]
+stdin = ""
+stdout = "10\n"
+stderr = ""
+exit = 0
+stdout_newline = true
+
+[[case]]
+id = "upper-hex-format"
+lane = "stepper"
+tier = "A"
+args = ["%X\\n", "255"]
+stdin = ""
+stdout = "FF\n"
+stderr = ""
+exit = 0
+stdout_newline = true

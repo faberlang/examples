@@ -14,8 +14,9 @@ GNU coreutils `printf` — Stage 3 deterministic formatter slice.
 
 Implement a small Faber package that matches GNU `printf` for the declared
 stepper cases, including newline-terminated formats and raw no-newline output.
-The current numeric slice supports plain decimal `%d`, `%i`, positive `%u`, and
-positive lowercase `%x` conversions without flags, widths, or precision.
+The current numeric slice supports plain decimal `%d`, `%i`, positive `%u`,
+positive octal `%o`, positive lowercase `%x`, and positive uppercase `%X`
+conversions without flags, widths, or precision.
 
 ## Deliverables
 
@@ -37,7 +38,9 @@ positive lowercase `%x` conversions without flags, widths, or precision.
 | missing format operand diagnostic | no | pending | Deferred usage-error surface |
 | plain decimal `%d` / `%i` | slice | pending | Parses integer text arguments; missing argument becomes `0` |
 | positive unsigned decimal `%u` | slice | pending | Parses explicit non-negative integer text arguments |
+| positive octal `%o` | slice | pending | Parses explicit non-negative integer text arguments |
 | positive lowercase hexadecimal `%x` | slice | pending | Parses explicit non-negative integer text arguments |
+| positive uppercase hexadecimal `%X` | slice | pending | Parses explicit non-negative integer text arguments |
 | other numeric formats | no | pending | Deferred |
 | field widths / precision | no | pending | Deferred |
 
@@ -52,8 +55,8 @@ claimed as GNU-compatible behavior. No fixture exercises unsupported
 directives.
 
 The numeric slice intentionally avoids flags, width, precision, negative
-unsigned wrapping/overflow behavior, octal/uppercase-hex/floating formats,
-quoted-character operands, and invalid numeric argument diagnostics.
+unsigned wrapping/overflow behavior, floating formats, quoted-character
+operands, and invalid numeric argument diagnostics.
 
 ## Acceptance
 
@@ -73,8 +76,8 @@ faber test coreutils/packages/printf
 ## Evidence
 
 - Inline `proba` cases cover plain text, `%%`, `%s`, format repetition, missing
-  `%s` arguments, `%b` basic escapes, and plain `%d`/`%i`/`%u`/`%x` integer
-  formatting.
+  `%s` arguments, `%b` basic escapes, and plain `%d`/`%i`/`%u`/`%o`/`%x`/`%X`
+  integer formatting.
 - Stepper fixtures cover both newline-terminated GNU parity cases and raw
   no-newline output through `norma:consolum.dic`; the numeric slice adds
   decimal integer fixtures and missing `%d` argument behavior.
