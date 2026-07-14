@@ -55,6 +55,7 @@ python3 examples/ai-workbench/harness/check-reuse-handoff.py
 python3 examples/ai-workbench/harness/check-campaign-tour.py
 python3 examples/ai-workbench/harness/check-session-lifecycle.py
 python3 examples/ai-workbench/harness/check-model-artifact-floor.py
+python3 examples/ai-workbench/harness/check-inference-artifact-admission.py
 python3 examples/ai-workbench/harness/check-inference-fixture-map.py
 python3 examples/ai-workbench/harness/check-token-logits-oracle.py
 python3 examples/ai-workbench/harness/check-gpu-evidence-map.py
@@ -171,6 +172,18 @@ model-serving product. Validate it with:
 
 ```bash
 python3 examples/ai-workbench/harness/check-model-artifact-floor.py
+```
+
+`inference-artifact-admission.toml` is the explicit local admission boundary for
+these inference fixtures. It accepts only parsed tensor metadata, tokenizer, and
+token/logits JSONL rows, and it keeps malformed tensor metadata, malformed
+tokenizer metadata, malformed logits, GGUF runtime rows, and transformer runtime
+rows rejected. GGUF, transformer execution, llama.cpp parity, GPU runtime,
+public inference, owned model runtime, implicit downloads, and model blobs remain
+non-claims. Validate it with:
+
+```bash
+python3 examples/ai-workbench/harness/check-inference-artifact-admission.py
 ```
 
 ## Inference Fixture Map

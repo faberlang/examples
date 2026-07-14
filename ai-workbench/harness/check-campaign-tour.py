@@ -17,6 +17,7 @@ TOUR_STEPS = [
     ("generate", "check-generate.py"),
     ("package reuse", "check-package-reuse.py"),
     ("model artifact floor", "check-model-artifact-floor.py"),
+    ("inference artifact admission", "check-inference-artifact-admission.py"),
     ("inference fixture map", "check-inference-fixture-map.py"),
     ("token/logits oracle", "check-token-logits-oracle.py"),
     ("GPU evidence map", "check-gpu-evidence-map.py"),

@@ -53,6 +53,7 @@ def main() -> int:
 
     for key in (
         "model_artifact_floor",
+        "inference_artifact_admission",
         "session_lifecycle",
         "gpu_workload_contract",
         "gpu_evidence_map",
@@ -60,6 +61,7 @@ def main() -> int:
         "generate_cases",
         "token_logits_oracle_fixture",
         "token_logits_checker",
+        "artifact_admission_checker",
     ):
         require_path(root, failures, contract[key])
 
@@ -71,6 +73,7 @@ def main() -> int:
     evidence_ids = {item["id"] for item in evidence}
     for required in {
         "metadata-tokenizer-floor",
+        "inference-artifact-admission",
         "oracle-backed-generate",
         "tiny-token-logits-oracle",
         "router-backed-chat",

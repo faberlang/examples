@@ -1,0 +1,39 @@
+{
+  "format": "faber-ai-model-artifact-v0",
+  "status": "local-ops",
+  "model": "tiny/inference-fixture",
+  "metadata": {
+    "architecture": "TinyForCausalLM",
+    "model_type": "tiny-qwen",
+    "dtype_policy": "metadata-only",
+    "tensor_count": 1,
+    "parameter_count": 0,
+    "tokenizer_class": "TinyTokenizer"
+  },
+  "tensors": [
+    {
+      "name": "model.embed_tokens.weight",
+      "dtype": "BF16",
+      "shape": [4, 0],
+      "checksum": "sha256:not-a-real-metadata-checksum"
+    }
+  ],
+  "tokenizer": {
+    "format": "faber-ai-tokenizer-v0",
+    "normalization": "identity",
+    "unknown_token": "<unk>",
+    "vocab": {
+      "<pad>": 0,
+      "<unk>": 1,
+      "hello": 2
+    },
+    "checksum": "sha256:placeholder"
+  },
+  "claims": {
+    "faber_owned_inference": false,
+    "llama_cpp_runtime": false,
+    "gguf_runtime": false,
+    "general_inference": false,
+    "public_product_release": false
+  }
+}

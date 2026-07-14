@@ -7,6 +7,7 @@ selected_next_fixture = "tiny-token-logits-oracle"
 current_runnable_surface = "generate with explicit tiny token/logits oracle runner"
 current_blocked_surface = "blocked Faber-owned transformer/GGUF inference runtime"
 model_artifact_floor = "examples/ai-workbench/model-artifact-floor.toml"
+inference_artifact_admission = "examples/ai-workbench/inference-artifact-admission.toml"
 session_lifecycle = "examples/ai-workbench/session-lifecycle.toml"
 gpu_workload_contract = "examples/gpu-workload/rung-4-toy-train.ref.json"
 gpu_evidence_map = "examples/ai-workbench/gpu-evidence-map.toml"
@@ -14,6 +15,7 @@ generate_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/fake_
 generate_cases = "examples/ai-workbench/harness/fixtures/generate/cases.toml"
 token_logits_oracle_fixture = "examples/ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py"
 token_logits_checker = "examples/ai-workbench/harness/check-token-logits-oracle.py"
+artifact_admission_checker = "examples/ai-workbench/harness/check-inference-artifact-admission.py"
 
 [guarded_claims]
 faber_owned_inference = false
@@ -33,6 +35,14 @@ artifact = "examples/ai-workbench/model-artifact-floor.toml"
 state = "local-ops"
 claim = "Tiny metadata and tokenizer fixture exists without tensor bytes."
 blocker = "No runtime tensor loader or tokenization engine is claimed."
+
+[[evidence]]
+id = "inference-artifact-admission"
+surface = "artifact admission"
+artifact = "examples/ai-workbench/inference-artifact-admission.toml"
+state = "local-ops"
+claim = "Accepted rows cover tensor metadata, tokenizer, and token/logits oracle artifacts; malformed/runtime rows reject."
+blocker = "Admission validates fixtures only and does not claim owned model execution."
 
 [[evidence]]
 id = "oracle-backed-generate"
