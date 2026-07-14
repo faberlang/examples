@@ -22,3 +22,6 @@ The hand-derived gradient is:
 future AIR grad seed. The current output-checked device/autograd floor remains
 `0`: the rung source emits only the scalar forward loss and does not claim that
 AIR, CUDA, or training infrastructure has produced the gradient.
+Accordingly, `gpu-workload/rung-3-linear-backward.expected` records only the
+current emitted forward-loss result; `d_weight = 8.0` belongs to the reference
+oracle and future acceptance target.

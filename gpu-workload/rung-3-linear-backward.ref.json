@@ -20,6 +20,7 @@
   },
   "current_output_checked_floor": {
     "device_autograd": 0,
+    "expected_sidecar": "loss-only forward output",
     "emitted_output": "forward loss only",
     "status": "not green for generated gradients"
   },
