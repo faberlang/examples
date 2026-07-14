@@ -120,6 +120,17 @@ exit = 0
 stdout_newline = true
 
 [[case]]
+id = "invalid-decimal-integer"
+lane = "stepper"
+tier = "A"
+args = ["%d\\n", "abc"]
+stdin = ""
+stdout = "0\n"
+stderr = "/usr/bin/printf: ‘abc’: expected a numeric value\n"
+exit = 1
+stdout_newline = true
+
+[[case]]
 id = "quoted-character-decimal"
 lane = "stepper"
 tier = "A"
@@ -139,6 +150,17 @@ stdin = ""
 stdout = "ff\n"
 stderr = ""
 exit = 0
+stdout_newline = true
+
+[[case]]
+id = "invalid-lower-hex"
+lane = "stepper"
+tier = "A"
+args = ["%x\\n", "abc"]
+stdin = ""
+stdout = "0\n"
+stderr = "/usr/bin/printf: ‘abc’: expected a numeric value\n"
+exit = 1
 stdout_newline = true
 
 [[case]]
@@ -260,6 +282,17 @@ stdin = ""
 stdout = "1.000000\n"
 stderr = ""
 exit = 0
+stdout_newline = true
+
+[[case]]
+id = "invalid-float-default-precision"
+lane = "stepper"
+tier = "A"
+args = ["%f\\n", "abc"]
+stdin = ""
+stdout = "0.000000\n"
+stderr = "/usr/bin/printf: ‘abc’: expected a numeric value\n"
+exit = 1
 stdout_newline = true
 
 [[case]]

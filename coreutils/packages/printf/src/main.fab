@@ -1,4 +1,5 @@
 importa ex "norma:consolum" privata consolum
+importa ex "norma:processus" privata processus
 
 functio printf_escape(textus s) → textus {
     varia textus out ← ""
@@ -179,6 +180,10 @@ functio argumentum(lista<textus> args, numerus index) → textus {
     redde ""
 }
 
+functio argumentum_exstatne(lista<textus> args, numerus index) → bivalens {
+    redde index < args.longitudo()
+}
+
 functio textus_index_in(textus haystack, textus needle) → numerus {
     varia numerus i ← 0
     dum i < haystack.longitudo() {
@@ -220,6 +225,95 @@ functio argumentum_numerus(lista<textus> args, numerus index) → numerus {
         redde ascii_quoted_value(raw.sectio(1, 2))
     }
     redde raw ↦ numerus ⇥ 0
+}
+
+functio quoted_numericne(textus raw) → bivalens {
+    redde raw.longitudo() ≥ 2 et (raw.sectio(0, 1) ≡ "'" aut raw.sectio(0, 1) ≡ «\"»)
+}
+
+functio signum_offset(textus raw) → numerus {
+    si raw.longitudo() > 0 et (raw.sectio(0, 1) ≡ "-" aut raw.sectio(0, 1) ≡ "+") ergo redde 1
+    redde 0
+}
+
+functio integer_textusne(textus raw) → bivalens {
+    fixum numerus initium ← signum_offset(raw)
+    si initium ≥ raw.longitudo() ergo redde falsum
+
+    varia numerus i ← initium
+    dum i < raw.longitudo() {
+        si non digitne(raw.sectio(i, i + 1)) {
+            redde falsum
+        }
+        i ← i + 1
+    }
+    redde verum
+}
+
+functio float_textusne(textus raw) → bivalens {
+    fixum numerus initium ← signum_offset(raw)
+    si initium ≥ raw.longitudo() ergo redde falsum
+
+    varia numerus i ← initium
+    varia bivalens vidit_digitum ← falsum
+    varia bivalens vidit_punctum ← falsum
+    dum i < raw.longitudo() {
+        fixum textus ch ← raw.sectio(i, i + 1)
+        si digitne(ch) {
+            vidit_digitum ← verum
+        }
+        secus {
+            si ch ≡ "." et non vidit_punctum {
+                vidit_punctum ← verum
+            }
+            secus {
+                redde falsum
+            }
+        }
+        i ← i + 1
+    }
+    redde vidit_digitum
+}
+
+functio integer_argumentum_malumne(lista<textus> args, numerus index) → bivalens {
+    si non argumentum_exstatne(args, index) ergo redde falsum
+    fixum textus raw ← argumentum(args, index)
+    si quoted_numericne(raw) ergo redde falsum
+    redde non integer_textusne(raw)
+}
+
+functio float_argumentum_malumne(lista<textus> args, numerus index) → bivalens {
+    si non argumentum_exstatne(args, index) ergo redde falsum
+    fixum textus raw ← argumentum(args, index)
+    si quoted_numericne(raw) ergo redde falsum
+    redde non float_textusne(raw)
+}
+
+functio argumentum_float_textus(lista<textus> args, numerus index) → textus {
+    fixum textus raw ← argumentum(args, index)
+    si quoted_numericne(raw) ergo redde "§"(ascii_quoted_value(raw.sectio(1, 2)))
+    si float_argumentum_malumne(args, index) ergo redde "0"
+    redde raw
+}
+
+functio nuntia_malum_numericum(textus raw) → vacuum {
+    consolum.mone("/usr/bin/printf: ‘§’: expected a numeric value"(raw))
+}
+
+functio nuntia_si_malum_integer(lista<textus> args, numerus index) → bivalens {
+    si integer_argumentum_malumne(args, index) {
+        nuntia_malum_numericum(argumentum(args, index))
+        redde verum
+    }
+    redde falsum
+}
+
+functio nuntia_si_malum_float(lista<textus> args, numerus index) → bivalens {
+    si float_argumentum_malumne(args, index) {
+        nuntia_malum_numericum(argumentum(args, index))
+        redde verum
+    }
+    redde falsum
 }
 
 functio hex_digit(numerus n) → textus {
@@ -558,17 +652,17 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
                                     }
                                     secus {
                                         si next ≡ "f" {
-                                            out ← out + pad_width(float_textus(argumentum(args, arg_index), precision), width)
+                                            out ← out + pad_width(float_textus(argumentum_float_textus(args, arg_index), precision), width)
                                             arg_index ← arg_index + 1
                                         }
                                         secus {
                                             si next ≡ "e" {
-                                                out ← out + pad_width(exponent_textus(argumentum(args, arg_index), precision, falsum), width)
+                                                out ← out + pad_width(exponent_textus(argumentum_float_textus(args, arg_index), precision, falsum), width)
                                                 arg_index ← arg_index + 1
                                             }
                                             secus {
                                                 si next ≡ "E" {
-                                                    out ← out + pad_width(exponent_textus(argumentum(args, arg_index), precision, verum), width)
+                                                    out ← out + pad_width(exponent_textus(argumentum_float_textus(args, arg_index), precision, verum), width)
                                                     arg_index ← arg_index + 1
                                                 }
                                                 secus {
@@ -605,6 +699,72 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
     redde out
 }
 
+functio printf_nuntia_malum_unum(textus formatum, lista<textus> args, numerus initium) → bivalens {
+    varia bivalens malum ← falsum
+    varia numerus i ← 0
+    varia numerus arg_index ← initium
+
+    dum i < formatum.longitudo() {
+        fixum textus ch ← formatum.sectio(i, i + 1)
+        si ch ≡ "%" et i + 1 < formatum.longitudo() {
+            fixum numerus species_index ← format_species_index(formatum, i + 1)
+            fixum textus next ← formatum.sectio(species_index, species_index + 1)
+            si next ≡ "%" {
+                i ← species_index + 1
+            }
+            secus {
+                si format_dynamic_widthne(formatum, i + 1, species_index) {
+                    si nuntia_si_malum_integer(args, arg_index) {
+                        malum ← verum
+                    }
+                    arg_index ← arg_index + 1
+                }
+                si format_dynamic_precisionne(formatum, i + 1, species_index) {
+                    si nuntia_si_malum_integer(args, arg_index) {
+                        malum ← verum
+                    }
+                    arg_index ← arg_index + 1
+                }
+                si next ≡ "s" aut next ≡ "b" {
+                    arg_index ← arg_index + 1
+                }
+                secus {
+                    si (((next ≡ "d" aut next ≡ "i") aut next ≡ "u") aut next ≡ "x") aut (next ≡ "X" aut next ≡ "o") {
+                        si nuntia_si_malum_integer(args, arg_index) {
+                            malum ← verum
+                        }
+                        arg_index ← arg_index + 1
+                    }
+                    secus {
+                        si (next ≡ "f" aut next ≡ "e") aut next ≡ "E" {
+                            si nuntia_si_malum_float(args, arg_index) {
+                                malum ← verum
+                            }
+                            arg_index ← arg_index + 1
+                        }
+                    }
+                }
+                si speciesne(next) {
+                    i ← species_index + 1
+                }
+                secus {
+                    i ← i + 2
+                }
+            }
+        }
+        secus {
+            si ch ≡ "\\" {
+                i ← i + 2
+            }
+            secus {
+                i ← i + 1
+            }
+        }
+    }
+
+    redde malum
+}
+
 functio printf_textus(lista<textus> operands) → textus {
     si operands.longitudo() ≡ 0 ergo redde ""
 
@@ -630,10 +790,43 @@ functio printf_textus(lista<textus> operands) → textus {
     redde out
 }
 
+functio printf_nuntia_malum_numericum(lista<textus> operands) → bivalens {
+    si operands.longitudo() ≡ 0 ergo redde falsum
+
+    fixum textus formatum ← operands[0]
+    varia lista<textus> args ← vacua
+    varia numerus i ← 1
+    dum i < operands.longitudo() {
+        args.appende(operands.accipe(i) vel "")
+        i ← i + 1
+    }
+
+    fixum numerus species ← numerus_specierum(formatum)
+    si species ≡ 0 ergo redde printf_nuntia_malum_unum(formatum, args, 0)
+    si args.longitudo() ≡ 0 ergo redde printf_nuntia_malum_unum(formatum, args, 0)
+
+    varia bivalens malum ← falsum
+    varia numerus initium ← 0
+    dum initium < args.longitudo() {
+        si printf_nuntia_malum_unum(formatum, args, initium) {
+            malum ← verum
+        }
+        initium ← initium + species
+    }
+
+    redde malum
+}
+
 functio scribe_printf(textus out) → vacuum {
     si out.longitudo() > 0 {
         consolum.dic(out)
     }
+}
+
+functio exsequere_printf(lista<textus> operands) → bivalens {
+    fixum bivalens malum ← printf_nuntia_malum_numericum(operands)
+    scribe_printf(printf_textus(operands))
+    redde malum
 }
 
 probandum "printf formatting" tag "coreutils" {
@@ -671,6 +864,10 @@ probandum "printf formatting" tag "coreutils" {
     proba "missing numeric argument formats as zero" {
         adfirma printf_textus(["%d\n"]) ≡ "0\n"
     }
+    proba "malformed integer numeric operands format as zero fallback" {
+        adfirma printf_textus(["%d\n", "abc"]) ≡ "0\n"
+        adfirma printf_textus(["%x\n", "abc"]) ≡ "0\n"
+    }
     proba "lowercase hexadecimal format renders positive integers" {
         adfirma printf_textus(["%x\n", "255"]) ≡ "ff\n"
     }
@@ -699,6 +896,9 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%f\n", "1.5"]) ≡ "1.500000\n"
         adfirma printf_textus(["%.2f\n", "1.25"]) ≡ "1.25\n"
     }
+    proba "malformed floating numeric operands format as zero fallback" {
+        adfirma printf_textus(["%f\n", "abc"]) ≡ "0.000000\n"
+    }
     proba "fractional floating format rounds bounded positive decimals" {
         adfirma printf_textus(["%.2f\n", "1.256"]) ≡ "1.26\n"
         adfirma printf_textus(["%.0f\n", "1.6"]) ≡ "2\n"
@@ -714,5 +914,7 @@ probandum "printf formatting" tag "coreutils" {
 @ descriptio "GNU coreutils printf parity exemplum"
 @ operandus ceteri textus operands
 incipit argumenta args {
-    scribe_printf(printf_textus(args.operands))
+    si exsequere_printf(args.operands) {
+        processus.exi(1)
+    }
 }
