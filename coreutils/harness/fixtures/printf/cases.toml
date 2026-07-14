@@ -118,3 +118,14 @@ stdout = "0\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "lower-hex-format"
+lane = "stepper"
+tier = "A"
+args = ["%x\\n", "255"]
+stdin = ""
+stdout = "ff\n"
+stderr = ""
+exit = 0
+stdout_newline = true
