@@ -107,3 +107,14 @@ stdout = "42\n"
 stderr = ""
 exit = 0
 stdout_newline = true
+
+[[case]]
+id = "missing-decimal-integer"
+lane = "stepper"
+tier = "A"
+args = ["%d\\n"]
+stdin = ""
+stdout = "0\n"
+stderr = ""
+exit = 0
+stdout_newline = true

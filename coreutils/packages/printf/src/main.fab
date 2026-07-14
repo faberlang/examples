@@ -70,7 +70,8 @@ functio numerus_specierum(textus formatum) → numerus {
 }
 
 functio argumentum(lista<textus> args, numerus index) → textus {
-    redde args.accipe(index) vel ""
+    si index < args.longitudo() ergo redde args[index]
+    redde ""
 }
 
 functio argumentum_numerus(lista<textus> args, numerus index) → numerus {
@@ -184,6 +185,9 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%d\n", "42"]) ≡ "42\n"
         adfirma printf_textus(["%i\n", "7"]) ≡ "7\n"
         adfirma printf_textus(["%u\n", "42"]) ≡ "42\n"
+    }
+    proba "missing numeric argument formats as zero" {
+        adfirma printf_textus(["%d\n"]) ≡ "0\n"
     }
 }
 

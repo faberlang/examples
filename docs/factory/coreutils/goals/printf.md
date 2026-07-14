@@ -35,7 +35,7 @@ conversions without flags, widths, or precision.
 | `%b` | slice | pending | Supports basic `\n`, `\t`, `\r`, `\\` escapes |
 | raw no-newline output | slice | pending | Uses `norma:consolum.dic` from this package unit |
 | missing format operand diagnostic | no | pending | Deferred usage-error surface |
-| plain decimal `%d` / `%i` | slice | pending | Parses explicit integer text arguments |
+| plain decimal `%d` / `%i` | slice | pending | Parses integer text arguments; missing argument becomes `0` |
 | positive unsigned decimal `%u` | slice | pending | Parses explicit non-negative integer text arguments |
 | other numeric formats | no | pending | Deferred |
 | field widths / precision | no | pending | Deferred |
@@ -50,9 +50,9 @@ Unsupported format directives are emitted literally in this slice rather than
 claimed as GNU-compatible behavior. No fixture exercises unsupported
 directives.
 
-The decimal numeric slice intentionally avoids missing numeric arguments, flags,
-width, precision, negative `%u` wrapping/overflow behavior, octal/hex/floating
-formats, quoted-character operands, and invalid numeric argument diagnostics.
+The decimal numeric slice intentionally avoids flags, width, precision, negative
+`%u` wrapping/overflow behavior, octal/hex/floating formats, quoted-character
+operands, and invalid numeric argument diagnostics.
 
 ## Acceptance
 
@@ -76,7 +76,7 @@ faber test coreutils/packages/printf
   formatting.
 - Stepper fixtures cover both newline-terminated GNU parity cases and raw
   no-newline output through `norma:consolum.dic`; the numeric slice adds
-  explicit decimal integer fixtures.
+  decimal integer fixtures and missing `%d` argument behavior.
 
 ## Lowers from
 
