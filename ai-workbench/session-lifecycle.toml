@@ -7,6 +7,7 @@ status_labels = ["blocked", "oracle-backed", "router-backed", "local-ops", "fabe
 current_scope = "portable examples and hermetic harness artifacts"
 campaign_reference = "docs/campaigns/ai-workbench/model-aliases.toml"
 campaign_reference_scope = "workspace-external control-plane fixture; examples keep portable contract references and do not vendor campaign docs"
+model_artifact_contract = "examples/ai-workbench/model-artifact-floor.toml"
 
 [guarded_claims]
 faber_owned_inference = false
@@ -65,11 +66,11 @@ lifecycle = "generate"
 surface = "generate"
 current_states = ["blocked", "oracle-backed", "local-ops"]
 future_state = "faber-owned"
-inputs = ["prompt file", "alias map", "optional explicit oracle runner"]
+inputs = ["prompt file", "alias map", "minimal model artifact contract", "tokenizer fixture", "optional explicit oracle runner"]
 outputs = ["generation JSON-lines"]
 artifact = "generation JSON-lines"
 next = "chat"
-ownership = "Default generation is blocked; oracle-backed events are produced only by explicit local runners."
+ownership = "Default generation is blocked; model artifact and tokenizer fixtures are metadata/local-ops floors only; oracle-backed events are produced only by explicit local runners."
 
 [[stages]]
 lifecycle = "chat"

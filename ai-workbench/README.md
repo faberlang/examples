@@ -53,6 +53,7 @@ python3 examples/ai-workbench/harness/check-product-install-path.py
 python3 examples/ai-workbench/harness/check-reuse-handoff.py
 python3 examples/ai-workbench/harness/check-campaign-tour.py
 python3 examples/ai-workbench/harness/check-session-lifecycle.py
+python3 examples/ai-workbench/harness/check-model-artifact-floor.py
 ```
 
 The initial package reports router-backed/missing status for the campaign model
@@ -128,6 +129,28 @@ Validate the lifecycle map with:
 
 ```bash
 python3 examples/ai-workbench/harness/check-session-lifecycle.py
+```
+
+## Model Artifact And Tokenizer Floor
+
+`model-artifact-floor.toml` defines the minimal examples-stage inference
+artifact floor used by the lifecycle map. The fixture is metadata-only: it names
+model metadata, tensor names/shapes/dtypes, deterministic metadata checksums, a
+tiny tokenizer vocabulary, tokenizer encode/decode cases, diagnostics, and an
+unsupported-format fixture. It is intentionally `local-ops` contract evidence
+for future `faber-owned` work, not runtime ownership.
+
+The tokenizer fixture uses exact whitespace-token encode/decode cases and an
+explicit `<unk>` fallback for unknown tokens. The model artifact fixture records
+checksums over canonical metadata values only; no tensor bytes or model blobs
+are stored in git.
+
+This floor does not claim Faber-owned inference, llama.cpp/GGUF runtime support,
+general inference capability, public release status, implicit downloads, or a
+model-serving product. Validate it with:
+
+```bash
+python3 examples/ai-workbench/harness/check-model-artifact-floor.py
 ```
 
 Stage 1 consumes only a minimal alias-map field subset: `[[tiers]]` blocks may

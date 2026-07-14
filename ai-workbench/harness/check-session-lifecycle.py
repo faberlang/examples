@@ -45,6 +45,8 @@ def main() -> int:
         fail(failures, f"status labels must be {sorted(REQUIRED_LABELS)!r}")
     if "workspace-external" not in session["campaign_reference_scope"]:
         fail(failures, "campaign reference scope must record docs/campaigns as workspace-external")
+    if session["model_artifact_contract"] != "examples/ai-workbench/model-artifact-floor.toml":
+        fail(failures, "lifecycle must point at the model artifact floor contract")
 
     guarded = lifecycle["guarded_claims"]
     for key in FORBIDDEN_TRUE_CLAIMS:

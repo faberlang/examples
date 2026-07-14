@@ -1,0 +1,15 @@
+{
+  "format": "faber-ai-model-artifact-v99",
+  "status": "error",
+  "model": "tiny/unsupported-fixture",
+  "diagnostics": [
+    "unsupported model artifact format: faber-ai-model-artifact-v99"
+  ],
+  "claims": {
+    "faber_owned_inference": false,
+    "llama_cpp_runtime": false,
+    "gguf_runtime": false,
+    "general_inference": false,
+    "public_product_release": false
+  }
+}

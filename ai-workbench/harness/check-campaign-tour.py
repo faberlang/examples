@@ -12,6 +12,7 @@ TOUR_STEPS = [
     ("index", "check-index.py"),
     ("query", "check-query.py"),
     ("generate", "check-generate.py"),
+    ("model artifact floor", "check-model-artifact-floor.py"),
     ("chat", "check-chat.py"),
     ("session lifecycle", "check-session-lifecycle.py"),
     ("product install path", "check-product-install-path.py"),

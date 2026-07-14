@@ -1,0 +1,20 @@
+{
+  "format": "faber-ai-tokenizer-cases-v0",
+  "model": "tiny/inference-fixture",
+  "cases": [
+    {
+      "id": "exact-known-tokens",
+      "text": "hello world !",
+      "encode": [2, 3, 4],
+      "decode": "hello world !",
+      "unknown_count": 0
+    },
+    {
+      "id": "unknown-token-fallback",
+      "text": "hello missing model",
+      "encode": [2, 1, 6],
+      "decode": "hello <unk> model",
+      "unknown_count": 1
+    }
+  ]
+}
