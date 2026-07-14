@@ -5,11 +5,18 @@ category = "gpu"
 summary = "Linear backward-pass workload floor probe for the AIR gate."
 related = ["air", "gradient", "tensor", "nucleum"]
 +++
-
 # GPU workload rung 3 — backward pass / gradients
 #
 # AIR autodiff is the producer gate for this rung. This legal AIR-lane function
 # pins the workload target without implementing autodiff in the measurement goal.
+# The acceptance oracle is scalar reverse-mode for
+#   rung3_loss(x, weight, target) = (x * weight - target)^2
+# at x = 2.0, weight = 3.0, target = 4.0:
+#   loss = 4.0
+#   d_weight = 2 * (x * weight - target) * x = 8.0
+# This file currently emits only the forward loss; generated gradient output and
+# device/autograd proof remain producer work, so the output-checked autograd
+# floor stays 0.
 
 @ radix lane "air"
 functio rung3_loss(f32 x, f32 weight, f32 target) → f32 {

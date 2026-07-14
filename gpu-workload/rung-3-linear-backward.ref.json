@@ -4,9 +4,24 @@
   "dtype": "f32",
   "shape": [1],
   "tolerance": 0.0001,
+  "contract": "oracle/proximity fixture only; not generated-gradient proof",
+  "inputs": {
+    "x": 2.0,
+    "weight": 3.0,
+    "target": 4.0
+  },
   "reference": {
     "loss": 4.0,
     "d_weight": 8.0
+  },
+  "derivation": {
+    "loss": "(x * weight - target)^2",
+    "d_weight": "2 * (x * weight - target) * x"
+  },
+  "current_output_checked_floor": {
+    "device_autograd": 0,
+    "emitted_output": "forward loss only",
+    "status": "not green for generated gradients"
   },
   "source": "hand-derived linear squared-error gradient fixture"
 }
