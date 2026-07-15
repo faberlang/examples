@@ -108,7 +108,7 @@ Cargo builds for every edit.
 
 - Syntax/keyword exempla in `crates/exempla/corpus/<term>/`
 - sibling `norma/src` growth (route to
-  [`core-stdlib/CAMPAIGN.md`](../core-stdlib/CAMPAIGN.md))
+  [`sibling radix core-stdlib/CAMPAIGN.md`](../../../../radix/docs/factory/core-stdlib/CAMPAIGN.md))
 - Compiler/MIR work except gaps filed from coreutils utility goals
 - Full GNU test-suite import or locale matrix certification
 - `cista` package publication (exempla only, not a registry release)
@@ -133,7 +133,7 @@ per-utility state; stages hold track-level routing.
 | --- | --- |
 | [sibling radix `AGENTS.md`](../../../../radix/AGENTS.md) | Workspace lanes, tooling, grammar rules |
 | [sibling radix `README.md`](../../../../radix/README.md) | Package manifest, compiler performance, CLI roles |
-| [sibling radix `crates/exempla/corpus/cli/cli.fab`](../../../../radix/crates/exempla/corpus/cli/cli.fab) | `@ cli` / `@ optio` / operand patterns |
+| [sibling examples `corpus/cli/cli.fab`](../../../corpus/cli/cli.fab) | `@ cli` / `@ optio` / operand patterns |
 | [`fixtures/exempla-boundary/package-cli/`](../../../fixtures/exempla-boundary/package-cli/) | Package CLI mounts |
 | [sibling radix `docs/factory/faber-kernel-solum/`](../../../../radix/docs/factory/faber-kernel-solum/) · [`faber-kernel-namespace/`](../../../../radix/docs/factory/faber-kernel-namespace/) | `faber:*` kernel modules (`solum`, `processus`) backing dev-lane host I/O |
 | [sibling radix `docs/factory/faber-script-kernel/CAMPAIGN.md`](../../../../radix/docs/factory/faber-script-kernel/CAMPAIGN.md) | Script-mode kernel dispatch (`faber run script.fab`) |
@@ -185,7 +185,7 @@ utility throughput.
 
 **Status**: complete for bridged scalar/list/file mutation, scalar metadata,
 mode, symbolic-link, and byte-write verbs; not a global blocker.
-**Owner**: [`faber-script-runtime/CAMPAIGN.md`](../faber-script-runtime/CAMPAIGN.md)
+**Owner**: [`sibling faber faber-script-runtime/CAMPAIGN.md`](../../../../faber/docs/factory/faber-script-runtime/CAMPAIGN.md)
 Stage 1b (package host import bridge). Coreutils routes to it; it does not own
 the bridge.
 **Why now**: the stepper already implements file/env/cwd primitives
@@ -215,7 +215,7 @@ genus materialization and remaining host metadata gaps through their own goals.
 
 **Status**: complete for pure-helper substrate and `echo` operand slice
 (2026-07-07) — package-MIR blockers resolved in
-[`DEFER-107`](../deferred/defer-107.md).
+[`sibling radix DEFER-107`](../../../../radix/docs/factory/deferred/defer-107.md).
 **Why now**: one argv/stdio pattern for all utilities to copy.
 **Deliverables**: `common/gnu/{argv,stdio,exitus,format}.fab`; reference utility
 (`echo` or `wc`) with Tier A stdin/stepper fixtures.
@@ -339,10 +339,10 @@ model.
 ## Dependency Rules
 
 - If a utility needs file/process effects on the **ship** lane, check
-  [`core-stdlib/CAMPAIGN.md`](../core-stdlib/CAMPAIGN.md) before implementing.
+  [`sibling radix core-stdlib/CAMPAIGN.md`](../../../../radix/docs/factory/core-stdlib/CAMPAIGN.md) before implementing.
 - If a utility needs host I/O on the **stepper** lane, it depends on Stage 1b
   (package host import bridge, owned by
-  [`faber-script-runtime/CAMPAIGN.md`](../faber-script-runtime/CAMPAIGN.md)).
+  [`sibling faber faber-script-runtime/CAMPAIGN.md`](../../../../faber/docs/factory/faber-script-runtime/CAMPAIGN.md)).
   Utility source imports `norma:*` (resolved: one string, both lanes — the
   interpreted lane bridges `norma:*` to the stepper kernels). Until Stage 1b,
   use stdin-only slices or `lane = rust` fixtures.
