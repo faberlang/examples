@@ -4,21 +4,21 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 RUNG4_REF = REPO / "gpu-workload" / "rung-4-toy-train.ref.json"
 RUNG4_EXPECTED = REPO / "gpu-workload" / "rung-4-toy-train.expected"
-TOLERANCE = 1e-6
 
 
 def fail(failures: list[str], message: str) -> None:
     failures.append(message)
 
 
-def close(left: float, right: float) -> bool:
-    return abs(left - right) <= TOLERANCE
+def close(left: float, right: float, tolerance: float) -> bool:
+    return abs(left - right) <= tolerance
 
 
 def load_json(path: Path) -> dict:
@@ -27,6 +27,15 @@ def load_json(path: Path) -> dict:
 
 def check_rung4(failures: list[str]) -> None:
     ref = load_json(RUNG4_REF)
+    try:
+        tolerance = float(ref["tolerance"])
+    except (KeyError, TypeError, ValueError):
+        fail(failures, "rung4 tolerance must be a finite non-negative number")
+        return
+    if not math.isfinite(tolerance) or tolerance < 0:
+        fail(failures, "rung4 tolerance must be a finite non-negative number")
+        return
+
     expected = load_json(RUNG4_EXPECTED)
     inputs = ref["inputs"]
     events = ref["session_contract"]["events"]
@@ -43,7 +52,7 @@ def check_rung4(failures: list[str]) -> None:
             fail(failures, f"rung4 event {index}: step={event['step']!r}")
         if event["launch"] != "rung4_step_kernel":
             fail(failures, f"rung4 event {index}: unexpected launch {event['launch']!r}")
-        if not close(float(event["previous_weight"]), weight):
+        if not close(float(event["previous_weight"]), weight, tolerance):
             fail(failures, f"rung4 event {index}: previous_weight mismatch")
 
         err = weight * x - y
@@ -52,9 +61,9 @@ def check_rung4(failures: list[str]) -> None:
         losses.append(loss)
         weights.append(next_weight)
 
-        if not close(float(event["loss"]), loss):
+        if not close(float(event["loss"]), loss, tolerance):
             fail(failures, f"rung4 event {index}: loss mismatch")
-        if not close(float(event["next_weight"]), next_weight):
+        if not close(float(event["next_weight"]), next_weight, tolerance):
             fail(failures, f"rung4 event {index}: next_weight mismatch")
         weight = next_weight
 
@@ -66,9 +75,15 @@ def check_rung4(failures: list[str]) -> None:
         fail(failures, "rung4 reference loss count does not match session event count")
     if len(ref["reference"]["weights"]) != len(weights):
         fail(failures, "rung4 reference weight count does not match session event count")
-    if any(not close(float(left), float(right)) for left, right in zip(ref["reference"]["losses"], losses)):
+    if any(
+        not close(float(left), float(right), tolerance)
+        for left, right in zip(ref["reference"]["losses"], losses)
+    ):
         fail(failures, "rung4 reference losses do not match derived oracle")
-    if any(not close(float(left), float(right)) for left, right in zip(ref["reference"]["weights"], weights)):
+    if any(
+        not close(float(left), float(right), tolerance)
+        for left, right in zip(ref["reference"]["weights"], weights)
+    ):
         fail(failures, "rung4 reference weights do not match derived oracle")
 
     floor = ref["current_output_checked_floor"]
