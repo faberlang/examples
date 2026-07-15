@@ -24,10 +24,10 @@ checker = load_checker()
 
 class ToleranceContractTests(unittest.TestCase):
     def test_accepts_delta_within_declared_tolerance(self) -> None:
-        self.assertTrue(checker.close(1.0, 1.00005, 0.0001))
+        self.assertTrue(checker.close(1.0, 1.0 + checker.TOLERANCE * 0.5))
 
     def test_rejects_delta_above_declared_tolerance(self) -> None:
-        self.assertFalse(checker.close(1.0, 1.00011, 0.0001))
+        self.assertFalse(checker.close(1.0, 1.0 + checker.TOLERANCE * 1.1))
 
 
 if __name__ == "__main__":
