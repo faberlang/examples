@@ -5,7 +5,7 @@ category = "function"
 canonical = true
 summary = "Declares or explains an inline closure expression; compact ∴ syntax is preferred for new code."
 syntax = "<type> <name> [→ <type>] [⇥ <error-type>] ∴ <expression|fac-block>"
-aliases = ["closure", "lambda"]
+aliases = []
 related = ["∴", "functio", "fac", "cape", "cede"]
 +++
 # clausura — closure bodies with ∴ and ⇥
