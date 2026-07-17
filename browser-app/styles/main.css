@@ -1,0 +1,36 @@
+/* WEB5 fixture — minimal styles for the three demo sections. */
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+}
+
+.toggle-label.active {
+  font-weight: bold;
+  color: green;
+}
+
+.filter-item.hidden {
+  display: none;
+}
+
+.submit-status {
+  font-style: italic;
+}
+
+.submit-status.ok {
+  color: green;
+}
+
+.submit-status.err {
+  color: red;
+}

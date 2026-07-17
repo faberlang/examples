@@ -1,0 +1,64 @@
+# WEB5 browser application fixture.
+#
+# Three WebController functions proving click, input, and submit behavior
+# from Faber-compiled ESM. The gate: a DOM harness observes mounts and
+# mutations from built ESM (dist/faber-esm/faber-browser.js).
+
+importa ex "web:web" privata web
+importa ex "web:dom" privata dom
+
+# ---------------------------------------------------------------------------
+# Controller 1: Click class/text toggle (#toggle-demo)
+#
+# Clicking the button toggles the "active" class on the label element.
+# ---------------------------------------------------------------------------
+
+functio toggle_active(dom.Element label) → vacuum {
+    dom.class_toggle(label, "active")
+}
+
+@ WebController { selector = "#toggle-demo" }
+functio toggle_controller(dom.Scope scope) → vacuum {
+    fixum dom.Element label ← dom.require(scope, ".toggle-label")
+    fixum dom.Element button ← dom.require(scope, ".toggle-btn")
+    nota dom.on(button, "click", (dom.DomEvent event) → vacuum ∴ toggle_active(label))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 2: Input list filter (#filter-demo)
+#
+# Typing in the filter input hides all list items (toggling "hidden") when the
+# query is non-empty, and restores them when it clears.
+# ---------------------------------------------------------------------------
+
+functio filter_items(dom.Scope scope, textus query) → vacuum {
+    fixum lista<dom.Element> items ← dom.all(scope, ".filter-item")
+    itera ex items fixum item {
+        si query ≡ "" {
+            dom.class_remove(item, "hidden")
+        } secus {
+            dom.class_add(item, "hidden")
+        }
+    }
+}
+
+@ WebController { selector = "#filter-demo" }
+functio filter_controller(dom.Scope scope) → vacuum {
+    fixum dom.Element input ← dom.require(scope, ".filter-input")
+    nota dom.on_input(input, (dom.Element el, textus val) → vacuum ∴ filter_items(scope, val))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 3: Controlled submit (#submit-demo)
+#
+# Submitting the form prevents default and sets the status text to
+# "submitted", proving controlled event handling and DOM mutation from
+# built ESM.
+# ---------------------------------------------------------------------------
+
+@ WebController { selector = "#submit-demo" }
+functio submit_controller(dom.Scope scope) → vacuum {
+    fixum dom.Element form ← dom.require(scope, ".submit-form")
+    fixum dom.Element status ← dom.require(scope, ".submit-status")
+    nota dom.on_submit(form, dom.SubmitOptions { prevent_default = verum }, (dom.Element el) → vacuum ∴ dom.text_set(status, "submitted"))
+}
