@@ -1,0 +1,31 @@
++++
+term = "modulus<u32>"
+kind = "operator-group"
+category = "arithmetic"
+canonical = true
+summary = "Unsigned 32-bit modular-word arithmetic and bit-pattern edges."
+syntax = "modulus<u32>"
+related = ["numerus", "+", "−", "×", "÷", "%", "¬", "⇐", "⇒"]
++++
+
+# operatores/modular-word — modulus<u32> edge vectors
+#
+# MODULAR WORD CONTRACT:
+#   modulus<u32> is an unsigned 32-bit modular word. Addition, subtraction,
+#   multiplication, negation, bitwise operations, and shifts use u32 wrapping.
+#   Division and remainder by zero fail.
+
+incipit {
+    fixum modulus<u32> max ← 4294967295
+    fixum modulus<u32> one ← 1
+    fixum modulus<u32> zero ← 0
+
+    nota max + one
+    nota zero - one
+    nota max * 2
+    nota -one
+    nota ¬zero
+    nota one ⇐ 32
+    nota max ⇒ 32
+    nota max > zero
+}
