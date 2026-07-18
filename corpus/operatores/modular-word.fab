@@ -16,9 +16,10 @@ related = ["numerus", "+", "−", "×", "÷", "%", "¬", "⇐", "⇒"]
 #   Division and remainder by zero fail.
 
 incipit {
-    fixum modulus<u32> max ← 4294967295
+    varia modulus<u32> max ← 4294967295
     fixum modulus<u32> one ← 1
-    fixum modulus<u32> zero ← 0
+    varia modulus<u32> zero ← 0
+    fixum numerus<u32> converted ← one ↦ numerus<u32>
 
     nota max + one
     nota zero - one
@@ -28,4 +29,22 @@ incipit {
     nota one ⇐ 32
     nota max ⇒ 32
     nota max > zero
+
+    max ⊕
+    zero ⊖
+    nota max
+    nota zero
+
+    fixum modulus<u32> methodSum ← max.addita(one)
+    fixum modulus<u32> methodShift ← max.sinistrata(32)
+    varia modulus<u32> methodAcc ← 0
+    methodAcc.adde(one)
+    methodAcc.sinistra(32)
+    nota converted
+    nota methodSum
+    nota methodShift
+    nota methodAcc
+
+    fixum lista<modulus<u32>> words ← [one, max]
+    nota words.accipe(1) vel (0 ∷ modulus<u32>)
 }
