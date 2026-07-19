@@ -41,13 +41,13 @@ globalThis.window.devicePixelRatio = 2;
 const esmUrl = new URL("../dist/faber-esm/faber-browser.js", import.meta.url).href;
 const { controllers, mountControllers } = await import(esmUrl);
 
-assert(controllers.length === 10, `expected 10 controllers, got ${controllers.length}`);
+assert(controllers.length === 11, `expected 11 controllers, got ${controllers.length}`);
 
 // ---------------------------------------------------------------------------
 // Mount each controller within its scoped root.
 // ---------------------------------------------------------------------------
 const runtime = mountControllers(globalThis.document);
-assert(runtime.mounts.length === 10, `expected 10 mounted controllers, got ${runtime.mounts.length}`);
+assert(runtime.mounts.length === 11, `expected 11 mounted controllers, got ${runtime.mounts.length}`);
 assert(runtime.failures.length === 0, `expected 0 controller failures, got ${runtime.failures.length}`);
 
 // ---------------------------------------------------------------------------
@@ -252,7 +252,22 @@ function testPointerLockLifecycle() {
 }
 
 // ---------------------------------------------------------------------------
-// Test 11: Generated disposal cancels frame scheduling and removes event
+// Test 11: Typed capability failure — denied pointer-lock request reaches
+// source-authored code as data, not as an ignored callback failure.
+// ---------------------------------------------------------------------------
+function testPointerLockDeniedFailure() {
+  const section = dom.querySelector("#pointer-lock-denied-demo");
+  const status = section.querySelector(".pointer-lock-denied-status");
+
+  assert(status.textContent === "lock-denied-pending", `lock denied: starts pending, got "${status.textContent}"`);
+  status.requestPointerLock = undefined;
+  status.dispatchEvent(new FakeEvent("click"));
+  assert(status.textContent === "lock-denied", `lock denied: becomes lock-denied, got "${status.textContent}"`);
+  assert(status.classList.has("lock-denied"), "lock denied: gains lock-denied class");
+}
+
+// ---------------------------------------------------------------------------
+// Test 12: Generated disposal cancels frame scheduling and removes event
 // listeners returned by source-authored controllers.
 // ---------------------------------------------------------------------------
 async function testGeneratedDispose() {
@@ -303,6 +318,7 @@ testKeyboardLifecycle();
 testPointerLifecycle();
 testFocusLifecycle();
 testPointerLockLifecycle();
+testPointerLockDeniedFailure();
 await testGeneratedDispose();
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -1,8 +1,9 @@
 # WEB5 browser application fixture.
 #
-# Ten WebController functions proving click, input, submit, frame, resize,
-# keyboard, pointer, focus, and pointer-lock behavior from Faber-compiled ESM.
-# The gate: a DOM harness observes mounts and mutations from built ESM
+# Eleven WebController functions proving click, input, submit, frame, resize,
+# keyboard, pointer, focus, pointer-lock, and typed failure behavior from
+# Faber-compiled ESM. The gate: a DOM harness observes mounts and mutations
+# from built ESM
 # (dist/faber-esm/faber-browser.js).
 
 importa ex "web:web" privata web
@@ -190,4 +191,21 @@ functio mark_pointer_lock_state(dom.Element status, dom.PointerLockState state) 
 functio pointer_lock_state_controller(dom.Scope scope) → dom.Subscription {
     fixum dom.Element status ← dom.require(scope, ".pointer-lock-state-status")
     redde dom.on_pointer_lock(status, (dom.PointerLockState state) → vacuum ∴ mark_pointer_lock_state(status, state))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 11: Pointer-lock denied failure (#pointer-lock-denied-demo)
+# ---------------------------------------------------------------------------
+
+functio mark_pointer_lock_denied(dom.Element status, dom.PointerLockState state) → vacuum {
+    si state.denied {
+        dom.text_set(status, "lock-denied")
+        dom.class_add(status, "lock-denied")
+    }
+}
+
+@ WebController { selector = "#pointer-lock-denied-demo" }
+functio pointer_lock_denied_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".pointer-lock-denied-status")
+    redde dom.on(status, "click", (dom.DomEvent event) → vacuum ∴ mark_pointer_lock_denied(status, dom.request_pointer_lock(status)))
 }

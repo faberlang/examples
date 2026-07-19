@@ -218,6 +218,12 @@ export function buildFixtureDom() {
   lockStateSection.appendChild(el("p", { class: "pointer-lock-state-status", text: "lock-state-pending" }));
   main.appendChild(lockStateSection);
 
+  // --- #pointer-lock-denied-demo ---
+  const lockDeniedSection = el("section", { id: "pointer-lock-denied-demo" });
+  lockDeniedSection.appendChild(el("h2", { text: "Pointer Lock Denied" }));
+  lockDeniedSection.appendChild(el("p", { class: "pointer-lock-denied-status", text: "lock-denied-pending" }));
+  main.appendChild(lockDeniedSection);
+
   return root;
 }
 
