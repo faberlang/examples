@@ -5,7 +5,7 @@ category = "arithmetic"
 canonical = true
 summary = "Unsigned 32-bit modular-word arithmetic and bit-pattern edges."
 syntax = "modulus<u32>"
-related = ["numerus", "+", "−", "×", "÷", "%", "¬", "⇐", "⇒"]
+related = ["numerus", "¬", "⇐", "⇒"]
 +++
 
 # operatores/modular-word — modulus<u32> edge vectors
