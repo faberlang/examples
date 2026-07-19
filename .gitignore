@@ -6,3 +6,4 @@
 .DS_Store
 tmp/
 cista-lab/demo/faber.lock
+scripta/__pycache__/
