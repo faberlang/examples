@@ -1,0 +1,5 @@
+# Conversio matrix fixture: ascii ↦ octeti.
+# Phase-1 model: rust ✓ (ASCII encode); wasm-text ✓.
+incipit {
+    fixum _ r ← 'hi' ↦ octeti
+}

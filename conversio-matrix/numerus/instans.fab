@@ -1,0 +1,5 @@
+# Conversio matrix fixture: numerus ↦ instans.
+# Phase-1 model: rust ◐ (fallback, won't compile); wasm-text —.
+incipit {
+    fixum _ r ← 42 ↦ instans
+}

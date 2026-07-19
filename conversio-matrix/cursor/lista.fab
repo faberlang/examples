@@ -1,0 +1,7 @@
+# Conversio matrix fixture: cursor ↦ lista.
+# Setup: cursor from a lista; measure cursor ↦ lista (eager materialize).
+# Phase-1 model: rust ✓; wasm-text ✓.
+incipit {
+    fixum cursor<numerus> c ← [1, 2, 3] ↦ cursor<numerus>
+    fixum _ r ← c ↦ lista<numerus>
+}

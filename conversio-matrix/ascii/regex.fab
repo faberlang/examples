@@ -1,0 +1,5 @@
+# Conversio matrix fixture: ascii ↦ regex.
+# Phase-1 model: rust ✓ (dedicated carrier construction); wasm-text ✓.
+incipit {
+    fixum _ r ← '(?i)[a-z]+' ↦ regex
+}

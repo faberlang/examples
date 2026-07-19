@@ -1,0 +1,7 @@
+# Conversio matrix fixture: tensor ↦ lista.
+# Setup: tensor from a flat lista; measure tensor ↦ lista (default flatten).
+# Phase-1 model: rust ✓ (.planata()); wasm-text —.
+incipit {
+    fixum tensor<numerus, [3]> t ← [1, 2, 3] ↦ tensor<numerus, [3]>
+    fixum _ r ← t ↦ lista<numerus>
+}

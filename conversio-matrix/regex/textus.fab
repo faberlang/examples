@@ -1,0 +1,8 @@
+# Conversio matrix fixture: regex ↦ textus.
+# Setup: construct a regex carrier (regex has no literal form); then measure
+# regex ↦ textus.
+# Phase-1 model: rust ◐ (fallback format! via Display; compiles); wasm-text ✓.
+incipit {
+    fixum _ carrier ← "\d+" ↦ regex
+    fixum _ r ← carrier ↦ textus
+}

@@ -1,0 +1,6 @@
+# Conversio matrix fixture: numerus ↦ octeti.
+# Expect: semantically rejected (numeric_to_octeti_unspecified).
+
+incipit {
+    fixum _ r ← 42 ↦ octeti
+}

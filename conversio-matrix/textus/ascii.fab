@@ -1,0 +1,7 @@
+# Conversio matrix fixture: textus ↦ ascii.
+# Expect: typechecks clean (dedicated Rust try_from arm); wasm-text cannot
+# represent `ascii`, so the MIR column should measure `—` (not emitted).
+
+incipit {
+    fixum _ r ← "hello" ↦ ascii
+}

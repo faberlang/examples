@@ -1,0 +1,5 @@
+# Conversio matrix fixture: textus ↦ json.
+# Phase-1 model: rust ✓ (Json::parse); wasm-text — (json primitive not representable).
+incipit {
+    fixum _ r ← "{}" ↦ json
+}

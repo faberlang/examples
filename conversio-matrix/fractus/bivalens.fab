@@ -1,0 +1,5 @@
+# Conversio matrix fixture: fractus ↦ bivalens.
+# Phase-1 model: rust ✓ (non-zero truthiness); wasm-text ✓.
+incipit {
+    fixum _ r ← 3.14 ↦ bivalens
+}

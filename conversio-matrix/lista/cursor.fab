@@ -1,0 +1,5 @@
+# Conversio matrix fixture: lista ↦ cursor.
+# Phase-1 model: rust ✓ (eager buffer wrap); wasm-text ✓.
+incipit {
+    fixum _ r ← [1, 2, 3] ↦ cursor<numerus>
+}

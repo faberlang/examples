@@ -1,0 +1,5 @@
+# Conversio matrix fixture: numerus ↦ textus.
+# Phase-1 model: rust ✓ (to_string); wasm-text ✓.
+incipit {
+    fixum _ r ← 42 ↦ textus
+}

@@ -1,0 +1,5 @@
+# Conversio matrix fixture: numerus ↦ ascii.
+# Phase-1 model: rust ◐ (fallback, no dedicated arm); wasm-text —.
+incipit {
+    fixum _ r ← 42 ↦ ascii
+}

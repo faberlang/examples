@@ -1,0 +1,5 @@
+# Conversio matrix fixture: octeti ↦ numerus.
+# Phase-1 model: ✕ (octeti_to_numerus_unspecified; byte reinterpretation denied).
+incipit {
+    fixum _ r ← |68 69| ↦ numerus
+}

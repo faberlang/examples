@@ -1,0 +1,8 @@
+# Conversio matrix fixture: modulus ↦ numerus.
+# Setup: modulus<u32> from a numerus literal; measure modulus ↦ numerus.
+# Phase-1 model: rust ◐ (fallback `as`; compiles); wasm-text — (modular word not
+# representable, and hard-blocked on non-Rust targets).
+incipit {
+    fixum modulus<u32> m ← 1779033703
+    fixum _ r ← m ↦ numerus
+}

@@ -1,0 +1,6 @@
+# Conversio matrix fixture: numerus ↦ fractus.
+# Expect: typechecks clean (dedicated Rust `as f64` arm).
+
+incipit {
+    fixum _ r ← 42 ↦ fractus
+}

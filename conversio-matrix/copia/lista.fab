@@ -1,0 +1,7 @@
+# Conversio matrix fixture: copia ↦ lista.
+# Setup: copia from a lista; measure copia ↦ lista (materialize elements).
+# Phase-1 model: rust ✓ (collect Vec); wasm-text ✓.
+incipit {
+    fixum copia<numerus> s ← [1, 2, 3] ↦ copia<numerus>
+    fixum _ r ← s ↦ lista<numerus>
+}

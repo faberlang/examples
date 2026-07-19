@@ -1,0 +1,5 @@
+# Conversio matrix fixture: numerus ↦ valor.
+# Phase-1 model: rust ✓ (into_valor boxing); wasm-text — (valor not representable).
+incipit {
+    fixum _ r ← 42 ↦ valor
+}

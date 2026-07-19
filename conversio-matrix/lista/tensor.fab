@@ -1,0 +1,5 @@
+# Conversio matrix fixture: lista ↦ tensor.
+# Phase-1 model: rust ✓ (Tensor::structa); wasm-text — (tensor not representable).
+incipit {
+    fixum _ r ← [1, 2, 3] ↦ tensor<numerus, [3]>
+}

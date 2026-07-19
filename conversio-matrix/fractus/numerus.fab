@@ -1,0 +1,6 @@
+# Conversio matrix fixture: fractus ↦ numerus.
+# Expect: typechecks clean (dedicated Rust `as i64` truncation arm).
+
+incipit {
+    fixum _ r ← 3.14 ↦ numerus
+}

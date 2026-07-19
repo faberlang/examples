@@ -1,0 +1,8 @@
+# Conversio matrix fixture: instans ↦ textus.
+# Setup: valor → instans; measure instans ↦ textus (RFC3339 formatting).
+# Phase-1 model: rust ✓ (to_rfc3339); wasm-text —.
+incipit {
+    fixum valor v ← "1979-05-27T07:32:00Z"
+    fixum instans t ← v ↦ instans
+    fixum _ r ← t ↦ textus
+}

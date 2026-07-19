@@ -1,0 +1,5 @@
+# Conversio matrix fixture: lista ↦ copia.
+# Phase-1 model: rust ✓ (collect HashSet); wasm-text ✓.
+incipit {
+    fixum _ r ← [1, 2, 3] ↦ copia<numerus>
+}

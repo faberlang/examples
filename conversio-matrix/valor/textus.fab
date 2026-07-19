@@ -1,0 +1,7 @@
+# Conversio matrix fixture: valor ↦ textus.
+# Setup: box a numerus into valor; measure valor ↦ textus (scalar extraction).
+# Phase-1 model: rust ✓ (FromValor); wasm-text —.
+incipit {
+    fixum valor v ← 42 ↦ valor
+    fixum _ r ← v ↦ textus
+}

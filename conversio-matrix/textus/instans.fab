@@ -1,0 +1,5 @@
+# Conversio matrix fixture: textus ↦ instans.
+# Phase-1 model: rust ✓ (Instans::try_from_valor); wasm-text — (instans not representable).
+incipit {
+    fixum _ r ← "1979-05-27T07:32:00Z" ↦ instans
+}

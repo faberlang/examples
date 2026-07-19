@@ -1,0 +1,5 @@
+# Conversio matrix fixture: ascii ↦ textus.
+# Phase-1 model: rust ✓ (to_textus); wasm-text — (ascii not representable).
+incipit {
+    fixum _ r ← 'hi' ↦ textus
+}

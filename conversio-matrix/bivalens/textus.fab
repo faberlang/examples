@@ -1,0 +1,5 @@
+# Conversio matrix fixture: bivalens ↦ textus.
+# Phase-1 model: rust ◐ (fallback format!); wasm-text ✓ (bivalens+textus representable).
+incipit {
+    fixum _ r ← verum ↦ textus
+}

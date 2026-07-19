@@ -1,0 +1,5 @@
+# Conversio matrix fixture: tabula ↦ lista.
+# Phase-1 model: rust ✓ (project keys/values); wasm-text ✓.
+incipit {
+    fixum _ r ← { "a": 1 } ↦ lista<textus>
+}

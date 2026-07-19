@@ -1,0 +1,5 @@
+# Conversio matrix fixture: ascii ↦ numerus.
+# Phase-1 model: rust ◐ (fallback parse via Deref<Target=str>, compiles); wasm-text —.
+incipit {
+    fixum _ r ← '42' ↦ numerus
+}

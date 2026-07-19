@@ -1,0 +1,7 @@
+# Conversio matrix fixture: valor ↦ instans.
+# Setup: valor carrier from a textus literal; measure valor ↦ instans.
+# Phase-1 model: rust ✓ (Instans::try_from_valor); wasm-text —.
+incipit {
+    fixum valor v ← "1979-05-27T07:32:00Z"
+    fixum _ r ← v ↦ instans
+}

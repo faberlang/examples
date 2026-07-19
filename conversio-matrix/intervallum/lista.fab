@@ -1,0 +1,7 @@
+# Conversio matrix fixture: intervallum ↦ lista.
+# Setup: intervallum from a range literal; measure intervallum ↦ lista (materialize).
+# Phase-1 model: rust ✓ (materialize); wasm-text — (intervallum not representable).
+incipit {
+    fixum intervallum<numerus> range ← 0‥100
+    fixum _ r ← range ↦ lista<numerus>
+}

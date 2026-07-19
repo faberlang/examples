@@ -1,0 +1,7 @@
+# Conversio matrix fixture: sparsa ↦ tensor.
+# Setup: empty sparsa; measure sparsa ↦ tensor (densata).
+# Phase-1 model: rust ✓ (densata); wasm-text —.
+incipit {
+    fixum sparsa<fractus<f32>, [2, 3]> s ← vacua
+    fixum _ r ← s ↦ tensor<fractus<f32>, [2, 3]>
+}
