@@ -141,6 +141,12 @@ export function buildFixtureDom() {
   submitSection.appendChild(el("p", { class: "submit-status", text: "idle" }));
   main.appendChild(submitSection);
 
+  // --- #frame-demo ---
+  const frameSection = el("section", { id: "frame-demo" });
+  frameSection.appendChild(el("h2", { text: "Frame" }));
+  frameSection.appendChild(el("p", { class: "frame-status", text: "frame-pending" }));
+  main.appendChild(frameSection);
+
   return root;
 }
 

@@ -37,13 +37,13 @@ globalThis.document = dom;
 const esmUrl = new URL("../dist/faber-esm/faber-browser.js", import.meta.url).href;
 const { controllers, mountControllers } = await import(esmUrl);
 
-assert(controllers.length === 3, `expected 3 controllers, got ${controllers.length}`);
+assert(controllers.length === 4, `expected 4 controllers, got ${controllers.length}`);
 
 // ---------------------------------------------------------------------------
 // Mount each controller within its scoped root.
 // ---------------------------------------------------------------------------
 const runtime = mountControllers(globalThis.document);
-assert(runtime.mounts.length === 3, `expected 3 mounted controllers, got ${runtime.mounts.length}`);
+assert(runtime.mounts.length === 4, `expected 4 mounted controllers, got ${runtime.mounts.length}`);
 assert(runtime.failures.length === 0, `expected 0 controller failures, got ${runtime.failures.length}`);
 
 // ---------------------------------------------------------------------------
@@ -147,13 +147,33 @@ async function testFetch() {
 }
 
 // ---------------------------------------------------------------------------
+// Test 5: Frame controller — scheduled frame updates visible state and
+// generated lifecycle disposal cancels future frame callbacks.
+// ---------------------------------------------------------------------------
+async function testFrameLifecycle() {
+  const section = dom.querySelector("#frame-demo");
+  const status = section.querySelector(".frame-status");
+
+  assert(status.textContent === "frame-pending", `frame: status starts pending, got "${status.textContent}"`);
+
+  await new Promise((resolve) => setTimeout(resolve, 35));
+  assert(status.textContent === "frame-seen", `frame: status becomes frame-seen, got "${status.textContent}"`);
+  assert(status.classList.has("frame-active"), "frame: status gains frame-active class");
+
+  status.textContent = "after-dispose";
+  runtime.dispose();
+  await new Promise((resolve) => setTimeout(resolve, 35));
+  assert(status.textContent === "after-dispose", "frame: dispose cancels later frame callbacks");
+}
+
+// ---------------------------------------------------------------------------
 // Run all tests.
 // ---------------------------------------------------------------------------
 testToggle();
 testFilter();
 testSubmit();
 await testFetch();
-runtime.dispose();
+await testFrameLifecycle();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) {

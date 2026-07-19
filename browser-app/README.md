@@ -10,6 +10,7 @@ observable DOM mutations under a browser/DOM harness.
 | `toggle_controller` | `#toggle-demo` | Click button → toggle `active` class on label |
 | `filter_controller` | `#filter-demo` | Input → add/remove `hidden` class on list items |
 | `submit_controller` | `#submit-demo` | Submit form → set status text, prevent default |
+| `frame_controller` | `#frame-demo` | Animation frame → set status text/class; generated dispose cancels scheduling |
 
 ## Build
 
@@ -32,7 +33,7 @@ mounts controllers against a fake DOM, simulates events, and asserts mutations.
 
 ## Architecture
 
-- **Faber source** (`src/main.fab`) defines three `@ WebController` functions.
+- **Faber source** (`src/main.fab`) defines four `@ WebController` functions.
 - Radix compiles each to TypeScript; faber product packaging invokes `tsc` to
   produce browser ESM and writes `controllers.json`.
 - The built ESM imports `{ dom }` from `"web:dom"` and `{ web }` from

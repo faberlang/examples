@@ -9,6 +9,8 @@
 // in tests, real document in a browser).
 
 let nextSubscriptionId = 1;
+let nextFrameRequestId = 1;
+const frameRequests = new Map();
 
 function scope(selector) {
   const doc = globalThis.document;
@@ -27,6 +29,27 @@ function require(sc, selector) {
 function rememberSubscription(dispose) {
   const id = nextSubscriptionId++;
   return { id, dispose };
+}
+
+function requestFrame(handler) {
+  const requestAnimationFrame =
+    globalThis.requestAnimationFrame ??
+    ((callback) => setTimeout(() => callback(Date.now()), 16));
+  const id = nextFrameRequestId++;
+  const nativeId = requestAnimationFrame((time) => {
+    frameRequests.delete(id);
+    handler(time);
+  });
+  frameRequests.set(id, nativeId);
+  return id;
+}
+
+function cancelFrame(id) {
+  if (!frameRequests.has(id)) return;
+  const nativeId = frameRequests.get(id);
+  frameRequests.delete(id);
+  const cancelAnimationFrame = globalThis.cancelAnimationFrame ?? clearTimeout;
+  cancelAnimationFrame(nativeId);
 }
 
 export const dom = {
@@ -55,6 +78,25 @@ export const dom = {
     return dom.on(form, "submit", (event) => {
       if (options?.prevent_default !== false) event.preventDefault();
       handler(form);
+    });
+  },
+  on_frame(handler) {
+    let active = true;
+    let frame = 0;
+    let previousTime = null;
+    let requestId = 0;
+    const step = (time) => {
+      if (!active) return;
+      const delta = previousTime === null ? 0 : time - previousTime;
+      previousTime = time;
+      frame += 1;
+      handler({ frame, time_ms: time, delta_ms: delta });
+      requestId = requestFrame(step);
+    };
+    requestId = requestFrame(step);
+    return rememberSubscription(() => {
+      active = false;
+      cancelFrame(requestId);
     });
   },
   prevent_default(event) { event.preventDefault(); return event; },

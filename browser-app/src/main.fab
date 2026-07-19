@@ -1,6 +1,6 @@
 # WEB5 browser application fixture.
 #
-# Three WebController functions proving click, input, and submit behavior
+# Four WebController functions proving click, input, submit, and frame behavior
 # from Faber-compiled ESM. The gate: a DOM harness observes mounts and
 # mutations from built ESM (dist/faber-esm/faber-browser.js).
 
@@ -61,4 +61,23 @@ functio submit_controller(dom.Scope scope) → vacuum {
     fixum dom.Element form ← dom.require(scope, ".submit-form")
     fixum dom.Element status ← dom.require(scope, ".submit-status")
     nota dom.on_submit(form, dom.SubmitOptions { prevent_default = verum }, (dom.Element el) → vacuum ∴ dom.text_set(status, "submitted"))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 4: Frame scheduling (#frame-demo)
+#
+# The controller returns its frame subscription so generated lifecycle disposal
+# can cancel future frame callbacks.
+# ---------------------------------------------------------------------------
+
+functio mark_frame(dom.Element status, dom.FrameState frame) → vacuum {
+    nota frame
+    dom.text_set(status, "frame-seen")
+    dom.class_add(status, "frame-active")
+}
+
+@ WebController { selector = "#frame-demo" }
+functio frame_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".frame-status")
+    redde dom.on_frame((dom.FrameState frame) → vacuum ∴ mark_frame(status, frame))
 }
