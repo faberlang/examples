@@ -132,6 +132,40 @@ export const dom = {
       primary: event.isPrimary ?? false,
     }));
   },
+  on_focus(el, eventName, handler) {
+    return dom.on(el, eventName, () => handler({ focused: globalThis.document.hasFocus() }));
+  },
+  pointer_lock_state(el) {
+    return pointerLockState(el, false);
+  },
+  request_pointer_lock(el) {
+    if (typeof el.requestPointerLock !== "function") {
+      return pointerLockState(el, true);
+    }
+    try {
+      el.requestPointerLock();
+    } catch {
+      return pointerLockState(el, true);
+    }
+    return pointerLockState(el, false);
+  },
+  exit_pointer_lock() {
+    if (typeof globalThis.document.exitPointerLock !== "function") {
+      return { supported: false, locked: false, denied: false, target_matches: false };
+    }
+    globalThis.document.exitPointerLock();
+    return { supported: true, locked: globalThis.document.pointerLockElement !== null, denied: false, target_matches: false };
+  },
+  on_pointer_lock(el, handler) {
+    const emit = () => handler(pointerLockState(el, false));
+    globalThis.document.addEventListener("pointerlockchange", emit);
+    globalThis.document.addEventListener("pointerlockerror", emit);
+    emit();
+    return rememberSubscription(() => {
+      globalThis.document.removeEventListener("pointerlockchange", emit);
+      globalThis.document.removeEventListener("pointerlockerror", emit);
+    });
+  },
   prevent_default(event) { event.preventDefault(); return event; },
   async fetch_text(request) {
     const response = await fetch(request.url, {
@@ -145,6 +179,19 @@ export const dom = {
     };
   },
 };
+
+function pointerLockState(el, denied) {
+  const supported =
+    typeof el.requestPointerLock === "function" &&
+    typeof globalThis.document.exitPointerLock === "function";
+  const lockedElement = globalThis.document.pointerLockElement;
+  return {
+    supported,
+    locked: lockedElement !== null,
+    denied,
+    target_matches: lockedElement === el,
+  };
+}
 
 export const web = {
   mount(selector) { return { selector }; },

@@ -51,6 +51,8 @@ export class FakeElement {
   #listeners = new Map();
   textContent = "";
   value = "";
+  focused = false;
+  pointerLockElement = null;
 
   constructor(tagName) {
     this.tagName = tagName;
@@ -122,6 +124,18 @@ export class FakeElement {
   // --- tree mutation ---
 
   appendChild(child) { this.children.push(child); return child; }
+
+  // --- document/browser API subset ---
+
+  hasFocus() { return this.focused; }
+
+  requestPointerLock() {
+    globalThis.document.pointerLockElement = this;
+  }
+
+  exitPointerLock() {
+    globalThis.document.pointerLockElement = null;
+  }
 }
 
 /** Build the fixture DOM tree mirroring pages/index.html. */
@@ -185,6 +199,24 @@ export function buildFixtureDom() {
   pointerSection.appendChild(el("h2", { text: "Pointer" }));
   pointerSection.appendChild(el("p", { class: "pointer-status", text: "pointer-pending" }));
   main.appendChild(pointerSection);
+
+  // --- #focus-demo ---
+  const focusSection = el("section", { id: "focus-demo" });
+  focusSection.appendChild(el("h2", { text: "Focus" }));
+  focusSection.appendChild(el("p", { class: "focus-status", text: "focus-pending" }));
+  main.appendChild(focusSection);
+
+  // --- #pointer-lock-request-demo ---
+  const lockRequestSection = el("section", { id: "pointer-lock-request-demo" });
+  lockRequestSection.appendChild(el("h2", { text: "Pointer Lock Request" }));
+  lockRequestSection.appendChild(el("p", { class: "pointer-lock-request-status", text: "lock-request-pending" }));
+  main.appendChild(lockRequestSection);
+
+  // --- #pointer-lock-state-demo ---
+  const lockStateSection = el("section", { id: "pointer-lock-state-demo" });
+  lockStateSection.appendChild(el("h2", { text: "Pointer Lock State" }));
+  lockStateSection.appendChild(el("p", { class: "pointer-lock-state-status", text: "lock-state-pending" }));
+  main.appendChild(lockStateSection);
 
   return root;
 }

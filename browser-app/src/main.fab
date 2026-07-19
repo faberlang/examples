@@ -1,8 +1,8 @@
 # WEB5 browser application fixture.
 #
-# Seven WebController functions proving click, input, submit, frame, resize,
-# keyboard, and pointer behavior from Faber-compiled ESM. The gate: a DOM
-# harness observes mounts and mutations from built ESM
+# Ten WebController functions proving click, input, submit, frame, resize,
+# keyboard, pointer, focus, and pointer-lock behavior from Faber-compiled ESM.
+# The gate: a DOM harness observes mounts and mutations from built ESM
 # (dist/faber-esm/faber-browser.js).
 
 importa ex "web:web" privata web
@@ -139,4 +139,55 @@ functio mark_pointer(dom.Element status, dom.PointerState pointer) → vacuum {
 functio pointer_controller(dom.Scope scope) → dom.Subscription {
     fixum dom.Element status ← dom.require(scope, ".pointer-status")
     redde dom.on_pointer(status, "pointermove", (dom.PointerState pointer) → vacuum ∴ mark_pointer(status, pointer))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 8: Focus delivery (#focus-demo)
+# ---------------------------------------------------------------------------
+
+functio mark_focus(dom.Element status, dom.FocusState focus) → vacuum {
+    si focus.focused {
+        dom.text_set(status, "focus-seen")
+        dom.class_add(status, "focus-active")
+    }
+}
+
+@ WebController { selector = "#focus-demo" }
+functio focus_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".focus-status")
+    redde dom.on_focus(status, "focus", (dom.FocusState focus) → vacuum ∴ mark_focus(status, focus))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 9: Pointer-lock request (#pointer-lock-request-demo)
+# ---------------------------------------------------------------------------
+
+functio mark_pointer_lock_request(dom.Element status, dom.PointerLockState state) → vacuum {
+    si state.locked {
+        dom.text_set(status, "lock-requested")
+        dom.class_add(status, "lock-active")
+    }
+}
+
+@ WebController { selector = "#pointer-lock-request-demo" }
+functio pointer_lock_request_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".pointer-lock-request-status")
+    redde dom.on(status, "click", (dom.DomEvent event) → vacuum ∴ mark_pointer_lock_request(status, dom.request_pointer_lock(status)))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 10: Pointer-lock state delivery (#pointer-lock-state-demo)
+# ---------------------------------------------------------------------------
+
+functio mark_pointer_lock_state(dom.Element status, dom.PointerLockState state) → vacuum {
+    si state.locked {
+        dom.text_set(status, "lock-state-seen")
+        dom.class_add(status, "lock-state-active")
+    }
+}
+
+@ WebController { selector = "#pointer-lock-state-demo" }
+functio pointer_lock_state_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".pointer-lock-state-status")
+    redde dom.on_pointer_lock(status, (dom.PointerLockState state) → vacuum ∴ mark_pointer_lock_state(status, state))
 }

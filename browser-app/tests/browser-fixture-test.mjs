@@ -41,13 +41,13 @@ globalThis.window.devicePixelRatio = 2;
 const esmUrl = new URL("../dist/faber-esm/faber-browser.js", import.meta.url).href;
 const { controllers, mountControllers } = await import(esmUrl);
 
-assert(controllers.length === 7, `expected 7 controllers, got ${controllers.length}`);
+assert(controllers.length === 10, `expected 10 controllers, got ${controllers.length}`);
 
 // ---------------------------------------------------------------------------
 // Mount each controller within its scoped root.
 // ---------------------------------------------------------------------------
 const runtime = mountControllers(globalThis.document);
-assert(runtime.mounts.length === 7, `expected 7 mounted controllers, got ${runtime.mounts.length}`);
+assert(runtime.mounts.length === 10, `expected 10 mounted controllers, got ${runtime.mounts.length}`);
 assert(runtime.failures.length === 0, `expected 0 controller failures, got ${runtime.failures.length}`);
 
 // ---------------------------------------------------------------------------
@@ -216,7 +216,43 @@ function testPointerLifecycle() {
 }
 
 // ---------------------------------------------------------------------------
-// Test 9: Generated disposal cancels frame scheduling and removes event
+// Test 9: Focus controller — document focus state reaches source-authored code.
+// ---------------------------------------------------------------------------
+function testFocusLifecycle() {
+  const section = dom.querySelector("#focus-demo");
+  const status = section.querySelector(".focus-status");
+
+  assert(status.textContent === "focus-pending", `focus: status starts pending, got "${status.textContent}"`);
+  globalThis.document.focused = true;
+  status.dispatchEvent(new FakeEvent("focus"));
+  assert(status.textContent === "focus-seen", `focus: status becomes focus-seen, got "${status.textContent}"`);
+  assert(status.classList.has("focus-active"), "focus: status gains focus-active class");
+}
+
+// ---------------------------------------------------------------------------
+// Test 10: Pointer-lock controllers — source code can request lock and receive
+// lock state events.
+// ---------------------------------------------------------------------------
+function testPointerLockLifecycle() {
+  const requestSection = dom.querySelector("#pointer-lock-request-demo");
+  const requestStatus = requestSection.querySelector(".pointer-lock-request-status");
+  const stateSection = dom.querySelector("#pointer-lock-state-demo");
+  const stateStatus = stateSection.querySelector(".pointer-lock-state-status");
+
+  assert(requestStatus.textContent === "lock-request-pending", `lock request: starts pending, got "${requestStatus.textContent}"`);
+  assert(stateStatus.textContent === "lock-state-pending", `lock state: starts pending, got "${stateStatus.textContent}"`);
+
+  requestStatus.dispatchEvent(new FakeEvent("click"));
+  assert(requestStatus.textContent === "lock-requested", `lock request: becomes lock-requested, got "${requestStatus.textContent}"`);
+  assert(requestStatus.classList.has("lock-active"), "lock request: gains lock-active class");
+
+  globalThis.document.dispatchEvent(new FakeEvent("pointerlockchange"));
+  assert(stateStatus.textContent === "lock-state-seen", `lock state: becomes lock-state-seen, got "${stateStatus.textContent}"`);
+  assert(stateStatus.classList.has("lock-state-active"), "lock state: gains lock-state-active class");
+}
+
+// ---------------------------------------------------------------------------
+// Test 11: Generated disposal cancels frame scheduling and removes event
 // listeners returned by source-authored controllers.
 // ---------------------------------------------------------------------------
 async function testGeneratedDispose() {
@@ -224,11 +260,15 @@ async function testGeneratedDispose() {
   const resizeStatus = dom.querySelector("#resize-demo").querySelector(".resize-status");
   const keyboardStatus = dom.querySelector("#keyboard-demo").querySelector(".keyboard-status");
   const pointerStatus = dom.querySelector("#pointer-demo").querySelector(".pointer-status");
+  const focusStatus = dom.querySelector("#focus-demo").querySelector(".focus-status");
+  const lockStateStatus = dom.querySelector("#pointer-lock-state-demo").querySelector(".pointer-lock-state-status");
 
   frameStatus.textContent = "frame-after-dispose";
   resizeStatus.textContent = "resize-after-dispose";
   keyboardStatus.textContent = "keyboard-after-dispose";
   pointerStatus.textContent = "pointer-after-dispose";
+  focusStatus.textContent = "focus-after-dispose";
+  lockStateStatus.textContent = "lock-after-dispose";
   runtime.dispose();
   await new Promise((resolve) => setTimeout(resolve, 35));
   assert(frameStatus.textContent === "frame-after-dispose", "dispose: cancels later frame callbacks");
@@ -242,6 +282,12 @@ async function testGeneratedDispose() {
 
   pointerStatus.dispatchEvent(new FakeEvent("pointermove", { movementX: 1, movementY: 1 }));
   assert(pointerStatus.textContent === "pointer-after-dispose", "dispose: removes pointer listener");
+
+  focusStatus.dispatchEvent(new FakeEvent("focus"));
+  assert(focusStatus.textContent === "focus-after-dispose", "dispose: removes focus listener");
+
+  globalThis.document.dispatchEvent(new FakeEvent("pointerlockchange"));
+  assert(lockStateStatus.textContent === "lock-after-dispose", "dispose: removes pointer-lock listener");
 }
 
 // ---------------------------------------------------------------------------
@@ -255,6 +301,8 @@ await testFrameLifecycle();
 testResizeLifecycle();
 testKeyboardLifecycle();
 testPointerLifecycle();
+testFocusLifecycle();
+testPointerLockLifecycle();
 await testGeneratedDispose();
 
 console.log(`\n${passed} passed, ${failed} failed`);
