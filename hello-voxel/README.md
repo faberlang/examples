@@ -18,4 +18,6 @@ cube, voxel world, input loop, or WebGPU execution.
 
 The script writes a local `faber.lock` that points `web` to the sibling
 `faber-web` package, builds the browser product, and checks the generated
-controller manifest.
+controller manifest. It also imports the generated browser ESM through a Node
+DOM harness and verifies that the generated lifecycle helper mounts the
+controller and updates the package status.

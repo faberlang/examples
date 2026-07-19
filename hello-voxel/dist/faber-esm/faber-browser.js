@@ -3,3 +3,53 @@ import { hello_voxel_controller as hello_voxel_controller } from "./main.js";
 export const controllers = [
     { name: "hello_voxel_controller", selector: "#hello-voxel-root", mount: hello_voxel_controller },
 ];
+function disposeCleanup(cleanup) {
+    if (Array.isArray(cleanup)) {
+        for (const item of cleanup) {
+            disposeCleanup(item);
+        }
+        return;
+    }
+    if (cleanup !== null &&
+        typeof cleanup === "object" &&
+        "dispose" in cleanup &&
+        typeof cleanup.dispose === "function") {
+        cleanup.dispose();
+    }
+}
+export function mountControllers(root = globalThis.document) {
+    const mounts = [];
+    const failures = [];
+    for (const controller of controllers) {
+        const element = root.querySelector(controller.selector);
+        if (element === null) {
+            failures.push({
+                name: controller.name,
+                selector: controller.selector,
+                error: new Error(`browser controller mount root not found: ${controller.selector}`),
+            });
+            continue;
+        }
+        try {
+            const cleanup = controller.mount({ root: element, selector: controller.selector });
+            mounts.push({
+                name: controller.name,
+                selector: controller.selector,
+                root: element,
+                cleanup,
+            });
+        }
+        catch (error) {
+            failures.push({ name: controller.name, selector: controller.selector, error });
+        }
+    }
+    return {
+        mounts,
+        failures,
+        dispose() {
+            for (let index = mounts.length - 1; index >= 0; index -= 1) {
+                disposeCleanup(mounts[index].cleanup);
+            }
+        },
+    };
+}
