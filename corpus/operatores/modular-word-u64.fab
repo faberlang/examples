@@ -30,6 +30,12 @@ incipit {
     nota max ⇒ 64
     nota max > zero
 
+    # Carrier-mix equality: conversions and arithmetic results compare by
+    # value against literals (review regression).
+    fixum modulus<u64> uno ← 1 ↦ modulus<u64>
+    nota one ≡ uno
+    nota one ≡ one + 0
+
     max ⊕
     zero ⊖
     nota max
