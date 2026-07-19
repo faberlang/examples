@@ -1,0 +1,14 @@
+
+[[package]]
+name = "web"
+version = "0.1.0"
+source = "path"
+package_root = "/Users/ianzepp/work/faberlang/faber-web"
+kind = "lib"
+target_language = "ts"
+target_triple = "browser"
+target_manifest = ""
+interface_root = "/Users/ianzepp/work/faberlang/faber-web/src"
+artifact = ""
+crate = "web"
+rustc = ""

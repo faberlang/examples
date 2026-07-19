@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "assets": [
+    { "kind": "template", "path": "pages/index.html", "size": 510, "sha256": "4b0add0abc7d3bab44610f9f6212bf59300bd62fc8b7d7463138b286dfb32c23" },
+    { "kind": "public", "path": "public/.gitkeep", "size": 1, "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b" },
+    { "kind": "style", "path": "styles/main.css", "size": 627, "sha256": "84f9009911984bce1fd91425340bf75717560ca1a3ecd760bff4b9b25344ebc7" }
+  ]
+}

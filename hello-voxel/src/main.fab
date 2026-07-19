@@ -1,0 +1,19 @@
+# Hello Voxel browser package scaffold.
+#
+# This controller records package admission state only. It must not create
+# geometry, shaders, WebGPU objects, or renderer policy. Later HV-03 work owns
+# frame and input events. Later HV-04 work owns the first indexed cube state.
+
+importa ex "web:web" privata web
+importa ex "web:dom" privata dom
+
+functio mark_ready(dom.Element status) → vacuum {
+    dom.text_set(status, "package-ready")
+    dom.class_add(status, "ready")
+}
+
+@ WebController { selector = "#hello-voxel-root" }
+functio hello_voxel_controller(dom.Scope scope) → vacuum {
+    fixum dom.Element status ← dom.require(scope, ".hv-status")
+    mark_ready(status)
+}

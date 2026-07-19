@@ -1,0 +1,23 @@
+[package]
+name = "hello-voxel"
+version = "0.1.0"
+edition = "2026"
+
+[paths]
+entry = "main.fab"
+
+[build]
+target = "ts"
+kind = "bin"
+
+[product]
+kind = "browser-app"
+emit = "typescript"
+out = "dist"
+templates = "pages"
+styles = "styles"
+public = "public"
+controllers_json = "controllers.json"
+
+[dependencies]
+web = "0.1.0"

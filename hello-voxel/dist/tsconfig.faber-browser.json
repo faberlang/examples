@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmitOnError": true,
+    "rootDir": "/Users/ianzepp/work/faberlang/examples/hello-voxel/dist/faber-ts",
+    "outDir": "/Users/ianzepp/work/faberlang/examples/hello-voxel/dist/faber-esm",
+    "skipLibCheck": true
+  },
+  "include": ["/Users/ianzepp/work/faberlang/examples/hello-voxel/dist/faber-ts/*.ts"]
+}

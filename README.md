@@ -7,6 +7,7 @@ Public Faber language corpus, named tracks, and application packages.
 ```text
 corpus/          Keyword / language reference (faber explain source)
 gpu-workload/    GPU systems workload rungs
+hello-voxel/     Direct WebGPU campaign application scaffold
 air/             AIR lane demos
 script-kernel/   faber:* script-kernel demos
 coreutils/       GNU coreutils reimplementation (application campaign)
