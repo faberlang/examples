@@ -1,8 +1,8 @@
 # WEB5 browser application fixture.
 #
-# Four WebController functions proving click, input, submit, and frame behavior
-# from Faber-compiled ESM. The gate: a DOM harness observes mounts and
-# mutations from built ESM (dist/faber-esm/faber-browser.js).
+# Five WebController functions proving click, input, submit, frame, and resize
+# behavior from Faber-compiled ESM. The gate: a DOM harness observes mounts
+# and mutations from built ESM (dist/faber-esm/faber-browser.js).
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
@@ -80,4 +80,23 @@ functio mark_frame(dom.Element status, dom.FrameState frame) → vacuum {
 functio frame_controller(dom.Scope scope) → dom.Subscription {
     fixum dom.Element status ← dom.require(scope, ".frame-status")
     redde dom.on_frame((dom.FrameState frame) → vacuum ∴ mark_frame(status, frame))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 5: Resize delivery (#resize-demo)
+#
+# The controller returns its resize subscription so generated lifecycle
+# disposal can remove the listener.
+# ---------------------------------------------------------------------------
+
+functio mark_resize(dom.Element status, dom.ResizeState resize) → vacuum {
+    nota resize
+    dom.text_set(status, "resize-seen")
+    dom.class_add(status, "resize-active")
+}
+
+@ WebController { selector = "#resize-demo" }
+functio resize_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".resize-status")
+    redde dom.on_resize((dom.ResizeState resize) → vacuum ∴ mark_resize(status, resize))
 }

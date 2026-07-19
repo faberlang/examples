@@ -99,6 +99,16 @@ export const dom = {
       cancelFrame(requestId);
     });
   },
+  on_resize(handler) {
+    const emit = () => handler({
+      width: globalThis.window?.innerWidth ?? 0,
+      height: globalThis.window?.innerHeight ?? 0,
+      device_pixel_ratio: globalThis.window?.devicePixelRatio ?? 1,
+    });
+    globalThis.window.addEventListener("resize", emit);
+    emit();
+    return rememberSubscription(() => globalThis.window.removeEventListener("resize", emit));
+  },
   prevent_default(event) { event.preventDefault(); return event; },
   async fetch_text(request) {
     const response = await fetch(request.url, {

@@ -7,7 +7,7 @@
 // Prerequisites:
 //   faber build --package .   (produces dist/faber-esm/faber-browser.js)
 
-import { buildFixtureDom, FakeEvent } from "./fake-dom.mjs";
+import { buildFixtureDom, FakeEvent, FakeEventTarget } from "./fake-dom.mjs";
 
 const FAIL = "\x1b[31mFAIL\x1b[0m";
 const PASS = "\x1b[32mPASS\x1b[0m";
@@ -30,6 +30,10 @@ function assert(condition, message) {
 // ---------------------------------------------------------------------------
 const dom = buildFixtureDom();
 globalThis.document = dom;
+globalThis.window = new FakeEventTarget();
+globalThis.window.innerWidth = 1280;
+globalThis.window.innerHeight = 720;
+globalThis.window.devicePixelRatio = 2;
 
 // ---------------------------------------------------------------------------
 // Import built ESM entry.
@@ -37,13 +41,13 @@ globalThis.document = dom;
 const esmUrl = new URL("../dist/faber-esm/faber-browser.js", import.meta.url).href;
 const { controllers, mountControllers } = await import(esmUrl);
 
-assert(controllers.length === 4, `expected 4 controllers, got ${controllers.length}`);
+assert(controllers.length === 5, `expected 5 controllers, got ${controllers.length}`);
 
 // ---------------------------------------------------------------------------
 // Mount each controller within its scoped root.
 // ---------------------------------------------------------------------------
 const runtime = mountControllers(globalThis.document);
-assert(runtime.mounts.length === 4, `expected 4 mounted controllers, got ${runtime.mounts.length}`);
+assert(runtime.mounts.length === 5, `expected 5 mounted controllers, got ${runtime.mounts.length}`);
 assert(runtime.failures.length === 0, `expected 0 controller failures, got ${runtime.failures.length}`);
 
 // ---------------------------------------------------------------------------
@@ -147,8 +151,7 @@ async function testFetch() {
 }
 
 // ---------------------------------------------------------------------------
-// Test 5: Frame controller — scheduled frame updates visible state and
-// generated lifecycle disposal cancels future frame callbacks.
+// Test 5: Frame controller — scheduled frame updates visible state.
 // ---------------------------------------------------------------------------
 async function testFrameLifecycle() {
   const section = dom.querySelector("#frame-demo");
@@ -159,11 +162,42 @@ async function testFrameLifecycle() {
   await new Promise((resolve) => setTimeout(resolve, 35));
   assert(status.textContent === "frame-seen", `frame: status becomes frame-seen, got "${status.textContent}"`);
   assert(status.classList.has("frame-active"), "frame: status gains frame-active class");
+}
 
-  status.textContent = "after-dispose";
+// ---------------------------------------------------------------------------
+// Test 6: Resize controller — initial and dispatched resize events update
+// visible state.
+// ---------------------------------------------------------------------------
+function testResizeLifecycle() {
+  const section = dom.querySelector("#resize-demo");
+  const status = section.querySelector(".resize-status");
+
+  assert(status.textContent === "resize-seen", `resize: initial emit updates status, got "${status.textContent}"`);
+  assert(status.classList.has("resize-active"), "resize: initial emit adds resize-active class");
+
+  status.textContent = "resize-waiting";
+  globalThis.window.innerWidth = 1440;
+  globalThis.window.dispatchEvent(new FakeEvent("resize"));
+  assert(status.textContent === "resize-seen", `resize: dispatch updates status, got "${status.textContent}"`);
+}
+
+// ---------------------------------------------------------------------------
+// Test 7: Generated disposal cancels frame scheduling and removes resize
+// listeners returned by source-authored controllers.
+// ---------------------------------------------------------------------------
+async function testGeneratedDispose() {
+  const frameStatus = dom.querySelector("#frame-demo").querySelector(".frame-status");
+  const resizeStatus = dom.querySelector("#resize-demo").querySelector(".resize-status");
+
+  frameStatus.textContent = "frame-after-dispose";
+  resizeStatus.textContent = "resize-after-dispose";
   runtime.dispose();
   await new Promise((resolve) => setTimeout(resolve, 35));
-  assert(status.textContent === "after-dispose", "frame: dispose cancels later frame callbacks");
+  assert(frameStatus.textContent === "frame-after-dispose", "dispose: cancels later frame callbacks");
+
+  globalThis.window.innerWidth = 1600;
+  globalThis.window.dispatchEvent(new FakeEvent("resize"));
+  assert(resizeStatus.textContent === "resize-after-dispose", "dispose: removes resize listener");
 }
 
 // ---------------------------------------------------------------------------
@@ -174,6 +208,8 @@ testFilter();
 testSubmit();
 await testFetch();
 await testFrameLifecycle();
+testResizeLifecycle();
+await testGeneratedDispose();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) {

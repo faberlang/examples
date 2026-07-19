@@ -24,6 +24,26 @@ export class FakeEvent {
   preventDefault() { this.defaultPrevented = true; }
 }
 
+export class FakeEventTarget {
+  #listeners = new Map();
+
+  addEventListener(type, handler) {
+    if (!this.#listeners.has(type)) this.#listeners.set(type, new Set());
+    this.#listeners.get(type).add(handler);
+  }
+
+  removeEventListener(type, handler) {
+    this.#listeners.get(type)?.delete(handler);
+  }
+
+  dispatchEvent(event) {
+    for (const handler of this.#listeners.get(event.type) ?? []) {
+      handler(event);
+    }
+    return !event.defaultPrevented;
+  }
+}
+
 export class FakeElement {
   children = [];
   #attributes = new Map();
@@ -146,6 +166,12 @@ export function buildFixtureDom() {
   frameSection.appendChild(el("h2", { text: "Frame" }));
   frameSection.appendChild(el("p", { class: "frame-status", text: "frame-pending" }));
   main.appendChild(frameSection);
+
+  // --- #resize-demo ---
+  const resizeSection = el("section", { id: "resize-demo" });
+  resizeSection.appendChild(el("h2", { text: "Resize" }));
+  resizeSection.appendChild(el("p", { class: "resize-status", text: "resize-pending" }));
+  main.appendChild(resizeSection);
 
   return root;
 }
