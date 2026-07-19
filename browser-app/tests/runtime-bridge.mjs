@@ -109,6 +109,29 @@ export const dom = {
     emit();
     return rememberSubscription(() => globalThis.window.removeEventListener("resize", emit));
   },
+  on_keyboard(el, eventName, handler) {
+    return dom.on(el, eventName, (event) => handler({
+      kind: event.type,
+      key: event.key ?? "",
+      code: event.code ?? "",
+      repeat: event.repeat ?? false,
+      alt: event.altKey ?? false,
+      ctrl: event.ctrlKey ?? false,
+      shift: event.shiftKey ?? false,
+      meta: event.metaKey ?? false,
+    }));
+  },
+  on_pointer(el, eventName, handler) {
+    return dom.on(el, eventName, (event) => handler({
+      kind: event.type,
+      x: event.clientX ?? 0,
+      y: event.clientY ?? 0,
+      movement_x: event.movementX ?? 0,
+      movement_y: event.movementY ?? 0,
+      button: event.button ?? 0,
+      primary: event.isPrimary ?? false,
+    }));
+  },
   prevent_default(event) { event.preventDefault(); return event; },
   async fetch_text(request) {
     const response = await fetch(request.url, {

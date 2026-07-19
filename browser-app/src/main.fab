@@ -1,8 +1,9 @@
 # WEB5 browser application fixture.
 #
-# Five WebController functions proving click, input, submit, frame, and resize
-# behavior from Faber-compiled ESM. The gate: a DOM harness observes mounts
-# and mutations from built ESM (dist/faber-esm/faber-browser.js).
+# Seven WebController functions proving click, input, submit, frame, resize,
+# keyboard, and pointer behavior from Faber-compiled ESM. The gate: a DOM
+# harness observes mounts and mutations from built ESM
+# (dist/faber-esm/faber-browser.js).
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
@@ -99,4 +100,43 @@ functio mark_resize(dom.Element status, dom.ResizeState resize) → vacuum {
 functio resize_controller(dom.Scope scope) → dom.Subscription {
     fixum dom.Element status ← dom.require(scope, ".resize-status")
     redde dom.on_resize((dom.ResizeState resize) → vacuum ∴ mark_resize(status, resize))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 6: Keyboard delivery (#keyboard-demo)
+#
+# The controller branches on physical key code to prove the keyboard contract
+# is not only key text.
+# ---------------------------------------------------------------------------
+
+functio mark_keyboard(dom.Element status, dom.KeyboardState key) → vacuum {
+    si key.code ≡ "KeyW" {
+        dom.text_set(status, "keyboard-code")
+        dom.class_add(status, "keyboard-active")
+    }
+}
+
+@ WebController { selector = "#keyboard-demo" }
+functio keyboard_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".keyboard-status")
+    redde dom.on_keyboard(status, "keydown", (dom.KeyboardState key) → vacuum ∴ mark_keyboard(status, key))
+}
+
+# ---------------------------------------------------------------------------
+# Controller 7: Pointer delivery (#pointer-demo)
+#
+# The controller observes pointer movement and button state through typed
+# pointer events.
+# ---------------------------------------------------------------------------
+
+functio mark_pointer(dom.Element status, dom.PointerState pointer) → vacuum {
+    nota pointer
+    dom.text_set(status, "pointer-seen")
+    dom.class_add(status, "pointer-active")
+}
+
+@ WebController { selector = "#pointer-demo" }
+functio pointer_controller(dom.Scope scope) → dom.Subscription {
+    fixum dom.Element status ← dom.require(scope, ".pointer-status")
+    redde dom.on_pointer(status, "pointermove", (dom.PointerState pointer) → vacuum ∴ mark_pointer(status, pointer))
 }

@@ -17,9 +17,10 @@ export class FakeClassList {
 }
 
 export class FakeEvent {
-  constructor(type) {
+  constructor(type, fields = {}) {
     this.type = type;
     this.defaultPrevented = false;
+    Object.assign(this, fields);
   }
   preventDefault() { this.defaultPrevented = true; }
 }
@@ -172,6 +173,18 @@ export function buildFixtureDom() {
   resizeSection.appendChild(el("h2", { text: "Resize" }));
   resizeSection.appendChild(el("p", { class: "resize-status", text: "resize-pending" }));
   main.appendChild(resizeSection);
+
+  // --- #keyboard-demo ---
+  const keyboardSection = el("section", { id: "keyboard-demo" });
+  keyboardSection.appendChild(el("h2", { text: "Keyboard" }));
+  keyboardSection.appendChild(el("p", { class: "keyboard-status", text: "keyboard-pending" }));
+  main.appendChild(keyboardSection);
+
+  // --- #pointer-demo ---
+  const pointerSection = el("section", { id: "pointer-demo" });
+  pointerSection.appendChild(el("h2", { text: "Pointer" }));
+  pointerSection.appendChild(el("p", { class: "pointer-status", text: "pointer-pending" }));
+  main.appendChild(pointerSection);
 
   return root;
 }

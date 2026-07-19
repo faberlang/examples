@@ -41,13 +41,13 @@ globalThis.window.devicePixelRatio = 2;
 const esmUrl = new URL("../dist/faber-esm/faber-browser.js", import.meta.url).href;
 const { controllers, mountControllers } = await import(esmUrl);
 
-assert(controllers.length === 5, `expected 5 controllers, got ${controllers.length}`);
+assert(controllers.length === 7, `expected 7 controllers, got ${controllers.length}`);
 
 // ---------------------------------------------------------------------------
 // Mount each controller within its scoped root.
 // ---------------------------------------------------------------------------
 const runtime = mountControllers(globalThis.document);
-assert(runtime.mounts.length === 5, `expected 5 mounted controllers, got ${runtime.mounts.length}`);
+assert(runtime.mounts.length === 7, `expected 7 mounted controllers, got ${runtime.mounts.length}`);
 assert(runtime.failures.length === 0, `expected 0 controller failures, got ${runtime.failures.length}`);
 
 // ---------------------------------------------------------------------------
@@ -182,15 +182,53 @@ function testResizeLifecycle() {
 }
 
 // ---------------------------------------------------------------------------
-// Test 7: Generated disposal cancels frame scheduling and removes resize
+// Test 7: Keyboard controller — physical key code drives visible state.
+// ---------------------------------------------------------------------------
+function testKeyboardLifecycle() {
+  const section = dom.querySelector("#keyboard-demo");
+  const status = section.querySelector(".keyboard-status");
+
+  assert(status.textContent === "keyboard-pending", `keyboard: status starts pending, got "${status.textContent}"`);
+  status.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW", repeat: false }));
+  assert(status.textContent === "keyboard-code", `keyboard: status becomes keyboard-code, got "${status.textContent}"`);
+  assert(status.classList.has("keyboard-active"), "keyboard: status gains keyboard-active class");
+}
+
+// ---------------------------------------------------------------------------
+// Test 8: Pointer controller — pointer movement and button event reaches
+// source-authored code.
+// ---------------------------------------------------------------------------
+function testPointerLifecycle() {
+  const section = dom.querySelector("#pointer-demo");
+  const status = section.querySelector(".pointer-status");
+
+  assert(status.textContent === "pointer-pending", `pointer: status starts pending, got "${status.textContent}"`);
+  status.dispatchEvent(new FakeEvent("pointermove", {
+    clientX: 32,
+    clientY: 48,
+    movementX: 5,
+    movementY: -3,
+    button: 0,
+    isPrimary: true,
+  }));
+  assert(status.textContent === "pointer-seen", `pointer: status becomes pointer-seen, got "${status.textContent}"`);
+  assert(status.classList.has("pointer-active"), "pointer: status gains pointer-active class");
+}
+
+// ---------------------------------------------------------------------------
+// Test 9: Generated disposal cancels frame scheduling and removes event
 // listeners returned by source-authored controllers.
 // ---------------------------------------------------------------------------
 async function testGeneratedDispose() {
   const frameStatus = dom.querySelector("#frame-demo").querySelector(".frame-status");
   const resizeStatus = dom.querySelector("#resize-demo").querySelector(".resize-status");
+  const keyboardStatus = dom.querySelector("#keyboard-demo").querySelector(".keyboard-status");
+  const pointerStatus = dom.querySelector("#pointer-demo").querySelector(".pointer-status");
 
   frameStatus.textContent = "frame-after-dispose";
   resizeStatus.textContent = "resize-after-dispose";
+  keyboardStatus.textContent = "keyboard-after-dispose";
+  pointerStatus.textContent = "pointer-after-dispose";
   runtime.dispose();
   await new Promise((resolve) => setTimeout(resolve, 35));
   assert(frameStatus.textContent === "frame-after-dispose", "dispose: cancels later frame callbacks");
@@ -198,6 +236,12 @@ async function testGeneratedDispose() {
   globalThis.window.innerWidth = 1600;
   globalThis.window.dispatchEvent(new FakeEvent("resize"));
   assert(resizeStatus.textContent === "resize-after-dispose", "dispose: removes resize listener");
+
+  keyboardStatus.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
+  assert(keyboardStatus.textContent === "keyboard-after-dispose", "dispose: removes keyboard listener");
+
+  pointerStatus.dispatchEvent(new FakeEvent("pointermove", { movementX: 1, movementY: 1 }));
+  assert(pointerStatus.textContent === "pointer-after-dispose", "dispose: removes pointer listener");
 }
 
 // ---------------------------------------------------------------------------
@@ -209,6 +253,8 @@ testSubmit();
 await testFetch();
 await testFrameLifecycle();
 testResizeLifecycle();
+testKeyboardLifecycle();
+testPointerLifecycle();
 await testGeneratedDispose();
 
 console.log(`\n${passed} passed, ${failed} failed`);
