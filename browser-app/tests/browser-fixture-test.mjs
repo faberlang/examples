@@ -35,18 +35,16 @@ globalThis.document = dom;
 // Import built ESM entry.
 // ---------------------------------------------------------------------------
 const esmUrl = new URL("../dist/faber-esm/faber-browser.js", import.meta.url).href;
-const { controllers } = await import(esmUrl);
+const { controllers, mountControllers } = await import(esmUrl);
 
 assert(controllers.length === 3, `expected 3 controllers, got ${controllers.length}`);
 
 // ---------------------------------------------------------------------------
 // Mount each controller within its scoped root.
 // ---------------------------------------------------------------------------
-for (const controller of controllers) {
-  const scope = globalThis.document.querySelector(controller.selector);
-  assert(scope !== null, `mount root ${controller.selector} exists in DOM`);
-  controller.mount({ root: scope, selector: controller.selector });
-}
+const runtime = mountControllers(globalThis.document);
+assert(runtime.mounts.length === 3, `expected 3 mounted controllers, got ${runtime.mounts.length}`);
+assert(runtime.failures.length === 0, `expected 0 controller failures, got ${runtime.failures.length}`);
 
 // ---------------------------------------------------------------------------
 // Test 1: Toggle controller — click toggles "active" class on label.
@@ -155,6 +153,7 @@ testToggle();
 testFilter();
 testSubmit();
 await testFetch();
+runtime.dispose();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) {
