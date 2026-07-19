@@ -53,4 +53,8 @@ incipit {
 
     fixum lista<modulus<u64>> words ← [one, max]
     nota words.accipe(1) vel (0 ∷ modulus<u64>)
+
+    varia lista<modulus<u64>> sorted ← [18446744073709551615, 3, 10, 2]
+    sorted.ordina()
+    nota sorted
 }
