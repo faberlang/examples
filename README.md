@@ -5,16 +5,24 @@ Public Faber language corpus, named tracks, and application packages.
 ## Layout
 
 ```text
-corpus/          Keyword / language reference (faber explain source)
-gpu-workload/    GPU systems workload rungs
-hello-voxel/     Direct WebGPU campaign application scaffold
-air/             AIR lane demos
-script-kernel/   faber:* script-kernel demos
-coreutils/       GNU coreutils reimplementation (application campaign)
-automation/      automation sketch packages
-reader-locale/   locale pack demos
-fixtures/        boundary fixtures used by tooling tests
-cista-lab/       package-store lab material
+corpus/            Keyword / language reference (faber explain source)
+gpu-workload/      GPU systems workload rungs
+hello-voxel/       Direct WebGPU campaign application scaffold
+browser-app/       Browser WEB5 application fixture (WebController ESM demos)
+conversio-matrix/  Type conversion matrix (conversion pair exempla)
+ai-workbench/      AI workbench evidence maps and oracle fixtures
+air/               AIR lane demos
+script-kernel/     faber:* script-kernel demos
+coreutils/         GNU coreutils reimplementation (application campaign)
+automation/        automation sketch packages
+reader-locale/     Locale pack demos
+vivilite/          ViviLite mailspace application
+sqlite/            SQLite runtime bindings
+arena-handle/      Arena handle exempla
+fixtures/          Boundary fixtures used by tooling tests
+cista-lab/         Package-store lab material
+scripta/           Check scripts and verifiers
+docs/              Factory campaign documentation
 ```
 
 Norma stdlib tours live in the sibling **`norma/exempla/`** tree, not here.
