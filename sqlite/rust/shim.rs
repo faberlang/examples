@@ -4,11 +4,11 @@ use rusqlite::{params_from_iter, Connection, Row};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
-pub fn exsequi(via: String, sql: String, params: Vec<Valor>) -> Result<Valor, String> {
+pub fn exsequi(via: String, sql: &str, params: Vec<Valor>) -> Result<Valor, String> {
     let connection = Connection::open(via).map_err(sqlite_error)?;
     let params = bind_values(params)?;
     let rows_changed = connection
-        .execute(&sql, params_from_iter(params))
+        .execute(sql, params_from_iter(params))
         .map_err(sqlite_error)?;
     let rows_changed = i64::try_from(rows_changed).map_err(|error| error.to_string())?;
     Ok(execution_effect(
@@ -52,9 +52,8 @@ fn read_batch_statement(statement: Valor) -> Result<(String, Vec<Value>), String
     let Valor::Tabula(mut fields) = statement else {
         return Err("SQLite batch statements must be valor tables".to_owned());
     };
-    let sql = match fields.remove("sql") {
-        Some(Valor::Textus(sql)) => sql,
-        _ => return Err("SQLite batch statement field 'sql' must be textus".to_owned()),
+    let Some(Valor::Textus(sql)) = fields.remove("sql") else {
+        return Err("SQLite batch statement field 'sql' must be textus".to_owned());
     };
     let params = match fields.remove("params") {
         Some(Valor::Lista(params)) => bind_values(params)?,
@@ -63,10 +62,10 @@ fn read_batch_statement(statement: Valor) -> Result<(String, Vec<Value>), String
     Ok((sql, params))
 }
 
-pub fn quaere(via: String, sql: String, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
+pub fn quaere(via: String, sql: &str, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
     let connection = Connection::open(via).map_err(sqlite_error)?;
     let params = bind_values(params)?;
-    let mut statement = connection.prepare(&sql).map_err(sqlite_error)?;
+    let mut statement = connection.prepare(sql).map_err(sqlite_error)?;
     let column_names = statement
         .column_names()
         .into_iter()
@@ -78,10 +77,10 @@ pub fn quaere(via: String, sql: String, params: Vec<Valor>) -> Result<Vec<Valor>
     rows.map(|row| row.map_err(sqlite_error)).collect()
 }
 
-pub fn scalar(via: String, sql: String, params: Vec<Valor>) -> Result<Option<Valor>, String> {
+pub fn scalar(via: String, sql: &str, params: Vec<Valor>) -> Result<Option<Valor>, String> {
     let connection = Connection::open(via).map_err(sqlite_error)?;
     let params = bind_values(params)?;
-    let mut statement = connection.prepare(&sql).map_err(sqlite_error)?;
+    let mut statement = connection.prepare(sql).map_err(sqlite_error)?;
     let mut rows = statement
         .query(params_from_iter(params))
         .map_err(sqlite_error)?;
@@ -148,6 +147,7 @@ fn parse_transaction_step(step: Valor, index: usize) -> Result<(String, Vec<Valo
     Ok((sql, params))
 }
 
+#[must_use] 
 pub fn sha256_hex(bytes: Vec<u8>) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }

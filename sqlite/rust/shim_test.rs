@@ -21,13 +21,13 @@ fn parameterized_write_query_and_scalar_round_trip() {
 
     exsequi(
         via.clone(),
-        "CREATE TABLE message (id INTEGER PRIMARY KEY, subject TEXT NOT NULL)".to_owned(),
+        "CREATE TABLE message (id INTEGER PRIMARY KEY, subject TEXT NOT NULL)",
         Vec::new(),
     )
     .expect("create table");
     let effect = exsequi(
         via.clone(),
-        "INSERT INTO message(subject) VALUES (?1)".to_owned(),
+        "INSERT INTO message(subject) VALUES (?1)",
         vec![Valor::Textus("salve".to_owned())],
     )
     .expect("insert row");
@@ -41,7 +41,7 @@ fn parameterized_write_query_and_scalar_round_trip() {
 
     let rows = quaere(
         via.clone(),
-        "SELECT id, subject FROM message WHERE subject = ?1".to_owned(),
+        "SELECT id, subject FROM message WHERE subject = ?1",
         vec![Valor::Textus("salve".to_owned())],
     )
     .expect("query row");
@@ -49,7 +49,7 @@ fn parameterized_write_query_and_scalar_round_trip() {
     assert_eq!(
         scalar(
             via,
-            "SELECT subject FROM message WHERE id = ?1".to_owned(),
+            "SELECT subject FROM message WHERE id = ?1",
             vec![Valor::Numerus(1)],
         )
         .expect("query scalar"),
@@ -63,7 +63,7 @@ fn parameterized_write_query_and_scalar_round_trip() {
 fn aggregate_parameters_fail_before_sql_execution() {
     let error = scalar(
         ":memory:".to_owned(),
-        "SELECT ?1".to_owned(),
+        "SELECT ?1",
         vec![Valor::Lista(Vec::new())],
     )
     .expect_err("aggregate parameter must fail");
@@ -88,7 +88,7 @@ fn batch_commits_all_statements_on_success() {
     let via = path.display().to_string();
     exsequi(
         via.clone(),
-        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)".to_owned(),
+        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)",
         Vec::new(),
     )
     .expect("create table");
@@ -104,7 +104,7 @@ fn batch_commits_all_statements_on_success() {
 
     assert_eq!(effects.len(), 2);
     assert_eq!(
-        scalar(via, "SELECT COUNT(*) FROM item".to_owned(), Vec::new()).expect("count rows"),
+        scalar(via, "SELECT COUNT(*) FROM item", Vec::new()).expect("count rows"),
         Some(Valor::Numerus(2))
     );
     std::fs::remove_file(path).expect("remove fixture database");
@@ -116,7 +116,7 @@ fn batch_rolls_back_every_statement_on_failure() {
     let via = path.display().to_string();
     exsequi(
         via.clone(),
-        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)".to_owned(),
+        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)",
         Vec::new(),
     )
     .expect("create table");
@@ -131,7 +131,7 @@ fn batch_rolls_back_every_statement_on_failure() {
     .expect_err("duplicate insert must fail the batch");
 
     assert_eq!(
-        scalar(via, "SELECT COUNT(*) FROM item".to_owned(), Vec::new()).expect("count rows"),
+        scalar(via, "SELECT COUNT(*) FROM item", Vec::new()).expect("count rows"),
         Some(Valor::Numerus(0))
     );
     std::fs::remove_file(path).expect("remove fixture database");
@@ -166,7 +166,7 @@ fn transaction_commits_all_steps() {
 
     exsequi(
         via.clone(),
-        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT NOT NULL)".to_owned(),
+        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT NOT NULL)",
         Vec::new(),
     )
     .expect("create");
@@ -192,7 +192,7 @@ fn transaction_commits_all_steps() {
             ("rows_changed".to_owned(), Valor::Numerus(2)),
         ]))
     );
-    let count = scalar(via, "SELECT COUNT(*) FROM item".to_owned(), Vec::new())
+    let count = scalar(via, "SELECT COUNT(*) FROM item", Vec::new())
         .expect("count")
         .expect("row");
     assert_eq!(count, Valor::Numerus(2));
@@ -210,7 +210,7 @@ fn transaction_rolls_back_on_step_error() {
 
     exsequi(
         via.clone(),
-        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)".to_owned(),
+        "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)",
         Vec::new(),
     )
     .expect("create");
@@ -232,7 +232,7 @@ fn transaction_rolls_back_on_step_error() {
     .expect_err("duplicate should fail");
     assert!(!err.is_empty());
 
-    let count = scalar(via, "SELECT COUNT(*) FROM item".to_owned(), Vec::new())
+    let count = scalar(via, "SELECT COUNT(*) FROM item", Vec::new())
         .expect("count")
         .expect("row");
     assert_eq!(
