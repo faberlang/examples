@@ -10,11 +10,11 @@ use std::collections::BTreeMap;
 ///
 /// Returns `Err` if the database cannot be opened, if parameter binding
 /// fails, or if SQL execution fails.
-pub fn exsequi(via: String, sql: &str, params: Vec<Valor>) -> Result<Valor, String> {
+pub fn exsequi(via: String, sql: String, params: Vec<Valor>) -> Result<Valor, String> {
     let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
     let rows_changed = connection
-        .execute(sql, params_from_iter(params))
+        .execute(&sql, params_from_iter(params))
         .map_err(|e| sqlite_error(&e))?;
     let rows_changed = i64::try_from(rows_changed).map_err(|error| error.to_string())?;
     Ok(execution_effect(
@@ -82,10 +82,10 @@ fn read_batch_statement(statement: Valor) -> Result<(String, Vec<Value>), String
 /// Returns `Err` if the database cannot be opened, if SQL preparation
 /// fails, if parameter binding fails, or if query execution or row
 /// reading fails.
-pub fn quaere(via: String, sql: &str, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
+pub fn quaere(via: String, sql: String, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
     let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
-    let mut statement = connection.prepare(sql).map_err(|e| sqlite_error(&e))?;
+    let mut statement = connection.prepare(&sql).map_err(|e| sqlite_error(&e))?;
     let column_names = statement
         .column_names()
         .into_iter()
@@ -104,10 +104,10 @@ pub fn quaere(via: String, sql: &str, params: Vec<Valor>) -> Result<Vec<Valor>, 
 /// Returns `Err` if the database cannot be opened, if SQL preparation
 /// fails, if parameter binding fails, or if query execution or value
 /// reading fails.
-pub fn scalar(via: String, sql: &str, params: Vec<Valor>) -> Result<Option<Valor>, String> {
+pub fn scalar(via: String, sql: String, params: Vec<Valor>) -> Result<Option<Valor>, String> {
     let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
-    let mut statement = connection.prepare(sql).map_err(|e| sqlite_error(&e))?;
+    let mut statement = connection.prepare(&sql).map_err(|e| sqlite_error(&e))?;
     let mut rows = statement
         .query(params_from_iter(params))
         .map_err(|e| sqlite_error(&e))?;
