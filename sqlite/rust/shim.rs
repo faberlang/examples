@@ -4,12 +4,18 @@ use rusqlite::{params_from_iter, Connection, Row};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
+/// Execute a single SQL statement with the given parameters.
+///
+/// # Errors
+///
+/// Returns `Err` if the database cannot be opened, if parameter binding
+/// fails, or if SQL execution fails.
 pub fn exsequi(via: String, sql: &str, params: Vec<Valor>) -> Result<Valor, String> {
-    let connection = Connection::open(via).map_err(sqlite_error)?;
+    let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
     let rows_changed = connection
         .execute(sql, params_from_iter(params))
-        .map_err(sqlite_error)?;
+        .map_err(|e| sqlite_error(&e))?;
     let rows_changed = i64::try_from(rows_changed).map_err(|error| error.to_string())?;
     Ok(execution_effect(
         rows_changed,
@@ -17,19 +23,26 @@ pub fn exsequi(via: String, sql: &str, params: Vec<Valor>) -> Result<Valor, Stri
     ))
 }
 
+/// Execute multiple SQL statements atomically within a single transaction.
+///
+/// # Errors
+///
+/// Returns `Err` if the database cannot be opened, if a statement is
+/// malformed, if parameter binding fails, if any SQL execution fails,
+/// or if the transaction cannot be committed.
 pub fn exsequi_batch(via: String, statements: Vec<Valor>) -> Result<Vec<Valor>, String> {
     let statements = statements
         .into_iter()
         .map(read_batch_statement)
         .collect::<Result<Vec<_>, _>>()?;
-    let mut connection = Connection::open(via).map_err(sqlite_error)?;
-    let transaction = connection.transaction().map_err(sqlite_error)?;
+    let mut connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
+    let transaction = connection.transaction().map_err(|e| sqlite_error(&e))?;
     let mut effects = Vec::with_capacity(statements.len());
 
     for (sql, params) in statements {
         let rows_changed = transaction
             .execute(&sql, params_from_iter(params))
-            .map_err(sqlite_error)?;
+            .map_err(|e| sqlite_error(&e))?;
         let rows_changed = i64::try_from(rows_changed).map_err(|error| error.to_string())?;
         effects.push(execution_effect(
             rows_changed,
@@ -37,7 +50,7 @@ pub fn exsequi_batch(via: String, statements: Vec<Valor>) -> Result<Vec<Valor>, 
         ));
     }
 
-    transaction.commit().map_err(sqlite_error)?;
+    transaction.commit().map_err(|e| sqlite_error(&e))?;
     Ok(effects)
 }
 
@@ -62,10 +75,17 @@ fn read_batch_statement(statement: Valor) -> Result<(String, Vec<Value>), String
     Ok((sql, params))
 }
 
+/// Query the database and return all matching rows as a vector of tabula values.
+///
+/// # Errors
+///
+/// Returns `Err` if the database cannot be opened, if SQL preparation
+/// fails, if parameter binding fails, or if query execution or row
+/// reading fails.
 pub fn quaere(via: String, sql: &str, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
-    let connection = Connection::open(via).map_err(sqlite_error)?;
+    let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
-    let mut statement = connection.prepare(sql).map_err(sqlite_error)?;
+    let mut statement = connection.prepare(sql).map_err(|e| sqlite_error(&e))?;
     let column_names = statement
         .column_names()
         .into_iter()
@@ -73,20 +93,27 @@ pub fn quaere(via: String, sql: &str, params: Vec<Valor>) -> Result<Vec<Valor>, 
         .collect::<Vec<_>>();
     let rows = statement
         .query_map(params_from_iter(params), |row| read_row(row, &column_names))
-        .map_err(sqlite_error)?;
-    rows.map(|row| row.map_err(sqlite_error)).collect()
+        .map_err(|e| sqlite_error(&e))?;
+    rows.map(|row| row.map_err(|e| sqlite_error(&e))).collect()
 }
 
+/// Execute a query and return the first column of the first row, or `None`.
+///
+/// # Errors
+///
+/// Returns `Err` if the database cannot be opened, if SQL preparation
+/// fails, if parameter binding fails, or if query execution or value
+/// reading fails.
 pub fn scalar(via: String, sql: &str, params: Vec<Valor>) -> Result<Option<Valor>, String> {
-    let connection = Connection::open(via).map_err(sqlite_error)?;
+    let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
-    let mut statement = connection.prepare(sql).map_err(sqlite_error)?;
+    let mut statement = connection.prepare(sql).map_err(|e| sqlite_error(&e))?;
     let mut rows = statement
         .query(params_from_iter(params))
-        .map_err(sqlite_error)?;
+        .map_err(|e| sqlite_error(&e))?;
     rows.next()
-        .map_err(sqlite_error)?
-        .map(|row| row.get_ref(0).map(read_value).map_err(sqlite_error))
+        .map_err(|e| sqlite_error(&e))?
+        .map(|row| row.get_ref(0).map(read_value).map_err(|e| sqlite_error(&e)))
         .transpose()
 }
 
@@ -96,21 +123,27 @@ pub fn scalar(via: String, sql: &str, params: Vec<Valor>) -> Result<Option<Valor
 ///
 /// On any error the whole transaction rolls back. Success returns a tabula
 /// `{ rows_changed, last_insert_id }` for the cumulative effect.
+///
+/// # Errors
+///
+/// Returns `Err` if the database cannot be opened, if a step is malformed,
+/// if parameter binding fails, if any SQL execution fails, or if the
+/// transaction cannot be committed.
 pub fn transactio(via: String, steps: Vec<Valor>) -> Result<Valor, String> {
-    let mut connection = Connection::open(via).map_err(sqlite_error)?;
-    let tx = connection.transaction().map_err(sqlite_error)?;
+    let mut connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
+    let tx = connection.transaction().map_err(|e| sqlite_error(&e))?;
     let mut rows_changed_total: i64 = 0;
     for (index, step) in steps.into_iter().enumerate() {
         let (sql, params) = parse_transaction_step(step, index)?;
         let params = bind_values(params)?;
         let changed = tx
             .execute(&sql, params_from_iter(params))
-            .map_err(sqlite_error)?;
+            .map_err(|e| sqlite_error(&e))?;
         let changed = i64::try_from(changed).map_err(|error| error.to_string())?;
         rows_changed_total = rows_changed_total.saturating_add(changed);
     }
     let last_insert_id = tx.last_insert_rowid();
-    tx.commit().map_err(sqlite_error)?;
+    tx.commit().map_err(|e| sqlite_error(&e))?;
     Ok(Valor::Tabula(BTreeMap::from([
         (
             "rows_changed".to_owned(),
@@ -189,7 +222,7 @@ fn read_value(value: ValueRef<'_>) -> Valor {
     }
 }
 
-fn sqlite_error(error: rusqlite::Error) -> String {
+fn sqlite_error(error: &rusqlite::Error) -> String {
     error.to_string()
 }
 
