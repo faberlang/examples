@@ -1,5 +1,5 @@
 +++
-term = "∴"
+term = "ergo"
 kind = "operator-group"
 category = "control-flow"
 canonical = true

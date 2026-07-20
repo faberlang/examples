@@ -1427,7 +1427,7 @@ phase = 4
 action = "new"
 rule = "operator-group"
 primary = "operatores/control.fab"
-paths = ["operatores/control.fab", "si/ergo-redde.fab", "si/ergo.fab"]
+paths = ["operatores/control.fab"]
 
 [[files]]
 path = "ab/ab.fab"
@@ -2597,7 +2597,7 @@ category = "comparison"
 
 [[files]]
 path = "operatores/control.fab"
-term = "∴"
+term = "ergo"
 kind = "operator-group"
 category = "control-flow"
 
@@ -2855,13 +2855,13 @@ category = "control-flow"
 
 [[files]]
 path = "si/ergo-redde.fab"
-term = "∴"
+term = "ergo"
 kind = "operator-group"
 category = "control-flow"
 
 [[files]]
 path = "si/ergo.fab"
-term = "∴"
+term = "ergo"
 kind = "operator-group"
 category = "control-flow"
 
