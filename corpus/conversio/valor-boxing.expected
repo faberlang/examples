@@ -1,4 +1,4 @@
-Numerus(42)
+42
 Lista([Numerus(222), Numerus(173)])
 Lista([Numerus(1), Numerus(2)])
 Tabula({"alpha": Numerus(10)})
