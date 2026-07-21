@@ -10,6 +10,7 @@
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
+importa ex "triga:scene" privata scene
 
 # =========================================================================
 # TYPES
@@ -321,4 +322,380 @@ functio chunk_mesh_face_winding_matches(
     redde winding.x ≡ expected_normal!.x
         et winding.y ≡ expected_normal!.y
         et winding.z ≡ expected_normal!.z
+}
+
+# =========================================================================
+# HV-07A: LOGICAL CHUNK IDS AND RESOURCE GENERATION
+#
+# Stable logical id = chunk_index. ResourceHandle.index is that id.
+# Generation advances only when derived mesh resources change:
+#   empty → empty:    unchanged (no live resource)
+#   empty → non-empty: created at generation 0
+#   non-empty → empty: removed (previous retired; no current)
+#   non-empty → non-empty with same face_count: unchanged
+#   non-empty → non-empty with different face_count: replaced (gen + 1)
+# Dirty drain remeshes each marked chunk once; no GPU effects here.
+# =========================================================================
+
+genus ChunkResourceState {
+    # Logical identity is handle.index (chunk_index). generation is replaceable.
+    scene.ResourceHandle handle
+    bivalens live
+    numerus face_count
+}
+
+genus ChunkResourceTable {
+    lista<ChunkResourceState> chunks
+}
+
+genus ChunkResourceApply {
+    ChunkResourceState state
+    scene.ResourceLifecycleTransition transition
+}
+
+genus DirtyRemeshResult {
+    voxel.DirtySet dirty
+    ChunkResourceTable resources
+    lista<scene.ResourceLifecycleTransition> transitions
+    lista<numerus> remeshed
+}
+
+functio chunk_logical_handle(numerus chunk_index) → scene.ResourceHandle ∪ nihil {
+    si chunk_index < 0 aut chunk_index ≥ voxel.chunk_count() {
+        redde nihil
+    }
+    redde scene.ResourceHandle {
+        index = chunk_index,
+        generation = 0
+    }
+}
+
+functio empty_chunk_resource(numerus chunk_index) → ChunkResourceState ∪ nihil {
+    fixum scene.ResourceHandle ∪ nihil handle ← chunk_logical_handle(chunk_index)
+    si handle est nihil {
+        redde nihil
+    }
+    redde ChunkResourceState {
+        handle = scene.ResourceHandle {
+            index = handle!.index,
+            generation = handle!.generation
+        },
+        live = falsum,
+        face_count = 0
+    }
+}
+
+functio empty_chunk_resource_table() → ChunkResourceTable {
+    varia lista<ChunkResourceState> chunks ← vacua
+    varia numerus i ← 0
+    dum i < voxel.chunk_count() {
+        fixum ChunkResourceState ∪ nihil state ← empty_chunk_resource(i)
+        si state non est nihil {
+            chunks.appende(ChunkResourceState {
+                handle = scene.ResourceHandle {
+                    index = state!.handle.index,
+                    generation = state!.handle.generation
+                },
+                live = state!.live,
+                face_count = state!.face_count
+            })
+        }
+        i ← i + 1
+    }
+    redde ChunkResourceTable { chunks = chunks }
+}
+
+functio chunk_resource_table_valid(de ChunkResourceTable table) → bivalens {
+    si table.chunks.longitudo() ≠ voxel.chunk_count() {
+        redde falsum
+    }
+    varia numerus i ← 0
+    dum i < table.chunks.longitudo() {
+        fixum ChunkResourceState state ← table.chunks[i]
+        si state.handle.index ≠ i {
+            redde falsum
+        }
+        si state.live ≡ falsum et state.face_count ≠ 0 {
+            redde falsum
+        }
+        si state.live et state.face_count ≡ 0 {
+            redde falsum
+        }
+        i ← i + 1
+    }
+    redde verum
+}
+
+# Apply one remesh result to a chunk resource: generation only on derived change.
+functio apply_chunk_mesh_resource(
+    de ChunkResourceState state,
+    de ChunkMesh mesh
+) → ChunkResourceApply ∪ nihil {
+    si state.handle.index < 0 aut state.handle.index ≥ voxel.chunk_count() {
+        redde nihil
+    }
+    fixum numerus faces ← mesh.face_count
+    si faces ≡ 0 {
+        si state.live {
+            fixum scene.ResourceHandle previous ← scene.ResourceHandle {
+                index = state.handle.index,
+                generation = state.handle.generation
+            }
+            redde ChunkResourceApply {
+                state = ChunkResourceState {
+                    handle = previous,
+                    live = falsum,
+                    face_count = 0
+                },
+                transition = scene.resource_lifecycle_removed(previous)
+            }
+        }
+        # Still empty: no live resource, generation stable.
+        fixum scene.ResourceHandle stable ← scene.ResourceHandle {
+            index = state.handle.index,
+            generation = state.handle.generation
+        }
+        redde ChunkResourceApply {
+            state = ChunkResourceState {
+                handle = stable,
+                live = falsum,
+                face_count = 0
+            },
+            transition = scene.ResourceLifecycleTransition {
+                logical_index = stable.index,
+                previous = stable,
+                current = stable,
+                changed = falsum,
+                removed = falsum
+            }
+        }
+    }
+
+    # Non-empty remesh.
+    si state.live ≡ falsum {
+        fixum scene.ResourceHandle created ← scene.ResourceHandle {
+            index = state.handle.index,
+            generation = state.handle.generation
+        }
+        redde ChunkResourceApply {
+            state = ChunkResourceState {
+                handle = created,
+                live = verum,
+                face_count = faces
+            },
+            transition = scene.resource_lifecycle_created(created)
+        }
+    }
+
+    si faces ≡ state.face_count {
+        fixum scene.ResourceHandle stable ← scene.ResourceHandle {
+            index = state.handle.index,
+            generation = state.handle.generation
+        }
+        redde ChunkResourceApply {
+            state = ChunkResourceState {
+                handle = stable,
+                live = verum,
+                face_count = faces
+            },
+            transition = scene.resource_lifecycle_unchanged(stable)
+        }
+    }
+
+    fixum scene.ResourceHandle previous ← scene.ResourceHandle {
+        index = state.handle.index,
+        generation = state.handle.generation
+    }
+    fixum scene.ResourceLifecycleTransition replaced ←
+        scene.resource_lifecycle_replaced(previous)
+    fixum scene.ResourceHandle current ← scene.ResourceHandle {
+        index = previous.index,
+        generation = previous.generation + 1
+    }
+    redde ChunkResourceApply {
+        state = ChunkResourceState {
+            handle = current,
+            live = verum,
+            face_count = faces
+        },
+        transition = replaced
+    }
+}
+
+functio _table_with_state(
+    de ChunkResourceTable table,
+    numerus chunk_index,
+    de ChunkResourceState state
+) → ChunkResourceTable ∪ nihil {
+    si chunk_resource_table_valid(table) ≡ falsum {
+        redde nihil
+    }
+    si chunk_index < 0 aut chunk_index ≥ table.chunks.longitudo() {
+        redde nihil
+    }
+    varia lista<ChunkResourceState> chunks ← vacua
+    varia numerus i ← 0
+    dum i < table.chunks.longitudo() {
+        si i ≡ chunk_index {
+            chunks.appende(ChunkResourceState {
+                handle = scene.ResourceHandle {
+                    index = state.handle.index,
+                    generation = state.handle.generation
+                },
+                live = state.live,
+                face_count = state.face_count
+            })
+        } secus {
+            fixum ChunkResourceState existing ← table.chunks[i]
+            chunks.appende(ChunkResourceState {
+                handle = scene.ResourceHandle {
+                    index = existing.handle.index,
+                    generation = existing.handle.generation
+                },
+                live = existing.live,
+                face_count = existing.face_count
+            })
+        }
+        i ← i + 1
+    }
+    redde ChunkResourceTable { chunks = chunks }
+}
+
+# Drain dirty set, remesh each marked chunk once, apply generation transitions.
+functio remesh_dirty_chunks(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    de ChunkResourceTable resources
+) → DirtyRemeshResult ∪ nihil {
+    si voxel.world_valid(world) ≡ falsum {
+        redde nihil
+    }
+    si voxel.dirty_valid(dirty) ≡ falsum {
+        redde nihil
+    }
+    si chunk_resource_table_valid(resources) ≡ falsum {
+        redde nihil
+    }
+
+    fixum voxel.DirtyDrain ∪ nihil drained ← voxel.dirty_drain(dirty)
+    si drained est nihil {
+        redde nihil
+    }
+
+    varia ChunkResourceTable table ← ChunkResourceTable { chunks = resources.chunks }
+    varia lista<scene.ResourceLifecycleTransition> transitions ← vacua
+    varia lista<numerus> remeshed ← vacua
+    varia numerus i ← 0
+    dum i < drained!.chunks.longitudo() {
+        fixum numerus chunk_index ← drained!.chunks[i]
+        fixum voxel.Chunk chunk ← world.chunks[chunk_index]
+        fixum ChunkMesh ∪ nihil mesh_result ← mesh_chunk(world, chunk.cx, chunk.cz)
+        si mesh_result est nihil {
+            redde nihil
+        }
+        fixum ChunkMesh mesh ← ChunkMesh {
+            cx = mesh_result!.cx,
+            cz = mesh_result!.cz,
+            face_count = mesh_result!.face_count,
+            positions = mesh_result!.positions,
+            colors = mesh_result!.colors,
+            indices = mesh_result!.indices
+        }
+        fixum ChunkResourceState prior ← table.chunks[chunk_index]
+        fixum ChunkResourceApply ∪ nihil applied ← apply_chunk_mesh_resource(prior, mesh)
+        si applied est nihil {
+            redde nihil
+        }
+        fixum ChunkResourceTable ∪ nihil next_table ← _table_with_state(
+            table,
+            chunk_index,
+            applied!.state
+        )
+        si next_table est nihil {
+            redde nihil
+        }
+        table ← ChunkResourceTable { chunks = next_table!.chunks }
+        transitions.appende(applied!.transition)
+        remeshed.appende(chunk_index)
+        i ← i + 1
+    }
+
+    redde DirtyRemeshResult {
+        dirty = voxel.DirtySet { flags = drained!.dirty.flags },
+        resources = table,
+        transitions = transitions,
+        remeshed = remeshed
+    }
+}
+
+# Full four-chunk lifecycle batch: remeshed transitions + unchanged for the rest.
+functio resource_lifecycle_batch_for_table(
+    de ChunkResourceTable before,
+    de DirtyRemeshResult remesh
+) → lista<scene.ResourceLifecycleTransition> ∪ nihil {
+    si chunk_resource_table_valid(before) ≡ falsum {
+        redde nihil
+    }
+    si chunk_resource_table_valid(remesh.resources) ≡ falsum {
+        redde nihil
+    }
+    varia lista<scene.ResourceLifecycleTransition> batch ← vacua
+    varia numerus i ← 0
+    dum i < voxel.chunk_count() {
+        # Prefer the remesh transition when this logical id was remeshed.
+        varia bivalens found ← falsum
+        varia numerus j ← 0
+        dum j < remesh.remeshed.longitudo() {
+            si remesh.remeshed[j] ≡ i {
+                batch.appende(remesh.transitions[j])
+                found ← verum
+            }
+            j ← j + 1
+        }
+        si found ≡ falsum {
+            fixum ChunkResourceState prior ← before.chunks[i]
+            fixum scene.ResourceHandle handle ← scene.ResourceHandle {
+                index = prior.handle.index,
+                generation = prior.handle.generation
+            }
+            si prior.live {
+                batch.appende(scene.resource_lifecycle_unchanged(handle))
+            } secus {
+                # No live resource: synthetic unchanged with no previous/current would
+                # be invalid. Use a stable zero-generation handle pair for identity.
+                batch.appende(scene.ResourceLifecycleTransition {
+                    logical_index = handle.index,
+                    previous = handle,
+                    current = handle,
+                    changed = falsum,
+                    removed = falsum
+                })
+            }
+        }
+        i ← i + 1
+    }
+    si scene.resource_lifecycles_valid(batch) ≡ falsum {
+        redde nihil
+    }
+    redde batch
+}
+
+functio chunk_generation(de ChunkResourceTable table, numerus chunk_index) → numerus ∪ nihil {
+    si chunk_resource_table_valid(table) ≡ falsum {
+        redde nihil
+    }
+    si chunk_index < 0 aut chunk_index ≥ table.chunks.longitudo() {
+        redde nihil
+    }
+    redde table.chunks[chunk_index].handle.generation
+}
+
+functio chunk_is_live(de ChunkResourceTable table, numerus chunk_index) → bivalens {
+    si chunk_resource_table_valid(table) ≡ falsum {
+        redde falsum
+    }
+    si chunk_index < 0 aut chunk_index ≥ table.chunks.longitudo() {
+        redde falsum
+    }
+    redde table.chunks[chunk_index].live
 }

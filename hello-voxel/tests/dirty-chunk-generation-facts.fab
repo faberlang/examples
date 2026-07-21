@@ -1,0 +1,520 @@
+# HV-07A focused facts: affected sets, dirty drain, dedupe, no-op, generations.
+#
+# Run (from package root):
+#   faber run --compile tests/dirty-chunk-generation-facts.fab
+#   # or: tests/run-hv07a.sh
+
+importa ex "../src/voxel" privata voxel
+importa ex "../src/meshing" privata meshing
+importa ex "triga:scene" privata scene
+
+functio set_solid(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    numerus x,
+    numerus y,
+    numerus z
+) → voxel.WorldEdit ∪ nihil {
+    redde voxel.world_set_dirty(world, dirty, x, y, z, voxel.block_solid())
+}
+
+functio set_air(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    numerus x,
+    numerus y,
+    numerus z
+) → voxel.WorldEdit ∪ nihil {
+    redde voxel.world_set_dirty(world, dirty, x, y, z, voxel.block_air())
+}
+
+incipit {
+    # ------------------------------------------------------------------
+    # Logical ids and empty dirty/resource tables
+    # ------------------------------------------------------------------
+    adfirma (voxel.logical_chunk_id(0, 0) vel 9) ≡ 0,
+        "chunk (0,0) logical id is 0"
+    adfirma (voxel.logical_chunk_id(1, 0) vel 9) ≡ 1,
+        "chunk (1,0) logical id is 1"
+    adfirma (voxel.logical_chunk_id(0, 1) vel 9) ≡ 2,
+        "chunk (0,1) logical id is 2"
+    adfirma (voxel.logical_chunk_id(1, 1) vel 9) ≡ 3,
+        "chunk (1,1) logical id is 3"
+
+    fixum voxel.DirtySet empty_dirty ← voxel.dirty_empty()
+    adfirma voxel.dirty_valid(empty_dirty),
+        "empty dirty set is valid"
+    adfirma voxel.dirty_count(empty_dirty) ≡ 0,
+        "empty dirty set has zero marks"
+    adfirma voxel.dirty_contains(empty_dirty, 0) ≡ falsum,
+        "empty dirty set contains nothing"
+
+    fixum meshing.ChunkResourceTable empty_resources ← meshing.empty_chunk_resource_table()
+    adfirma meshing.chunk_resource_table_valid(empty_resources),
+        "empty resource table is valid"
+    adfirma (meshing.chunk_generation(empty_resources, 0) vel 9) ≡ 0,
+        "fresh chunk 0 generation is 0"
+    adfirma meshing.chunk_is_live(empty_resources, 0) ≡ falsum,
+        "fresh chunk 0 is not live"
+
+    # ------------------------------------------------------------------
+    # Interior edit → owning chunk only
+    # ------------------------------------------------------------------
+    fixum lista<numerus> ∪ nihil interior ← voxel.affected_chunk_indices(8, 1, 8)
+    adfirma interior non est nihil,
+        "interior cell has an affected set"
+    adfirma voxel.indices_equal(interior vel [], [0]),
+        "interior edit dirties only owning chunk 0"
+
+    fixum lista<numerus> ∪ nihil interior_c1 ← voxel.affected_chunk_indices(24, 2, 8)
+    adfirma interior_c1 non est nihil,
+        "interior of chunk 1 has an affected set"
+    adfirma voxel.indices_equal(interior_c1 vel [], [1]),
+        "interior of chunk 1 dirties only chunk 1"
+
+    fixum lista<numerus> ∪ nihil y0 ← voxel.affected_chunk_indices(8, 0, 8)
+    fixum lista<numerus> ∪ nihil y15 ← voxel.affected_chunk_indices(8, 15, 8)
+    adfirma y0 non est nihil,
+        "Y=0 cell has an affected set"
+    adfirma voxel.indices_equal(y0 vel [], [0]),
+        "Y=0 does not add a vertical neighbor chunk"
+    adfirma y15 non est nihil,
+        "Y=15 cell has an affected set"
+    adfirma voxel.indices_equal(y15 vel [], [0]),
+        "Y=15 does not add a vertical neighbor chunk"
+
+    # ------------------------------------------------------------------
+    # Four X/Z edges of chunk (0,0)
+    # ------------------------------------------------------------------
+    fixum lista<numerus> ∪ nihil west_world ← voxel.affected_chunk_indices(0, 1, 8)
+    adfirma west_world non est nihil,
+        "world west boundary has an affected set"
+    adfirma voxel.indices_equal(west_world vel [], [0]),
+        "world west boundary has no -X neighbor chunk"
+
+    fixum lista<numerus> ∪ nihil east_edge ← voxel.affected_chunk_indices(15, 1, 8)
+    adfirma east_edge non est nihil,
+        "east edge has an affected set"
+    adfirma voxel.indices_equal(east_edge vel [], [0, 1]),
+        "east edge of chunk 0 dirties 0 and 1"
+
+    fixum lista<numerus> ∪ nihil north_world ← voxel.affected_chunk_indices(8, 1, 0)
+    adfirma north_world non est nihil,
+        "world north boundary has an affected set"
+    adfirma voxel.indices_equal(north_world vel [], [0]),
+        "world north boundary has no -Z neighbor chunk"
+
+    fixum lista<numerus> ∪ nihil south_edge ← voxel.affected_chunk_indices(8, 1, 15)
+    adfirma south_edge non est nihil,
+        "south edge has an affected set"
+    adfirma voxel.indices_equal(south_edge vel [], [0, 2]),
+        "south edge of chunk 0 dirties 0 and 2"
+
+    fixum lista<numerus> ∪ nihil west_of_1 ← voxel.affected_chunk_indices(16, 1, 8)
+    adfirma west_of_1 non est nihil,
+        "west edge of chunk 1 has an affected set"
+    adfirma voxel.indices_equal(west_of_1 vel [], [0, 1]),
+        "west edge of chunk 1 dirties 0 and 1"
+
+    fixum lista<numerus> ∪ nihil north_of_2 ← voxel.affected_chunk_indices(8, 1, 16)
+    adfirma north_of_2 non est nihil,
+        "north edge of chunk 2 has an affected set"
+    adfirma voxel.indices_equal(north_of_2 vel [], [0, 2]),
+        "north edge of chunk 2 dirties 0 and 2"
+
+    # ------------------------------------------------------------------
+    # Corners: both axis neighbors, never the diagonal alone as fourth
+    # ------------------------------------------------------------------
+    fixum lista<numerus> ∪ nihil se_corner ← voxel.affected_chunk_indices(15, 1, 15)
+    adfirma se_corner non est nihil,
+        "SE corner of chunk 0 has an affected set"
+    adfirma voxel.indices_equal(se_corner vel [], [0, 1, 2]),
+        "SE corner of chunk 0 dirties 0,1,2 not diagonal 3"
+
+    fixum lista<numerus> ∪ nihil nw_c3 ← voxel.affected_chunk_indices(16, 1, 16)
+    adfirma nw_c3 non est nihil,
+        "NW corner of chunk 3 has an affected set"
+    adfirma voxel.indices_equal(nw_c3 vel [], [1, 2, 3]),
+        "NW corner of chunk 3 dirties 1,2,3 not diagonal 0"
+
+    fixum lista<numerus> ∪ nihil world_origin_corner ← voxel.affected_chunk_indices(0, 0, 0)
+    adfirma world_origin_corner non est nihil,
+        "world origin corner has an affected set"
+    adfirma voxel.indices_equal(world_origin_corner vel [], [0]),
+        "world origin corner has no out-of-world neighbors"
+
+    fixum lista<numerus> ∪ nihil far_corner ← voxel.affected_chunk_indices(31, 1, 31)
+    adfirma far_corner non est nihil,
+        "far world corner has an affected set"
+    adfirma voxel.indices_equal(far_corner vel [], [3]),
+        "far world corner dirties only chunk 3"
+
+    # ------------------------------------------------------------------
+    # Same-frame dedupe: repeated marks / multi-edit collapse
+    # ------------------------------------------------------------------
+    varia voxel.DirtySet dirty ← voxel.dirty_empty()
+    fixum voxel.DirtySet ∪ nihil m1 ← voxel.dirty_mark(dirty, 0)
+    adfirma m1 non est nihil,
+        "first mark of chunk 0 succeeds"
+    dirty ← voxel.DirtySet { flags = m1!.flags }
+    fixum voxel.DirtySet ∪ nihil m2 ← voxel.dirty_mark(dirty, 0)
+    adfirma m2 non est nihil,
+        "second mark of chunk 0 succeeds"
+    dirty ← voxel.DirtySet { flags = m2!.flags }
+    fixum voxel.DirtySet ∪ nihil m3 ← voxel.dirty_mark(dirty, 1)
+    adfirma m3 non est nihil,
+        "mark of chunk 1 succeeds"
+    dirty ← voxel.DirtySet { flags = m3!.flags }
+    fixum voxel.DirtySet ∪ nihil m4 ← voxel.dirty_mark(dirty, 0)
+    adfirma m4 non est nihil,
+        "third mark of chunk 0 succeeds"
+    dirty ← voxel.DirtySet { flags = m4!.flags }
+    adfirma voxel.dirty_count(dirty) ≡ 2,
+        "same-frame repeated marks dedupe to unique chunks"
+    adfirma voxel.dirty_matches_indices(dirty, [0, 1]),
+        "deduped dirty set is sorted unique [0,1]"
+
+    varia voxel.World world ← voxel.empty_world()
+    dirty ← voxel.dirty_empty()
+    fixum voxel.WorldEdit ∪ nihil e1 ← set_solid(world, dirty, 4, 1, 4)
+    adfirma e1 non est nihil et e1!.changed,
+        "first interior place changes world"
+    world ← voxel.World { chunks = e1!.world.chunks }
+    dirty ← voxel.DirtySet { flags = e1!.dirty.flags }
+    fixum voxel.WorldEdit ∪ nihil e2 ← set_solid(world, dirty, 5, 1, 5)
+    adfirma e2 non est nihil et e2!.changed,
+        "second interior place changes world"
+    dirty ← voxel.DirtySet { flags = e2!.dirty.flags }
+    world ← voxel.World { chunks = e2!.world.chunks }
+    adfirma voxel.dirty_count(dirty) ≡ 1,
+        "two interior edits in one chunk leave one dirty mark"
+    adfirma voxel.dirty_matches_indices(dirty, [0]),
+        "same-frame interior multi-edit drains as [0]"
+
+    dirty ← voxel.dirty_empty()
+    world ← voxel.empty_world()
+    fixum voxel.WorldEdit ∪ nihil b1 ← set_solid(world, dirty, 15, 1, 8)
+    adfirma b1 non est nihil,
+        "first east-edge place succeeds"
+    world ← voxel.World { chunks = b1!.world.chunks }
+    dirty ← voxel.DirtySet { flags = b1!.dirty.flags }
+    fixum voxel.WorldEdit ∪ nihil b2 ← set_solid(world, dirty, 15, 2, 9)
+    adfirma b2 non est nihil,
+        "second east-edge place succeeds"
+    dirty ← voxel.DirtySet { flags = b2!.dirty.flags }
+    adfirma voxel.dirty_matches_indices(dirty, [0, 1]),
+        "repeated east-edge edits still dedupe to [0,1]"
+
+    # ------------------------------------------------------------------
+    # No-op world_set: same block id dirties nothing
+    # ------------------------------------------------------------------
+    world ← voxel.empty_world()
+    dirty ← voxel.dirty_empty()
+    fixum voxel.WorldEdit ∪ nihil solid_once ← set_solid(world, dirty, 8, 1, 8)
+    adfirma solid_once non est nihil et solid_once!.changed,
+        "placing solid on air changes"
+    world ← voxel.World { chunks = solid_once!.world.chunks }
+    dirty ← voxel.DirtySet { flags = solid_once!.dirty.flags }
+    adfirma voxel.dirty_count(dirty) ≡ 1,
+        "real edit dirties owning chunk"
+
+    fixum voxel.DirtyDrain ∪ nihil drained_mid ← voxel.dirty_drain(dirty)
+    adfirma drained_mid non est nihil,
+        "mid-frame dirty drain succeeds"
+    dirty ← voxel.DirtySet { flags = drained_mid!.dirty.flags }
+    adfirma voxel.dirty_count(dirty) ≡ 0,
+        "drain clears dirty set"
+
+    fixum voxel.WorldEdit ∪ nihil noop_solid ← set_solid(world, dirty, 8, 1, 8)
+    adfirma noop_solid non est nihil,
+        "noop solid set returns a result"
+    adfirma noop_solid!.changed ≡ falsum,
+        "setting solid over solid is a no-op"
+    adfirma voxel.dirty_count(noop_solid!.dirty) ≡ 0,
+        "no-op world_set dirties nothing"
+    fixum numerus ∪ nihil still_solid ← voxel.world_get(noop_solid!.world, 8, 1, 8)
+    adfirma still_solid non est nihil et (still_solid vel 0) ≡ voxel.block_solid(),
+        "no-op leaves cell solid"
+
+    fixum voxel.WorldEdit ∪ nihil noop_air ← set_air(world, dirty, 1, 1, 1)
+    adfirma noop_air non est nihil,
+        "noop air set returns a result"
+    adfirma noop_air!.changed ≡ falsum,
+        "setting air over air is a no-op"
+    adfirma voxel.dirty_count(noop_air!.dirty) ≡ 0,
+        "noop air leaves dirty empty"
+
+    # ------------------------------------------------------------------
+    # Dirty drain + generation: create, replace, empty remesh remove
+    # ------------------------------------------------------------------
+    world ← voxel.empty_world()
+    dirty ← voxel.dirty_empty()
+    varia meshing.ChunkResourceTable resources ← meshing.empty_chunk_resource_table()
+
+    fixum voxel.WorldEdit ∪ nihil place ← set_solid(world, dirty, 8, 1, 8)
+    adfirma place non est nihil,
+        "interior place for create path succeeds"
+    world ← voxel.World { chunks = place!.world.chunks }
+    dirty ← voxel.DirtySet { flags = place!.dirty.flags }
+
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh1 ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh1 non est nihil,
+        "first dirty remesh succeeds"
+    dirty ← voxel.DirtySet { flags = remesh1!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = remesh1!.resources.chunks }
+    adfirma voxel.dirty_count(dirty) ≡ 0,
+        "remesh drain clears dirty"
+    adfirma remesh1!.remeshed.longitudo() ≡ 1 et remesh1!.remeshed[0] ≡ 0,
+        "only chunk 0 remeshed"
+    adfirma meshing.chunk_is_live(resources, 0),
+        "chunk 0 becomes live after non-empty remesh"
+    adfirma (meshing.chunk_generation(resources, 0) vel 9) ≡ 0,
+        "created resource starts at generation 0"
+    adfirma remesh1!.transitions.longitudo() ≡ 1,
+        "one lifecycle transition for one remeshed chunk"
+    adfirma remesh1!.transitions[0].changed,
+        "first non-empty remesh is changed"
+    adfirma remesh1!.transitions[0].previous est nihil,
+        "first non-empty remesh has no previous handle"
+    adfirma remesh1!.transitions[0].current non est nihil,
+        "first non-empty remesh has a current handle"
+    adfirma scene.resource_lifecycle_valid(remesh1!.transitions[0]),
+        "create transition validates against Triga lifecycle rules"
+
+    adfirma meshing.chunk_is_live(resources, 1) ≡ falsum,
+        "unaffected chunk 1 stays not live"
+    adfirma (meshing.chunk_generation(resources, 1) vel 9) ≡ 0,
+        "unaffected chunk 1 generation stays 0"
+    adfirma meshing.chunk_is_live(resources, 2) ≡ falsum,
+        "unaffected chunk 2 stays not live"
+    adfirma meshing.chunk_is_live(resources, 3) ≡ falsum,
+        "unaffected chunk 3 stays not live"
+
+    fixum voxel.WorldEdit ∪ nihil place2 ← set_solid(world, dirty, 9, 1, 8)
+    adfirma place2 non est nihil,
+        "second solid place succeeds"
+    world ← voxel.World { chunks = place2!.world.chunks }
+    dirty ← voxel.DirtySet { flags = place2!.dirty.flags }
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh2 ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh2 non est nihil,
+        "second dirty remesh succeeds"
+    dirty ← voxel.DirtySet { flags = remesh2!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = remesh2!.resources.chunks }
+    adfirma meshing.chunk_is_live(resources, 0),
+        "chunk 0 remains live after replace"
+    adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1,
+        "derived mesh change advances generation to 1"
+    adfirma remesh2!.transitions[0].changed,
+        "second remesh is changed"
+    adfirma remesh2!.transitions[0].removed ≡ falsum,
+        "second remesh is not a removal"
+    adfirma remesh2!.transitions[0].previous non est nihil,
+        "replace has previous handle"
+    adfirma remesh2!.transitions[0].current non est nihil,
+        "replace has current handle"
+    adfirma remesh2!.transitions[0].current!.generation ≡
+        remesh2!.transitions[0].previous!.generation + 1,
+        "replace advances generation by exactly one"
+    adfirma (meshing.chunk_generation(resources, 1) vel 9) ≡ 0,
+        "unaffected chunk generation stable across replace"
+
+    fixum voxel.WorldEdit ∪ nihil clear1 ← set_air(world, dirty, 8, 1, 8)
+    adfirma clear1 non est nihil,
+        "first clear succeeds"
+    world ← voxel.World { chunks = clear1!.world.chunks }
+    dirty ← voxel.DirtySet { flags = clear1!.dirty.flags }
+    fixum voxel.WorldEdit ∪ nihil clear2 ← set_air(world, dirty, 9, 1, 8)
+    adfirma clear2 non est nihil,
+        "second clear succeeds"
+    world ← voxel.World { chunks = clear2!.world.chunks }
+    dirty ← voxel.DirtySet { flags = clear2!.dirty.flags }
+    adfirma voxel.dirty_matches_indices(dirty, [0]),
+        "clearing both cells dedupes to chunk 0"
+
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh_empty ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh_empty non est nihil,
+        "empty remesh drain succeeds"
+    dirty ← voxel.DirtySet { flags = remesh_empty!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = remesh_empty!.resources.chunks }
+    adfirma meshing.chunk_is_live(resources, 0) ≡ falsum,
+        "empty remesh removes live resource"
+    adfirma remesh_empty!.transitions[0].removed,
+        "empty remesh is removed"
+    adfirma remesh_empty!.transitions[0].changed,
+        "empty remesh is changed"
+    adfirma remesh_empty!.transitions[0].current est nihil,
+        "empty remesh has no current handle"
+    adfirma remesh_empty!.transitions[0].previous non est nihil,
+        "empty remesh keeps previous handle"
+    adfirma scene.resource_lifecycle_valid(remesh_empty!.transitions[0]),
+        "removed lifecycle transition validates"
+    adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1,
+        "logical generation value retained after remove"
+
+    fixum voxel.WorldEdit ∪ nihil noop_clear ← set_air(world, dirty, 8, 1, 8)
+    adfirma noop_clear non est nihil,
+        "clearing already-air returns a result"
+    adfirma noop_clear!.changed ≡ falsum,
+        "clearing already-air is no-op"
+
+    fixum voxel.DirtySet ∪ nihil force ← voxel.dirty_mark(dirty, 0)
+    adfirma force non est nihil,
+        "force dirty mark succeeds"
+    dirty ← voxel.DirtySet { flags = force!.flags }
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh_empty2 ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh_empty2 non est nihil,
+        "empty→empty remesh succeeds"
+    resources ← meshing.ChunkResourceTable { chunks = remesh_empty2!.resources.chunks }
+    adfirma remesh_empty2!.transitions[0].changed ≡ falsum,
+        "empty→empty remesh does not change"
+    adfirma remesh_empty2!.transitions[0].removed ≡ falsum,
+        "empty→empty remesh does not remove again"
+    adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1,
+        "empty→empty leaves generation unchanged"
+
+    # ------------------------------------------------------------------
+    # Boundary edit: only owning + neighbor remesh; others stable
+    # ------------------------------------------------------------------
+    world ← voxel.empty_world()
+    dirty ← voxel.dirty_empty()
+    resources ← meshing.empty_chunk_resource_table()
+
+    # Seed solids so an X-seam edit changes derived face counts on both sides.
+    fixum lista<numerus> seed_x ← [14, 16, 4, 20]
+    fixum lista<numerus> seed_z ← [8, 8, 20, 20]
+    varia numerus seed_i ← 0
+    dum seed_i < 4 {
+        fixum voxel.WorldEdit ∪ nihil seed ← set_solid(
+            world,
+            dirty,
+            seed_x[seed_i],
+            1,
+            seed_z[seed_i]
+        )
+        adfirma seed non est nihil,
+            "seed solid place succeeds"
+        world ← voxel.World { chunks = seed!.world.chunks }
+        dirty ← voxel.DirtySet { flags = seed!.dirty.flags }
+        seed_i ← seed_i + 1
+    }
+    fixum meshing.DirtyRemeshResult ∪ nihil seed_remesh ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma seed_remesh non est nihil,
+        "seed remesh succeeds"
+    adfirma seed_remesh!.remeshed.longitudo() ≡ 4,
+        "seed remesh covers all four chunks"
+    dirty ← voxel.DirtySet { flags = seed_remesh!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = seed_remesh!.resources.chunks }
+    adfirma meshing.chunk_is_live(resources, 0),
+        "chunk 0 live after seed"
+    adfirma meshing.chunk_is_live(resources, 1),
+        "chunk 1 live after seed"
+    adfirma meshing.chunk_is_live(resources, 2),
+        "chunk 2 live after seed"
+    adfirma meshing.chunk_is_live(resources, 3),
+        "chunk 3 live after seed"
+    adfirma (meshing.chunk_generation(resources, 0) vel 9) ≡ 0,
+        "seed generation 0 is 0"
+    adfirma (meshing.chunk_generation(resources, 1) vel 9) ≡ 0,
+        "seed generation 1 is 0"
+    adfirma (meshing.chunk_generation(resources, 2) vel 9) ≡ 0,
+        "seed generation 2 is 0"
+    adfirma (meshing.chunk_generation(resources, 3) vel 9) ≡ 0,
+        "seed generation 3 is 0"
+
+    fixum voxel.WorldEdit ∪ nihil edge_edit ← set_solid(world, dirty, 15, 1, 8)
+    adfirma edge_edit non est nihil,
+        "east-edge place succeeds"
+    world ← voxel.World { chunks = edge_edit!.world.chunks }
+    dirty ← voxel.DirtySet { flags = edge_edit!.dirty.flags }
+    adfirma voxel.dirty_matches_indices(dirty, [0, 1]),
+        "east-edge place dirties [0,1]"
+
+    fixum meshing.ChunkResourceTable before_edge ← meshing.ChunkResourceTable {
+        chunks = resources.chunks
+    }
+    fixum meshing.DirtyRemeshResult ∪ nihil edge_remesh ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma edge_remesh non est nihil,
+        "edge remesh succeeds"
+    resources ← meshing.ChunkResourceTable { chunks = edge_remesh!.resources.chunks }
+    adfirma edge_remesh!.remeshed.longitudo() ≡ 2,
+        "edge remesh drains two chunks"
+    adfirma edge_remesh!.remeshed[0] ≡ 0,
+        "edge remesh first chunk is 0"
+    adfirma edge_remesh!.remeshed[1] ≡ 1,
+        "edge remesh second chunk is 1"
+
+    adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1,
+        "chunk 0 generation advances on derived face change"
+    adfirma (meshing.chunk_generation(resources, 1) vel 0) ≡ 1,
+        "chunk 1 generation advances on derived face change"
+    adfirma (meshing.chunk_generation(resources, 2) vel 9) ≡
+        (meshing.chunk_generation(before_edge, 2) vel 0),
+        "unaffected chunk 2 generation is stable"
+    adfirma (meshing.chunk_generation(resources, 3) vel 9) ≡
+        (meshing.chunk_generation(before_edge, 3) vel 0),
+        "unaffected chunk 3 generation is stable"
+    adfirma resources.chunks[2].handle.index ≡ 2,
+        "logical id of chunk 2 is stable"
+    adfirma resources.chunks[3].handle.index ≡ 3,
+        "logical id of chunk 3 is stable"
+
+    fixum meshing.DirtyRemeshResult edge_remesh_val ← meshing.DirtyRemeshResult {
+        dirty = voxel.DirtySet { flags = edge_remesh!.dirty.flags },
+        resources = meshing.ChunkResourceTable { chunks = edge_remesh!.resources.chunks },
+        transitions = edge_remesh!.transitions,
+        remeshed = edge_remesh!.remeshed
+    }
+    fixum lista<scene.ResourceLifecycleTransition> ∪ nihil batch ←
+        meshing.resource_lifecycle_batch_for_table(before_edge, edge_remesh_val)
+    adfirma batch non est nihil,
+        "full four-chunk lifecycle batch validates"
+    adfirma (batch vel []).longitudo() ≡ 4,
+        "lifecycle batch covers all four logical chunks"
+    adfirma scene.resource_lifecycles_valid(batch vel []),
+        "Triga validates the four-chunk lifecycle batch"
+    adfirma (scene.resource_lifecycle_unchanged_count(batch vel []) vel 0) ≡ 2,
+        "exactly two chunks unchanged in edge-edit batch"
+    adfirma (scene.resource_lifecycle_changed_count(batch vel []) vel 0) ≡ 2,
+        "exactly two chunks changed in edge-edit batch"
+
+    # ------------------------------------------------------------------
+    # OOB / invalid
+    # ------------------------------------------------------------------
+    adfirma voxel.affected_chunk_indices(-1, 0, 0) est nihil,
+        "OOB x has no affected set"
+    adfirma voxel.affected_chunk_indices(0, 16, 0) est nihil,
+        "OOB y has no affected set"
+    adfirma voxel.world_set_dirty(
+        voxel.empty_world(),
+        voxel.dirty_empty(),
+        0,
+        0,
+        0,
+        2
+    ) est nihil,
+        "invalid block id fails tracked set"
+}

@@ -542,3 +542,303 @@ functio empty_world_is_all_air(de World world) → bivalens {
     }
     redde verum
 }
+
+# =========================================================================
+# HV-07A: DIRTY CHUNKS AND AFFECTED SET
+#
+# Locked invalidation:
+#   - Interior edit → owning chunk only.
+#   - Local X or Z edge → also the directly adjacent in-world chunk.
+#   - Y has no chunk layer (no vertical neighbor).
+#   - Same-frame marks dedupe; drain returns sorted unique indices.
+#   - No-op world_set (same id) dirties nothing.
+# =========================================================================
+
+genus DirtySet {
+    # Fixed mask length = chunk_count(); index i dirty ⇔ flags[i] ≡ verum.
+    lista<bivalens> flags
+}
+
+genus DirtyDrain {
+    DirtySet dirty
+    lista<numerus> chunks
+}
+
+genus WorldEdit {
+    World world
+    DirtySet dirty
+    bivalens changed
+}
+
+functio dirty_empty() → DirtySet {
+    varia lista<bivalens> flags ← vacua
+    varia numerus i ← 0
+    dum i < chunk_count() {
+        flags.appende(falsum)
+        i ← i + 1
+    }
+    redde DirtySet { flags = flags }
+}
+
+functio dirty_valid(de DirtySet dirty) → bivalens {
+    redde dirty.flags.longitudo() ≡ chunk_count()
+}
+
+functio dirty_count(de DirtySet dirty) → numerus {
+    si dirty_valid(dirty) ≡ falsum {
+        redde 0
+    }
+    varia numerus count ← 0
+    varia numerus i ← 0
+    dum i < dirty.flags.longitudo() {
+        si dirty.flags[i] {
+            count ← count + 1
+        }
+        i ← i + 1
+    }
+    redde count
+}
+
+functio dirty_contains(de DirtySet dirty, numerus chunk_index) → bivalens {
+    si dirty_valid(dirty) ≡ falsum {
+        redde falsum
+    }
+    si chunk_index < 0 aut chunk_index ≥ dirty.flags.longitudo() {
+        redde falsum
+    }
+    redde dirty.flags[chunk_index]
+}
+
+functio dirty_mark(de DirtySet dirty, numerus chunk_index) → DirtySet ∪ nihil {
+    si dirty_valid(dirty) ≡ falsum {
+        redde nihil
+    }
+    si chunk_index < 0 aut chunk_index ≥ dirty.flags.longitudo() {
+        redde nihil
+    }
+    varia lista<bivalens> flags ← vacua
+    varia numerus i ← 0
+    dum i < dirty.flags.longitudo() {
+        si i ≡ chunk_index {
+            flags.appende(verum)
+        } secus {
+            flags.appende(dirty.flags[i])
+        }
+        i ← i + 1
+    }
+    redde DirtySet { flags = flags }
+}
+
+functio dirty_mark_many(
+    de DirtySet dirty,
+    de lista<numerus> chunk_indices
+) → DirtySet ∪ nihil {
+    si dirty_valid(dirty) ≡ falsum {
+        redde nihil
+    }
+    varia DirtySet next ← DirtySet { flags = dirty.flags }
+    varia numerus i ← 0
+    dum i < chunk_indices.longitudo() {
+        fixum DirtySet ∪ nihil marked ← dirty_mark(next, chunk_indices[i])
+        si marked est nihil {
+            redde nihil
+        }
+        next ← DirtySet { flags = marked!.flags }
+        i ← i + 1
+    }
+    redde next
+}
+
+# Drain: return sorted unique dirty chunk indices and clear the set.
+functio dirty_drain(de DirtySet dirty) → DirtyDrain ∪ nihil {
+    si dirty_valid(dirty) ≡ falsum {
+        redde nihil
+    }
+    varia lista<numerus> chunks ← vacua
+    varia numerus i ← 0
+    dum i < dirty.flags.longitudo() {
+        si dirty.flags[i] {
+            chunks.appende(i)
+        }
+        i ← i + 1
+    }
+    redde DirtyDrain {
+        dirty = dirty_empty(),
+        chunks = chunks
+    }
+}
+
+# Stable logical chunk id ≡ chunk_index (0..chunk_count()-1).
+functio logical_chunk_id(numerus cx, numerus cz) → numerus ∪ nihil {
+    redde chunk_index(cx, cz)
+}
+
+# Owning chunk plus face-adjacent X/Z neighbors when the edit sits on a local edge.
+# Corners mark both axis neighbors (not the diagonal). Y never adds a neighbor.
+functio affected_chunk_indices(
+    numerus x,
+    numerus y,
+    numerus z
+) → lista<numerus> ∪ nihil {
+    fixum ChunkAddress ∪ nihil address_result ← world_to_address(x, y, z)
+    si address_result est nihil {
+        redde nihil
+    }
+    fixum numerus owning ← address_result!.chunk_index
+    fixum numerus lx ← address_result!.local.lx
+    fixum numerus lz ← address_result!.local.lz
+    fixum numerus cx ← address_result!.chunk.cx
+    fixum numerus cz ← address_result!.chunk.cz
+    fixum numerus edge ← chunk_size() - 1
+
+    varia DirtySet mask ← dirty_empty()
+    fixum DirtySet ∪ nihil own_marked ← dirty_mark(mask, owning)
+    si own_marked est nihil {
+        redde nihil
+    }
+    mask ← DirtySet { flags = own_marked!.flags }
+
+    si lx ≡ 0 et cx > 0 {
+        fixum numerus ∪ nihil west ← chunk_index(cx - 1, cz)
+        si west non est nihil {
+            fixum DirtySet ∪ nihil marked ← dirty_mark(mask, west vel 0)
+            si marked non est nihil {
+                mask ← DirtySet { flags = marked!.flags }
+            }
+        }
+    }
+    si lx ≡ edge et cx + 1 < chunk_count_x() {
+        fixum numerus ∪ nihil east ← chunk_index(cx + 1, cz)
+        si east non est nihil {
+            fixum DirtySet ∪ nihil marked ← dirty_mark(mask, east vel 0)
+            si marked non est nihil {
+                mask ← DirtySet { flags = marked!.flags }
+            }
+        }
+    }
+    si lz ≡ 0 et cz > 0 {
+        fixum numerus ∪ nihil north ← chunk_index(cx, cz - 1)
+        si north non est nihil {
+            fixum DirtySet ∪ nihil marked ← dirty_mark(mask, north vel 0)
+            si marked non est nihil {
+                mask ← DirtySet { flags = marked!.flags }
+            }
+        }
+    }
+    si lz ≡ edge et cz + 1 < chunk_count_z() {
+        fixum numerus ∪ nihil south ← chunk_index(cx, cz + 1)
+        si south non est nihil {
+            fixum DirtySet ∪ nihil marked ← dirty_mark(mask, south vel 0)
+            si marked non est nihil {
+                mask ← DirtySet { flags = marked!.flags }
+            }
+        }
+    }
+
+    fixum DirtyDrain ∪ nihil drained ← dirty_drain(mask)
+    si drained est nihil {
+        redde nihil
+    }
+    redde drained!.chunks
+}
+
+functio dirty_mark_world_cell(
+    de DirtySet dirty,
+    numerus x,
+    numerus y,
+    numerus z
+) → DirtySet ∪ nihil {
+    fixum lista<numerus> ∪ nihil affected ← affected_chunk_indices(x, y, z)
+    si affected est nihil {
+        redde nihil
+    }
+    fixum lista<numerus> indices ← affected vel []
+    redde dirty_mark_many(dirty, indices)
+}
+
+# world_set that only dirties when the cell value actually changes.
+functio world_set_dirty(
+    de World world,
+    de DirtySet dirty,
+    numerus x,
+    numerus y,
+    numerus z,
+    numerus block_id
+) → WorldEdit ∪ nihil {
+    si dirty_valid(dirty) ≡ falsum {
+        redde nihil
+    }
+    fixum numerus ∪ nihil current ← world_get(world, x, y, z)
+    si current est nihil {
+        redde nihil
+    }
+    si block_id_valid(block_id) ≡ falsum {
+        redde nihil
+    }
+    si (current vel 0) ≡ block_id {
+        redde WorldEdit {
+            world = world,
+            dirty = dirty,
+            changed = falsum
+        }
+    }
+    fixum World ∪ nihil next_world ← world_set(world, x, y, z, block_id)
+    si next_world est nihil {
+        redde nihil
+    }
+    fixum DirtySet ∪ nihil next_dirty ← dirty_mark_world_cell(dirty, x, y, z)
+    si next_dirty est nihil {
+        redde nihil
+    }
+    redde WorldEdit {
+        world = World { chunks = next_world!.chunks },
+        dirty = DirtySet { flags = next_dirty!.flags },
+        changed = verum
+    }
+}
+
+# Sorted unique dirty chunk indices (does not clear the set).
+functio dirty_indices(de DirtySet dirty) → lista<numerus> ∪ nihil {
+    si dirty_valid(dirty) ≡ falsum {
+        redde nihil
+    }
+    varia lista<numerus> chunks ← vacua
+    varia numerus i ← 0
+    dum i < dirty.flags.longitudo() {
+        si dirty.flags[i] {
+            chunks.appende(i)
+        }
+        i ← i + 1
+    }
+    redde chunks
+}
+
+# Exact-set helper for tests: dirty flags match a sorted unique index list.
+functio dirty_matches_indices(
+    de DirtySet dirty,
+    de lista<numerus> expected
+) → bivalens {
+    fixum lista<numerus> ∪ nihil actual ← dirty_indices(dirty)
+    si actual est nihil {
+        redde falsum
+    }
+    fixum lista<numerus> indices ← actual vel []
+    redde indices_equal(indices, expected)
+}
+
+functio indices_equal(
+    de lista<numerus> a,
+    de lista<numerus> b
+) → bivalens {
+    si a.longitudo() ≠ b.longitudo() {
+        redde falsum
+    }
+    varia numerus i ← 0
+    dum i < a.longitudo() {
+        si a[i] ≠ b[i] {
+            redde falsum
+        }
+        i ← i + 1
+    }
+    redde verum
+}
