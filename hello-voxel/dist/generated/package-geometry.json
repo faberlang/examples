@@ -1,0 +1,22 @@
+{
+  "kind": "hello-voxel-package-geometry",
+  "artifact_id": "7f71d2cc19f3e6b0",
+  "vertex_count": 8,
+  "index_count": 36,
+  "position_floats": 24,
+  "color_floats": 24,
+  "transform_floats_package": 32,
+  "transform_bytes_host": 256,
+  "model_matrix_frame1": "0.9987502603949663,0,-0.04997916927067833,0,0,1,0,0,0.04997916927067833,0,0.9987502603949663,0,-0.5,-0.5,-0.5,1",
+  "model_matrix_frame2": "0.9950041652780258,0,-0.09983341664682815,0,0,1,0,0,0.09983341664682815,0,0.9950041652780258,0,-0.5,-0.5,-0.5,1",
+  "model_matrix_changed": true,
+  "source": "faber-package-attrs",
+  "files": [
+    "vertex-positions.bin",
+    "vertex-colors.bin",
+    "indices.bin",
+    "transform.bin",
+    "transform-frame2.bin",
+    "draw.json"
+  ]
+}

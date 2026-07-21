@@ -1,0 +1,11 @@
+{
+  "kind": "hv-04c-depth-evidence",
+  "artifact_id": "7f71d2cc19f3e6b0",
+  "depth_test_enabled": true,
+  "depth_write_enabled": true,
+  "depth_compare": "less",
+  "depth_format": "depth24plus",
+  "depth_attachment_used": true,
+  "resized_depth_texture": true,
+  "source": "hosts/webgpu-browser depthStencilAttachment + replaceDepthTextureOnResize"
+}

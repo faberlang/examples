@@ -26,12 +26,13 @@ WORKSPACE_ROOT="$(cd "$REPO_ROOT/.." && pwd)"
 
 usage() {
   cat >&2 <<'USAGE'
-usage: ./scripta/check-hello-voxel-proof [build|check]
+usage: ./scripta/check-hello-voxel-proof [build|check|proof]
 
 Commands:
-  (default)  Build hello-voxel and run all checks.
+  (default)  Build hello-voxel, emit package bins, run live GPU proof, check.
   build      Build hello-voxel only.
-  check      Run checks on existing build artifacts.
+  proof      Emit package bins + live GPU proof + check (no rebuild).
+  check      Run checks on existing build/evidence artifacts (fail closed).
 USAGE
 }
 
@@ -52,9 +53,55 @@ interface_root = "$WORKSPACE_ROOT/faber-web/src"
 artifact = ""
 crate = "web"
 rustc = ""
+
+[[package]]
+name = "triga"
+version = "0.1.0"
+source = "path"
+package_root = "$WORKSPACE_ROOT/triga"
+kind = "lib"
+target_language = "ts"
+target_triple = "browser"
+target_manifest = ""
+interface_root = "$WORKSPACE_ROOT/triga/src"
+artifact = ""
+crate = "triga"
+rustc = ""
 LOCK
 
-  ( cd "$HELLO_VOXEL" && "$FABER_BIN" build --package . )
+  (
+    cd "$HELLO_VOXEL"
+    set +e
+    BUILD_OUT="$("$FABER_BIN" build --package . 2>&1)"
+    BUILD_STATUS=$?
+    set -e
+    printf '%s\n' "$BUILD_OUT"
+    if [[ $BUILD_STATUS -ne 0 ]]; then
+      if [[ ! -f "$HELLO_VOXEL/dist/faber-ts/main.ts" ]]; then
+        echo "faber build failed before TypeScript emit" >&2
+        exit "$BUILD_STATUS"
+      fi
+      if printf '%s' "$BUILD_OUT" | grep -q 'triga:triga'; then
+        node "$HELLO_VOXEL/scripta/link-triga-ts.mjs"
+      else
+        echo "faber build failed for a non-triga reason" >&2
+        exit "$BUILD_STATUS"
+      fi
+    elif grep -q 'triga:triga' "$HELLO_VOXEL/dist/faber-ts/main.ts" 2>/dev/null; then
+      node "$HELLO_VOXEL/scripta/link-triga-ts.mjs"
+    fi
+  )
+}
+
+emit_and_host_proof() {
+  echo ""
+  echo "--- Emitting package-owned geometry/transform bins ---"
+  node --import "$REPO_ROOT/browser-app/tests/register-hooks.mjs" \
+    "$HELLO_VOXEL/scripta/emit-package-geometry.mjs"
+
+  echo ""
+  echo "--- Running hosts/webgpu-browser HV-04C proof (live GPU) ---"
+  node "$HELLO_VOXEL/scripta/run-hv04c-host-proof.mjs"
 }
 
 run_checks() {
@@ -67,6 +114,16 @@ run_checks() {
     echo "PASS: HV-03 controller mount"
   else
     echo "FAIL: HV-03 controller mount" >&2
+    exit_code=1
+  fi
+
+  echo ""
+  echo "--- Checking HV-04B live payload ownership ---"
+  if node --import "$REPO_ROOT/browser-app/tests/register-hooks.mjs" \
+         "$HELLO_VOXEL/tests/hv04b-payload-test.mjs" 2>&1; then
+    echo "PASS: HV-04B payload ownership"
+  else
+    echo "FAIL: HV-04B payload ownership" >&2
     exit_code=1
   fi
 
@@ -176,9 +233,17 @@ if [ $# -eq 0 ] || [ "$1" = "build" ]; then
   fi
   if [ $# -eq 0 ]; then
     build_package
+    emit_and_host_proof
   fi
 fi
 
+if [ $# -eq 1 ] && [ "$1" = "proof" ]; then
+  emit_and_host_proof
+  run_checks
+  exit $?
+fi
+
 if [ $# -eq 0 ] || [ "$1" = "check" ]; then
+  # check alone does not re-run GPU; evidence must already exist (fail closed).
   run_checks
 fi

@@ -1,0 +1,60 @@
+{
+  "kind": "hv-04c-submit-evidence",
+  "artifact_id": "7f71d2cc19f3e6b0",
+  "method": "drawIndexed",
+  "drawIndexed": true,
+  "index_count": 36,
+  "instance_count": 1,
+  "first_index": 0,
+  "base_vertex": 0,
+  "submittedFrameCount": 2,
+  "submits": [
+    {
+      "method": "drawIndexed",
+      "drawIndexed": true,
+      "index_count": 36,
+      "instance_count": 1,
+      "first_index": 0,
+      "base_vertex": 0,
+      "depth_attachment": true,
+      "depth_test_enabled": true,
+      "depth_write_enabled": true,
+      "depth_compare": "less",
+      "clear_value": {
+        "r": 0.02,
+        "g": 0.027,
+        "b": 0.039,
+        "a": 1
+      },
+      "frame_index": 1
+    },
+    {
+      "method": "drawIndexed",
+      "drawIndexed": true,
+      "index_count": 36,
+      "instance_count": 1,
+      "first_index": 0,
+      "base_vertex": 0,
+      "depth_attachment": true,
+      "depth_test_enabled": true,
+      "depth_write_enabled": true,
+      "depth_compare": "less",
+      "clear_value": {
+        "r": 0.02,
+        "g": 0.027,
+        "b": 0.039,
+        "a": 1
+      },
+      "frame_index": 2
+    }
+  ],
+  "package": {
+    "positions_bytes": 96,
+    "colors_bytes": 96,
+    "indices_bytes": 144,
+    "index_count": 36,
+    "instance_count": 1,
+    "source": "examples/hello-voxel package attrs → dist/generated bins"
+  },
+  "source": "hosts/webgpu-browser runGraphicsFrame + hello-voxel package bins"
+}

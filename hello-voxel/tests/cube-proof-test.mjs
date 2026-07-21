@@ -382,7 +382,9 @@ if (!existsSync(pixelEvidencePath)) {
   assert(pixels.central_is_background === false,
     "pixel evidence must show central region is not background");
   assert(pixels.background_hex !== undefined, "pixel evidence records background_hex");
-  info("pixel evidence present: central region not background");
+  assert(pixels.frame1_non_background === true && pixels.frame2_non_background === true,
+    "pixel evidence must show non-background at two frame times");
+  info("pixel evidence present: central region not background at two frames");
 }
 
 // Depth buffer evidence is required for the depth gate (near/far attrs alone insufficient).
@@ -397,7 +399,37 @@ if (!existsSync(depthEvidencePath)) {
 } else {
   const depth = JSON.parse(readFileSync(depthEvidencePath, "utf-8"));
   assert(depth.depth_test_enabled === true, "depth evidence must record depth test enabled");
+  assert(depth.depth_attachment_used === true, "depth evidence must record depth attachment used");
   info("depth evidence present");
+}
+
+// One-build identity: submit/pixel/depth evidence share artifact_id with package geometry.
+const artifactIdPath = fileURLToPath(
+  new URL("../dist/proof/artifact-id.json", import.meta.url),
+);
+const geometryManifestPath = fileURLToPath(
+  new URL("../dist/generated/package-geometry.json", import.meta.url),
+);
+if (existsSync(submitEvidencePath) && existsSync(pixelEvidencePath) && existsSync(depthEvidencePath)) {
+  if (!existsSync(artifactIdPath) || !existsSync(geometryManifestPath)) {
+    gateIncomplete(
+      "artifact-identity",
+      "missing artifact-id.json or package-geometry.json for one-build identity",
+    );
+  } else {
+    const artifact = JSON.parse(readFileSync(artifactIdPath, "utf-8"));
+    const geom = JSON.parse(readFileSync(geometryManifestPath, "utf-8"));
+    const submit = JSON.parse(readFileSync(submitEvidencePath, "utf-8"));
+    const pixels = JSON.parse(readFileSync(pixelEvidencePath, "utf-8"));
+    const depth = JSON.parse(readFileSync(depthEvidencePath, "utf-8"));
+    const id = artifact.artifact_id;
+    assert(typeof id === "string" && id.length >= 8, "artifact_id present");
+    assert(geom.artifact_id === id, "package-geometry artifact_id matches");
+    assert(submit.artifact_id === id, "submit evidence artifact_id matches");
+    assert(pixels.artifact_id === id, "pixel evidence artifact_id matches");
+    assert(depth.artifact_id === id, "depth evidence artifact_id matches");
+    info(`one-build artifact identity: ${id}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
