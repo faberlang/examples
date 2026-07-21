@@ -31,7 +31,7 @@ export function mountControllers(root = globalThis.document) {
             continue;
         }
         try {
-            const cleanup = controller.mount({ root: element, selector: controller.selector });
+            const cleanup = controller.mount({ selector: controller.selector });
             mounts.push({
                 name: controller.name,
                 selector: controller.selector,

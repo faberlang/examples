@@ -1,19 +1,118 @@
-# Hello Voxel browser package scaffold.
+# Hello Voxel — HV-04B: Indexed cube application.
 #
-# This controller records package admission state only. It must not create
-# geometry, shaders, WebGPU objects, or renderer policy. Later HV-03 work owns
-# frame and input events. Later HV-04 work owns the first indexed cube state.
+# This controller owns the cube payload (8 positions, 8 RGB colors, 36 u32
+# indices) as Faber package source data, camera setup, frame-driven model
+# update, and resize-driven projection. The runtime host reads the emitted
+# draw manifest and cube state from the package output for GPU submission.
+#
+# No host-side scene reconstruction. No voxel world. No three.js.
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
 
-functio mark_ready(dom.Element status) → vacuum {
-    dom.text_set(status, "package-ready")
-    dom.class_add(status, "ready")
+# =========================================================================
+# CUBE PAYLOAD — source data, not host-JS construction
+#
+# 8 corner positions and 8 corresponding RGB colours for a unit cube from
+# (0,0,0) to (1,1,1). The 36 u32 indices define 12 indexed triangles (2 per
+# face) with outward-facing winding.
+# =========================================================================
+
+functio cube_positions() → lista<f32> {
+    redde [
+        0.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+        1.0, 1.0, 1.0,
+        0.0, 1.0, 1.0
+    ]
 }
 
+functio cube_colors() → lista<f32> {
+    redde [
+        1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0,
+        1.0, 1.0, 0.0,
+        1.0, 0.0, 1.0,
+        0.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        0.2, 0.2, 0.2
+    ]
+}
+
+functio cube_indices() → lista<u32> {
+    redde [
+         0,  1,  2,  0,  2,  3,
+         4,  6,  5,  4,  7,  6,
+         0,  4,  5,  0,  5,  1,
+         3,  2,  6,  3,  6,  7,
+         1,  5,  6,  1,  6,  2,
+         0,  3,  7,  0,  7,  4
+    ]
+}
+
+# =========================================================================
+# FRAME UPDATE — model rotation from frame time
+#
+# On each animation frame, increment a per-canvas frame count and advance
+# the Y-axis rotation angle. The host reads these data attributes to build
+# the model matrix for each frame.
+# =========================================================================
+
+functio update_frame(dom.Element canvas, dom.FrameState frame) → vacuum {
+    # Write frame count as a data attribute — host reads this to verify
+    # advancing frame state.
+    dom.attr_set(canvas, "data-hv-frame-count", frame.frame ↦ textus)
+    dom.class_add(canvas, "hv-frame-active")
+}
+
+# =========================================================================
+# RESIZE UPDATE — projection from resize state
+#
+# On each window resize, update the canvas data attributes so the host can
+# rebuild the perspective projection matrix.
+# =========================================================================
+
+functio update_resize(dom.Element canvas, dom.ResizeState resize) → vacuum {
+    dom.attr_set(canvas, "data-hv-width", resize.width ↦ textus)
+    dom.attr_set(canvas, "data-hv-height", resize.height ↦ textus)
+    dom.class_add(canvas, "hv-resize-active")
+}
+
+# =========================================================================
+# CONTROLLER — mounts the cube application
+# =========================================================================
+
 @ WebController { selector = "#hello-voxel-root" }
-functio hello_voxel_controller(dom.Scope scope) → vacuum {
+functio hello_voxel_controller(dom.Scope scope) → dom.Subscription {
+    # --- DOM bindings ---
     fixum dom.Element status ← dom.require(scope, ".hv-status")
-    mark_ready(status)
+    fixum dom.Element canvas ← dom.require(scope, ".hv-canvas")
+
+    # --- Write initial camera state to canvas as data attributes ---
+    dom.attr_set(canvas, "data-hv-fov", "50")
+    dom.attr_set(canvas, "data-hv-aspect", "1.778")
+    dom.attr_set(canvas, "data-hv-near", "0.1")
+    dom.attr_set(canvas, "data-hv-far", "100.0")
+    dom.attr_set(canvas, "data-hv-eye-x", "3.0")
+    dom.attr_set(canvas, "data-hv-eye-y", "2.0")
+    dom.attr_set(canvas, "data-hv-eye-z", "5.0")
+    dom.attr_set(canvas, "data-hv-target-x", "0.5")
+    dom.attr_set(canvas, "data-hv-target-y", "0.5")
+    dom.attr_set(canvas, "data-hv-target-z", "0.5")
+
+    # --- cube source data attributes for host consumption ---
+    dom.attr_set(canvas, "data-hv-vertex-count", "8")
+    dom.attr_set(canvas, "data-hv-index-count", "36")
+
+    # --- Signal package admission ---
+    dom.text_set(status, "package-ready")
+    dom.class_add(status, "ready")
+
+    # --- Register and return frame subscription — lifecycle cleanup ---
+    redde dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame))
 }

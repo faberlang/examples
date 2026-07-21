@@ -32,4 +32,9 @@ LOCK
 test -f "$APP_DIR/dist/faber-esm/faber-browser.js"
 test -f "$APP_DIR/dist/controllers.json"
 grep -q '"selector": "#hello-voxel-root"' "$APP_DIR/dist/controllers.json"
+
+# Run HV-03 admission test.
 node --import "$WORKSPACE/examples/browser-app/tests/register-hooks.mjs" "$APP_DIR/tests/browser-fixture-test.mjs"
+
+# Run HV-04C browser proof harness.
+node --import "$WORKSPACE/examples/browser-app/tests/register-hooks.mjs" "$APP_DIR/tests/cube-proof-test.mjs"

@@ -55,7 +55,7 @@ export function mountControllers(root: ParentNode = globalThis.document): Contro
       continue;
     }
     try {
-      const cleanup = controller.mount({ root: element, selector: controller.selector });
+      const cleanup = controller.mount({ selector: controller.selector });
       mounts.push({
         name: controller.name,
         selector: controller.selector,

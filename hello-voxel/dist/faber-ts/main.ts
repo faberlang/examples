@@ -4,11 +4,40 @@ import { web } from "web:web";
 
 import { dom } from "web:dom";
 
-function mark_ready(status: any): void {
+function cube_positions(): Array<number> {
+    return [0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1];
+}
+function cube_colors(): Array<number> {
+    return [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0.2, 0.2, 0.2];
+}
+function cube_indices(): Array<number> {
+    return [0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6, 0, 4, 5, 0, 5, 1, 3, 2, 6, 3, 6, 7, 1, 5, 6, 1, 6, 2, 0, 3, 7, 0, 7, 4];
+}
+function update_frame(canvas: any, frame: any): void {
+    dom.attr_set(canvas, "data-hv-frame-count", String(frame.frame));
+    dom.class_add(canvas, "hv-frame-active");
+}
+function update_resize(canvas: any, resize: any): void {
+    dom.attr_set(canvas, "data-hv-width", String(resize.width));
+    dom.attr_set(canvas, "data-hv-height", String(resize.height));
+    dom.class_add(canvas, "hv-resize-active");
+}
+export function hello_voxel_controller(scope: any): any {
+    const status: any = dom.require(scope, ".hv-status");
+    const canvas: any = dom.require(scope, ".hv-canvas");
+    dom.attr_set(canvas, "data-hv-fov", "50");
+    dom.attr_set(canvas, "data-hv-aspect", "1.778");
+    dom.attr_set(canvas, "data-hv-near", "0.1");
+    dom.attr_set(canvas, "data-hv-far", "100.0");
+    dom.attr_set(canvas, "data-hv-eye-x", "3.0");
+    dom.attr_set(canvas, "data-hv-eye-y", "2.0");
+    dom.attr_set(canvas, "data-hv-eye-z", "5.0");
+    dom.attr_set(canvas, "data-hv-target-x", "0.5");
+    dom.attr_set(canvas, "data-hv-target-y", "0.5");
+    dom.attr_set(canvas, "data-hv-target-z", "0.5");
+    dom.attr_set(canvas, "data-hv-vertex-count", "8");
+    dom.attr_set(canvas, "data-hv-index-count", "36");
     dom.text_set(status, "package-ready");
     dom.class_add(status, "ready");
-}
-export function hello_voxel_controller(scope: any): void {
-    const status: any = dom.require(scope, ".hv-status");
-    mark_ready(status);
+    return dom.on_frame((frame: any) => update_frame(canvas, frame));
 }
