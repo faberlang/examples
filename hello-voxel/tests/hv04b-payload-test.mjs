@@ -160,15 +160,52 @@ assert(canvas.getAttribute("data-hv-height") === "540", `initial height 540, got
 const aspectBefore = canvas.getAttribute("data-hv-aspect");
 const vpBefore = canvas.getAttribute("data-hv-view-projection");
 
-globalThis.window.innerWidth = 1280;
-globalThis.window.innerHeight = 720;
+// Non-16:9 size so live aspect is clearly distinct from DEFAULT_ASPECT=1.778.
+globalThis.window.innerWidth = 800;
+globalThis.window.innerHeight = 600;
 globalThis.window.dispatchEvent(new FakeEvent("resize"));
 
-assert(canvas.getAttribute("data-hv-width") === "1280", "resized width 1280");
-assert(canvas.getAttribute("data-hv-height") === "720", "resized height 720");
+assert(canvas.getAttribute("data-hv-width") === "800", "resized width 800");
+assert(canvas.getAttribute("data-hv-height") === "600", "resized height 600");
 assert(canvas.classList.has("hv-resize-active"), "hv-resize-active after resize");
 assert(canvas.getAttribute("data-hv-aspect") !== aspectBefore, "aspect updates on resize");
 assert(canvas.getAttribute("data-hv-view-projection") !== vpBefore, "view-projection updates on resize");
+
+// --- Post-resize frames keep live aspect (not DEFAULT_ASPECT clobber) ---
+// resize-then-frame order: after resize to W×H, next frame must keep aspect≈W/H.
+const expectedAspect = 800 / 600; // 4:3 ≈ 1.333…
+const aspectAfterResize = Number(canvas.getAttribute("data-hv-aspect"));
+assert(
+  Number.isFinite(aspectAfterResize) && Math.abs(aspectAfterResize - expectedAspect) < 1e-4,
+  `aspect after resize ≈ ${expectedAspect}, got ${aspectAfterResize}`,
+);
+assert(
+  Math.abs(aspectAfterResize - 1.778) > 0.1,
+  `resize aspect must differ from DEFAULT_ASPECT (got ${aspectAfterResize})`,
+);
+const vpAfterResizeNums = parseFloatCsv(canvas.getAttribute("data-hv-view-projection"));
+assert(vpAfterResizeNums.length === 16, "resize VP has 16 floats");
+
+// Prior frames used callbacks [0] and [1]; rAF re-queues so [2] is next.
+assert(frameCallbacks.length >= 3, `post-resize pending frame (got ${frameCallbacks.length})`);
+frameCallbacks[2](50);
+
+const aspectAfterFrame = Number(canvas.getAttribute("data-hv-aspect"));
+assert(
+  Number.isFinite(aspectAfterFrame) && Math.abs(aspectAfterFrame - expectedAspect) < 1e-4,
+  `post-resize frame keeps aspect≈${expectedAspect}, got ${aspectAfterFrame}`,
+);
+assert(
+  Math.abs(aspectAfterFrame - 1.778) > 0.1,
+  `post-resize frame must not clobber with DEFAULT_ASPECT=1.778 (got ${aspectAfterFrame})`,
+);
+const vpAfterFrame = parseFloatCsv(canvas.getAttribute("data-hv-view-projection"));
+assert(vpAfterFrame.length === 16, "post-resize frame VP has 16 floats");
+// Perspective x_scale = focal/aspect at elements[0]; must match resize VP for same aspect.
+assert(
+  Math.abs(vpAfterFrame[0] - vpAfterResizeNums[0]) < 1e-5,
+  `post-resize frame keeps VP x_scale for live aspect (got ${vpAfterFrame[0]} vs ${vpAfterResizeNums[0]})`,
+);
 
 // --- Dispose stops frame + resize updates ---
 const modelBeforeDispose = canvas.getAttribute("data-hv-model-matrix");

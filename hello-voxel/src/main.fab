@@ -9,7 +9,8 @@ importa ex "web:web" privata web
 importa ex "web:dom" privata dom
 importa ex "triga:triga" privata triga
 
-# Default canvas aspect (960×540). Resize rewrites projection with live aspect.
+# Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
+# DEFAULT_ASPECT is only the initial mount default — not used on later frames.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
 
 # =========================================================================
@@ -200,12 +201,11 @@ functio emit_transform(dom.Element canvas, f32 angle_radians, f32 aspect) → va
 # FRAME UPDATE — model rotation from frame time via Triga
 # =========================================================================
 
-functio update_frame(dom.Element canvas, dom.FrameState frame) → vacuum {
+functio update_frame(dom.Element canvas, dom.FrameState frame, f32 aspect) → vacuum {
     # Advance Y-axis rotation from frame index (deterministic two-frame proof).
-    # Model matrix is independent of aspect; projection uses DEFAULT_ASPECT here
-    # and is rewritten on resize with the live aspect.
+    # Projection uses the live aspect threaded from mount/resize (not DEFAULT_ASPECT).
     fixum f32 angle ← (frame.frame ↦ f32) * 0.05 ∷ f32
-    emit_transform(canvas, angle, DEFAULT_ASPECT)
+    emit_transform(canvas, angle, aspect)
     dom.attr_set(canvas, "data-hv-frame-count", frame.frame ↦ textus)
     dom.attr_set(canvas, "data-hv-angle", angle ↦ textus)
     dom.class_add(canvas, "hv-frame-active")
@@ -215,13 +215,16 @@ functio update_frame(dom.Element canvas, dom.FrameState frame) → vacuum {
 # RESIZE UPDATE — projection aspect from resize state via Triga
 # =========================================================================
 
-functio update_resize(dom.Element canvas, dom.ResizeState resize) → vacuum {
+functio aspect_from_resize(dom.ResizeState resize) → f32 {
     fixum f32 width ← resize.width ↦ f32
     fixum f32 height ← resize.height ↦ f32
-    varia f32 aspect ← 1.0 ∷ f32
     si height > 0.0 {
-        aspect ← width / height
+        redde width / height
     }
+    redde 1.0 ∷ f32
+}
+
+functio update_resize(dom.Element canvas, dom.ResizeState resize, f32 aspect) → vacuum {
     dom.attr_set(canvas, "data-hv-width", resize.width ↦ textus)
     dom.attr_set(canvas, "data-hv-height", resize.height ↦ textus)
     dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
@@ -251,16 +254,22 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     dom.attr_set(canvas, "data-hv-target-z", "0.0")
 
     # Live cube payload + initial transform (host uploads only).
+    # live_aspect is controller state: DEFAULT_ASPECT at mount only; resize
+    # rewrites it; every subsequent frame reads it (no DEFAULT_ASPECT clobber).
+    varia f32 live_aspect ← DEFAULT_ASPECT
     emit_cube_geometry(canvas)
-    emit_transform(canvas, 0.0 ∷ f32, DEFAULT_ASPECT)
+    emit_transform(canvas, 0.0 ∷ f32, live_aspect)
 
     dom.text_set(status, "package-ready")
     dom.class_add(status, "ready")
 
-    # Frame advances model matrix; resize updates projection inputs.
+    # Frame advances model with live aspect; resize rewrites live_aspect.
     fixum dom.Subscription frame_sub ←
-        dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame))
+        dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame, live_aspect))
     fixum dom.Subscription resize_sub ←
-        dom.on_resize((dom.ResizeState resize) → vacuum ∴ update_resize(canvas, resize))
+        dom.on_resize((dom.ResizeState resize) → vacuum ∴ fac {
+            live_aspect ← aspect_from_resize(resize)
+            update_resize(canvas, resize, live_aspect)
+        })
     redde [frame_sub, resize_sub]
 }

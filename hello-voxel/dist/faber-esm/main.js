@@ -108,20 +108,22 @@ function emit_transform(canvas, angle_radians, aspect) {
     dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values));
     dom.attr_set(canvas, "data-hv-aspect", String(aspect));
 }
-function update_frame(canvas, frame) {
+function update_frame(canvas, frame, aspect) {
     const angle = frame.frame * 0.05;
-    emit_transform(canvas, angle, DEFAULT_ASPECT);
+    emit_transform(canvas, angle, aspect);
     dom.attr_set(canvas, "data-hv-frame-count", String(frame.frame));
     dom.attr_set(canvas, "data-hv-angle", String(angle));
     dom.class_add(canvas, "hv-frame-active");
 }
-function update_resize(canvas, resize) {
+function aspect_from_resize(resize) {
     const width = resize.width;
     const height = resize.height;
-    let aspect = 1;
     if ((height > 0)) {
-        aspect = (width / height);
+        return (width / height);
     }
+    return 1;
+}
+function update_resize(canvas, resize, aspect) {
     dom.attr_set(canvas, "data-hv-width", String(resize.width));
     dom.attr_set(canvas, "data-hv-height", String(resize.height));
     dom.attr_set(canvas, "data-hv-aspect", String(aspect));
@@ -140,11 +142,15 @@ export function hello_voxel_controller(scope) {
     dom.attr_set(canvas, "data-hv-target-x", "0.0");
     dom.attr_set(canvas, "data-hv-target-y", "0.0");
     dom.attr_set(canvas, "data-hv-target-z", "0.0");
+    let live_aspect = DEFAULT_ASPECT;
     emit_cube_geometry(canvas);
-    emit_transform(canvas, 0, DEFAULT_ASPECT);
+    emit_transform(canvas, 0, live_aspect);
     dom.text_set(status, "package-ready");
     dom.class_add(status, "ready");
-    const frame_sub = dom.on_frame((frame) => update_frame(canvas, frame));
-    const resize_sub = dom.on_resize((resize) => update_resize(canvas, resize));
+    const frame_sub = dom.on_frame((frame) => update_frame(canvas, frame, live_aspect));
+    const resize_sub = dom.on_resize((resize) => (() => {
+        live_aspect = aspect_from_resize(resize);
+        update_resize(canvas, resize, live_aspect);
+    })());
     return [frame_sub, resize_sub];
 }
