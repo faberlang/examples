@@ -167,6 +167,9 @@ function writeEvidence(proof) {
     central_is_background: proof.pixels?.central_is_background === true,
     frame1_non_background: proof.pixels?.frame1_non_background === true,
     frame2_non_background: proof.pixels?.frame2_non_background === true,
+    frame1_non_black_coverage: proof.pixels?.frame1_non_black_coverage === true,
+    frame2_non_black_coverage: proof.pixels?.frame2_non_black_coverage === true,
+    frames_rgb_differ: proof.pixels?.frames_rgb_differ === true,
     frame1: proof.pixels?.frame1,
     frame2: proof.pixels?.frame2,
     two_frame_times: true,
@@ -257,7 +260,9 @@ async function main() {
       evidence.submit.drawIndexed !== true ||
       Number(evidence.submit.index_count) !== 36 ||
       evidence.depth.depth_test_enabled !== true ||
-      evidence.pixel.central_is_background !== false
+      evidence.pixel.central_is_background !== false ||
+      evidence.pixel.frame1_non_black_coverage !== true ||
+      evidence.pixel.frame2_non_black_coverage !== true
     ) {
       console.error("run-hv04c-host-proof: evidence failed gate assertions", {
         submit: evidence.submit,
@@ -266,6 +271,9 @@ async function main() {
           central_is_background: evidence.pixel.central_is_background,
           frame1: evidence.pixel.frame1_non_background,
           frame2: evidence.pixel.frame2_non_background,
+          frame1_non_black: evidence.pixel.frame1_non_black_coverage,
+          frame2_non_black: evidence.pixel.frame2_non_black_coverage,
+          frames_rgb_differ: evidence.pixel.frames_rgb_differ,
         },
       });
       // Still leave files for inspection, but fail closed.
@@ -276,7 +284,11 @@ async function main() {
     console.log("run-hv04c-host-proof: wrote evidence to", PROOF_DIR);
     console.log(`  artifact_id=${proof.artifact_id}`);
     console.log(`  submit frames=${evidence.submit.submittedFrameCount}`);
-    console.log(`  pixels non-bg f1=${evidence.pixel.frame1_non_background} f2=${evidence.pixel.frame2_non_background}`);
+    console.log(
+      `  pixels non-bg f1=${evidence.pixel.frame1_non_background} f2=${evidence.pixel.frame2_non_background}`
+      + ` non-black f1=${evidence.pixel.frame1_non_black_coverage} f2=${evidence.pixel.frame2_non_black_coverage}`
+      + ` rgbDiff=${evidence.pixel.frames_rgb_differ}`,
+    );
   } finally {
     if (browser) await browser.close();
     await new Promise((r) => server.close(r));

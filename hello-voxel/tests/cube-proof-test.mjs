@@ -384,7 +384,10 @@ if (!existsSync(pixelEvidencePath)) {
   assert(pixels.background_hex !== undefined, "pixel evidence records background_hex");
   assert(pixels.frame1_non_background === true && pixels.frame2_non_background === true,
     "pixel evidence must show non-background at two frame times");
-  info("pixel evidence present: central region not background at two frames");
+  // Fail black-stub+identity success: pure black coverage vs dark clear is not visual law.
+  assert(pixels.frame1_non_black_coverage === true && pixels.frame2_non_black_coverage === true,
+    "pixel evidence must show non-black coverage (vertex color path, not black fragment stub)");
+  info("pixel evidence present: non-background non-black central samples at two frames");
 }
 
 // Depth buffer evidence is required for the depth gate (near/far attrs alone insufficient).

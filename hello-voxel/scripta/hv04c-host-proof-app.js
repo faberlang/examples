@@ -15,10 +15,12 @@ import {
   onDeviceLost,
 } from "/host-src/webgpu-runtime.js";
 
-// Clear color ≠ pure black so black fragment stubs still yield non-background
-// coverage relative to the clear (HV-01 fragment body still hardcodes black).
+// Clear is dark but not pure black. Visual law (REPAIR F2 / HV-04C):
+// coverage vs clear alone is not enough — samples must show non-black RGB
+// (vertex color path) and preferably differ across package transform frames.
 const CLEAR = { r: 0.02, g: 0.027, b: 0.039, a: 1.0 };
 const BACKGROUND_HEX = "#05070a";
+const PURE_BLACK_HEX = "#000000";
 
 window.faberHv04cProof = Object.freeze({ ok: false, status: "starting" });
 
@@ -220,17 +222,38 @@ async function main() {
   const observedClearHex = clearSamples[0]?.hex;
   const nonBackground = (samples) =>
     samples.some((s) => s.a > 0 && s.hex !== clearHex);
+  // Fail black-stub success: coverage that is pure black vs dark clear is not visual law.
+  const nonBlackCoverage = (samples) =>
+    samples.some((s) => s.a > 0 && s.hex !== clearHex && s.hex !== PURE_BLACK_HEX);
+  const sampleHexes = (samples) =>
+    samples.filter((s) => s.a > 0 && s.hex !== clearHex).map((s) => s.hex);
+  const framesRgbDiffer = (() => {
+    const a = new Set(sampleHexes(samples1));
+    const b = new Set(sampleHexes(samples2));
+    if (a.size === 0 || b.size === 0) return false;
+    for (const hex of a) {
+      if (!b.has(hex)) return true;
+    }
+    for (const hex of b) {
+      if (!a.has(hex)) return true;
+    }
+    return false;
+  })();
 
   const clearControlOk = observedClearHex === clearHex && clearSamples[0].a > 0;
   const frame1NonBg = nonBackground(samples1);
   const frame2NonBg = nonBackground(samples2);
+  const frame1NonBlack = nonBlackCoverage(samples1);
+  const frame2NonBlack = nonBlackCoverage(samples2);
 
   window.faberHv04cProof = Object.freeze({
     ok:
       frameState.submittedFrameCount >= 2
       && clearControlOk
       && frame1NonBg
-      && frame2NonBg,
+      && frame2NonBg
+      && frame1NonBlack
+      && frame2NonBlack,
     status: "ready",
     kind: "ok",
     artifact_id: artifact.artifact_id,
@@ -254,6 +277,9 @@ async function main() {
       frame2: samples2,
       frame1_non_background: frame1NonBg,
       frame2_non_background: frame2NonBg,
+      frame1_non_black_coverage: frame1NonBlack,
+      frame2_non_black_coverage: frame2NonBlack,
+      frames_rgb_differ: framesRgbDiffer,
     },
     package: {
       positions_bytes: positionsBuffer.byteLength,
@@ -271,8 +297,8 @@ async function main() {
   });
 
   statusEl.textContent = window.faberHv04cProof.ok
-    ? `ready frames=${frameState.submittedFrameCount}`
-    : `incomplete clearOk=${clearControlOk} f1=${frame1NonBg} f2=${frame2NonBg}`;
+    ? `ready frames=${frameState.submittedFrameCount} rgbDiff=${framesRgbDiffer}`
+    : `incomplete clearOk=${clearControlOk} f1=${frame1NonBg}/${frame1NonBlack} f2=${frame2NonBg}/${frame2NonBlack}`;
 }
 
 function rgbToHex(r, g, b) {
