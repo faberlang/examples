@@ -151,25 +151,53 @@ assert(initialTransform.length === 32, `transform length 32, got ${initialTransf
 assert(initialModel.length === 16, `model length 16, got ${initialModel.length}`);
 assert(initialVp.length === 16, `view-projection length 16, got ${initialVp.length}`);
 
-// --- Two frames → different model matrix (not frame-count alone) ---
+// --- Two frames → frame-count + residual angle advance (HV-06 first-person
+// keeps identity model; interaction harness proves look/move changes separately).
 assert(frameCallbacks.length >= 1, `frame callback registered (got ${frameCallbacks.length})`);
-frameCallbacks[0](16);
+let simTime = 0;
+function step(delta = 16) {
+  simTime += delta;
+  for (let i = frameCallbacks.length - 1; i >= 0; i--) {
+    if (typeof frameCallbacks[i] === "function") {
+      frameCallbacks[i](simTime);
+      return;
+    }
+  }
+}
+step(16);
 const modelFrame1 = canvas.getAttribute("data-hv-model-matrix");
 const transformFrame1 = canvas.getAttribute("data-hv-transform");
 assert(canvas.getAttribute("data-hv-frame-count") === "1", "frame count 1");
 assert(parseFloatCsv(modelFrame1).length === 16, "frame1 model has 16 floats");
+assert(parseFloatCsv(transformFrame1).length === 32, "frame1 transform has 32 floats");
 
-frameCallbacks[1](33);
+step(17);
 const modelFrame2 = canvas.getAttribute("data-hv-model-matrix");
 const transformFrame2 = canvas.getAttribute("data-hv-transform");
 assert(canvas.getAttribute("data-hv-frame-count") === "2", "frame count 2");
-assert(modelFrame1 !== modelFrame2, "model matrix changes across frames");
-assert(transformFrame1 !== transformFrame2, "full transform changes across frames");
+assert(parseFloatCsv(modelFrame2).length === 16, "frame2 model has 16 floats");
+assert(parseFloatCsv(transformFrame2).length === 32, "frame2 transform has 32 floats");
 assert(
   canvas.getAttribute("data-hv-angle") !== null &&
     Number(canvas.getAttribute("data-hv-angle")) > 0,
   "angle advances with frames",
 );
+// Scripted look under pointer lock changes view-projection (HV-06 interaction).
+canvas.requestPointerLock();
+globalThis.document.dispatchEvent(new FakeEvent("pointerlockchange"));
+canvas.dispatchEvent(new FakeEvent("pointermove", {
+  clientX: 0,
+  clientY: 0,
+  movementX: 40,
+  movementY: 0,
+  button: 0,
+  isPrimary: true,
+}));
+step(16);
+const transformAfterLook = canvas.getAttribute("data-hv-transform");
+const yawAfterLook = Number(canvas.getAttribute("data-hv-yaw"));
+assert(Number.isFinite(yawAfterLook) && yawAfterLook !== 0, `yaw changes under lock (got ${yawAfterLook})`);
+assert(transformAfterLook !== transformFrame2, "transform changes after scripted look");
 
 // --- Resize updates projection inputs ---
 assert(canvas.getAttribute("data-hv-width") === "960", `initial width 960, got ${canvas.getAttribute("data-hv-width")}`);

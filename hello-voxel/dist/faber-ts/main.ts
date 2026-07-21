@@ -10,19 +10,9 @@ import { voxel } from "./voxel.js";
 
 import { meshing } from "./meshing.js";
 
+import { application } from "./application.js";
+
 const DEFAULT_ASPECT: number = 1.778 as number;
-
-const WORLD_CENTER_X: number = 16 as number;
-
-const WORLD_CENTER_Y: number = 2 as number;
-
-const WORLD_CENTER_Z: number = 16 as number;
-
-const EYE_X: number = 48 as number;
-
-const EYE_Y: number = 10 as number;
-
-const EYE_Z: number = 48 as number;
 
 function lista_f32_textus(values: Array<number>): string {
     let out: string = "";
@@ -49,6 +39,12 @@ function lista_u32_textus(values: Array<number>): string {
         i = (i + 1);
     }
     return out;
+}
+function bivalens_textus(value: boolean): string {
+    if (value) {
+        return "1";
+    }
+    return "0";
 }
 class WorldChunkBatch {
     chunk_count!: number;
@@ -81,8 +77,7 @@ function append_indices_offset(dest: Array<number>, src: Array<number>, vertex_b
     }
     return out;
 }
-function mesh_fixture_world(): WorldChunkBatch | null {
-    const world: any = voxel.fixture_world();
+function mesh_world(world: any): WorldChunkBatch | null {
     if (((voxel.world_valid(world) as boolean) === (false as boolean))) {
         return null;
     }
@@ -122,6 +117,9 @@ function mesh_fixture_world(): WorldChunkBatch | null {
     }
     return Object.assign(new WorldChunkBatch(), { chunk_count: voxel.chunk_count(), non_empty_count: non_empty, total_face_count: total_faces, total_vertex_count: total_vertices, total_index_count: total_indices, meshes: meshes, positions: positions, colors: colors, indices: indices });
 }
+function mesh_fixture_world(): WorldChunkBatch | null {
+    return mesh_world(voxel.fixture_world());
+}
 function emit_chunk_geometry(canvas: any, mesh: any, slot: number): void {
     const prefix: string = `${"data-hv-c"}${String(slot)}`;
     dom.attr_set(canvas, `${prefix}${"-cx"}`, String(mesh.cx));
@@ -141,6 +139,7 @@ function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
     dom.attr_set(canvas, "data-hv-total-face-count", String(batch.total_face_count));
     dom.attr_set(canvas, "data-hv-vertex-count", String(batch.total_vertex_count));
     dom.attr_set(canvas, "data-hv-index-count", String(batch.total_index_count));
+    dom.attr_set(canvas, "data-hv-residual-path", "concatenated-single-buffer");
     dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(batch.positions));
     dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(batch.colors));
     dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices));
@@ -150,26 +149,21 @@ function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
         i = (i + 1);
     }
 }
-function world_model_matrix(angle_radians: number): any {
-    const rotation_result: any | null = triga.euler_ad_quaternionem(triga.euler(0 as number, angle_radians, 0 as number));
-    let rotation: any = triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number);
-    if ((rotation_result !== null)) {
-        rotation = Object.assign({}, { x: rotation_result!.x, y: rotation_result!.y, z: rotation_result!.z, w: rotation_result!.w });
-    }
-    const to_origin: any = triga.matrix4_composita(triga.vector3((0 as number - WORLD_CENTER_X), (0 as number - WORLD_CENTER_Y), (0 as number - WORLD_CENTER_Z)), triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number), triga.vector3(1 as number, 1 as number, 1 as number));
-    const rotate: any = triga.matrix4_composita(triga.vector3(0 as number, 0 as number, 0 as number), rotation, triga.vector3(1 as number, 1 as number, 1 as number));
-    const from_origin: any = triga.matrix4_composita(triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z), triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number), triga.vector3(1 as number, 1 as number, 1 as number));
-    return triga.matrix4_multiplicata(from_origin, triga.matrix4_multiplicata(rotate, to_origin));
+function identity_matrix(): any {
+    return triga.matrix4_identitas();
 }
-function world_view_projection(aspect: number): any {
+function first_person_view_projection(camera: any, player: any, aspect: number): any {
     let safe_aspect: number = 1 as number;
     if ((aspect > 0)) {
         safe_aspect = aspect;
     }
+    const facts: any = application.camera_view_facts(camera, player);
+    const eye: any = facts.ray.origin;
+    const target: any = triga.vector3((eye.x + facts.direction.x), (eye.y + facts.direction.y), (eye.z + facts.direction.z));
     const projection_result: any | null = triga.matrix4_perspectiva(50 as number, safe_aspect, 0.1 as number, 200 as number);
-    const view_result: any | null = triga.matrix4_conspectus(triga.vector3(EYE_X, EYE_Y, EYE_Z), triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z), triga.vector3(0 as number, 1 as number, 0 as number));
-    let projection: any = triga.matrix4_identitas();
-    let view: any = triga.matrix4_identitas();
+    const view_result: any | null = triga.matrix4_conspectus(eye, target, triga.vector3(0 as number, 1 as number, 0 as number));
+    let projection: any = identity_matrix();
+    let view: any = identity_matrix();
     if ((projection_result !== null)) {
         projection = Object.assign({}, { elements: projection_result!.elements });
     }
@@ -178,17 +172,17 @@ function world_view_projection(aspect: number): any {
     }
     return triga.matrix4_multiplicata(projection, view);
 }
-function world_transform_payload(angle_radians: number, aspect: number): any {
-    const model: any = world_model_matrix(angle_radians);
-    const view_projection: any = world_view_projection(aspect);
+function first_person_transform_payload(camera: any, player: any, aspect: number): any {
+    const model: any = identity_matrix();
+    const view_projection: any = first_person_view_projection(camera, player, aspect);
     const packed: any | null = triga.transform_payload(model, view_projection);
     if ((packed !== null)) {
         return Object.assign({}, { values: packed!.values });
     }
     return Object.assign({}, { values: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] });
 }
-function emit_transform(canvas: any, angle_radians: number, aspect: number): void {
-    const payload: any = world_transform_payload(angle_radians, aspect);
+function emit_transform(canvas: any, camera: any, player: any, aspect: number): void {
+    const payload: any = first_person_transform_payload(camera, player, aspect);
     const values: Array<number> = payload.values;
     let model_values: Array<number> = [];
     let vp_values: Array<number> = [];
@@ -201,17 +195,90 @@ function emit_transform(canvas: any, angle_radians: number, aspect: number): voi
         vp_values.push(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i));
         i = (i + 1);
     }
+    const eye: any = application.camera_eye(player);
     dom.attr_set(canvas, "data-hv-transform", lista_f32_textus(values));
     dom.attr_set(canvas, "data-hv-model-matrix", lista_f32_textus(model_values));
     dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values));
     dom.attr_set(canvas, "data-hv-aspect", String(aspect));
+    dom.attr_set(canvas, "data-hv-eye-x", String(eye.x));
+    dom.attr_set(canvas, "data-hv-eye-y", String(eye.y));
+    dom.attr_set(canvas, "data-hv-eye-z", String(eye.z));
+    dom.attr_set(canvas, "data-hv-yaw", String(camera.yaw_degrees));
+    dom.attr_set(canvas, "data-hv-pitch", String(camera.pitch_degrees));
+    dom.attr_set(canvas, "data-hv-target-x", String((eye.x + application.camera_view_facts(camera, player).direction.x)));
+    dom.attr_set(canvas, "data-hv-target-y", String((eye.y + application.camera_view_facts(camera, player).direction.y)));
+    dom.attr_set(canvas, "data-hv-target-z", String((eye.z + application.camera_view_facts(camera, player).direction.z)));
 }
-function update_frame(canvas: any, frame: any, aspect: number): void {
-    const angle: number = (frame.frame * 0.35 as number);
-    emit_transform(canvas, angle, aspect);
-    dom.attr_set(canvas, "data-hv-frame-count", String(frame.frame));
-    dom.attr_set(canvas, "data-hv-angle", String(angle));
-    dom.class_add(canvas, "hv-frame-active");
+function emit_selection(canvas: any, outline: any): void {
+    dom.attr_set(canvas, "data-hv-select-active", bivalens_textus(outline.active));
+    dom.attr_set(canvas, "data-hv-select-hit-x", String(outline.hit_x));
+    dom.attr_set(canvas, "data-hv-select-hit-y", String(outline.hit_y));
+    dom.attr_set(canvas, "data-hv-select-hit-z", String(outline.hit_z));
+    dom.attr_set(canvas, "data-hv-select-prev-x", String(outline.prev_x));
+    dom.attr_set(canvas, "data-hv-select-prev-y", String(outline.prev_y));
+    dom.attr_set(canvas, "data-hv-select-prev-z", String(outline.prev_z));
+    dom.attr_set(canvas, "data-hv-select-has-preceding", bivalens_textus(outline.has_preceding));
+    dom.attr_set(canvas, "data-hv-select-distance", String(outline.distance));
+    dom.attr_set(canvas, "data-hv-select-positions", lista_f32_textus(outline.positions));
+    dom.attr_set(canvas, "data-hv-select-indices", lista_u32_textus(outline.indices));
+    dom.attr_set(canvas, "data-hv-select-vertex-count", String(outline.vertex_count));
+    dom.attr_set(canvas, "data-hv-select-line-count", String(outline.line_count));
+    dom.attr_set(canvas, "data-hv-select-index-count", String(outline.index_count));
+    dom.attr_set(canvas, "data-hv-select-draw-count", String(outline.draw_count));
+    dom.attr_set(canvas, "data-hv-select-via", "box_wire");
+}
+function emit_player_input(canvas: any, app: any): void {
+    dom.attr_set(canvas, "data-hv-player-x", String(app.player.x));
+    dom.attr_set(canvas, "data-hv-player-y", String(app.player.y));
+    dom.attr_set(canvas, "data-hv-player-z", String(app.player.z));
+    dom.attr_set(canvas, "data-hv-player-grounded", bivalens_textus(app.player.grounded));
+    dom.attr_set(canvas, "data-hv-key-w", bivalens_textus(app.input.key_w));
+    dom.attr_set(canvas, "data-hv-key-a", bivalens_textus(app.input.key_a));
+    dom.attr_set(canvas, "data-hv-key-s", bivalens_textus(app.input.key_s));
+    dom.attr_set(canvas, "data-hv-key-d", bivalens_textus(app.input.key_d));
+    dom.attr_set(canvas, "data-hv-focused", bivalens_textus(app.input.focused));
+    dom.attr_set(canvas, "data-hv-pointer-locked", bivalens_textus(app.input.pointer_locked));
+}
+function emit_pointer_lock_mode(canvas: any, state: any): void {
+    dom.attr_set(canvas, "data-hv-pointer-lock-supported", bivalens_textus(state.supported));
+    dom.attr_set(canvas, "data-hv-pointer-lock-denied", bivalens_textus(state.denied));
+    dom.attr_set(canvas, "data-hv-pointer-locked", bivalens_textus(state.locked));
+    if (state.denied) {
+        dom.attr_set(canvas, "data-hv-pointer-lock-mode", "denied");
+        return ;
+    }
+    if (((state.supported as boolean) === (false as boolean))) {
+        dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unsupported");
+        return ;
+    }
+    if (state.locked) {
+        dom.attr_set(canvas, "data-hv-pointer-lock-mode", "locked");
+        return ;
+    }
+    dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked");
+}
+function emit_world_probe(canvas: any, world: any, x: number, y: number, z: number): void {
+    dom.attr_set(canvas, "data-hv-world-probe-x", String(x));
+    dom.attr_set(canvas, "data-hv-world-probe-y", String(y));
+    dom.attr_set(canvas, "data-hv-world-probe-z", String(z));
+    const id: number | null = voxel.world_get(world, x, y, z);
+    if ((id === null)) {
+        dom.attr_set(canvas, "data-hv-world-probe-id", "oob");
+        return ;
+    }
+    dom.attr_set(canvas, "data-hv-world-probe-id", String((id ?? 0)));
+}
+function emit_interaction_snapshot(canvas: any, world: any, app: any, aspect: number, last_edit: string): void {
+    emit_player_input(canvas, app);
+    emit_transform(canvas, app.camera, app.player, aspect);
+    const outline: any = application.selection_outline_for_camera(world, app.camera, app.player);
+    emit_selection(canvas, outline);
+    if (outline.active) {
+        emit_world_probe(canvas, world, outline.hit_x, outline.hit_y, outline.hit_z);
+    } else {
+        emit_world_probe(canvas, world, 20, 0, 20);
+    }
+    dom.attr_set(canvas, "data-hv-last-edit", last_edit);
 }
 function aspect_from_resize(resize: any): number {
     const width: number = resize.width;
@@ -221,33 +288,32 @@ function aspect_from_resize(resize: any): number {
     }
     return 1 as number;
 }
-function update_resize(canvas: any, resize: any, aspect: number): void {
-    dom.attr_set(canvas, "data-hv-width", String(resize.width));
-    dom.attr_set(canvas, "data-hv-height", String(resize.height));
-    dom.attr_set(canvas, "data-hv-aspect", String(aspect));
-    emit_transform(canvas, 0 as number, aspect);
-    dom.class_add(canvas, "hv-resize-active");
-}
 export function hello_voxel_controller(scope: any): Array<any> {
     const status: any = dom.require(scope, ".hv-status");
     const canvas: any = dom.require(scope, ".hv-canvas");
     dom.attr_set(canvas, "data-hv-fov", "50");
     dom.attr_set(canvas, "data-hv-near", "0.1");
     dom.attr_set(canvas, "data-hv-far", "200.0");
-    dom.attr_set(canvas, "data-hv-eye-x", "48.0");
-    dom.attr_set(canvas, "data-hv-eye-y", "10.0");
-    dom.attr_set(canvas, "data-hv-eye-z", "48.0");
-    dom.attr_set(canvas, "data-hv-target-x", "16.0");
-    dom.attr_set(canvas, "data-hv-target-y", "2.0");
-    dom.attr_set(canvas, "data-hv-target-z", "16.0");
     dom.attr_set(canvas, "data-hv-payload-kind", "four-chunk-world");
+    dom.attr_set(canvas, "data-hv-interaction", "pending");
+    dom.attr_set(canvas, "data-hv-edit-count", "0");
+    dom.attr_set(canvas, "data-hv-last-edit", "none");
+    dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked");
+    dom.attr_set(canvas, "data-hv-pointer-lock-supported", "0");
+    dom.attr_set(canvas, "data-hv-pointer-lock-denied", "0");
     let live_aspect: number = DEFAULT_ASPECT;
-    const batch_result: WorldChunkBatch | null = mesh_fixture_world();
+    let live_world: any = voxel.fixture_world();
+    let live_app: any = application.spawn_application();
+    let edit_count: number = 0;
+    let last_edit: string = "none";
+    let remesh_pending: number = 1;
+    const batch_result: WorldChunkBatch | null = mesh_world(live_world);
     if ((batch_result === null)) {
         dom.text_set(status, "package-mesh-failed");
         dom.class_add(status, "failed");
         dom.attr_set(canvas, "data-hv-resource-pair-count", "0");
         dom.attr_set(canvas, "data-hv-draw-count", "0");
+        dom.attr_set(canvas, "data-hv-interaction", "mesh-failed");
         return [];
     }
     const batch: WorldChunkBatch = Object.assign(new WorldChunkBatch(), { chunk_count: batch_result!.chunk_count, non_empty_count: batch_result!.non_empty_count, total_face_count: batch_result!.total_face_count, total_vertex_count: batch_result!.total_vertex_count, total_index_count: batch_result!.total_index_count, meshes: batch_result!.meshes, positions: batch_result!.positions, colors: batch_result!.colors, indices: batch_result!.indices });
@@ -256,15 +322,114 @@ export function hello_voxel_controller(scope: any): Array<any> {
         dom.class_add(status, "failed");
         dom.attr_set(canvas, "data-hv-resource-pair-count", String(batch.non_empty_count));
         dom.attr_set(canvas, "data-hv-draw-count", String(batch.non_empty_count));
+        dom.attr_set(canvas, "data-hv-interaction", "mesh-invalid");
         return [];
     }
     emit_world_geometry(canvas, batch);
-    emit_transform(canvas, 0 as number, live_aspect);
+    remesh_pending = 0;
+    emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit);
     dom.text_set(status, "package-ready");
     dom.class_add(status, "ready");
-    const frame_sub: any = dom.on_frame((frame: any) => update_frame(canvas, frame, live_aspect));
-    const resize_sub: any = dom.on_resize((resize: any) => (() => { live_aspect = aspect_from_resize(resize);
-     update_resize(canvas, resize, live_aspect);
+    dom.attr_set(canvas, "data-hv-interaction", "ready");
+    const seed_lock: any = dom.pointer_lock_state(canvas);
+    emit_pointer_lock_mode(canvas, seed_lock);
+    const frame_sub: any = dom.on_frame((frame: any) => (() => { const delta_seconds: number = (frame.delta_ms / 1000 as number);
+     live_app = application.step_application(live_world, live_app, delta_seconds);
+     if (((remesh_pending as number) === (1 as number))) {
+        const remesh: WorldChunkBatch | null = mesh_world(live_world);
+        if ((remesh !== null)) {
+            const next_batch: WorldChunkBatch = Object.assign(new WorldChunkBatch(), { chunk_count: remesh!.chunk_count, non_empty_count: remesh!.non_empty_count, total_face_count: remesh!.total_face_count, total_vertex_count: remesh!.total_vertex_count, total_index_count: remesh!.total_index_count, meshes: remesh!.meshes, positions: remesh!.positions, colors: remesh!.colors, indices: remesh!.indices });
+            emit_world_geometry(canvas, next_batch);
+            remesh_pending = 0;
+        }
+    }
+     emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit);
+     dom.attr_set(canvas, "data-hv-frame-count", String(frame.frame));
+     dom.attr_set(canvas, "data-hv-angle", String((frame.frame * 0.35 as number)));
+     dom.class_add(canvas, "hv-frame-active");
      })());
-    return [frame_sub, resize_sub];
+    const resize_sub: any = dom.on_resize((resize: any) => (() => { live_aspect = aspect_from_resize(resize);
+     dom.attr_set(canvas, "data-hv-width", String(resize.width));
+     dom.attr_set(canvas, "data-hv-height", String(resize.height));
+     emit_transform(canvas, live_app.camera, live_app.player, live_aspect);
+     dom.class_add(canvas, "hv-resize-active");
+     })());
+    const keydown_sub: any = dom.on_keyboard(canvas, "keydown", (key: any) => (() => { live_app = Object.assign({}, { camera: live_app.camera, input: application.set_key_by_code(live_app.input, key.code, true), player: live_app.player });
+     emit_player_input(canvas, live_app);
+     })());
+    const keyup_sub: any = dom.on_keyboard(canvas, "keyup", (key: any) => (() => { live_app = Object.assign({}, { camera: live_app.camera, input: application.set_key_by_code(live_app.input, key.code, false), player: live_app.player });
+     emit_player_input(canvas, live_app);
+     })());
+    const pointer_move_sub: any = dom.on_pointer(canvas, "pointermove", (pointer: any) => (() => { live_app = Object.assign({}, { camera: live_app.camera, input: application.queue_mouse_delta(live_app.input, pointer.movement_x, pointer.movement_y), player: live_app.player });
+     })());
+    const pointer_down_sub: any = dom.on_pointer(canvas, "pointerdown", (pointer: any) => (() => { if (((pointer.button as number) === (0 as number))) {
+        const removed: any | null = application.try_remove(live_world, live_app.camera, live_app.player);
+        if ((removed !== null)) {
+            live_world = Object.assign({}, { chunks: removed!.chunks });
+            edit_count = (edit_count + 1);
+            last_edit = "remove";
+            remesh_pending = 1;
+            dom.attr_set(canvas, "data-hv-edit-count", String(edit_count));
+        } else {
+            last_edit = "remove-reject";
+        }
+    }
+     if (((pointer.button as number) === (2 as number))) {
+        const placed: any | null = application.try_place(live_world, live_app.camera, live_app.player);
+        if ((placed !== null)) {
+            live_world = Object.assign({}, { chunks: placed!.chunks });
+            edit_count = (edit_count + 1);
+            last_edit = "place";
+            remesh_pending = 1;
+            dom.attr_set(canvas, "data-hv-edit-count", String(edit_count));
+        } else {
+            last_edit = "place-reject";
+        }
+    }
+     emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit);
+     })());
+    const focus_sub: any = dom.on_focus(canvas, "focus", (focus: any) => (() => { live_app = Object.assign({}, { camera: live_app.camera, input: application.apply_focus(live_app.input, focus.focused), player: live_app.player });
+     emit_player_input(canvas, live_app);
+     if (((focus.focused as boolean) === (false as boolean))) {
+        dom.attr_set(canvas, "data-hv-focus-loss", "1");
+    } else {
+        dom.attr_set(canvas, "data-hv-focus-loss", "0");
+    }
+     })());
+    const blur_sub: any = dom.on_focus(canvas, "blur", (focus: any) => (() => { live_app = Object.assign({}, { camera: live_app.camera, input: application.apply_focus(live_app.input, focus.focused), player: live_app.player });
+     emit_player_input(canvas, live_app);
+     if (((focus.focused as boolean) === (false as boolean))) {
+        dom.attr_set(canvas, "data-hv-focus-loss", "1");
+    }
+     })());
+    const lock_state_sub: any = dom.on_pointer_lock(canvas, (state: any) => (() => { emit_pointer_lock_mode(canvas, state);
+     live_app = Object.assign({}, { camera: live_app.camera, input: application.apply_pointer_lock(live_app.input, state.locked), player: live_app.player });
+     emit_player_input(canvas, live_app);
+     if (state.denied) {
+        dom.class_add(status, "lock-denied");
+        dom.attr_set(canvas, "data-hv-interaction", "lock-denied");
+    }
+     if (state.locked) {
+        dom.class_remove(status, "lock-denied");
+        dom.attr_set(canvas, "data-hv-interaction", "locked");
+    }
+     })());
+    const click_sub: any = dom.on(canvas, "click", (event: any) => (() => { if (event.default_prevented) {
+        return ;
+    }
+     const requested: any = dom.request_pointer_lock(canvas);
+     emit_pointer_lock_mode(canvas, requested);
+     live_app = Object.assign({}, { camera: live_app.camera, input: application.apply_pointer_lock(live_app.input, requested.locked), player: live_app.player });
+     emit_player_input(canvas, live_app);
+     if (requested.denied) {
+        dom.class_add(status, "lock-denied");
+        dom.text_set(status, "pointer-lock-denied");
+        dom.attr_set(canvas, "data-hv-interaction", "lock-denied");
+    }
+     if (requested.locked) {
+        dom.class_remove(status, "lock-denied");
+        dom.attr_set(canvas, "data-hv-interaction", "locked");
+    }
+     })());
+    return [frame_sub, resize_sub, keydown_sub, keyup_sub, pointer_move_sub, pointer_down_sub, focus_sub, blur_sub, lock_state_sub, click_sub];
 }

@@ -1,31 +1,26 @@
-# Hello Voxel — HV-05C: four-chunk render integration through HV-04 path.
+# Hello Voxel — HV-06C: first-person browser interaction through HV-05 path.
 #
-# Package owns the deterministic fixture world, per-chunk visible-face meshes,
-# resource-pair/draw counts, and transform matrices. Host only uploads package
-# payloads and submits drawIndexed — no host scene policy, no host geometry.
+# Package owns the authoritative world, camera/player state, selection outline
+# (Triga box_wire_*), and edit mutations via application.try_remove/try_place.
+# Host only uploads package payloads and submits draws — no host world mutation.
 #
 # Contract:
-#   - One vertex/index resource pair and one draw per non-empty chunk.
-#   - Empty chunks emit no resources and no draws.
-#   - HV-04 cube payload is replaced; residual cube tests must fail closed.
+#   - WASD + pointer-lock look + primary/secondary edit change Faber state.
+#   - Focus loss clears movement keys immediately.
+#   - Pointer-lock denial is an explicit inspectable degraded state (never hang).
+#   - Residual single-buffer path for world mesh remains; draw_count is ownership
+#     of non-empty chunks (not a multi-draw host claim). Selection outline is a
+#     separate structural line payload via box_wire_*.
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
 importa ex "triga:triga" privata triga
 importa ex "./voxel" privata voxel
 importa ex "./meshing" privata meshing
+importa ex "./application" privata application
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
-
-# World framing: side-on view so Y-rotation changes visible face colors
-# (top-down greens alone do not differ across frames).
-fixum f32 WORLD_CENTER_X ← 16.0 ∷ f32
-fixum f32 WORLD_CENTER_Y ← 2.0 ∷ f32
-fixum f32 WORLD_CENTER_Z ← 16.0 ∷ f32
-fixum f32 EYE_X ← 48.0 ∷ f32
-fixum f32 EYE_Y ← 10.0 ∷ f32
-fixum f32 EYE_Z ← 48.0 ∷ f32
 
 # =========================================================================
 # SERIALIZE — package-owned numeric lists as host-upload text
@@ -59,8 +54,15 @@ functio lista_u32_textus(lista<u32> values) → textus {
     redde out
 }
 
+functio bivalens_textus(bivalens value) → textus {
+    si value {
+        redde "1"
+    }
+    redde "0"
+}
+
 # =========================================================================
-# WORLD MESH — fixture → four chunk meshes (authoritative → derived only)
+# WORLD MESH — authoritative world → four chunk meshes
 # =========================================================================
 
 genus WorldChunkBatch {
@@ -85,8 +87,7 @@ functio append_f32(lista<f32> dest, lista<f32> src) → lista<f32> {
     redde out
 }
 
-# Remap chunk-local indices into a concatenated upload buffer (HV-04 single
-# residual path). Per-chunk resource pairs remain the canonical multi-draw unit.
+# Remap chunk-local indices into a concatenated upload buffer (HV-04 residual).
 functio append_indices_offset(
     lista<u32> dest,
     lista<u32> src,
@@ -102,8 +103,7 @@ functio append_indices_offset(
     redde out
 }
 
-functio mesh_fixture_world() → WorldChunkBatch ∪ nihil {
-    fixum voxel.World world ← voxel.fixture_world()
+functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
     si voxel.world_valid(world) ≡ falsum {
         redde nihil
     }
@@ -168,12 +168,16 @@ functio mesh_fixture_world() → WorldChunkBatch ∪ nihil {
     }
 }
 
+# HV-05C name retained for harness source ownership checks.
+functio mesh_fixture_world() → WorldChunkBatch ∪ nihil {
+    redde mesh_world(voxel.fixture_world())
+}
+
 functio emit_chunk_geometry(
     dom.Element canvas,
     de meshing.ChunkMesh mesh,
     numerus slot
 ) → vacuum {
-    # "§§"(a, b) concatenates; slot is 0..3 for the locked four-chunk grid.
     fixum textus prefix ← "§§"("data-hv-c", slot ↦ textus)
     dom.attr_set(canvas, "§§"(prefix, "-cx"), mesh.cx ↦ textus)
     dom.attr_set(canvas, "§§"(prefix, "-cz"), mesh.cz ↦ textus)
@@ -186,7 +190,8 @@ functio emit_chunk_geometry(
 }
 
 functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → vacuum {
-    # Canonical multi-chunk counts: resource pairs and draws follow non-empty.
+    # Ownership counts follow non-empty chunks. Residual host path may still
+    # upload one concatenated buffer — do not treat this as multi-draw done.
     dom.attr_set(canvas, "data-hv-chunk-count", batch.chunk_count ↦ textus)
     dom.attr_set(canvas, "data-hv-non-empty-chunk-count", batch.non_empty_count ↦ textus)
     dom.attr_set(canvas, "data-hv-resource-pair-count", batch.non_empty_count ↦ textus)
@@ -194,9 +199,8 @@ functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → va
     dom.attr_set(canvas, "data-hv-total-face-count", batch.total_face_count ↦ textus)
     dom.attr_set(canvas, "data-hv-vertex-count", batch.total_vertex_count ↦ textus)
     dom.attr_set(canvas, "data-hv-index-count", batch.total_index_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-residual-path", "concatenated-single-buffer")
 
-    # Concatenated residual payload (HV-04 single buffer path for visible proof).
-    # Index totals and draw-count attrs keep multi-chunk ownership honest.
     dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(batch.positions))
     dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(batch.colors))
     dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices))
@@ -209,56 +213,29 @@ functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → va
 }
 
 # =========================================================================
-# TRANSFORMS — Triga model + view-projection → 32-float payload
-# Model rotates about world center so two frames differ (pixel law).
+# TRANSFORMS — first-person eye + yaw/pitch view-projection
 # =========================================================================
 
-functio world_model_matrix(f32 angle_radians) → triga.Matrix4 {
-    fixum triga.Quaternion ∪ nihil rotation_result ← triga.euler_ad_quaternionem(
-        triga.euler(0.0 ∷ f32, angle_radians, 0.0 ∷ f32)
-    )
-    varia triga.Quaternion rotation ← triga.quaternion(
-        0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32
-    )
-    si rotation_result non est nihil {
-        rotation ← triga.Quaternion {
-            x = rotation_result!.x,
-            y = rotation_result!.y,
-            z = rotation_result!.z,
-            w = rotation_result!.w
-        }
-    }
-    # Translate so world center is origin, rotate, translate back.
-    fixum triga.Matrix4 to_origin ← triga.matrix4_composita(
-        triga.vector3(
-            0.0 ∷ f32 - WORLD_CENTER_X,
-            0.0 ∷ f32 - WORLD_CENTER_Y,
-            0.0 ∷ f32 - WORLD_CENTER_Z
-        ),
-        triga.quaternion(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
-        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
-    )
-    fixum triga.Matrix4 rotate ← triga.matrix4_composita(
-        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
-        rotation,
-        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
-    )
-    fixum triga.Matrix4 from_origin ← triga.matrix4_composita(
-        triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z),
-        triga.quaternion(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
-        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
-    )
-    redde triga.matrix4_multiplicata(
-        from_origin,
-        triga.matrix4_multiplicata(rotate, to_origin)
-    )
+functio identity_matrix() → triga.Matrix4 {
+    redde triga.matrix4_identitas()
 }
 
-functio world_view_projection(f32 aspect) → triga.Matrix4 {
+functio first_person_view_projection(
+    de application.Camera camera,
+    de application.Player player,
+    f32 aspect
+) → triga.Matrix4 {
     varia f32 safe_aspect ← 1.0 ∷ f32
     si aspect > 0.0 {
         safe_aspect ← aspect
     }
+    fixum triga.CameraYawPitchFacts facts ← application.camera_view_facts(camera, player)
+    fixum triga.Vector3 eye ← facts.ray.origin
+    fixum triga.Vector3 target ← triga.vector3(
+        eye.x + facts.direction.x,
+        eye.y + facts.direction.y,
+        eye.z + facts.direction.z
+    )
     fixum triga.Matrix4 ∪ nihil projection_result ← triga.matrix4_perspectiva(
         50.0 ∷ f32,
         safe_aspect,
@@ -266,12 +243,12 @@ functio world_view_projection(f32 aspect) → triga.Matrix4 {
         200.0 ∷ f32
     )
     fixum triga.Matrix4 ∪ nihil view_result ← triga.matrix4_conspectus(
-        triga.vector3(EYE_X, EYE_Y, EYE_Z),
-        triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z),
+        eye,
+        target,
         triga.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
     )
-    varia triga.Matrix4 projection ← triga.matrix4_identitas()
-    varia triga.Matrix4 view ← triga.matrix4_identitas()
+    varia triga.Matrix4 projection ← identity_matrix()
+    varia triga.Matrix4 view ← identity_matrix()
     si projection_result non est nihil {
         projection ← triga.Matrix4 { elements = projection_result!.elements }
     }
@@ -281,14 +258,17 @@ functio world_view_projection(f32 aspect) → triga.Matrix4 {
     redde triga.matrix4_multiplicata(projection, view)
 }
 
-functio world_transform_payload(f32 angle_radians, f32 aspect) → triga.TransformPayload {
-    fixum triga.Matrix4 model ← world_model_matrix(angle_radians)
-    fixum triga.Matrix4 view_projection ← world_view_projection(aspect)
+functio first_person_transform_payload(
+    de application.Camera camera,
+    de application.Player player,
+    f32 aspect
+) → triga.TransformPayload {
+    fixum triga.Matrix4 model ← identity_matrix()
+    fixum triga.Matrix4 view_projection ← first_person_view_projection(camera, player, aspect)
     fixum triga.TransformPayload ∪ nihil packed ← triga.transform_payload(model, view_projection)
     si packed non est nihil {
         redde triga.TransformPayload { values = packed!.values }
     }
-    # Locked contract fallback: identity model + identity view-projection.
     redde triga.TransformPayload {
         values = [
             1.0, 0.0, 0.0, 0.0,
@@ -303,8 +283,17 @@ functio world_transform_payload(f32 angle_radians, f32 aspect) → triga.Transfo
     }
 }
 
-functio emit_transform(dom.Element canvas, f32 angle_radians, f32 aspect) → vacuum {
-    fixum triga.TransformPayload payload ← world_transform_payload(angle_radians, aspect)
+functio emit_transform(
+    dom.Element canvas,
+    de application.Camera camera,
+    de application.Player player,
+    f32 aspect
+) → vacuum {
+    fixum triga.TransformPayload payload ← first_person_transform_payload(
+        camera,
+        player,
+        aspect
+    )
     fixum lista<f32> values ← payload.values
     varia lista<f32> model_values ← vacua
     varia lista<f32> vp_values ← vacua
@@ -317,24 +306,124 @@ functio emit_transform(dom.Element canvas, f32 angle_radians, f32 aspect) → va
         vp_values.appende(values[i])
         i ← i + 1
     }
+    fixum triga.Vector3 eye ← application.camera_eye(player)
     dom.attr_set(canvas, "data-hv-transform", lista_f32_textus(values))
     dom.attr_set(canvas, "data-hv-model-matrix", lista_f32_textus(model_values))
     dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values))
     dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
+    dom.attr_set(canvas, "data-hv-eye-x", eye.x ↦ textus)
+    dom.attr_set(canvas, "data-hv-eye-y", eye.y ↦ textus)
+    dom.attr_set(canvas, "data-hv-eye-z", eye.z ↦ textus)
+    dom.attr_set(canvas, "data-hv-yaw", camera.yaw_degrees ↦ textus)
+    dom.attr_set(canvas, "data-hv-pitch", camera.pitch_degrees ↦ textus)
+    dom.attr_set(canvas, "data-hv-target-x", (eye.x + application.camera_view_facts(camera, player).direction.x) ↦ textus)
+    dom.attr_set(canvas, "data-hv-target-y", (eye.y + application.camera_view_facts(camera, player).direction.y) ↦ textus)
+    dom.attr_set(canvas, "data-hv-target-z", (eye.z + application.camera_view_facts(camera, player).direction.z) ↦ textus)
+}
+
+# =========================================================================
+# INTERACTION STATE EMIT
+# =========================================================================
+
+functio emit_selection(dom.Element canvas, de application.SelectionOutline outline) → vacuum {
+    dom.attr_set(canvas, "data-hv-select-active", bivalens_textus(outline.active))
+    dom.attr_set(canvas, "data-hv-select-hit-x", outline.hit_x ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-hit-y", outline.hit_y ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-hit-z", outline.hit_z ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-prev-x", outline.prev_x ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-prev-y", outline.prev_y ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-prev-z", outline.prev_z ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-has-preceding", bivalens_textus(outline.has_preceding))
+    dom.attr_set(canvas, "data-hv-select-distance", outline.distance ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-positions", lista_f32_textus(outline.positions))
+    dom.attr_set(canvas, "data-hv-select-indices", lista_u32_textus(outline.indices))
+    dom.attr_set(canvas, "data-hv-select-vertex-count", outline.vertex_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-line-count", outline.line_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-index-count", outline.index_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-draw-count", outline.draw_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-select-via", "box_wire")
+}
+
+functio emit_player_input(dom.Element canvas, de application.Application app) → vacuum {
+    dom.attr_set(canvas, "data-hv-player-x", app.player.x ↦ textus)
+    dom.attr_set(canvas, "data-hv-player-y", app.player.y ↦ textus)
+    dom.attr_set(canvas, "data-hv-player-z", app.player.z ↦ textus)
+    dom.attr_set(canvas, "data-hv-player-grounded", bivalens_textus(app.player.grounded))
+    dom.attr_set(canvas, "data-hv-key-w", bivalens_textus(app.input.key_w))
+    dom.attr_set(canvas, "data-hv-key-a", bivalens_textus(app.input.key_a))
+    dom.attr_set(canvas, "data-hv-key-s", bivalens_textus(app.input.key_s))
+    dom.attr_set(canvas, "data-hv-key-d", bivalens_textus(app.input.key_d))
+    dom.attr_set(canvas, "data-hv-focused", bivalens_textus(app.input.focused))
+    dom.attr_set(canvas, "data-hv-pointer-locked", bivalens_textus(app.input.pointer_locked))
+}
+
+functio emit_pointer_lock_mode(
+    dom.Element canvas,
+    de dom.PointerLockState state
+) → vacuum {
+    dom.attr_set(canvas, "data-hv-pointer-lock-supported", bivalens_textus(state.supported))
+    dom.attr_set(canvas, "data-hv-pointer-lock-denied", bivalens_textus(state.denied))
+    dom.attr_set(canvas, "data-hv-pointer-locked", bivalens_textus(state.locked))
+    si state.denied {
+        dom.attr_set(canvas, "data-hv-pointer-lock-mode", "denied")
+        redde
+    }
+    si state.supported ≡ falsum {
+        dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unsupported")
+        redde
+    }
+    si state.locked {
+        dom.attr_set(canvas, "data-hv-pointer-lock-mode", "locked")
+        redde
+    }
+    dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked")
+}
+
+functio emit_world_probe(
+    dom.Element canvas,
+    de voxel.World world,
+    numerus x,
+    numerus y,
+    numerus z
+) → vacuum {
+    dom.attr_set(canvas, "data-hv-world-probe-x", x ↦ textus)
+    dom.attr_set(canvas, "data-hv-world-probe-y", y ↦ textus)
+    dom.attr_set(canvas, "data-hv-world-probe-z", z ↦ textus)
+    fixum numerus ∪ nihil id ← voxel.world_get(world, x, y, z)
+    si id est nihil {
+        dom.attr_set(canvas, "data-hv-world-probe-id", "oob")
+        redde
+    }
+    dom.attr_set(canvas, "data-hv-world-probe-id", (id vel 0) ↦ textus)
+}
+
+functio emit_interaction_snapshot(
+    dom.Element canvas,
+    de voxel.World world,
+    de application.Application app,
+    f32 aspect,
+    textus last_edit
+) → vacuum {
+    emit_player_input(canvas, app)
+    emit_transform(canvas, app.camera, app.player, aspect)
+    fixum application.SelectionOutline outline ← application.selection_outline_for_camera(
+        world,
+        app.camera,
+        app.player
+    )
+    emit_selection(canvas, outline)
+    si outline.active {
+        emit_world_probe(canvas, world, outline.hit_x, outline.hit_y, outline.hit_z)
+    } secus {
+        # Default probe: ground under spawn for harness baseline.
+        emit_world_probe(canvas, world, 20, 0, 20)
+    }
+    dom.attr_set(canvas, "data-hv-last-edit", last_edit)
 }
 
 # =========================================================================
 # FRAME / RESIZE
 # =========================================================================
-
-functio update_frame(dom.Element canvas, dom.FrameState frame, f32 aspect) → vacuum {
-    # Larger step so two-frame pixel samples hit different face colors on the world.
-    fixum f32 angle ← (frame.frame ↦ f32) * 0.35 ∷ f32
-    emit_transform(canvas, angle, aspect)
-    dom.attr_set(canvas, "data-hv-frame-count", frame.frame ↦ textus)
-    dom.attr_set(canvas, "data-hv-angle", angle ↦ textus)
-    dom.class_add(canvas, "hv-frame-active")
-}
 
 functio aspect_from_resize(dom.ResizeState resize) → f32 {
     fixum f32 width ← resize.width ↦ f32
@@ -345,16 +434,8 @@ functio aspect_from_resize(dom.ResizeState resize) → f32 {
     redde 1.0 ∷ f32
 }
 
-functio update_resize(dom.Element canvas, dom.ResizeState resize, f32 aspect) → vacuum {
-    dom.attr_set(canvas, "data-hv-width", resize.width ↦ textus)
-    dom.attr_set(canvas, "data-hv-height", resize.height ↦ textus)
-    dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
-    emit_transform(canvas, 0.0 ∷ f32, aspect)
-    dom.class_add(canvas, "hv-resize-active")
-}
-
 # =========================================================================
-# CONTROLLER — mounts four-chunk world through HV-04 attribute path
+# CONTROLLER — first-person interaction + four-chunk residual render path
 # =========================================================================
 
 @ WebController { selector = "#hello-voxel-root" }
@@ -362,27 +443,32 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     fixum dom.Element status ← dom.require(scope, ".hv-status")
     fixum dom.Element canvas ← dom.require(scope, ".hv-canvas")
 
-    # Camera scalars remain package evidence; matrices are package-owned.
     dom.attr_set(canvas, "data-hv-fov", "50")
     dom.attr_set(canvas, "data-hv-near", "0.1")
     dom.attr_set(canvas, "data-hv-far", "200.0")
-    dom.attr_set(canvas, "data-hv-eye-x", "48.0")
-    dom.attr_set(canvas, "data-hv-eye-y", "10.0")
-    dom.attr_set(canvas, "data-hv-eye-z", "48.0")
-    dom.attr_set(canvas, "data-hv-target-x", "16.0")
-    dom.attr_set(canvas, "data-hv-target-y", "2.0")
-    dom.attr_set(canvas, "data-hv-target-z", "16.0")
     dom.attr_set(canvas, "data-hv-payload-kind", "four-chunk-world")
+    dom.attr_set(canvas, "data-hv-interaction", "pending")
+    dom.attr_set(canvas, "data-hv-edit-count", "0")
+    dom.attr_set(canvas, "data-hv-last-edit", "none")
+    dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked")
+    dom.attr_set(canvas, "data-hv-pointer-lock-supported", "0")
+    dom.attr_set(canvas, "data-hv-pointer-lock-denied", "0")
 
     varia f32 live_aspect ← DEFAULT_ASPECT
+    varia voxel.World live_world ← voxel.fixture_world()
+    varia application.Application live_app ← application.spawn_application()
+    varia numerus edit_count ← 0
+    varia textus last_edit ← "none"
+    # 1 = remesh pending, 0 = clean (numerus avoids bare verum/falsum prefix traps).
+    varia numerus remesh_pending ← 1
 
-    fixum WorldChunkBatch ∪ nihil batch_result ← mesh_fixture_world()
+    fixum WorldChunkBatch ∪ nihil batch_result ← mesh_world(live_world)
     si batch_result est nihil {
-        # Fail closed: do not emit cube residual or fake draws.
         dom.text_set(status, "package-mesh-failed")
         dom.class_add(status, "failed")
         dom.attr_set(canvas, "data-hv-resource-pair-count", "0")
         dom.attr_set(canvas, "data-hv-draw-count", "0")
+        dom.attr_set(canvas, "data-hv-interaction", "mesh-failed")
         redde vacua
     }
 
@@ -398,27 +484,222 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
         indices = batch_result!.indices
     }
 
-    # Hard gate: fixture must produce four logical chunks and non-empty draws.
     si batch.chunk_count ≠ 4 aut batch.non_empty_count ≠ 4 aut batch.total_index_count ≡ 0 {
         dom.text_set(status, "package-mesh-invalid")
         dom.class_add(status, "failed")
         dom.attr_set(canvas, "data-hv-resource-pair-count", batch.non_empty_count ↦ textus)
         dom.attr_set(canvas, "data-hv-draw-count", batch.non_empty_count ↦ textus)
+        dom.attr_set(canvas, "data-hv-interaction", "mesh-invalid")
         redde vacua
     }
 
     emit_world_geometry(canvas, batch)
-    emit_transform(canvas, 0.0 ∷ f32, live_aspect)
+    remesh_pending ← 0
+    emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit)
 
     dom.text_set(status, "package-ready")
     dom.class_add(status, "ready")
+    dom.attr_set(canvas, "data-hv-interaction", "ready")
+
+    # Seed pointer-lock capability without requesting (inspectable baseline).
+    fixum dom.PointerLockState seed_lock ← dom.pointer_lock_state(canvas)
+    emit_pointer_lock_mode(canvas, seed_lock)
 
     fixum dom.Subscription frame_sub ←
-        dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame, live_aspect))
+        dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
+            fixum f32 delta_seconds ← frame.delta_ms / 1000.0 ∷ f32
+            live_app ← application.step_application(live_world, live_app, delta_seconds)
+
+            si remesh_pending ≡ 1 {
+                fixum WorldChunkBatch ∪ nihil remesh ← mesh_world(live_world)
+                si remesh non est nihil {
+                    fixum WorldChunkBatch next_batch ← WorldChunkBatch {
+                        chunk_count = remesh!.chunk_count,
+                        non_empty_count = remesh!.non_empty_count,
+                        total_face_count = remesh!.total_face_count,
+                        total_vertex_count = remesh!.total_vertex_count,
+                        total_index_count = remesh!.total_index_count,
+                        meshes = remesh!.meshes,
+                        positions = remesh!.positions,
+                        colors = remesh!.colors,
+                        indices = remesh!.indices
+                    }
+                    emit_world_geometry(canvas, next_batch)
+                    remesh_pending ← 0
+                }
+            }
+
+            emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit)
+            dom.attr_set(canvas, "data-hv-frame-count", frame.frame ↦ textus)
+            # Residual angle attr for harness continuity (not used for transform).
+            dom.attr_set(canvas, "data-hv-angle", ((frame.frame ↦ f32) * 0.35 ∷ f32) ↦ textus)
+            dom.class_add(canvas, "hv-frame-active")
+        })
+
     fixum dom.Subscription resize_sub ←
         dom.on_resize((dom.ResizeState resize) → vacuum ∴ fac {
             live_aspect ← aspect_from_resize(resize)
-            update_resize(canvas, resize, live_aspect)
+            dom.attr_set(canvas, "data-hv-width", resize.width ↦ textus)
+            dom.attr_set(canvas, "data-hv-height", resize.height ↦ textus)
+            emit_transform(canvas, live_app.camera, live_app.player, live_aspect)
+            dom.class_add(canvas, "hv-resize-active")
         })
-    redde [frame_sub, resize_sub]
+
+    fixum dom.Subscription keydown_sub ←
+        dom.on_keyboard(canvas, "keydown", (dom.KeyboardState key) → vacuum ∴ fac {
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.set_key_by_code(live_app.input, key.code, verum),
+                player = live_app.player
+            }
+            emit_player_input(canvas, live_app)
+        })
+
+    fixum dom.Subscription keyup_sub ←
+        dom.on_keyboard(canvas, "keyup", (dom.KeyboardState key) → vacuum ∴ fac {
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.set_key_by_code(live_app.input, key.code, falsum),
+                player = live_app.player
+            }
+            emit_player_input(canvas, live_app)
+        })
+
+    fixum dom.Subscription pointer_move_sub ←
+        dom.on_pointer(canvas, "pointermove", (dom.PointerState pointer) → vacuum ∴ fac {
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.queue_mouse_delta(
+                    live_app.input,
+                    pointer.movement_x,
+                    pointer.movement_y
+                ),
+                player = live_app.player
+            }
+        })
+
+    fixum dom.Subscription pointer_down_sub ←
+        dom.on_pointer(canvas, "pointerdown", (dom.PointerState pointer) → vacuum ∴ fac {
+            # button 0 = primary remove; button 2 = secondary place.
+            si pointer.button ≡ 0 {
+                fixum voxel.World ∪ nihil removed ← application.try_remove(
+                    live_world,
+                    live_app.camera,
+                    live_app.player
+                )
+                si removed non est nihil {
+                    live_world ← voxel.World { chunks = removed!.chunks }
+                    edit_count ← edit_count + 1
+                    last_edit ← "remove"
+                    remesh_pending ← 1
+                    dom.attr_set(canvas, "data-hv-edit-count", edit_count ↦ textus)
+                } secus {
+                    last_edit ← "remove-reject"
+                }
+            }
+            si pointer.button ≡ 2 {
+                fixum voxel.World ∪ nihil placed ← application.try_place(
+                    live_world,
+                    live_app.camera,
+                    live_app.player
+                )
+                si placed non est nihil {
+                    live_world ← voxel.World { chunks = placed!.chunks }
+                    edit_count ← edit_count + 1
+                    last_edit ← "place"
+                    remesh_pending ← 1
+                    dom.attr_set(canvas, "data-hv-edit-count", edit_count ↦ textus)
+                } secus {
+                    last_edit ← "place-reject"
+                }
+            }
+            emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit)
+        })
+
+    fixum dom.Subscription focus_sub ←
+        dom.on_focus(canvas, "focus", (dom.FocusState focus) → vacuum ∴ fac {
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.apply_focus(live_app.input, focus.focused),
+                player = live_app.player
+            }
+            emit_player_input(canvas, live_app)
+            si focus.focused ≡ falsum {
+                dom.attr_set(canvas, "data-hv-focus-loss", "1")
+            } secus {
+                dom.attr_set(canvas, "data-hv-focus-loss", "0")
+            }
+        })
+
+    fixum dom.Subscription blur_sub ←
+        dom.on_focus(canvas, "blur", (dom.FocusState focus) → vacuum ∴ fac {
+            # Focus loss clears movement immediately (locked contract).
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.apply_focus(live_app.input, focus.focused),
+                player = live_app.player
+            }
+            emit_player_input(canvas, live_app)
+            si focus.focused ≡ falsum {
+                dom.attr_set(canvas, "data-hv-focus-loss", "1")
+            }
+        })
+
+    fixum dom.Subscription lock_state_sub ←
+        dom.on_pointer_lock(canvas, (dom.PointerLockState state) → vacuum ∴ fac {
+            emit_pointer_lock_mode(canvas, state)
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.apply_pointer_lock(live_app.input, state.locked),
+                player = live_app.player
+            }
+            emit_player_input(canvas, live_app)
+            si state.denied {
+                dom.class_add(status, "lock-denied")
+                dom.attr_set(canvas, "data-hv-interaction", "lock-denied")
+            }
+            si state.locked {
+                dom.class_remove(status, "lock-denied")
+                dom.attr_set(canvas, "data-hv-interaction", "locked")
+            }
+        })
+
+    # Click requests pointer lock. Denial is written to inspectable attrs.
+    fixum dom.Subscription click_sub ←
+        dom.on(canvas, "click", (dom.DomEvent event) → vacuum ∴ fac {
+            # Consume event only to satisfy the handler signature.
+            si event.default_prevented {
+                redde
+            }
+            fixum dom.PointerLockState requested ← dom.request_pointer_lock(canvas)
+            emit_pointer_lock_mode(canvas, requested)
+            live_app ← application.Application {
+                camera = live_app.camera,
+                input = application.apply_pointer_lock(live_app.input, requested.locked),
+                player = live_app.player
+            }
+            emit_player_input(canvas, live_app)
+            si requested.denied {
+                dom.class_add(status, "lock-denied")
+                dom.text_set(status, "pointer-lock-denied")
+                dom.attr_set(canvas, "data-hv-interaction", "lock-denied")
+            }
+            si requested.locked {
+                dom.class_remove(status, "lock-denied")
+                dom.attr_set(canvas, "data-hv-interaction", "locked")
+            }
+        })
+
+    redde [
+        frame_sub,
+        resize_sub,
+        keydown_sub,
+        keyup_sub,
+        pointer_move_sub,
+        pointer_down_sub,
+        focus_sub,
+        blur_sub,
+        lock_state_sub,
+        click_sub
+    ]
 }

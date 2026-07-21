@@ -131,6 +131,10 @@ function rewriteTrigaImports(filePath) {
     /from\s*["']\.\/meshing["']/g,
     'from "./meshing.js"',
   );
+  code = code.replace(
+    /from\s*["']\.\/application["']/g,
+    'from "./application.js"',
+  );
   writeFileSync(filePath, code);
 }
 
@@ -194,7 +198,7 @@ function main() {
     }),
   );
 
-  // Local HV-05 modules: Faber emits free functions; browser product imports
+  // Local HV-05/06 modules: Faber emits free functions; browser product imports
   // them as namespaces (`import { voxel } from "./voxel"`).
   // Voxel uses numerus integer division for chunk coords — must truncate in TS.
   wrapLocalModule("voxel.ts", "voxel", {}, { truncatingDivision: true });
@@ -207,9 +211,19 @@ function main() {
     },
     { truncatingDivision: true },
   );
+  wrapLocalModule(
+    "application.ts",
+    "application",
+    {
+      "triga:triga": "./triga-triga.js",
+      "triga:geometry": "./triga-geometry.js",
+    },
+    { truncatingDivision: true },
+  );
 
   rewriteTrigaImports(join(TS_ROOT, "main.ts"));
   rewriteTrigaImports(join(TS_ROOT, "meshing.ts"));
+  rewriteTrigaImports(join(TS_ROOT, "application.ts"));
   // voxel has no external triga imports.
   if (existsSync(join(TS_ROOT, "voxel.ts"))) {
     rewriteTrigaImports(join(TS_ROOT, "voxel.ts"));

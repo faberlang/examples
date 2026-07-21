@@ -13,10 +13,11 @@
 #   - Primary edit removes hit solid via world_set(air); secondary places solid id 1
 #     at preceding unless the cell intersects the player AABB.
 #
-# Browser wiring is HV-06C.
+# Browser wiring is HV-06C (main.fab controllers + selection outline).
 
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga
+importa ex "triga:geometry" privata geometry
 
 # =========================================================================
 # CONSTANTS
@@ -1064,4 +1065,145 @@ functio try_place(
         distance = hit_result!.distance
     }
     redde place_at_preceding(world, player, hit)
+}
+
+# =========================================================================
+# SELECTION OUTLINE (Triga box_wire_* → package-owned line payload)
+# =========================================================================
+
+# Unit wire box translated to the hit cell center. Host may draw the line list;
+# structural attrs always expose positions/indices/line_count for proof.
+genus SelectionOutline {
+    bivalens active
+    numerus hit_x
+    numerus hit_y
+    numerus hit_z
+    numerus prev_x
+    numerus prev_y
+    numerus prev_z
+    bivalens has_preceding
+    f32 distance
+    lista<f32> positions
+    lista<u32> indices
+    numerus vertex_count
+    numerus line_count
+    numerus draw_count
+    numerus index_count
+}
+
+functio empty_selection_outline() → SelectionOutline {
+    redde SelectionOutline {
+        active = falsum,
+        hit_x = 0,
+        hit_y = 0,
+        hit_z = 0,
+        prev_x = 0,
+        prev_y = 0,
+        prev_z = 0,
+        has_preceding = falsum,
+        distance = 0.0 ∷ f32,
+        positions = vacua,
+        indices = vacua,
+        vertex_count = 0,
+        line_count = 0,
+        draw_count = 0,
+        index_count = 0
+    }
+}
+
+# Unit box_wire corners (origin-centered, half-extent 0.5) translated to the
+# hit cell center. Shape matches geometry.box_wire_geometry(1,1,1); we call
+# box_wire_geometry + box_wire_draw_batch_facts for admission evidence and emit
+# the deterministic translated payload for the browser proof path.
+functio _box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z) → lista<f32> ∪ nihil {
+    fixum geometry.BufferGeometry ∪ nihil wire_result ← geometry.box_wire_geometry(
+        1.0 ∷ f32,
+        1.0 ∷ f32,
+        1.0 ∷ f32
+    )
+    si wire_result est nihil {
+        redde nihil
+    }
+    si wire_result!.vertex_count ≠ 8 aut wire_result!.indices.longitudo() ≠ 24 {
+        redde nihil
+    }
+    fixum f32 ox ← (cell_x ↦ f32) + 0.5 ∷ f32
+    fixum f32 oy ← (cell_y ↦ f32) + 0.5 ∷ f32
+    fixum f32 oz ← (cell_z ↦ f32) + 0.5 ∷ f32
+    fixum f32 h ← 0.5 ∷ f32
+    # Corner order matches geometry.box_wire_geometry (min/max X/Y/Z of unit box).
+    redde [
+        ox - h, oy - h, oz - h,
+        ox + h, oy - h, oz - h,
+        ox + h, oy + h, oz - h,
+        ox - h, oy + h, oz - h,
+        ox - h, oy - h, oz + h,
+        ox + h, oy - h, oz + h,
+        ox + h, oy + h, oz + h,
+        ox - h, oy + h, oz + h
+    ]
+}
+
+functio selection_outline_from_hit(de VoxelHit hit) → SelectionOutline {
+    fixum lista<f32> ∪ nihil positions_result ← _box_wire_world_positions(
+        hit.hit_x,
+        hit.hit_y,
+        hit.hit_z
+    )
+    si positions_result est nihil {
+        redde empty_selection_outline()
+    }
+    fixum geometry.LineGeometryDrawBatchFacts ∪ nihil batch_result ←
+        geometry.box_wire_draw_batch_facts(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32, 1)
+    si batch_result est nihil {
+        redde empty_selection_outline()
+    }
+    # Indexed line list: 12 edges × 2 indices (from box_wire_geometry).
+    fixum lista<u32> indices ← [
+        0, 1, 1, 2, 2, 3, 3, 0,
+        4, 5, 5, 6, 6, 7, 7, 4,
+        0, 4, 1, 5, 2, 6, 3, 7
+    ]
+    fixum lista<f32> positions ← positions_result vel [
+        0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32
+    ]
+    redde SelectionOutline {
+        active = verum,
+        hit_x = hit.hit_x,
+        hit_y = hit.hit_y,
+        hit_z = hit.hit_z,
+        prev_x = hit.prev_x,
+        prev_y = hit.prev_y,
+        prev_z = hit.prev_z,
+        has_preceding = hit.has_preceding,
+        distance = hit.distance,
+        positions = positions,
+        indices = indices,
+        vertex_count = 8,
+        line_count = batch_result!.line_count,
+        draw_count = 1,
+        index_count = indices.longitudo()
+    }
+}
+
+functio selection_outline_for_camera(
+    de voxel.World world,
+    de Camera camera,
+    de Player player
+) → SelectionOutline {
+    fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
+    si hit_result est nihil {
+        redde empty_selection_outline()
+    }
+    fixum VoxelHit hit ← VoxelHit {
+        hit_x = hit_result!.hit_x,
+        hit_y = hit_result!.hit_y,
+        hit_z = hit_result!.hit_z,
+        prev_x = hit_result!.prev_x,
+        prev_y = hit_result!.prev_y,
+        prev_z = hit_result!.prev_z,
+        has_preceding = hit_result!.has_preceding,
+        distance = hit_result!.distance
+    }
+    redde selection_outline_from_hit(hit)
 }
