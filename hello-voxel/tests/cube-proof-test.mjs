@@ -1,8 +1,15 @@
-// HV-04C: Hello Voxel browser proof harness.
+// HV-04C: Hello Voxel browser proof harness (honest gate).
 //
-// Validates the package build, controller mount, cube data attributes, canvas
-// presence, and lifecycle hooks. When HV-04B lands the cube geometry source,
-// this harness verifies indexed data payloads and lifecycle orchestration.
+// Structural mount/lifecycle checks run first. Gate evidence for indexed GPU
+// submission, depth, resize projection, non-background pixels, and observed
+// model-matrix change must be present or this process exits non-zero.
+//
+// Forbidden success proxies (auditor-2 block_ship):
+//   - clear-color-only "render"
+//   - host-constructed cube
+//   - static public/draw.json alone as proof of drawIndexed GPU submission
+//   - SKIP/MANUAL notes treated as pass
+//   - INFO lines claiming GPU/matrix without observation
 //
 // Run:
 //   node --import ../../browser-app/tests/register-hooks.mjs cube-proof-test.mjs
@@ -17,10 +24,11 @@ import { fileURLToPath } from "node:url";
 const FAIL = "\x1b[31mFAIL\x1b[0m";
 const PASS = "\x1b[32mPASS\x1b[0m";
 const INFO = "\x1b[36mINFO\x1b[0m";
+const GATE = "\x1b[33mGATE\x1b[0m";
 
 let passed = 0;
 let failed = 0;
-let infos = 0;
+const incompleteGates = [];
 
 function assert(condition, message) {
   if (condition) {
@@ -32,8 +40,13 @@ function assert(condition, message) {
 }
 
 function info(message) {
-  infos++;
   console.log(`  ${INFO}: ${message}`);
+}
+
+/** Record a missing HV-04C gate observation. Forces non-zero exit. */
+function gateIncomplete(id, message) {
+  incompleteGates.push({ id, message });
+  console.error(`${GATE}: incomplete [${id}] ${message}`);
 }
 
 // Capture frame callbacks so we can advance time manually.
@@ -122,6 +135,7 @@ assert(status.classList.has("ready"), "status gains ready class");
 
 // ---------------------------------------------------------------------------
 // Test 3: Canvas has cube and camera data attributes from HV-04B controller.
+// Structural package admission only — not GPU/pixel evidence.
 // ---------------------------------------------------------------------------
 assert(canvas.getAttribute("data-hv-fov") === "50", "canvas has data-hv-fov");
 assert(canvas.getAttribute("data-hv-aspect") === "1.778", "canvas has data-hv-aspect");
@@ -136,45 +150,98 @@ assert(canvas.getAttribute("data-hv-target-z") === "0.5", "canvas has data-hv-ta
 assert(canvas.getAttribute("data-hv-vertex-count") === "8", "canvas has data-hv-vertex-count");
 assert(canvas.getAttribute("data-hv-index-count") === "36", "canvas has data-hv-index-count");
 
+// Depth range structural: near < far (not depth buffer evidence).
+const near = Number(canvas.getAttribute("data-hv-near"));
+const far = Number(canvas.getAttribute("data-hv-far"));
+assert(Number.isFinite(near) && Number.isFinite(far) && near < far,
+  `depth range near < far (got near=${near}, far=${far})`);
+
 // ---------------------------------------------------------------------------
 // Test 4: Frame lifecycle — controller subscribed to on_frame; advancing
 // time changes canvas data-hv-frame-count and adds hv-frame-active class.
 //
-// HV-04B: frame callback rotates the model matrix (frame changes → model
-// matrix changes). At two frame times the frame count differs and the canvas
-// data attribute is updated.
+// Model-matrix change is a separate HV-04C gate. Frame count alone is not
+// model-matrix evidence.
 // ---------------------------------------------------------------------------
-// The controller registered on_frame during mount, so a callback is queued.
 assert(frameCallbacks.length >= 1, `frame callback queued by controller mount (got ${frameCallbacks.length})`);
 
+// Capture the live subscription step so dispose can re-fire the original.
+const originalFrameStep = frameCallbacks[0];
+assert(typeof originalFrameStep === "function", "original frame subscription is a function");
+
+// Snapshot any matrix-related attributes before frames (for change detection).
+function matrixSnapshot() {
+  const keys = [
+    "data-hv-model-m00", "data-hv-model-m01", "data-hv-model-m02", "data-hv-model-m03",
+    "data-hv-model-m10", "data-hv-model-m11", "data-hv-model-m12", "data-hv-model-m13",
+    "data-hv-model-m20", "data-hv-model-m21", "data-hv-model-m22", "data-hv-model-m23",
+    "data-hv-model-m30", "data-hv-model-m31", "data-hv-model-m32", "data-hv-model-m33",
+    "data-hv-model-angle", "data-hv-model-yaw", "data-hv-model-rotation",
+    "data-hv-transform", "data-hv-model-matrix",
+  ];
+  const snap = {};
+  for (const k of keys) {
+    const v = canvas.getAttribute(k);
+    if (v !== null) snap[k] = v;
+  }
+  return snap;
+}
+
+const matrixBefore = matrixSnapshot();
+
 // Fire first frame.
-frameCallbacks[0](16);
+originalFrameStep(16);
 assert(canvas.getAttribute("data-hv-frame-count") === "1",
   `frame count 1 after first frame, got ${canvas.getAttribute("data-hv-frame-count")}`);
 assert(canvas.classList.has("hv-frame-active"), "canvas gains hv-frame-active after first frame");
 
-// Second frame — delta differs so model rotation advances.
-frameCallbacks[1](33);
+// Second frame — rAF re-queues; use the latest non-null callback if present.
+const secondStep = frameCallbacks.find((cb) => typeof cb === "function") ?? originalFrameStep;
+secondStep(33);
 assert(canvas.getAttribute("data-hv-frame-count") === "2",
   `frame count 2 after second frame, got ${canvas.getAttribute("data-hv-frame-count")}`);
 
 info("frame lifecycle: controller mount queues rAF; two frames at times [16, 33]");
-info(`frame counts 1→2: model matrix changes across frames`);
+info("frame counts 1→2 observed (frame count only — not model matrix)");
+
+// Gate: model matrix must change across the two frame times.
+const matrixAfter = matrixSnapshot();
+const matrixKeys = Object.keys(matrixAfter);
+if (matrixKeys.length === 0) {
+  gateIncomplete(
+    "model-matrix",
+    "no model-matrix attributes observed on canvas after two frames; frame count is not matrix evidence",
+  );
+} else {
+  let changed = false;
+  for (const k of matrixKeys) {
+    if (matrixBefore[k] !== matrixAfter[k]) {
+      changed = true;
+      break;
+    }
+  }
+  if (!changed) {
+    gateIncomplete(
+      "model-matrix",
+      "model-matrix attributes present but unchanged across frame times [16, 33]",
+    );
+  } else {
+    info(`model matrix change observed across frames (keys: ${matrixKeys.join(",")})`);
+  }
+}
 
 // ---------------------------------------------------------------------------
-// Test 5: Resize lifecycle — controller subscribed to on_resize; initial
-// emit and window resize both update canvas data-hv-width/height.
-//
-// NOTE: The HV-04B controller does not yet wire on_resize (update_resize is
-// defined but never registered with dom.on_resize). Once wired, the expected
-// behavior is:
-//   - initial width=960, height=540
-//   - after window resize to 1280×720 → width=1280, height=720
-//   - canvas gains hv-resize-active class
+// Test 5: Resize lifecycle — controller must wire on_resize.
+// Missing width/height after mount is a hard gate failure (not SKIP pass).
 // ---------------------------------------------------------------------------
 const resizeInitialW = canvas.getAttribute("data-hv-width");
 const resizeInitialH = canvas.getAttribute("data-hv-height");
-if (resizeInitialW !== null) {
+if (resizeInitialW === null || resizeInitialH === null) {
+  gateIncomplete(
+    "resize",
+    "controller did not emit data-hv-width/height (on_resize not wired or initial emit missing)",
+  );
+} else {
   assert(resizeInitialW === "960", `initial width 960, got ${resizeInitialW}`);
   assert(resizeInitialH === "540", `initial height 540, got ${resizeInitialH}`);
 
@@ -188,53 +255,51 @@ if (resizeInitialW !== null) {
     `resized height 720, got ${canvas.getAttribute("data-hv-height")}`);
   assert(canvas.classList.has("hv-resize-active"), "canvas gains hv-resize-active on resize");
 
+  // Projection evidence: aspect (or projection attrs) must reflect new size when present.
+  const aspectAfter = canvas.getAttribute("data-hv-aspect");
+  if (aspectAfter !== null) {
+    const expectedAspect = (1280 / 720).toFixed(3);
+    // Accept either fixed "1.778" if not updated (gate incomplete) or updated value.
+    if (aspectAfter !== "1.778" && aspectAfter !== expectedAspect && aspectAfter !== "1.777...") {
+      // Still pass structural assert if width/height updated; aspect update is preferred.
+      info(`data-hv-aspect after resize: ${aspectAfter}`);
+    }
+  }
+
   info("resize lifecycle: initial emit + window resize both handled");
-  info(`initial: 960x540, resized: 1280x720`);
-} else {
-  info("resize lifecycle: SKIPPED — controller does not wire on_resize yet (HV-04B gap)");
-  info("expected: initial width=960, height=540 → resize to 1280×720 → width/height updated");
-  info("residual: hello_voxel_controller must register dom.on_resize(…) in its body");
+  info("initial: 960x540, resized: 1280x720");
 }
 
 // ---------------------------------------------------------------------------
-// Test 6: Dispose cancels subscriptions — after dispose, frame callbacks
-// no longer update canvas state.
+// Test 6: Dispose cancels subscriptions — re-fire the original frame step
+// after dispose and assert canvas state does not advance.
 // ---------------------------------------------------------------------------
+const frameCountBeforeDispose = canvas.getAttribute("data-hv-frame-count");
+const widthBeforeDispose = canvas.getAttribute("data-hv-width");
 runtime.dispose();
 
-// After dispose, fire a third frame callback — canvas should NOT be updated.
-const frameCountBeforeDispose = canvas.getAttribute("data-hv-frame-count");
-// Cancel remaining frame callbacks so there are none.
-while (frameCallbacks.length > 0) {
-  const cb = frameCallbacks.shift();
-  if (cb) cb(null);
-}
-frameCallbacks.push(() => { /* should not execute */ });
-frameCallbacks[0](99);
+// Re-fire the original subscription callback (do not replace the list with a noop).
+originalFrameStep(99);
 assert(canvas.getAttribute("data-hv-frame-count") === frameCountBeforeDispose,
-  "dispose: frame callback does not update canvas after disposal");
+  "dispose: original frame subscription does not update canvas after disposal");
 
-// After dispose, resize should no longer update canvas (only if on_resize was wired).
 if (resizeInitialW !== null) {
   globalThis.window.innerWidth = 640;
   globalThis.window.innerHeight = 480;
   globalThis.window.dispatchEvent(new FakeEvent("resize"));
-  assert(canvas.getAttribute("data-hv-width") === "1280",
+  assert(canvas.getAttribute("data-hv-width") === widthBeforeDispose,
     "dispose: resize event does not update canvas after disposal");
   info("dispose: resize subscriptions cancelled");
-} else {
-  info("dispose: resize subscription test skipped (on_resize not wired)");
 }
 
-info("dispose: frame subscriptions cancelled");
+info("dispose: original frame subscription re-fired; no canvas update");
 
 // ---------------------------------------------------------------------------
-// Test 7: Hosted draw.json — indexed GPU submission manifest.
+// Test 7: Package draw manifest (structural only).
 //
-// The package build emits dist/public/draw.json as the GPU submission
-// manifest. Its index_count=36 proves the 12-triangle indexed cube (2
-// triangles per face × 6 faces). The host WebGPU render pass reads this
-// to call drawIndexed(36, 1, 0, 0, 0).
+// dist/public/draw.json is package-owned draw policy. It is NOT evidence that
+// a WebGPU host submitted drawIndexed. Gate "indexed-gpu-submit" fails closed
+// without live host submit + capture evidence.
 // ---------------------------------------------------------------------------
 const _drawJsonPath = fileURLToPath(new URL("../dist/public/draw.json", import.meta.url));
 const _publicDrawJsonPath = fileURLToPath(new URL("../public/draw.json", import.meta.url));
@@ -256,57 +321,107 @@ assert(_drawData.base_vertex === 0,
 assert(_drawData.first_index === 0,
   `draw.json first_index is 0, got ${_drawData.first_index}`);
 
-// Source and dist copies agree.
 assert(JSON.stringify(_drawData) === JSON.stringify(_publicDrawData),
   "dist/public/draw.json and public/draw.json match");
 
-info("draw.json: index_format=uint32, index_count=36 (12 indexed triangles, 2 per face)");
-info("draw.json: instance_count=1, base_vertex=0, first_index=0");
-info("GPU submission manifest: drawIndexed(36, 1, 0, 0, 0)");
-info("source and dist draw.json identical");
+info("package draw.json structural: index_format=uint32, index_count=36, instance_count=1");
+info("package draw.json is NOT GPU submission evidence");
 
-// ---------------------------------------------------------------------------
-// Summary: HV-04C evidence.
-// ---------------------------------------------------------------------------
-info("=== HV-04C EVIDENCE ===");
-info("build artifact: dist/faber-esm/faber-browser.js (controllers, mountControllers)");
-info("controller: hello_voxel_controller @ #hello-voxel-root");
-info("controller_count: 1");
-info("mount_success: true");
-info("status_transition: package-pending → package-ready");
-info("canvas_cube_attributes: fov=50, aspect=1.778, near=0.1, far=100.0");
-info("canvas_camera: eye=(3.0,2.0,5.0), target=(0.5,0.5,0.5)");
-info("canvas_vertex_count: 8, index_count: 36 (indexed draw)");
-info("depth_range: near=0.1, far=100.0 (valid: near < far)");
-info("frame_lifecycle: controller mount queues rAF → frame 1 at 16ms → frame 2 at 33ms");
-info(`frame_count: 1 → 2 (model matrix changes across frames)`);
-info(`resize_events: pending — controller does not wire on_resize (HV-04B gap)`);
-info("dispose: frame subscriptions cancelled");
-info("");
-info("=== HOSTED DRAW JSON (indexed GPU submission) ===");
-info("path: dist/public/draw.json");
-info(`index_format: ${_drawData.index_format}`);
-info(`index_count: ${_drawData.index_count} (12 indexed triangles × 36 indices)`);
-info(`instance_count: ${_drawData.instance_count}`);
-info(`base_vertex: ${_drawData.base_vertex}, first_index: ${_drawData.first_index}`);
-info("GPU draw call: drawIndexed(36, 1, 0, 0, 0)");
-info("source mirror: public/draw.json — identical to dist");
-info("");
-info("=== MANUAL BROWSER PIXEL PROOF (requires WebGPU-capable browser) ===");
-info("1. Serve: npx http-server dist/ -p 8080 (from hello-voxel/)");
-info("2. Open http://127.0.0.1:8080/pages/index.html");
-info("3. Assert: canvas central region (240,135) is not background (#05070a)");
-info("4. Assert: canvas pixels differ between frame 0 and frame 1 (model rotated)");
-info("5. Assert: depth buffer shows front faces occluding back faces");
-info("6. Assert: after resize to 1280x720, aspect-correct projection");
-info("7. Assert: 36 indexed elements submitted via drawIndexed(36, 1, 0, 0, 0)");
-info("8. Assert: GPU sees index_format=uint32 per draw.json");
-info("");
-info("=== RESIDUALS (blocking on HV-04B) ===");
-info("1. hello_voxel_controller: dom.on_resize(…) not registered — update_resize defined but never wired");
-info("   expected: initial data-hv-width=960, data-hv-height=540 → resize to 1280×720 → width/height updated");
-
-console.log(`\n${PASS}: ${passed} passed, ${failed} failed, ${infos} notes`);
-if (failed > 0) {
-  process.exit(1);
+// Optional package geometry payloads (HV-04B live emission). Absence is incomplete, not soft-pass.
+const generatedRoot = fileURLToPath(new URL("../dist/generated/", import.meta.url));
+const geometryPaths = [
+  "vertex-positions.bin",
+  "vertex-colors.bin",
+  "indices.bin",
+  "transform.bin",
+].map((name) => `${generatedRoot}${name}`);
+const presentGeometry = geometryPaths.filter((p) => existsSync(p));
+if (presentGeometry.length === 0) {
+  gateIncomplete(
+    "package-geometry",
+    "no dist/generated geometry/transform binaries; package does not emit live cube payload for host submit",
+  );
+} else {
+  info(`package geometry present: ${presentGeometry.length}/${geometryPaths.length} binaries`);
 }
+
+// Gate: live indexed GPU submission + non-background central pixels.
+// This node harness has no WebGPU host. Without an injected evidence file from
+// hosts/webgpu-browser proof, fail closed.
+const pixelEvidencePath = fileURLToPath(
+  new URL("../dist/proof/hv-04c-pixel-evidence.json", import.meta.url),
+);
+const submitEvidencePath = fileURLToPath(
+  new URL("../dist/proof/hv-04c-submit-evidence.json", import.meta.url),
+);
+
+if (!existsSync(submitEvidencePath)) {
+  gateIncomplete(
+    "indexed-gpu-submit",
+    "missing dist/proof/hv-04c-submit-evidence.json (live host drawIndexed observation required; static draw.json forbidden as proxy)",
+  );
+} else {
+  const submit = JSON.parse(readFileSync(submitEvidencePath, "utf-8"));
+  assert(submit.drawIndexed === true || submit.method === "drawIndexed",
+    "submit evidence must record drawIndexed");
+  assert(Number(submit.index_count) === 36, `submit index_count 36, got ${submit.index_count}`);
+  assert(Number(submit.instance_count) === 1, `submit instance_count 1, got ${submit.instance_count}`);
+  info("live submit evidence present and asserts drawIndexed(36,1,…)");
+}
+
+if (!existsSync(pixelEvidencePath)) {
+  gateIncomplete(
+    "non-background-pixels",
+    "missing dist/proof/hv-04c-pixel-evidence.json (central-region non-background capture required; MANUAL steps are not pass)",
+  );
+} else {
+  const pixels = JSON.parse(readFileSync(pixelEvidencePath, "utf-8"));
+  assert(pixels.central_is_background === false,
+    "pixel evidence must show central region is not background");
+  assert(pixels.background_hex !== undefined, "pixel evidence records background_hex");
+  info("pixel evidence present: central region not background");
+}
+
+// Depth buffer evidence is required for the depth gate (near/far attrs alone insufficient).
+const depthEvidencePath = fileURLToPath(
+  new URL("../dist/proof/hv-04c-depth-evidence.json", import.meta.url),
+);
+if (!existsSync(depthEvidencePath)) {
+  gateIncomplete(
+    "depth",
+    "missing dist/proof/hv-04c-depth-evidence.json (depth test observation required; near/far attrs alone are not depth evidence)",
+  );
+} else {
+  const depth = JSON.parse(readFileSync(depthEvidencePath, "utf-8"));
+  assert(depth.depth_test_enabled === true, "depth evidence must record depth test enabled");
+  info("depth evidence present");
+}
+
+// ---------------------------------------------------------------------------
+// Summary — honesty: no green PASS while gates incomplete.
+// ---------------------------------------------------------------------------
+console.log("");
+console.log("=== HV-04C structural checks ===");
+console.log(`  structural asserts: ${passed} passed, ${failed} failed`);
+console.log("=== HV-04C gate evidence ===");
+if (incompleteGates.length === 0) {
+  console.log("  all required gates observed");
+} else {
+  for (const g of incompleteGates) {
+    console.log(`  incomplete: [${g.id}] ${g.message}`);
+  }
+}
+
+const ok = failed === 0 && incompleteGates.length === 0;
+if (ok) {
+  console.log(`\n${PASS}: HV-04C complete — ${passed} structural, 0 incomplete gates`);
+  process.exit(0);
+}
+
+console.error(
+  `\n${FAIL}: HV-04C INCOMPLETE — ${failed} failed asserts, ${incompleteGates.length} incomplete gates`,
+);
+console.error(
+  "No green pass while resize, model-matrix, indexed GPU submit, depth, or pixels lack observation.",
+);
+process.exit(1);

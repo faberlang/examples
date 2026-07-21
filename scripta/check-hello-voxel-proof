@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# HV-04C: Hello Voxel browser proof harness.
+# HV-04C: Hello Voxel browser proof harness (honest gate).
 #
-# Builds the hello-voxel Faber package, runs the controller-mount test, and
-# validates the expected HV-04B artifact structure. Documents the manual
-# browser steps for pixel-level GPU proof.
+# Builds the hello-voxel Faber package, runs structural mount tests, and
+# requires complete HV-04C gate evidence. Missing resize / model-matrix /
+# live GPU submit / pixel / depth evidence is a hard failure — never "all
+# checks passed" while gaps remain.
+#
+# Forbidden success proxies:
+#   - static public/draw.json alone as drawIndexed GPU proof
+#   - MANUAL browser steps documented as pass
+#   - SKIP resize treated as pass
 #
 # Usage:
 #   ./scripta/check-hello-voxel-proof           # build + check
@@ -65,12 +71,12 @@ run_checks() {
   fi
 
   echo ""
-  echo "--- Checking HV-04C proof harness ---"
+  echo "--- Checking HV-04C proof harness (hard-fail incomplete gates) ---"
   if node --import "$REPO_ROOT/browser-app/tests/register-hooks.mjs" \
          "$HELLO_VOXEL/tests/cube-proof-test.mjs" 2>&1; then
-    echo "PASS: HV-04C proof harness"
+    echo "PASS: HV-04C proof harness (all gates complete)"
   else
-    echo "FAIL: HV-04C proof harness" >&2
+    echo "FAIL: HV-04C proof harness incomplete or failed" >&2
     exit_code=1
   fi
 
@@ -97,45 +103,80 @@ run_checks() {
   done
 
   if [ "$missing" -eq 0 ]; then
-    echo "PASS: all current dist artifacts present"
+    echo "PASS: required dist package artifacts present"
   else
     echo "FAIL: missing dist artifacts" >&2
     exit_code=1
   fi
 
   echo ""
-  echo "--- Checking HV-04B artifact readiness ---"
-  # These paths are expected after HV-04B lands (cube geometry/shaders).
-  # Graceful: warn if absent, do not fail the proof.
+  echo "--- Checking HV-04B live geometry emission (not soft-pass) ---"
+  # Package-owned geometry/transform binaries for host consume. Missing is a
+  # gate gap (hand-2 HV-04B ownership). Do not green-wash absence.
   local hvb_paths=(
     "dist/generated/vertex-positions.bin"
     "dist/generated/vertex-colors.bin"
     "dist/generated/indices.bin"
     "dist/generated/transform.bin"
-    "dist/generated/draw.json"
   )
-  local any_hvb=0
+  local hvb_missing=0
   for p in "${hvb_paths[@]}"; do
     if [ -f "$HELLO_VOXEL/$p" ]; then
-      echo "  HV-04B present: $p"
-      any_hvb=1
+      echo "  present: $p"
+    else
+      echo "  MISSING: $p" >&2
+      hvb_missing=1
     fi
   done
-  if [ "$any_hvb" -eq 0 ]; then
-    echo "  (HV-04B artifacts not yet landed — proof ready to consume them)"
+  if [ "$hvb_missing" -eq 0 ]; then
+    echo "PASS: HV-04B generated geometry/transform binaries present"
+  else
+    echo "FAIL: HV-04B live geometry/transform binaries missing (not a soft-pass)" >&2
+    exit_code=1
+  fi
+
+  echo ""
+  echo "--- Checking HV-04C live host evidence files ---"
+  # Real host submit + pixel capture. Static draw.json is forbidden as proxy.
+  local proof_paths=(
+    "dist/proof/hv-04c-submit-evidence.json"
+    "dist/proof/hv-04c-pixel-evidence.json"
+    "dist/proof/hv-04c-depth-evidence.json"
+  )
+  local proof_missing=0
+  for p in "${proof_paths[@]}"; do
+    if [ -f "$HELLO_VOXEL/$p" ]; then
+      echo "  present: $p"
+    else
+      echo "  MISSING: $p" >&2
+      proof_missing=1
+    fi
+  done
+  if [ "$proof_missing" -eq 0 ]; then
+    echo "PASS: HV-04C live host evidence files present"
+  else
+    echo "FAIL: HV-04C live host evidence missing (fail closed; no MANUAL soft-pass)" >&2
+    exit_code=1
   fi
 
   echo ""
   if [ "$exit_code" -eq 0 ]; then
-    echo "=== HV-04C: all checks passed ==="
+    echo "=== HV-04C: all checks passed (gates complete) ==="
   else
-    echo "=== HV-04C: some checks FAILED ===" >&2
+    echo "=== HV-04C: INCOMPLETE — gate evidence missing or checks FAILED ===" >&2
+    echo "=== residual: HV-04B geometry/on_resize/model-matrix (hand-2) + hosts/webgpu-browser proof path for real pixels ===" >&2
   fi
   return "$exit_code"
 }
 
 if [ $# -eq 0 ] || [ "$1" = "build" ]; then
-  build_package
+  if [ $# -eq 1 ] && [ "$1" = "build" ]; then
+    build_package
+    exit 0
+  fi
+  if [ $# -eq 0 ]; then
+    build_package
+  fi
 fi
 
 if [ $# -eq 0 ] || [ "$1" = "check" ]; then
