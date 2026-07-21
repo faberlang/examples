@@ -1,0 +1,324 @@
+# Hello Voxel — HV-05B: visible-face chunk mesher.
+#
+# Locked contract (goal 05 / delivery HV-05B):
+#   - Blocks are authoritative; meshes are derived only.
+#   - Emit a face only when the adjacent cell is air or outside the world.
+#   - Each face: four vertices, six u32 indices, outward winding.
+#   - Vertex colors come from Triga face_code_color (six directions).
+#   - No greedy meshing. No GPU integration (HV-05C).
+
+importa ex "./voxel" privata voxel
+importa ex "triga:triga" privata triga
+importa ex "triga:geometry" privata geometry
+
+# =========================================================================
+# TYPES
+# =========================================================================
+
+genus ChunkMesh {
+    numerus cx
+    numerus cz
+    numerus face_count
+    lista<f32> positions
+    lista<f32> colors
+    lista<u32> indices
+}
+
+# =========================================================================
+# NEIGHBOR VISIBILITY
+# =========================================================================
+
+# Out-of-bounds neighbors count as air (face is visible).
+functio neighbor_is_solid(
+    de voxel.World world,
+    numerus x,
+    numerus y,
+    numerus z
+) → bivalens {
+    fixum numerus ∪ nihil value ← voxel.world_get(world, x, y, z)
+    si value est nihil {
+        redde falsum
+    }
+    redde voxel.block_is_solid(value vel 0)
+}
+
+functio face_neighbor_world(
+    numerus x,
+    numerus y,
+    numerus z,
+    numerus face_code
+) → voxel.WorldCoord ∪ nihil {
+    si triga.face_code_valid(face_code) ≡ falsum {
+        redde nihil
+    }
+    fixum numerus ∪ nihil dx ← triga.face_code_x_offset(face_code)
+    fixum numerus ∪ nihil dy ← triga.face_code_y_offset(face_code)
+    fixum numerus ∪ nihil dz ← triga.face_code_z_offset(face_code)
+    si dx est nihil aut dy est nihil aut dz est nihil {
+        redde nihil
+    }
+    redde voxel.WorldCoord {
+        x = x + (dx vel 0),
+        y = y + (dy vel 0),
+        z = z + (dz vel 0)
+    }
+}
+
+# Solid cell + non-solid neighbor (air or OOB) → visible face.
+functio face_is_visible(
+    de voxel.World world,
+    numerus x,
+    numerus y,
+    numerus z,
+    numerus face_code
+) → bivalens {
+    fixum numerus ∪ nihil cell ← voxel.world_get(world, x, y, z)
+    si cell est nihil {
+        redde falsum
+    }
+    si voxel.block_is_solid(cell vel 0) ≡ falsum {
+        redde falsum
+    }
+    fixum voxel.WorldCoord ∪ nihil neighbor ← face_neighbor_world(x, y, z, face_code)
+    si neighbor est nihil {
+        redde falsum
+    }
+    redde neighbor_is_solid(world, neighbor!.x, neighbor!.y, neighbor!.z) ≡ falsum
+}
+
+# =========================================================================
+# MESH ACCUMULATION
+# =========================================================================
+
+functio empty_chunk_mesh(numerus cx, numerus cz) → ChunkMesh {
+    redde ChunkMesh {
+        cx = cx,
+        cz = cz,
+        face_count = 0,
+        positions = vacua,
+        colors = vacua,
+        indices = vacua
+    }
+}
+
+functio append_visible_face(
+    lista<f32> positions,
+    lista<f32> colors,
+    lista<u32> indices,
+    numerus face_code,
+    numerus x,
+    numerus y,
+    numerus z
+) → geometry.ColoredQuadMesh ∪ nihil {
+    redde triga.face_code_colored_quad_mesh_append(
+        positions,
+        colors,
+        indices,
+        face_code,
+        x ↦ f32,
+        y ↦ f32,
+        z ↦ f32,
+        1.0 ∷ f32
+    )
+}
+
+# Mesh one chunk from authoritative world neighbor reads.
+functio mesh_chunk(
+    de voxel.World world,
+    numerus cx,
+    numerus cz
+) → ChunkMesh ∪ nihil {
+    si voxel.world_valid(world) ≡ falsum {
+        redde nihil
+    }
+    si voxel.chunk_coord_valid(cx, cz) ≡ falsum {
+        redde nihil
+    }
+
+    varia lista<f32> positions ← vacua
+    varia lista<f32> colors ← vacua
+    varia lista<u32> indices ← vacua
+    varia numerus face_count ← 0
+
+    fixum numerus base_x ← cx * voxel.chunk_size()
+    fixum numerus base_z ← cz * voxel.chunk_size()
+
+    varia numerus ly ← 0
+    dum ly < voxel.chunk_size() {
+        varia numerus lz ← 0
+        dum lz < voxel.chunk_size() {
+            varia numerus lx ← 0
+            dum lx < voxel.chunk_size() {
+                fixum numerus wx ← base_x + lx
+                fixum numerus wy ← ly
+                fixum numerus wz ← base_z + lz
+                fixum numerus ∪ nihil cell ← voxel.world_get(world, wx, wy, wz)
+                si cell non est nihil {
+                    si voxel.block_is_solid(cell vel 0) {
+                        varia numerus face_code ← 1
+                        dum face_code ≤ 6 {
+                            si face_is_visible(world, wx, wy, wz, face_code) {
+                                fixum geometry.ColoredQuadMesh ∪ nihil appended ←
+                                    append_visible_face(
+                                        positions,
+                                        colors,
+                                        indices,
+                                        face_code,
+                                        wx,
+                                        wy,
+                                        wz
+                                    )
+                                si appended est nihil {
+                                    redde nihil
+                                }
+                                positions ← appended!.positions
+                                colors ← appended!.colors
+                                indices ← appended!.indices
+                                face_count ← face_count + 1
+                            }
+                            face_code ← face_code + 1
+                        }
+                    }
+                }
+                lx ← lx + 1
+            }
+            lz ← lz + 1
+        }
+        ly ← ly + 1
+    }
+
+    si face_count ≡ 0 {
+        redde empty_chunk_mesh(cx, cz)
+    }
+
+    redde ChunkMesh {
+        cx = cx,
+        cz = cz,
+        face_count = face_count,
+        positions = positions,
+        colors = colors,
+        indices = indices
+    }
+}
+
+# =========================================================================
+# FACTS / BOUNDS HELPERS
+# =========================================================================
+
+functio chunk_mesh_colored(de ChunkMesh mesh) → geometry.ColoredQuadMesh {
+    redde geometry.ColoredQuadMesh {
+        positions = mesh.positions,
+        colors = mesh.colors,
+        indices = mesh.indices
+    }
+}
+
+functio chunk_mesh_facts(
+    de ChunkMesh mesh
+) → geometry.VisibleFaceMeshFacts ∪ nihil {
+    si mesh.face_count ≡ 0 {
+        redde nihil
+    }
+    redde geometry.colored_quad_mesh_facts(chunk_mesh_colored(mesh))
+}
+
+functio chunk_mesh_bounding_box(
+    de ChunkMesh mesh
+) → geometry.BoundingBox ∪ nihil {
+    si mesh.face_count ≡ 0 {
+        redde nihil
+    }
+    redde geometry.colored_quad_mesh_bounding_box(chunk_mesh_colored(mesh))
+}
+
+functio chunk_mesh_matches_face_count(de ChunkMesh mesh) → bivalens {
+    si mesh.face_count ≡ 0 {
+        redde mesh.positions.longitudo() ≡ 0
+            et mesh.colors.longitudo() ≡ 0
+            et mesh.indices.longitudo() ≡ 0
+    }
+    fixum geometry.VisibleFaceMeshFacts ∪ nihil facts ← chunk_mesh_facts(mesh)
+    si facts est nihil {
+        redde falsum
+    }
+    redde facts!.face_count ≡ mesh.face_count
+        et facts!.vertex_count ≡ mesh.face_count * 4
+        et facts!.index_count ≡ mesh.face_count * 6
+        et facts!.triangle_count ≡ mesh.face_count * 2
+        et mesh.positions.longitudo() ≡ mesh.face_count * 12
+        et mesh.colors.longitudo() ≡ mesh.face_count * 12
+        et mesh.indices.longitudo() ≡ mesh.face_count * 6
+}
+
+# Count faces of one code in the mesh by matching the face-code color on
+# the first vertex of each quad (colors are constant per face).
+functio chunk_mesh_count_face_code(
+    de ChunkMesh mesh,
+    numerus face_code
+) → numerus ∪ nihil {
+    si triga.face_code_valid(face_code) ≡ falsum {
+        redde nihil
+    }
+    fixum triga.Color ∪ nihil expected ← triga.face_code_color(face_code)
+    si expected est nihil {
+        redde nihil
+    }
+    varia numerus count ← 0
+    varia numerus face ← 0
+    dum face < mesh.face_count {
+        fixum numerus base ← face * 12
+        si mesh.colors[base] ≡ expected!.r
+            et mesh.colors[base + 1] ≡ expected!.g
+            et mesh.colors[base + 2] ≡ expected!.b
+        {
+            count ← count + 1
+        }
+        face ← face + 1
+    }
+    redde count
+}
+
+# First-triangle winding for face `face_index` matches face-code normal.
+functio chunk_mesh_face_winding_matches(
+    de ChunkMesh mesh,
+    numerus face_index,
+    numerus face_code
+) → bivalens {
+    si face_index < 0 aut face_index ≥ mesh.face_count {
+        redde falsum
+    }
+    fixum triga.Vector3 ∪ nihil expected_normal ← triga.face_code_normal(face_code)
+    si expected_normal est nihil {
+        redde falsum
+    }
+    fixum numerus index_base ← face_index * 6
+    fixum numerus i0 ← mesh.indices[index_base] ↦ numerus
+    fixum numerus i1 ← mesh.indices[index_base + 1] ↦ numerus
+    fixum numerus i2 ← mesh.indices[index_base + 2] ↦ numerus
+    fixum numerus p0 ← i0 * 3
+    fixum numerus p1 ← i1 * 3
+    fixum numerus p2 ← i2 * 3
+    fixum triga.Vector3 a ← triga.vector3(
+        mesh.positions[p0],
+        mesh.positions[p0 + 1],
+        mesh.positions[p0 + 2]
+    )
+    fixum triga.Vector3 b ← triga.vector3(
+        mesh.positions[p1],
+        mesh.positions[p1 + 1],
+        mesh.positions[p1 + 2]
+    )
+    fixum triga.Vector3 c ← triga.vector3(
+        mesh.positions[p2],
+        mesh.positions[p2 + 1],
+        mesh.positions[p2 + 2]
+    )
+    fixum triga.Vector3 edge_ab ← triga.vector3_subtracta(b, a)
+    fixum triga.Vector3 edge_ac ← triga.vector3_subtracta(c, a)
+    fixum triga.Vector3 winding ← triga.vector3_normalizata(
+        triga.vector3_cross(edge_ab, edge_ac)
+    )
+    redde winding.x ≡ expected_normal!.x
+        et winding.y ≡ expected_normal!.y
+        et winding.z ≡ expected_normal!.z
+}
