@@ -389,6 +389,97 @@ incipit {
         "empty→empty leaves generation unchanged"
 
     # ------------------------------------------------------------------
+    # Equal face_count content change advances generation; same payload does not
+    # ------------------------------------------------------------------
+    world ← voxel.empty_world()
+    dirty ← voxel.dirty_empty()
+    resources ← meshing.empty_chunk_resource_table()
+
+    fixum voxel.WorldEdit ∪ nihil place_a ← set_solid(world, dirty, 4, 1, 4)
+    adfirma place_a non est nihil,
+        "place solid A for equal-face content test succeeds"
+    world ← voxel.World { chunks = place_a!.world.chunks }
+    dirty ← voxel.DirtySet { flags = place_a!.dirty.flags }
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh_a ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh_a non est nihil,
+        "remesh after place A succeeds"
+    dirty ← voxel.DirtySet { flags = remesh_a!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = remesh_a!.resources.chunks }
+    adfirma meshing.chunk_is_live(resources, 0),
+        "chunk 0 live after place A"
+    adfirma (meshing.chunk_generation(resources, 0) vel 9) ≡ 0,
+        "place A starts generation at 0"
+    adfirma remesh_a!.transitions[0].changed,
+        "place A remesh is changed"
+    # Single isolated solid → 6 faces. Move keeps face_count, changes payload.
+    fixum meshing.ChunkMesh ∪ nihil mesh_a ← meshing.mesh_chunk(world, 0, 0)
+    adfirma mesh_a non est nihil et (mesh_a vel meshing.empty_chunk_mesh(0, 0)).face_count ≡ 6,
+        "place A yields six faces"
+
+    fixum voxel.WorldEdit ∪ nihil clear_a ← set_air(world, dirty, 4, 1, 4)
+    adfirma clear_a non est nihil,
+        "clear solid A succeeds"
+    world ← voxel.World { chunks = clear_a!.world.chunks }
+    dirty ← voxel.DirtySet { flags = clear_a!.dirty.flags }
+    fixum voxel.WorldEdit ∪ nihil place_b ← set_solid(world, dirty, 10, 2, 10)
+    adfirma place_b non est nihil,
+        "place solid B (same face_count, new content) succeeds"
+    world ← voxel.World { chunks = place_b!.world.chunks }
+    dirty ← voxel.DirtySet { flags = place_b!.dirty.flags }
+    fixum meshing.ChunkMesh ∪ nihil mesh_b ← meshing.mesh_chunk(world, 0, 0)
+    adfirma mesh_b non est nihil et (mesh_b vel meshing.empty_chunk_mesh(0, 0)).face_count ≡ 6,
+        "place B still yields six faces"
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh_b ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh_b non est nihil,
+        "remesh after equal-face content move succeeds"
+    dirty ← voxel.DirtySet { flags = remesh_b!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = remesh_b!.resources.chunks }
+    adfirma meshing.chunk_is_live(resources, 0),
+        "chunk 0 remains live after content move"
+    adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1,
+        "equal face_count content change advances generation to 1"
+    adfirma remesh_b!.transitions[0].changed,
+        "equal face_count content change is changed"
+    adfirma remesh_b!.transitions[0].removed ≡ falsum,
+        "equal face_count content change is not a removal"
+    adfirma remesh_b!.transitions[0].previous non est nihil,
+        "content replace has previous handle"
+    adfirma remesh_b!.transitions[0].current non est nihil,
+        "content replace has current handle"
+    adfirma remesh_b!.transitions[0].current!.generation ≡
+        remesh_b!.transitions[0].previous!.generation + 1,
+        "content replace advances generation by exactly one"
+
+    # Force dirty remesh with no world change: identical payload stays flat.
+    fixum voxel.DirtySet ∪ nihil force_same ← voxel.dirty_mark(dirty, 0)
+    adfirma force_same non est nihil,
+        "force dirty for same-payload remesh succeeds"
+    dirty ← voxel.DirtySet { flags = force_same!.flags }
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh_same ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        resources
+    )
+    adfirma remesh_same non est nihil,
+        "same-payload remesh succeeds"
+    dirty ← voxel.DirtySet { flags = remesh_same!.dirty.flags }
+    resources ← meshing.ChunkResourceTable { chunks = remesh_same!.resources.chunks }
+    adfirma remesh_same!.transitions[0].changed ≡ falsum,
+        "true same payload remesh is unchanged"
+    adfirma remesh_same!.transitions[0].removed ≡ falsum,
+        "true same payload remesh is not removed"
+    adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1,
+        "true same payload leaves generation flat"
+
+    # ------------------------------------------------------------------
     # Boundary edit: only owning + neighbor remesh; others stable
     # ------------------------------------------------------------------
     world ← voxel.empty_world()

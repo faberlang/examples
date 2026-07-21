@@ -332,16 +332,21 @@ functio chunk_mesh_face_winding_matches(
 #   empty → empty:    unchanged (no live resource)
 #   empty → non-empty: created at generation 0
 #   non-empty → empty: removed (previous retired; no current)
-#   non-empty → non-empty with same face_count: unchanged
-#   non-empty → non-empty with different face_count: replaced (gen + 1)
+#   non-empty → non-empty with identical payload: unchanged
+#   non-empty → non-empty with different payload (incl. equal face_count):
+#     replaced (gen + 1)
 # Dirty drain remeshes each marked chunk once; no GPU effects here.
 # =========================================================================
 
 genus ChunkResourceState {
     # Logical identity is handle.index (chunk_index). generation is replaceable.
+    # Cached mesh payload detects content change when face_count is unchanged.
     scene.ResourceHandle handle
     bivalens live
     numerus face_count
+    lista<f32> positions
+    lista<f32> colors
+    lista<u32> indices
 }
 
 genus ChunkResourceTable {
@@ -381,7 +386,10 @@ functio empty_chunk_resource(numerus chunk_index) → ChunkResourceState ∪ nih
             generation = handle!.generation
         },
         live = falsum,
-        face_count = 0
+        face_count = 0,
+        positions = vacua,
+        colors = vacua,
+        indices = vacua
     }
 }
 
@@ -397,12 +405,92 @@ functio empty_chunk_resource_table() → ChunkResourceTable {
                     generation = state!.handle.generation
                 },
                 live = state!.live,
-                face_count = state!.face_count
+                face_count = state!.face_count,
+                positions = state!.positions,
+                colors = state!.colors,
+                indices = state!.indices
             })
         }
         i ← i + 1
     }
     redde ChunkResourceTable { chunks = chunks }
+}
+
+functio f32_list_equal(de lista<f32> a, de lista<f32> b) → bivalens {
+    si a.longitudo() ≠ b.longitudo() {
+        redde falsum
+    }
+    varia numerus i ← 0
+    dum i < a.longitudo() {
+        si a[i] ≠ b[i] {
+            redde falsum
+        }
+        i ← i + 1
+    }
+    redde verum
+}
+
+functio u32_list_equal(de lista<u32> a, de lista<u32> b) → bivalens {
+    si a.longitudo() ≠ b.longitudo() {
+        redde falsum
+    }
+    varia numerus i ← 0
+    dum i < a.longitudo() {
+        si a[i] ≠ b[i] {
+            redde falsum
+        }
+        i ← i + 1
+    }
+    redde verum
+}
+
+# True when live state already holds the exact derived mesh payload.
+functio chunk_resource_payload_matches(
+    de ChunkResourceState state,
+    de ChunkMesh mesh
+) → bivalens {
+    si state.live ≡ falsum {
+        redde falsum
+    }
+    si state.face_count ≠ mesh.face_count {
+        redde falsum
+    }
+    redde f32_list_equal(state.positions, mesh.positions)
+        et f32_list_equal(state.colors, mesh.colors)
+        et u32_list_equal(state.indices, mesh.indices)
+}
+
+functio live_state_from_mesh(
+    de scene.ResourceHandle handle,
+    de ChunkMesh mesh
+) → ChunkResourceState {
+    redde ChunkResourceState {
+        handle = scene.ResourceHandle {
+            index = handle.index,
+            generation = handle.generation
+        },
+        live = verum,
+        face_count = mesh.face_count,
+        positions = mesh.positions,
+        colors = mesh.colors,
+        indices = mesh.indices
+    }
+}
+
+functio empty_state_at(
+    de scene.ResourceHandle handle
+) → ChunkResourceState {
+    redde ChunkResourceState {
+        handle = scene.ResourceHandle {
+            index = handle.index,
+            generation = handle.generation
+        },
+        live = falsum,
+        face_count = 0,
+        positions = vacua,
+        colors = vacua,
+        indices = vacua
+    }
 }
 
 functio chunk_resource_table_valid(de ChunkResourceTable table) → bivalens {
@@ -415,11 +503,22 @@ functio chunk_resource_table_valid(de ChunkResourceTable table) → bivalens {
         si state.handle.index ≠ i {
             redde falsum
         }
-        si state.live ≡ falsum et state.face_count ≠ 0 {
-            redde falsum
-        }
-        si state.live et state.face_count ≡ 0 {
-            redde falsum
+        si state.live ≡ falsum {
+            si state.face_count ≠ 0
+                aut state.positions.longitudo() ≠ 0
+                aut state.colors.longitudo() ≠ 0
+                aut state.indices.longitudo() ≠ 0 {
+                redde falsum
+            }
+        } secus {
+            si state.face_count ≡ 0 {
+                redde falsum
+            }
+            si state.positions.longitudo() ≠ state.face_count * 12
+                aut state.colors.longitudo() ≠ state.face_count * 12
+                aut state.indices.longitudo() ≠ state.face_count * 6 {
+                redde falsum
+            }
         }
         i ← i + 1
     }
@@ -442,11 +541,7 @@ functio apply_chunk_mesh_resource(
                 generation = state.handle.generation
             }
             redde ChunkResourceApply {
-                state = ChunkResourceState {
-                    handle = previous,
-                    live = falsum,
-                    face_count = 0
-                },
+                state = empty_state_at(previous),
                 transition = scene.resource_lifecycle_removed(previous)
             }
         }
@@ -456,11 +551,7 @@ functio apply_chunk_mesh_resource(
             generation = state.handle.generation
         }
         redde ChunkResourceApply {
-            state = ChunkResourceState {
-                handle = stable,
-                live = falsum,
-                face_count = 0
-            },
+            state = empty_state_at(stable),
             transition = scene.ResourceLifecycleTransition {
                 logical_index = stable.index,
                 previous = stable,
@@ -478,26 +569,19 @@ functio apply_chunk_mesh_resource(
             generation = state.handle.generation
         }
         redde ChunkResourceApply {
-            state = ChunkResourceState {
-                handle = created,
-                live = verum,
-                face_count = faces
-            },
+            state = live_state_from_mesh(created, mesh),
             transition = scene.resource_lifecycle_created(created)
         }
     }
 
-    si faces ≡ state.face_count {
+    # Same face_count is not enough: positions/colors/indices may still change.
+    si chunk_resource_payload_matches(state, mesh) {
         fixum scene.ResourceHandle stable ← scene.ResourceHandle {
             index = state.handle.index,
             generation = state.handle.generation
         }
         redde ChunkResourceApply {
-            state = ChunkResourceState {
-                handle = stable,
-                live = verum,
-                face_count = faces
-            },
+            state = live_state_from_mesh(stable, mesh),
             transition = scene.resource_lifecycle_unchanged(stable)
         }
     }
@@ -513,11 +597,7 @@ functio apply_chunk_mesh_resource(
         generation = previous.generation + 1
     }
     redde ChunkResourceApply {
-        state = ChunkResourceState {
-            handle = current,
-            live = verum,
-            face_count = faces
-        },
+        state = live_state_from_mesh(current, mesh),
         transition = replaced
     }
 }
@@ -543,7 +623,10 @@ functio _table_with_state(
                     generation = state.handle.generation
                 },
                 live = state.live,
-                face_count = state.face_count
+                face_count = state.face_count,
+                positions = state.positions,
+                colors = state.colors,
+                indices = state.indices
             })
         } secus {
             fixum ChunkResourceState existing ← table.chunks[i]
@@ -553,7 +636,10 @@ functio _table_with_state(
                     generation = existing.handle.generation
                 },
                 live = existing.live,
-                face_count = existing.face_count
+                face_count = existing.face_count,
+                positions = existing.positions,
+                colors = existing.colors,
+                indices = existing.indices
             })
         }
         i ← i + 1
