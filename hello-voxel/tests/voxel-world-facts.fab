@@ -1,0 +1,296 @@
+# HV-05A focused facts: indexing, bounds, get/set, fixture.
+#
+# Run (from package root):
+#   faber run --compile tests/voxel-world-facts.fab
+#   # or: faber script tests/voxel-world-facts.fab
+
+importa ex "../src/voxel" privata voxel
+
+incipit {
+    # ------------------------------------------------------------------
+    # Constants and empty world shape
+    # ------------------------------------------------------------------
+    adfirma voxel.world_size_x() ≡ 32,
+        "world width is locked at 32"
+    adfirma voxel.world_size_y() ≡ 16,
+        "world height is locked at 16"
+    adfirma voxel.world_size_z() ≡ 32,
+        "world depth is locked at 32"
+    adfirma voxel.chunk_size() ≡ 16,
+        "chunk edge is locked at 16"
+    adfirma voxel.chunk_count() ≡ 4,
+        "world contains four chunks"
+    adfirma voxel.cells_per_chunk() ≡ 4096,
+        "each chunk stores 16³ cells"
+    adfirma voxel.world_cell_count() ≡ 16384,
+        "world stores 32×16×32 cells"
+
+    fixum voxel.World empty ← voxel.empty_world()
+    adfirma voxel.world_valid(empty),
+        "empty world has four valid chunks"
+    adfirma empty.chunks.longitudo() ≡ 4,
+        "empty world exposes four chunks"
+    adfirma voxel.count_world_cells(empty) ≡ 16384,
+        "empty world addresses 16,384 cells"
+    adfirma empty.chunks[0].cx ≡ 0 et empty.chunks[0].cz ≡ 0,
+        "chunk 0 is at cx=0,cz=0"
+    adfirma empty.chunks[1].cx ≡ 1 et empty.chunks[1].cz ≡ 0,
+        "chunk 1 is at cx=1,cz=0"
+    adfirma empty.chunks[2].cx ≡ 0 et empty.chunks[2].cz ≡ 1,
+        "chunk 2 is at cx=0,cz=1"
+    adfirma empty.chunks[3].cx ≡ 1 et empty.chunks[3].cz ≡ 1,
+        "chunk 3 is at cx=1,cz=1"
+
+    # ------------------------------------------------------------------
+    # Flat local index and coordinate conversion
+    # ------------------------------------------------------------------
+    adfirma (voxel.local_index(0, 0, 0) vel 999) ≡ 0,
+        "local origin indexes to 0"
+    adfirma (voxel.local_index(1, 0, 0) vel 999) ≡ 1,
+        "local +X advances by 1"
+    adfirma (voxel.local_index(0, 0, 1) vel 999) ≡ 16,
+        "local +Z advances by 16"
+    adfirma (voxel.local_index(0, 1, 0) vel 999) ≡ 256,
+        "local +Y advances by 256"
+    adfirma (voxel.local_index(15, 15, 15) vel 0) ≡ 4095,
+        "local max corner indexes to 4095"
+    adfirma voxel.local_index(16, 0, 0) est nihil,
+        "local x out of range fails"
+    adfirma voxel.local_index(0, -1, 0) est nihil,
+        "local y out of range fails"
+
+    fixum voxel.ChunkAddress ∪ nihil origin_addr ← voxel.world_to_address(0, 0, 0)
+    adfirma origin_addr non est nihil,
+        "origin world cell has an address"
+    adfirma origin_addr!.chunk.cx ≡ 0 et origin_addr!.chunk.cz ≡ 0,
+        "origin resolves to chunk (0,0)"
+    adfirma origin_addr!.local.lx ≡ 0 et origin_addr!.local.ly ≡ 0
+        et origin_addr!.local.lz ≡ 0,
+        "origin local is (0,0,0)"
+    adfirma origin_addr!.chunk_index ≡ 0 et origin_addr!.local_index ≡ 0,
+        "origin chunk/local indices are zero"
+
+    fixum voxel.ChunkAddress ∪ nihil x_seam ← voxel.world_to_address(16, 0, 0)
+    adfirma x_seam non est nihil,
+        "x=16 is in bounds"
+    adfirma x_seam!.chunk.cx ≡ 1 et x_seam!.chunk.cz ≡ 0,
+        "x=16 crosses into chunk cx=1"
+    adfirma x_seam!.local.lx ≡ 0,
+        "x=16 local lx resets to 0"
+
+    fixum voxel.ChunkAddress ∪ nihil z_seam ← voxel.world_to_address(0, 0, 16)
+    adfirma z_seam non est nihil,
+        "z=16 is in bounds"
+    adfirma z_seam!.chunk.cx ≡ 0 et z_seam!.chunk.cz ≡ 1,
+        "z=16 crosses into chunk cz=1"
+    adfirma z_seam!.local.lz ≡ 0,
+        "z=16 local lz resets to 0"
+
+    fixum voxel.ChunkAddress ∪ nihil far_corner ← voxel.world_to_address(31, 15, 31)
+    adfirma far_corner non est nihil,
+        "far corner is in bounds"
+    adfirma far_corner!.chunk.cx ≡ 1 et far_corner!.chunk.cz ≡ 1,
+        "far corner is in chunk (1,1)"
+    adfirma far_corner!.local.lx ≡ 15 et far_corner!.local.ly ≡ 15
+        et far_corner!.local.lz ≡ 15,
+        "far corner local is (15,15,15)"
+    adfirma far_corner!.chunk_index ≡ 3,
+        "far corner chunk index is 3"
+    adfirma far_corner!.local_index ≡ 4095,
+        "far corner local index is 4095"
+
+    adfirma far_corner non est nihil,
+        "far corner available for address_to_world"
+    fixum voxel.ChunkAddress far_corner_addr ← voxel.ChunkAddress {
+        chunk = far_corner!.chunk,
+        local = far_corner!.local,
+        local_index = far_corner!.local_index,
+        chunk_index = far_corner!.chunk_index
+    }
+    fixum voxel.WorldCoord ∪ nihil roundtrip ← voxel.address_to_world(far_corner_addr)
+    adfirma roundtrip non est nihil,
+        "address_to_world accepts far-corner address"
+    adfirma roundtrip!.x ≡ 31 et roundtrip!.y ≡ 15 et roundtrip!.z ≡ 31,
+        "address_to_world round-trips far corner"
+
+    # ------------------------------------------------------------------
+    # Bounds-safe get/set
+    # ------------------------------------------------------------------
+    adfirma voxel.world_get(empty, -1, 0, 0) est nihil,
+        "get x < 0 fails explicitly"
+    adfirma voxel.world_get(empty, 32, 0, 0) est nihil,
+        "get x ≥ 32 fails explicitly"
+    adfirma voxel.world_get(empty, 0, -1, 0) est nihil,
+        "get y < 0 fails explicitly"
+    adfirma voxel.world_get(empty, 0, 16, 0) est nihil,
+        "get y ≥ 16 fails explicitly"
+    adfirma voxel.world_get(empty, 0, 0, -1) est nihil,
+        "get z < 0 fails explicitly"
+    adfirma voxel.world_get(empty, 0, 0, 32) est nihil,
+        "get z ≥ 32 fails explicitly"
+
+    adfirma voxel.world_set(empty, -1, 0, 0, voxel.block_solid()) est nihil,
+        "set x < 0 fails explicitly"
+    adfirma voxel.world_set(empty, 0, 16, 0, voxel.block_solid()) est nihil,
+        "set y ≥ 16 fails explicitly"
+    adfirma voxel.world_set(empty, 0, 0, 32, voxel.block_solid()) est nihil,
+        "set z ≥ 32 fails explicitly"
+    adfirma voxel.world_set(empty, 0, 0, 0, 2) est nihil,
+        "set rejects unknown block id"
+
+    fixum numerus ∪ nihil air0 ← voxel.world_get(empty, 0, 0, 0)
+    adfirma air0 non est nihil et (air0 vel 1) ≡ voxel.block_air(),
+        "empty world origin is air"
+
+    fixum voxel.World ∪ nihil set_origin ← voxel.world_set(
+        empty, 0, 0, 0, voxel.block_solid()
+    )
+    adfirma set_origin non est nihil,
+        "set origin solid succeeds"
+    fixum voxel.World set_origin_world ← voxel.World {
+        chunks = set_origin!.chunks
+    }
+    fixum numerus ∪ nihil solid0 ← voxel.world_get(set_origin_world, 0, 0, 0)
+    adfirma solid0 non est nihil et (solid0 vel 0) ≡ voxel.block_solid(),
+        "get after set returns solid"
+    fixum numerus ∪ nihil still_air ← voxel.world_get(set_origin_world, 1, 0, 0)
+    adfirma still_air non est nihil et (still_air vel 1) ≡ voxel.block_air(),
+        "set is cell-local"
+
+    fixum voxel.World ∪ nihil set_seam ← voxel.world_set(
+        empty, 16, 5, 16, voxel.block_solid()
+    )
+    adfirma set_seam non est nihil,
+        "set at X/Z seam succeeds"
+    fixum voxel.World set_seam_world ← voxel.World {
+        chunks = set_seam!.chunks
+    }
+    fixum voxel.ChunkAddress ∪ nihil seam_addr ← voxel.world_to_address(16, 5, 16)
+    adfirma seam_addr non est nihil et seam_addr!.chunk_index ≡ 3,
+        "seam cell belongs to chunk (1,1)"
+    fixum numerus ∪ nihil seam_value ← voxel.world_get(set_seam_world, 16, 5, 16)
+    adfirma seam_value non est nihil et (seam_value vel 0) ≡ voxel.block_solid(),
+        "seam set is readable"
+
+    # ------------------------------------------------------------------
+    # Full addressing: all 16,384 cells
+    # ------------------------------------------------------------------
+    adfirma voxel.every_cell_addressable(empty),
+        "all 16,384 empty-world cells address deterministically"
+    adfirma voxel.empty_world_is_all_air(empty),
+        "empty world is entirely air"
+
+    # ------------------------------------------------------------------
+    # Deterministic fixture facts
+    # ------------------------------------------------------------------
+    fixum voxel.World fixture ← voxel.fixture_world()
+    adfirma voxel.world_valid(fixture),
+        "fixture world is structurally valid"
+    adfirma voxel.every_cell_addressable(fixture),
+        "fixture addresses all cells"
+
+    # Ground plane (y=0) solid except cavity.
+    fixum numerus ∪ nihil ground00 ← voxel.world_get(fixture, 0, 0, 0)
+    adfirma ground00 non est nihil et (ground00 vel 0) ≡ voxel.block_solid(),
+        "fixture ground origin is solid"
+    fixum numerus ∪ nihil ground_far ← voxel.world_get(fixture, 31, 0, 31)
+    adfirma ground_far non est nihil et (ground_far vel 0) ≡ voxel.block_solid(),
+        "fixture ground far corner is solid"
+    fixum numerus ∪ nihil cavity ← voxel.world_get(
+        fixture,
+        voxel.fixture_cavity_x(),
+        0,
+        voxel.fixture_cavity_z()
+    )
+    adfirma cavity non est nihil et (cavity vel 1) ≡ voxel.block_air(),
+        "fixture cavity is air in the ground plane"
+
+    # Wall along z = fixture_wall_z, y in [1..6], full x span (crosses X seam).
+    fixum numerus ∪ nihil wall_low ← voxel.world_get(
+        fixture, 0, voxel.fixture_wall_y_min(), voxel.fixture_wall_z()
+    )
+    adfirma wall_low non est nihil et (wall_low vel 0) ≡ voxel.block_solid(),
+        "fixture wall low-x is solid"
+    fixum numerus ∪ nihil wall_x_seam_l ← voxel.world_get(
+        fixture, 15, 3, voxel.fixture_wall_z()
+    )
+    adfirma wall_x_seam_l non est nihil et (wall_x_seam_l vel 0) ≡ voxel.block_solid(),
+        "fixture wall is solid just west of X seam"
+    fixum numerus ∪ nihil wall_x_seam_r ← voxel.world_get(
+        fixture, 16, 3, voxel.fixture_wall_z()
+    )
+    adfirma wall_x_seam_r non est nihil et (wall_x_seam_r vel 0) ≡ voxel.block_solid(),
+        "fixture wall is solid just east of X seam (crosses chunk X)"
+    fixum numerus ∪ nihil wall_high ← voxel.world_get(
+        fixture, 31, voxel.fixture_wall_y_max(), voxel.fixture_wall_z()
+    )
+    adfirma wall_high non est nihil et (wall_high vel 0) ≡ voxel.block_solid(),
+        "fixture wall high-x is solid"
+    fixum numerus ∪ nihil above_wall ← voxel.world_get(
+        fixture, 8, voxel.fixture_wall_y_max() + 1, voxel.fixture_wall_z()
+    )
+    adfirma above_wall non est nihil et (above_wall vel 1) ≡ voxel.block_air(),
+        "above the wall remains air"
+
+    # Pillar in chunk (0,1).
+    fixum voxel.ChunkAddress ∪ nihil pillar_addr ← voxel.world_to_address(
+        voxel.fixture_pillar_x(),
+        voxel.fixture_pillar_y_min(),
+        voxel.fixture_pillar_z()
+    )
+    adfirma pillar_addr non est nihil
+        et pillar_addr!.chunk.cx ≡ 0
+        et pillar_addr!.chunk.cz ≡ 1,
+        "fixture pillar sits in chunk (0,1)"
+    fixum numerus ∪ nihil pillar_base ← voxel.world_get(
+        fixture,
+        voxel.fixture_pillar_x(),
+        voxel.fixture_pillar_y_min(),
+        voxel.fixture_pillar_z()
+    )
+    adfirma pillar_base non est nihil et (pillar_base vel 0) ≡ voxel.block_solid(),
+        "fixture pillar base is solid"
+    fixum numerus ∪ nihil pillar_top ← voxel.world_get(
+        fixture,
+        voxel.fixture_pillar_x(),
+        voxel.fixture_pillar_y_max(),
+        voxel.fixture_pillar_z()
+    )
+    adfirma pillar_top non est nihil et (pillar_top vel 0) ≡ voxel.block_solid(),
+        "fixture pillar top is solid"
+    fixum numerus ∪ nihil above_pillar ← voxel.world_get(
+        fixture,
+        voxel.fixture_pillar_x(),
+        voxel.fixture_pillar_y_max() + 1,
+        voxel.fixture_pillar_z()
+    )
+    adfirma above_pillar non est nihil et (above_pillar vel 1) ≡ voxel.block_air(),
+        "above the pillar remains air"
+
+    # Solids crossing both X and Z chunk boundaries.
+    fixum numerus ∪ nihil cross_00 ← voxel.world_get(fixture, 15, 1, 15)
+    fixum numerus ∪ nihil cross_10 ← voxel.world_get(fixture, 16, 1, 15)
+    fixum numerus ∪ nihil cross_01 ← voxel.world_get(fixture, 15, 1, 16)
+    fixum numerus ∪ nihil cross_11 ← voxel.world_get(fixture, 16, 1, 16)
+    adfirma cross_00 non est nihil et (cross_00 vel 0) ≡ voxel.block_solid(),
+        "cross-boundary solid at (15,1,15)"
+    adfirma cross_10 non est nihil et (cross_10 vel 0) ≡ voxel.block_solid(),
+        "cross-boundary solid at (16,1,15)"
+    adfirma cross_01 non est nihil et (cross_01 vel 0) ≡ voxel.block_solid(),
+        "cross-boundary solid at (15,1,16)"
+    adfirma cross_11 non est nihil et (cross_11 vel 0) ≡ voxel.block_solid(),
+        "cross-boundary solid at (16,1,16)"
+
+    fixum voxel.ChunkAddress ∪ nihil c00 ← voxel.world_to_address(15, 1, 15)
+    fixum voxel.ChunkAddress ∪ nihil c10 ← voxel.world_to_address(16, 1, 15)
+    fixum voxel.ChunkAddress ∪ nihil c01 ← voxel.world_to_address(15, 1, 16)
+    fixum voxel.ChunkAddress ∪ nihil c11 ← voxel.world_to_address(16, 1, 16)
+    adfirma c00 non est nihil et c00!.chunk_index ≡ 0,
+        "(15,1,15) is chunk 0"
+    adfirma c10 non est nihil et c10!.chunk_index ≡ 1,
+        "(16,1,15) is chunk 1"
+    adfirma c01 non est nihil et c01!.chunk_index ≡ 2,
+        "(15,1,16) is chunk 2"
+    adfirma c11 non est nihil et c11!.chunk_index ≡ 3,
+        "(16,1,16) is chunk 3"
+}

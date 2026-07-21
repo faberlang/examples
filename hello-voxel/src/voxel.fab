@@ -1,0 +1,544 @@
+# Hello Voxel — HV-05A: authoritative voxel world model.
+#
+# Locked contract (goal 05 / delivery HV-05A):
+#   - World is 32 × 16 × 32 blocks (Y up).
+#   - Four chunks of 16 × 16 × 16 in an X/Z grid.
+#   - Block id 0 = air, block id 1 = opaque solid.
+#   - Flat local index: lx + 16 * (lz + 16 * ly).
+#   - World access resolves chunk + local coordinates before read/write.
+#   - Meshes are not storage (meshing is HV-05B).
+
+# =========================================================================
+# CONSTANTS
+# =========================================================================
+
+functio world_size_x() → numerus { redde 32 }
+functio world_size_y() → numerus { redde 16 }
+functio world_size_z() → numerus { redde 32 }
+functio chunk_size() → numerus { redde 16 }
+functio chunk_count_x() → numerus { redde 2 }
+functio chunk_count_z() → numerus { redde 2 }
+functio chunk_count() → numerus { redde 4 }
+functio cells_per_chunk() → numerus { redde 4096 }
+# 32 × 16 × 32 = 16,384 (four chunks × 4,096). Delivery gate text "32,768" is arithmetic error.
+functio world_cell_count() → numerus { redde 16384 }
+
+functio block_air() → numerus { redde 0 }
+functio block_solid() → numerus { redde 1 }
+
+# =========================================================================
+# TYPES
+# =========================================================================
+
+genus WorldCoord {
+    numerus x
+    numerus y
+    numerus z
+}
+
+genus ChunkCoord {
+    numerus cx
+    numerus cz
+}
+
+genus LocalCoord {
+    numerus lx
+    numerus ly
+    numerus lz
+}
+
+genus ChunkAddress {
+    ChunkCoord chunk
+    LocalCoord local
+    numerus local_index
+    numerus chunk_index
+}
+
+genus Chunk {
+    numerus cx
+    numerus cz
+    lista<numerus> blocks
+}
+
+genus World {
+    lista<Chunk> chunks
+}
+
+# =========================================================================
+# IDENTITY / BOUNDS
+# =========================================================================
+
+functio block_is_air(numerus id) → bivalens {
+    redde id ≡ block_air()
+}
+
+functio block_is_solid(numerus id) → bivalens {
+    redde id ≡ block_solid()
+}
+
+functio block_id_valid(numerus id) → bivalens {
+    redde id ≡ block_air() aut id ≡ block_solid()
+}
+
+functio world_in_bounds(numerus x, numerus y, numerus z) → bivalens {
+    redde x ≥ 0 et x < world_size_x()
+        et y ≥ 0 et y < world_size_y()
+        et z ≥ 0 et z < world_size_z()
+}
+
+functio chunk_coord_valid(numerus cx, numerus cz) → bivalens {
+    redde cx ≥ 0 et cx < chunk_count_x()
+        et cz ≥ 0 et cz < chunk_count_z()
+}
+
+functio local_coord_valid(numerus lx, numerus ly, numerus lz) → bivalens {
+    redde lx ≥ 0 et lx < chunk_size()
+        et ly ≥ 0 et ly < chunk_size()
+        et lz ≥ 0 et lz < chunk_size()
+}
+
+# =========================================================================
+# INDEXING AND COORDINATE CONVERSION
+# =========================================================================
+
+functio local_index(numerus lx, numerus ly, numerus lz) → numerus ∪ nihil {
+    si local_coord_valid(lx, ly, lz) ≡ falsum {
+        redde nihil
+    }
+    redde lx + chunk_size() * (lz + chunk_size() * ly)
+}
+
+functio chunk_index(numerus cx, numerus cz) → numerus ∪ nihil {
+    si chunk_coord_valid(cx, cz) ≡ falsum {
+        redde nihil
+    }
+    redde cx + chunk_count_x() * cz
+}
+
+functio world_to_chunk_coord(numerus x, numerus y, numerus z) → ChunkCoord ∪ nihil {
+    si world_in_bounds(x, y, z) ≡ falsum {
+        redde nihil
+    }
+    redde ChunkCoord {
+        cx = x / chunk_size(),
+        cz = z / chunk_size()
+    }
+}
+
+functio world_to_local_coord(numerus x, numerus y, numerus z) → LocalCoord ∪ nihil {
+    si world_in_bounds(x, y, z) ≡ falsum {
+        redde nihil
+    }
+    redde LocalCoord {
+        lx = x % chunk_size(),
+        ly = y,
+        lz = z % chunk_size()
+    }
+}
+
+functio world_to_address(numerus x, numerus y, numerus z) → ChunkAddress ∪ nihil {
+    si world_in_bounds(x, y, z) ≡ falsum {
+        redde nihil
+    }
+    fixum ChunkCoord ∪ nihil chunk_result ← world_to_chunk_coord(x, y, z)
+    si chunk_result est nihil {
+        redde nihil
+    }
+    fixum LocalCoord ∪ nihil local_result ← world_to_local_coord(x, y, z)
+    si local_result est nihil {
+        redde nihil
+    }
+    fixum numerus ∪ nihil local_index_result ← local_index(
+        local_result!.lx,
+        local_result!.ly,
+        local_result!.lz
+    )
+    si local_index_result est nihil {
+        redde nihil
+    }
+    fixum numerus ∪ nihil chunk_index_result ← chunk_index(
+        chunk_result!.cx,
+        chunk_result!.cz
+    )
+    si chunk_index_result est nihil {
+        redde nihil
+    }
+    redde ChunkAddress {
+        chunk = ChunkCoord {
+            cx = chunk_result!.cx,
+            cz = chunk_result!.cz
+        },
+        local = LocalCoord {
+            lx = local_result!.lx,
+            ly = local_result!.ly,
+            lz = local_result!.lz
+        },
+        local_index = local_index_result vel 0,
+        chunk_index = chunk_index_result vel 0
+    }
+}
+
+functio address_to_world(de ChunkAddress address) → WorldCoord ∪ nihil {
+    si chunk_coord_valid(address.chunk.cx, address.chunk.cz) ≡ falsum {
+        redde nihil
+    }
+    si local_coord_valid(
+        address.local.lx,
+        address.local.ly,
+        address.local.lz
+    ) ≡ falsum ergo redde nihil
+    redde WorldCoord {
+        x = address.chunk.cx * chunk_size() + address.local.lx,
+        y = address.local.ly,
+        z = address.chunk.cz * chunk_size() + address.local.lz
+    }
+}
+
+# =========================================================================
+# CONSTRUCTION
+# =========================================================================
+
+functio empty_chunk_blocks() → lista<numerus> {
+    varia lista<numerus> blocks ← vacua
+    varia numerus i ← 0
+    dum i < cells_per_chunk() {
+        blocks.appende(block_air())
+        i ← i + 1
+    }
+    redde blocks
+}
+
+functio empty_chunk(numerus cx, numerus cz) → Chunk ∪ nihil {
+    si chunk_coord_valid(cx, cz) ≡ falsum {
+        redde nihil
+    }
+    redde Chunk {
+        cx = cx,
+        cz = cz,
+        blocks = empty_chunk_blocks()
+    }
+}
+
+functio empty_world() → World {
+    varia lista<Chunk> chunks ← vacua
+    varia numerus cz ← 0
+    dum cz < chunk_count_z() {
+        varia numerus cx ← 0
+        dum cx < chunk_count_x() {
+            fixum Chunk ∪ nihil chunk_result ← empty_chunk(cx, cz)
+            si chunk_result non est nihil {
+                chunks.appende(Chunk {
+                    cx = chunk_result!.cx,
+                    cz = chunk_result!.cz,
+                    blocks = chunk_result!.blocks
+                })
+            }
+            cx ← cx + 1
+        }
+        cz ← cz + 1
+    }
+    redde World { chunks = chunks }
+}
+
+functio world_valid(de World world) → bivalens {
+    si world.chunks.longitudo() ≠ chunk_count() {
+        redde falsum
+    }
+    varia numerus i ← 0
+    dum i < world.chunks.longitudo() {
+        fixum Chunk chunk ← world.chunks[i]
+        si chunk.blocks.longitudo() ≠ cells_per_chunk() {
+            redde falsum
+        }
+        fixum numerus ∪ nihil expected_index ← chunk_index(chunk.cx, chunk.cz)
+        si expected_index est nihil {
+            redde falsum
+        }
+        si (expected_index vel 0) ≠ i {
+            redde falsum
+        }
+        i ← i + 1
+    }
+    redde verum
+}
+
+# =========================================================================
+# BOUNDS-SAFE GET / SET
+# =========================================================================
+
+functio world_get(de World world, numerus x, numerus y, numerus z) → numerus ∪ nihil {
+    si world_valid(world) ≡ falsum {
+        redde nihil
+    }
+    fixum ChunkAddress ∪ nihil address_result ← world_to_address(x, y, z)
+    si address_result est nihil {
+        redde nihil
+    }
+    fixum Chunk chunk ← world.chunks[address_result!.chunk_index]
+    fixum numerus value ← chunk.blocks[address_result!.local_index]
+    redde value
+}
+
+functio _chunk_with_block(de Chunk chunk, numerus local_index, numerus block_id) → Chunk ∪ nihil {
+    si local_index < 0 aut local_index ≥ chunk.blocks.longitudo() {
+        redde nihil
+    }
+    si block_id_valid(block_id) ≡ falsum {
+        redde nihil
+    }
+    varia lista<numerus> blocks ← vacua
+    varia numerus i ← 0
+    dum i < chunk.blocks.longitudo() {
+        si i ≡ local_index {
+            blocks.appende(block_id)
+        } secus {
+            blocks.appende(chunk.blocks[i])
+        }
+        i ← i + 1
+    }
+    redde Chunk {
+        cx = chunk.cx,
+        cz = chunk.cz,
+        blocks = blocks
+    }
+}
+
+functio world_set(
+    de World world,
+    numerus x,
+    numerus y,
+    numerus z,
+    numerus block_id
+) → World ∪ nihil {
+    si world_valid(world) ≡ falsum {
+        redde nihil
+    }
+    si block_id_valid(block_id) ≡ falsum {
+        redde nihil
+    }
+    fixum ChunkAddress ∪ nihil address_result ← world_to_address(x, y, z)
+    si address_result est nihil {
+        redde nihil
+    }
+    fixum Chunk chunk ← world.chunks[address_result!.chunk_index]
+    fixum Chunk ∪ nihil updated_chunk ← _chunk_with_block(
+        chunk,
+        address_result!.local_index,
+        block_id
+    )
+    si updated_chunk est nihil {
+        redde nihil
+    }
+    varia lista<Chunk> chunks ← vacua
+    varia numerus i ← 0
+    dum i < world.chunks.longitudo() {
+        si i ≡ address_result!.chunk_index {
+            chunks.appende(Chunk {
+                cx = updated_chunk!.cx,
+                cz = updated_chunk!.cz,
+                blocks = updated_chunk!.blocks
+            })
+        } secus {
+            fixum Chunk existing ← world.chunks[i]
+            chunks.appende(Chunk {
+                cx = existing.cx,
+                cz = existing.cz,
+                blocks = existing.blocks
+            })
+        }
+        i ← i + 1
+    }
+    redde World { chunks = chunks }
+}
+
+# =========================================================================
+# DETERMINISTIC FIXTURE
+#
+# Ground plane at y = 0 (with one cavity), one wall, one pillar, and solids
+# that cross both an X and a Z chunk boundary at the world center seam.
+# =========================================================================
+
+functio fixture_cavity_x() → numerus { redde 10 }
+functio fixture_cavity_z() → numerus { redde 10 }
+
+functio fixture_wall_z() → numerus { redde 8 }
+functio fixture_wall_y_min() → numerus { redde 1 }
+functio fixture_wall_y_max() → numerus { redde 6 }
+
+functio fixture_pillar_x() → numerus { redde 4 }
+functio fixture_pillar_z() → numerus { redde 24 }
+functio fixture_pillar_y_min() → numerus { redde 1 }
+functio fixture_pillar_y_max() → numerus { redde 10 }
+
+functio fixture_cross_y() → numerus { redde 1 }
+
+functio _fixture_fill_ground(de World world) → World {
+    varia World next ← World { chunks = world.chunks }
+    varia numerus z ← 0
+    dum z < world_size_z() {
+        varia numerus x ← 0
+        dum x < world_size_x() {
+            fixum World ∪ nihil set_result ← world_set(next, x, 0, z, block_solid())
+            si set_result non est nihil {
+                next ← World { chunks = set_result!.chunks }
+            }
+            x ← x + 1
+        }
+        z ← z + 1
+    }
+    redde next
+}
+
+functio _fixture_cut_cavity(de World world) → World {
+    fixum World ∪ nihil set_result ← world_set(
+        world,
+        fixture_cavity_x(),
+        0,
+        fixture_cavity_z(),
+        block_air()
+    )
+    si set_result non est nihil {
+        redde World { chunks = set_result!.chunks }
+    }
+    redde world
+}
+
+functio _fixture_fill_wall(de World world) → World {
+    varia World next ← World { chunks = world.chunks }
+    varia numerus y ← fixture_wall_y_min()
+    dum y ≤ fixture_wall_y_max() {
+        varia numerus x ← 0
+        dum x < world_size_x() {
+            fixum World ∪ nihil set_result ← world_set(
+                next,
+                x,
+                y,
+                fixture_wall_z(),
+                block_solid()
+            )
+            si set_result non est nihil {
+                next ← World { chunks = set_result!.chunks }
+            }
+            x ← x + 1
+        }
+        y ← y + 1
+    }
+    redde next
+}
+
+functio _fixture_fill_pillar(de World world) → World {
+    varia World next ← World { chunks = world.chunks }
+    varia numerus y ← fixture_pillar_y_min()
+    dum y ≤ fixture_pillar_y_max() {
+        fixum World ∪ nihil set_result ← world_set(
+            next,
+            fixture_pillar_x(),
+            y,
+            fixture_pillar_z(),
+            block_solid()
+        )
+        si set_result non est nihil {
+            next ← World { chunks = set_result!.chunks }
+        }
+        y ← y + 1
+    }
+    redde next
+}
+
+functio _fixture_fill_cross_boundary(de World world) → World {
+    varia World next ← World { chunks = world.chunks }
+    # 2×2 solids centered on the X=15|16 and Z=15|16 chunk seams.
+    fixum lista<numerus> xs ← [15, 16]
+    fixum lista<numerus> zs ← [15, 16]
+    varia numerus xi ← 0
+    dum xi < xs.longitudo() {
+        varia numerus zi ← 0
+        dum zi < zs.longitudo() {
+            fixum World ∪ nihil set_result ← world_set(
+                next,
+                xs[xi],
+                fixture_cross_y(),
+                zs[zi],
+                block_solid()
+            )
+            si set_result non est nihil {
+                next ← World { chunks = set_result!.chunks }
+            }
+            zi ← zi + 1
+        }
+        xi ← xi + 1
+    }
+    redde next
+}
+
+functio fixture_world() → World {
+    fixum World empty ← empty_world()
+    fixum World with_ground ← _fixture_fill_ground(empty)
+    fixum World with_cavity ← _fixture_cut_cavity(with_ground)
+    fixum World with_wall ← _fixture_fill_wall(with_cavity)
+    fixum World with_pillar ← _fixture_fill_pillar(with_wall)
+    redde _fixture_fill_cross_boundary(with_pillar)
+}
+
+# =========================================================================
+# FACT HELPERS (used by focused tests)
+# =========================================================================
+
+functio count_world_cells(de World world) → numerus {
+    varia numerus total ← 0
+    varia numerus i ← 0
+    dum i < world.chunks.longitudo() {
+        total ← total + world.chunks[i].blocks.longitudo()
+        i ← i + 1
+    }
+    redde total
+}
+
+functio every_cell_addressable(de World world) → bivalens {
+    si world_valid(world) ≡ falsum {
+        redde falsum
+    }
+    varia numerus y ← 0
+    dum y < world_size_y() {
+        varia numerus z ← 0
+        dum z < world_size_z() {
+            varia numerus x ← 0
+            dum x < world_size_x() {
+                fixum numerus ∪ nihil value ← world_get(world, x, y, z)
+                si value est nihil {
+                    redde falsum
+                }
+                x ← x + 1
+            }
+            z ← z + 1
+        }
+        y ← y + 1
+    }
+    redde verum
+}
+
+functio empty_world_is_all_air(de World world) → bivalens {
+    si world_valid(world) ≡ falsum {
+        redde falsum
+    }
+    varia numerus y ← 0
+    dum y < world_size_y() {
+        varia numerus z ← 0
+        dum z < world_size_z() {
+            varia numerus x ← 0
+            dum x < world_size_x() {
+                fixum numerus ∪ nihil value ← world_get(world, x, y, z)
+                si value est nihil {
+                    redde falsum
+                }
+                si (value vel 0) ≠ block_air() {
+                    redde falsum
+                }
+                x ← x + 1
+            }
+            z ← z + 1
+        }
+        y ← y + 1
+    }
+    redde verum
+}
