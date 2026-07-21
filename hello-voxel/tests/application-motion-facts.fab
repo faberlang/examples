@@ -1,0 +1,481 @@
+# HV-06A focused facts: pitch clamp, frame-time motion, X→Y→Z collision,
+# gravity/ground, focus clear.
+#
+# Run (from package root):
+#   faber run --compile tests/application-motion-facts.fab
+#   # or: tests/run-hv06a.sh
+
+importa ex "../src/voxel" privata voxel
+importa ex "../src/application" privata application
+importa ex "triga:triga" privata triga
+
+functio approx(f32 a, f32 b, f32 eps) → bivalens {
+    redde (a - b).absolutum() ≤ eps
+}
+
+functio input_with_key_w() → application.InputState {
+    fixum application.InputState base ← application.empty_input()
+    redde application.set_key_by_code(base, application.key_code_w(), verum)
+}
+
+functio player_at(f32 x, f32 y, f32 z) → application.Player {
+    redde application.Player {
+        x = x,
+        y = y,
+        z = z,
+        velocity_y = 0.0 ∷ f32,
+        grounded = falsum
+    }
+}
+
+functio camera_yaw(f32 yaw) → application.Camera {
+    redde application.Camera {
+        yaw_degrees = yaw,
+        pitch_degrees = 0.0 ∷ f32
+    }
+}
+
+incipit {
+    # ------------------------------------------------------------------
+    # Constants and spawn
+    # ------------------------------------------------------------------
+    adfirma application.player_width() ≡ (0.6 ∷ f32),
+        "player width is locked at 0.6"
+    adfirma application.player_height() ≡ (1.8 ∷ f32),
+        "player height is locked at 1.8"
+    adfirma application.max_delta_seconds() ≡ (0.05 ∷ f32),
+        "frame delta clamp is documented at 0.05 s"
+    adfirma application.pitch_max_degrees() ≡ (89.0 ∷ f32),
+        "pitch max is +89°"
+    adfirma application.pitch_min_degrees() ≡ (0.0 ∷ f32 - 89.0 ∷ f32),
+        "pitch min is -89°"
+
+    fixum application.Application app0 ← application.spawn_application()
+    adfirma approx(app0.player.x, application.spawn_x(), 0.0001 ∷ f32)
+        et approx(app0.player.y, application.spawn_y(), 0.0001 ∷ f32)
+        et approx(app0.player.z, application.spawn_z(), 0.0001 ∷ f32),
+        "spawn places player at the fixed fixture-world location"
+    adfirma app0.player.grounded,
+        "spawn marks player grounded"
+    adfirma app0.camera.yaw_degrees ≡ (0.0 ∷ f32)
+        et app0.camera.pitch_degrees ≡ (0.0 ∷ f32),
+        "spawn camera faces yaw 0 / pitch 0"
+
+    fixum voxel.World fixture ← voxel.fixture_world()
+    adfirma application.player_overlaps_solid(fixture, app0.player) ≡ falsum,
+        "spawn player does not overlap solid blocks"
+
+    # ------------------------------------------------------------------
+    # Pitch clamp
+    # ------------------------------------------------------------------
+    adfirma application.clamp_pitch(100.0 ∷ f32) ≡ (89.0 ∷ f32),
+        "pitch above +89 clamps to +89"
+    adfirma application.clamp_pitch(0.0 ∷ f32 - 100.0 ∷ f32) ≡ (0.0 ∷ f32 - 89.0 ∷ f32),
+        "pitch below -89 clamps to -89"
+    adfirma application.clamp_pitch(12.5 ∷ f32) ≡ (12.5 ∷ f32),
+        "in-range pitch is unchanged"
+
+    fixum application.Camera look_up ← application.apply_yaw_pitch(
+        app0.camera,
+        0.0 ∷ f32,
+        200.0 ∷ f32
+    )
+    adfirma look_up.pitch_degrees ≡ (89.0 ∷ f32),
+        "apply_yaw_pitch clamps extreme upward look"
+    fixum application.Camera look_down ← application.apply_yaw_pitch(
+        app0.camera,
+        0.0 ∷ f32,
+        0.0 ∷ f32 - 200.0 ∷ f32
+    )
+    adfirma look_down.pitch_degrees ≡ (0.0 ∷ f32 - 89.0 ∷ f32),
+        "apply_yaw_pitch clamps extreme downward look"
+
+    fixum triga.CameraYawPitchFacts facts ← application.camera_view_facts(
+        look_up,
+        app0.player
+    )
+    adfirma facts.clamped_pitch_degrees ≡ (89.0 ∷ f32),
+        "camera view facts expose clamped pitch"
+    adfirma facts.direction.y > 0.99,
+        "clamped up look has near-+Y view direction"
+
+    # Mouse deltas ignored without pointer lock.
+    fixum application.InputState unlocked ← application.queue_mouse_delta(
+        app0.input,
+        40.0 ∷ f32,
+        0.0 ∷ f32
+    )
+    adfirma unlocked.mouse_dx ≡ (0.0 ∷ f32),
+        "mouse delta is ignored when pointer is unlocked"
+    fixum application.InputState locked ← application.apply_pointer_lock(
+        app0.input,
+        verum
+    )
+    fixum application.InputState locked_delta ← application.queue_mouse_delta(
+        locked,
+        40.0 ∷ f32,
+        20.0 ∷ f32
+    )
+    adfirma locked_delta.mouse_dx ≡ (40.0 ∷ f32)
+        et locked_delta.mouse_dy ≡ (20.0 ∷ f32),
+        "mouse delta accumulates under pointer lock"
+
+    fixum application.Application look_app ← application.Application {
+        camera = app0.camera,
+        input = locked_delta,
+        player = app0.player
+    }
+    fixum application.Application after_look ← application.step_application(
+        fixture,
+        look_app,
+        0.0 ∷ f32
+    )
+    adfirma after_look.camera.yaw_degrees ≡ (
+        40.0 ∷ f32 * application.mouse_sensitivity()
+    ),
+        "step applies yaw from locked mouse dx"
+    adfirma after_look.camera.pitch_degrees ≡ (
+        0.0 ∷ f32 - 20.0 ∷ f32 * application.mouse_sensitivity()
+    ),
+        "step applies inverted pitch from locked mouse dy"
+    adfirma after_look.input.mouse_dx ≡ (0.0 ∷ f32)
+        et after_look.input.mouse_dy ≡ (0.0 ∷ f32),
+        "step consumes mouse deltas"
+
+    # ------------------------------------------------------------------
+    # Frame-time motion (horizontal, yaw 0 → -Z forward)
+    # ------------------------------------------------------------------
+    fixum application.InputState press_w ← input_with_key_w()
+    fixum application.Camera yaw0 ← camera_yaw(0.0 ∷ f32)
+    fixum application.Player stand ← player_at(
+        application.spawn_x(),
+        application.spawn_y(),
+        application.spawn_z()
+    )
+    # grounded standing player: use velocity 0; collision holds on ground.
+    fixum application.Player stand_grounded ← application.Player {
+        x = stand.x,
+        y = stand.y,
+        z = stand.z,
+        velocity_y = 0.0 ∷ f32,
+        grounded = verum
+    }
+
+    fixum triga.Vector3 move_half ← application.planar_displacement(
+        yaw0,
+        press_w,
+        0.5 ∷ f32
+    )
+    adfirma approx(move_half.x, 0.0 ∷ f32, 0.0001 ∷ f32)
+        et approx(move_half.y, 0.0 ∷ f32, 0.0001 ∷ f32)
+        et approx(move_half.z, 0.0 ∷ f32 - 2.0 ∷ f32, 0.0001 ∷ f32),
+        "W at yaw 0 moves -Z by speed * dt (4 * 0.5 = 2)"
+
+    fixum triga.Vector3 move_full ← application.planar_displacement(
+        yaw0,
+        press_w,
+        1.0 ∷ f32
+    )
+    adfirma approx(move_full.z, 0.0 ∷ f32 - 4.0 ∷ f32, 0.0001 ∷ f32),
+        "double frame time doubles planar displacement"
+
+    fixum triga.Vector3 move_clamped ← application.planar_displacement(
+        yaw0,
+        press_w,
+        application.clamp_delta_seconds(1.0 ∷ f32)
+    )
+    adfirma approx(
+        move_clamped.z,
+        0.0 ∷ f32 - application.move_speed() * application.max_delta_seconds(),
+        0.0001 ∷ f32
+    ),
+        "clamped frame time caps displacement at speed * 0.05"
+
+    fixum triga.Vector3 move_yaw90 ← application.planar_displacement(
+        camera_yaw(90.0 ∷ f32),
+        press_w,
+        1.0 ∷ f32
+    )
+    adfirma approx(move_yaw90.x, 4.0 ∷ f32, 0.0001 ∷ f32)
+        et approx(move_yaw90.z, 0.0 ∷ f32, 0.0001 ∷ f32),
+        "W at yaw 90 moves +X"
+
+    fixum application.Player walked ← application.step_player(
+        fixture,
+        stand_grounded,
+        yaw0,
+        press_w,
+        0.05 ∷ f32
+    )
+    adfirma approx(
+        walked.z,
+        stand_grounded.z - application.move_speed() * 0.05 ∷ f32,
+        0.01 ∷ f32
+    ),
+        "step_player advances -Z under W with open ground ahead"
+    adfirma walked.grounded,
+        "walking on fixture ground remains grounded"
+    adfirma application.player_overlaps_solid(fixture, walked) ≡ falsum,
+        "walking leaves no solid overlap"
+
+    # ------------------------------------------------------------------
+    # Focus loss clears movement immediately
+    # ------------------------------------------------------------------
+    fixum application.InputState focused_wasd ← application.set_key_by_code(
+        application.set_key_by_code(
+            application.set_key_by_code(
+                application.set_key_by_code(
+                    application.empty_input(),
+                    application.key_code_w(),
+                    verum
+                ),
+                application.key_code_a(),
+                verum
+            ),
+            application.key_code_s(),
+            verum
+        ),
+        application.key_code_d(),
+        verum
+    )
+    adfirma focused_wasd.key_w et focused_wasd.key_a
+        et focused_wasd.key_s et focused_wasd.key_d,
+        "all WASD keys can be held while focused"
+
+    fixum application.InputState unfocused ← application.apply_focus(
+        focused_wasd,
+        falsum
+    )
+    adfirma unfocused.focused ≡ falsum,
+        "apply_focus records focus loss"
+    adfirma unfocused.key_w ≡ falsum
+        et unfocused.key_a ≡ falsum
+        et unfocused.key_s ≡ falsum
+        et unfocused.key_d ≡ falsum,
+        "focus loss clears all movement keys"
+    adfirma unfocused.mouse_dx ≡ (0.0 ∷ f32)
+        et unfocused.mouse_dy ≡ (0.0 ∷ f32),
+        "focus loss clears mouse deltas"
+
+    fixum triga.Vector3 no_move ← application.planar_displacement(
+        yaw0,
+        unfocused,
+        1.0 ∷ f32
+    )
+    adfirma approx(no_move.x, 0.0 ∷ f32, 0.0001 ∷ f32)
+        et approx(no_move.z, 0.0 ∷ f32, 0.0001 ∷ f32),
+        "unfocused input produces zero planar displacement"
+
+    fixum application.InputState ignored_key ← application.set_key_by_code(
+        unfocused,
+        application.key_code_w(),
+        verum
+    )
+    adfirma ignored_key.key_w ≡ falsum,
+        "key events while unfocused do not stick"
+
+    # ------------------------------------------------------------------
+    # Gravity and ground
+    # ------------------------------------------------------------------
+    fixum application.Player airborne ← application.Player {
+        x = application.spawn_x(),
+        y = 5.0 ∷ f32,
+        z = application.spawn_z(),
+        velocity_y = 0.0 ∷ f32,
+        grounded = falsum
+    }
+    fixum application.Player falling ← application.step_player(
+        fixture,
+        airborne,
+        yaw0,
+        application.empty_input(),
+        0.05 ∷ f32
+    )
+    adfirma falling.y < airborne.y,
+        "gravity lowers airborne player"
+    adfirma falling.velocity_y < 0.0,
+        "falling accumulates negative vertical velocity"
+    adfirma falling.grounded ≡ falsum,
+        "still airborne after one short fall frame"
+    adfirma application.player_overlaps_solid(fixture, falling) ≡ falsum,
+        "falling player never overlaps solids"
+
+    # Drop until grounded on the fixture floor.
+    varia application.Player drop ← airborne
+    varia numerus drop_steps ← 0
+    dum drop.grounded ≡ falsum et drop_steps < 200 {
+        drop ← application.step_player(
+            fixture,
+            drop,
+            yaw0,
+            application.empty_input(),
+            0.05 ∷ f32
+        )
+        drop_steps ← drop_steps + 1
+    }
+    adfirma drop.grounded,
+        "airborne player eventually grounds on fixture floor"
+    adfirma approx(drop.y, 1.0 ∷ f32, 0.02 ∷ f32),
+        "grounded feet settle on top of solid y=0 (feet y ≈ 1)"
+    adfirma drop.velocity_y ≡ (0.0 ∷ f32),
+        "ground contact zeroes vertical velocity"
+    adfirma application.player_overlaps_solid(fixture, drop) ≡ falsum,
+        "grounded player does not overlap the floor solid"
+
+    # ------------------------------------------------------------------
+    # X → Y → Z collision order against opaque blocks
+    # ------------------------------------------------------------------
+    # Wall at z = 8, y in [1..6], full x. Approach from +Z side.
+    fixum application.Player wall_runner ← application.Player {
+        x = 16.0 ∷ f32,
+        y = 1.0 ∷ f32,
+        z = 10.0 ∷ f32,
+        velocity_y = 0.0 ∷ f32,
+        grounded = verum
+    }
+    # Face -Z (yaw 0) and hold W for many frames → collide into wall z=8.
+    varia application.Player against_wall ← wall_runner
+    varia numerus wall_steps ← 0
+    dum wall_steps < 80 {
+        against_wall ← application.step_player(
+            fixture,
+            against_wall,
+            yaw0,
+            press_w,
+            0.05 ∷ f32
+        )
+        wall_steps ← wall_steps + 1
+    }
+    # Solid cell z=8 occupies [8, 9). Approaching from +Z settles at 9 + half_width.
+    adfirma against_wall.z ≥ (
+        9.0 ∷ f32 + application.player_half_width() - 0.01 ∷ f32
+    ),
+        "Z collision stops player short of wall +Z face at z=9"
+    adfirma against_wall.z ≤ (
+        9.0 ∷ f32 + application.player_half_width() + 0.05 ∷ f32
+    ),
+        "Z collision settles against the wall +Z face"
+    adfirma application.player_overlaps_solid(fixture, against_wall) ≡ falsum,
+        "wall contact leaves no solid overlap"
+
+    # X collision into the pillar at (4, *, 24).
+    fixum application.Player pillar_runner ← application.Player {
+        x = 6.0 ∷ f32,
+        y = 1.0 ∷ f32,
+        z = 24.0 ∷ f32,
+        velocity_y = 0.0 ∷ f32,
+        grounded = verum
+    }
+    # Face -X: yaw 270° (or -90). forward = (-1, 0, 0) approximately.
+    fixum application.Camera face_neg_x ← camera_yaw(0.0 ∷ f32 - 90.0 ∷ f32)
+    varia application.Player against_pillar ← pillar_runner
+    varia numerus pillar_steps ← 0
+    dum pillar_steps < 80 {
+        against_pillar ← application.step_player(
+            fixture,
+            against_pillar,
+            face_neg_x,
+            press_w,
+            0.05 ∷ f32
+        )
+        pillar_steps ← pillar_steps + 1
+    }
+    adfirma against_pillar.x ≥ (
+        4.0 ∷ f32 + 1.0 ∷ f32 + application.player_half_width() - 0.01 ∷ f32
+    ),
+        "X collision stops player short of pillar face at x=5"
+    adfirma against_pillar.x ≤ (
+        4.0 ∷ f32 + 1.0 ∷ f32 + application.player_half_width() + 0.05 ∷ f32
+    ),
+        "X collision settles against the pillar"
+    adfirma application.player_overlaps_solid(fixture, against_pillar) ≡ falsum,
+        "pillar contact leaves no solid overlap"
+
+    # Isolated axis-order unit: resolve_x then resolve_y then resolve_z.
+    # Start overlapping intention on +X into a solid at (10,1,16).
+    fixum voxel.World empty ← voxel.empty_world()
+    fixum voxel.World ∪ nihil with_block ← voxel.world_set(
+        empty, 10, 1, 16, voxel.block_solid()
+    )
+    adfirma with_block non est nihil,
+        "test block placement succeeds"
+    fixum voxel.World block_world ← voxel.World { chunks = with_block!.chunks }
+
+    fixum f32 start_x ← 9.0 ∷ f32
+    fixum f32 start_y ← 1.0 ∷ f32
+    fixum f32 start_z ← 16.0 ∷ f32
+    fixum f32 resolved_x ← application.resolve_x(
+        block_world,
+        start_x,
+        start_y,
+        start_z,
+        1.0 ∷ f32
+    )
+    adfirma resolved_x ≤ (10.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+        "resolve_x alone blocks +X entry into solid"
+    adfirma resolved_x ≥ (10.0 ∷ f32 - application.player_half_width() - 0.0001 ∷ f32),
+        "resolve_x settles at the solid face"
+
+    # Y: fall onto a solid floor cell at y=0 under the player.
+    fixum voxel.World ∪ nihil floor_set ← voxel.world_set(
+        empty, 16, 0, 16, voxel.block_solid()
+    )
+    fixum voxel.World floor_world ← voxel.World { chunks = floor_set!.chunks }
+    fixum application.Player y_resolved ← application.resolve_y(
+        floor_world,
+        16.0 ∷ f32,
+        2.0 ∷ f32,
+        16.0 ∷ f32,
+        0.0 ∷ f32 - 2.0 ∷ f32
+    )
+    adfirma approx(y_resolved.y, 1.0 ∷ f32, 0.0001 ∷ f32),
+        "resolve_y alone lands feet on top of solid y=0"
+    adfirma y_resolved.grounded,
+        "resolve_y marks grounded on floor hit"
+
+    # Z: block at z=12, approach from z=11.
+    fixum voxel.World ∪ nihil z_set ← voxel.world_set(
+        empty, 16, 1, 12, voxel.block_solid()
+    )
+    fixum voxel.World z_world ← voxel.World { chunks = z_set!.chunks }
+    fixum f32 resolved_z ← application.resolve_z(
+        z_world,
+        16.0 ∷ f32,
+        1.0 ∷ f32,
+        11.0 ∷ f32,
+        1.0 ∷ f32
+    )
+    adfirma resolved_z ≤ (12.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+        "resolve_z alone blocks +Z entry into solid"
+    adfirma resolved_z ≥ (12.0 ∷ f32 - application.player_half_width() - 0.0001 ∷ f32),
+        "resolve_z settles at the solid face"
+
+    # L-shaped solids block both +X and +Z from (7,1,7) under axis-ordered resolve.
+    fixum voxel.World ∪ nihil l1 ← voxel.world_set(empty, 8, 1, 7, voxel.block_solid())
+    fixum voxel.World l_world1 ← voxel.World { chunks = l1!.chunks }
+    fixum voxel.World ∪ nihil l2 ← voxel.world_set(l_world1, 7, 1, 8, voxel.block_solid())
+    fixum voxel.World l_world2 ← voxel.World { chunks = l2!.chunks }
+    fixum voxel.World ∪ nihil l3 ← voxel.world_set(l_world2, 8, 1, 8, voxel.block_solid())
+    fixum voxel.World l_world ← voxel.World { chunks = l3!.chunks }
+    fixum application.Player corner_start ← application.Player {
+        x = 7.0 ∷ f32,
+        y = 1.0 ∷ f32,
+        z = 7.0 ∷ f32,
+        velocity_y = 0.0 ∷ f32,
+        grounded = verum
+    }
+    fixum application.Player corner_moved ← application.move_player_collided(
+        l_world,
+        corner_start,
+        1.5 ∷ f32,
+        0.0 ∷ f32,
+        1.5 ∷ f32,
+        0.0 ∷ f32
+    )
+    adfirma application.player_overlaps_solid(l_world, corner_moved) ≡ falsum,
+        "X→Y→Z resolution leaves no solid overlap after diagonal intent"
+    adfirma corner_moved.x ≤ (8.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+        "diagonal intent resolves X against the L solid"
+    adfirma corner_moved.z ≤ (8.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+        "diagonal intent resolves Z against the L solid"
+}

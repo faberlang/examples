@@ -1,0 +1,735 @@
+# Hello Voxel — HV-06A: camera, input state, and collision.
+#
+# Locked contract (goal 06 / delivery HV-06A):
+#   - Yaw around +Y; pitch clamped to ±89°; mouse deltas only under pointer lock.
+#   - WASD physical codes; frame time in seconds; fixed speed; horizontal forward/right.
+#   - Focus loss clears movement keys immediately.
+#   - Player AABB 0.6 wide × 1.8 high; resolve X then Y then Z against opaque blocks.
+#   - Gravity + grounded walking; no jump.
+#   - Spawn is a fixed empty location in the Goal 05 fixture world.
+#   - Unusually large frame deltas clamp to max_delta_seconds() (0.05 s).
+#
+# DDA / edit / browser wiring are HV-06B / HV-06C.
+
+importa ex "./voxel" privata voxel
+importa ex "triga:triga" privata triga
+
+# =========================================================================
+# CONSTANTS
+# =========================================================================
+
+functio player_width() → f32 { redde 0.6 ∷ f32 }
+functio player_height() → f32 { redde 1.8 ∷ f32 }
+functio player_half_width() → f32 { redde 0.3 ∷ f32 }
+functio player_eye_height() → f32 { redde 1.62 ∷ f32 }
+
+functio move_speed() → f32 { redde 4.0 ∷ f32 }
+functio gravity() → f32 { redde 20.0 ∷ f32 }
+functio max_delta_seconds() → f32 { redde 0.05 ∷ f32 }
+functio mouse_sensitivity() → f32 { redde 0.15 ∷ f32 }
+
+functio pitch_min_degrees() → f32 { redde 0.0 ∷ f32 - 89.0 ∷ f32 }
+functio pitch_max_degrees() → f32 { redde 89.0 ∷ f32 }
+
+# Collision boundary epsilon: max face on an integer plane does not enter the next cell.
+functio collision_epsilon() → f32 { redde 0.0001 ∷ f32 }
+
+# Fixed spawn in fixture world: open air above ground, away from wall/pillar/cavity.
+# Feet bottom at y = 1 (standing on solid ground y = 0). XZ = (20.5, 20.5).
+functio spawn_x() → f32 { redde 20.5 ∷ f32 }
+functio spawn_y() → f32 { redde 1.0 ∷ f32 }
+functio spawn_z() → f32 { redde 20.5 ∷ f32 }
+functio spawn_yaw_degrees() → f32 { redde 0.0 ∷ f32 }
+functio spawn_pitch_degrees() → f32 { redde 0.0 ∷ f32 }
+
+# Physical keyboard codes (Goal 03 / Web KeyboardEvent.code).
+functio key_code_w() → textus { redde "KeyW" }
+functio key_code_a() → textus { redde "KeyA" }
+functio key_code_s() → textus { redde "KeyS" }
+functio key_code_d() → textus { redde "KeyD" }
+
+# =========================================================================
+# TYPES
+# =========================================================================
+
+genus Camera {
+    f32 yaw_degrees
+    f32 pitch_degrees
+}
+
+genus InputState {
+    bivalens key_w
+    bivalens key_a
+    bivalens key_s
+    bivalens key_d
+    bivalens pointer_locked
+    bivalens focused
+    f32 mouse_dx
+    f32 mouse_dy
+}
+
+genus Player {
+    f32 x
+    f32 y
+    f32 z
+    f32 velocity_y
+    bivalens grounded
+}
+
+genus Application {
+    Camera camera
+    InputState input
+    Player player
+}
+
+# =========================================================================
+# CONSTRUCTION / SPAWN
+# =========================================================================
+
+functio empty_input() → InputState {
+    redde InputState {
+        key_w = falsum,
+        key_a = falsum,
+        key_s = falsum,
+        key_d = falsum,
+        pointer_locked = falsum,
+        focused = verum,
+        mouse_dx = 0.0 ∷ f32,
+        mouse_dy = 0.0 ∷ f32
+    }
+}
+
+functio spawn_camera() → Camera {
+    redde Camera {
+        yaw_degrees = spawn_yaw_degrees(),
+        pitch_degrees = spawn_pitch_degrees()
+    }
+}
+
+functio spawn_player() → Player {
+    redde Player {
+        x = spawn_x(),
+        y = spawn_y(),
+        z = spawn_z(),
+        velocity_y = 0.0 ∷ f32,
+        grounded = verum
+    }
+}
+
+functio spawn_application() → Application {
+    redde Application {
+        camera = spawn_camera(),
+        input = empty_input(),
+        player = spawn_player()
+    }
+}
+
+# =========================================================================
+# CAMERA
+# =========================================================================
+
+functio clamp_pitch(f32 pitch_degrees) → f32 {
+    redde triga.camera_pitch_coercita(pitch_degrees)
+}
+
+functio apply_yaw_pitch(de Camera camera, f32 delta_yaw, f32 delta_pitch) → Camera {
+    redde Camera {
+        yaw_degrees = camera.yaw_degrees + delta_yaw,
+        pitch_degrees = clamp_pitch(camera.pitch_degrees + delta_pitch)
+    }
+}
+
+functio camera_eye(de Player player) → triga.Vector3 {
+    redde triga.vector3(
+        player.x,
+        player.y + player_eye_height(),
+        player.z
+    )
+}
+
+functio camera_view_facts(de Camera camera, de Player player) → triga.CameraYawPitchFacts {
+    redde triga.camera_yaw_pitch_facts(
+        camera_eye(player),
+        camera.yaw_degrees,
+        camera.pitch_degrees
+    )
+}
+
+# =========================================================================
+# INPUT
+# =========================================================================
+
+functio clear_movement_keys(de InputState input) → InputState {
+    redde InputState {
+        key_w = falsum,
+        key_a = falsum,
+        key_s = falsum,
+        key_d = falsum,
+        pointer_locked = input.pointer_locked,
+        focused = input.focused,
+        mouse_dx = 0.0 ∷ f32,
+        mouse_dy = 0.0 ∷ f32
+    }
+}
+
+functio apply_focus(de InputState input, bivalens focused) → InputState {
+    si focused {
+        redde InputState {
+            key_w = input.key_w,
+            key_a = input.key_a,
+            key_s = input.key_s,
+            key_d = input.key_d,
+            pointer_locked = input.pointer_locked,
+            focused = verum,
+            mouse_dx = input.mouse_dx,
+            mouse_dy = input.mouse_dy
+        }
+    }
+    # Focus loss clears movement immediately (locked contract).
+    redde InputState {
+        key_w = falsum,
+        key_a = falsum,
+        key_s = falsum,
+        key_d = falsum,
+        pointer_locked = input.pointer_locked,
+        focused = falsum,
+        mouse_dx = 0.0 ∷ f32,
+        mouse_dy = 0.0 ∷ f32
+    }
+}
+
+functio apply_pointer_lock(de InputState input, bivalens locked) → InputState {
+    si locked {
+        redde InputState {
+            key_w = input.key_w,
+            key_a = input.key_a,
+            key_s = input.key_s,
+            key_d = input.key_d,
+            pointer_locked = verum,
+            focused = input.focused,
+            mouse_dx = input.mouse_dx,
+            mouse_dy = input.mouse_dy
+        }
+    }
+    redde InputState {
+        key_w = input.key_w,
+        key_a = input.key_a,
+        key_s = input.key_s,
+        key_d = input.key_d,
+        pointer_locked = falsum,
+        focused = input.focused,
+        mouse_dx = 0.0 ∷ f32,
+        mouse_dy = 0.0 ∷ f32
+    }
+}
+
+functio set_key_by_code(de InputState input, textus code, bivalens pressed) → InputState {
+    si input.focused ≡ falsum {
+        redde clear_movement_keys(input)
+    }
+    varia bivalens key_w ← input.key_w
+    varia bivalens key_a ← input.key_a
+    varia bivalens key_s ← input.key_s
+    varia bivalens key_d ← input.key_d
+    si code ≡ key_code_w() {
+        key_w ← pressed
+    }
+    si code ≡ key_code_a() {
+        key_a ← pressed
+    }
+    si code ≡ key_code_s() {
+        key_s ← pressed
+    }
+    si code ≡ key_code_d() {
+        key_d ← pressed
+    }
+    redde InputState {
+        key_w = key_w,
+        key_a = key_a,
+        key_s = key_s,
+        key_d = key_d,
+        pointer_locked = input.pointer_locked,
+        focused = input.focused,
+        mouse_dx = input.mouse_dx,
+        mouse_dy = input.mouse_dy
+    }
+}
+
+functio queue_mouse_delta(de InputState input, f32 dx, f32 dy) → InputState {
+    si input.pointer_locked ≡ falsum {
+        redde InputState {
+            key_w = input.key_w,
+            key_a = input.key_a,
+            key_s = input.key_s,
+            key_d = input.key_d,
+            pointer_locked = input.pointer_locked,
+            focused = input.focused,
+            mouse_dx = 0.0 ∷ f32,
+            mouse_dy = 0.0 ∷ f32
+        }
+    }
+    redde InputState {
+        key_w = input.key_w,
+        key_a = input.key_a,
+        key_s = input.key_s,
+        key_d = input.key_d,
+        pointer_locked = input.pointer_locked,
+        focused = input.focused,
+        mouse_dx = input.mouse_dx + dx,
+        mouse_dy = input.mouse_dy + dy
+    }
+}
+
+functio consume_mouse_delta(de InputState input) → InputState {
+    redde InputState {
+        key_w = input.key_w,
+        key_a = input.key_a,
+        key_s = input.key_s,
+        key_d = input.key_d,
+        pointer_locked = input.pointer_locked,
+        focused = input.focused,
+        mouse_dx = 0.0 ∷ f32,
+        mouse_dy = 0.0 ∷ f32
+    }
+}
+
+functio forward_amount(de InputState input) → f32 {
+    si input.focused ≡ falsum {
+        redde 0.0 ∷ f32
+    }
+    varia f32 amount ← 0.0 ∷ f32
+    si input.key_w {
+        amount ← amount + 1.0 ∷ f32
+    }
+    si input.key_s {
+        amount ← amount - 1.0 ∷ f32
+    }
+    redde amount
+}
+
+functio right_amount(de InputState input) → f32 {
+    si input.focused ≡ falsum {
+        redde 0.0 ∷ f32
+    }
+    varia f32 amount ← 0.0 ∷ f32
+    si input.key_d {
+        amount ← amount + 1.0 ∷ f32
+    }
+    si input.key_a {
+        amount ← amount - 1.0 ∷ f32
+    }
+    redde amount
+}
+
+# =========================================================================
+# PLAYER AABB
+# =========================================================================
+
+# Feet-centered horizontal extents; feet bottom at player.y; height player_height().
+functio player_box(de Player player) → triga.Box3 {
+    fixum f32 half ← player_half_width()
+    redde triga.Box3 {
+        min = triga.vector3(player.x - half, player.y, player.z - half),
+        max = triga.vector3(
+            player.x + half,
+            player.y + player_height(),
+            player.z + half
+        )
+    }
+}
+
+functio player_box_at(f32 x, f32 y, f32 z) → triga.Box3 {
+    fixum f32 half ← player_half_width()
+    redde triga.Box3 {
+        min = triga.vector3(x - half, y, z - half),
+        max = triga.vector3(x + half, y + player_height(), z + half)
+    }
+}
+
+# =========================================================================
+# SOLID QUERIES
+# =========================================================================
+
+functio world_cell_is_solid(
+    de voxel.World world,
+    numerus x,
+    numerus y,
+    numerus z
+) → bivalens {
+    fixum numerus ∪ nihil value ← voxel.world_get(world, x, y, z)
+    si value est nihil {
+        redde falsum
+    }
+    redde voxel.block_is_solid(value vel 0)
+}
+
+functio floor_cell(f32 value) → numerus {
+    redde value.pavimentum()
+}
+
+# Inclusive min cell, exclusive-style max via epsilon on the high face.
+functio cell_min(f32 value) → numerus {
+    redde floor_cell(value)
+}
+
+functio cell_max(f32 value) → numerus {
+    redde floor_cell(value - collision_epsilon())
+}
+
+functio player_overlaps_solid(de voxel.World world, de Player player) → bivalens {
+    fixum triga.Box3 bounds ← player_box(player)
+    fixum numerus x0 ← cell_min(bounds.min.x)
+    fixum numerus x1 ← cell_max(bounds.max.x)
+    fixum numerus y0 ← cell_min(bounds.min.y)
+    fixum numerus y1 ← cell_max(bounds.max.y)
+    fixum numerus z0 ← cell_min(bounds.min.z)
+    fixum numerus z1 ← cell_max(bounds.max.z)
+    varia numerus y ← y0
+    dum y ≤ y1 {
+        varia numerus z ← z0
+        dum z ≤ z1 {
+            varia numerus x ← x0
+            dum x ≤ x1 {
+                si world_cell_is_solid(world, x, y, z) {
+                    redde verum
+                }
+                x ← x + 1
+            }
+            z ← z + 1
+        }
+        y ← y + 1
+    }
+    redde falsum
+}
+
+# =========================================================================
+# AXIS-ORDERED COLLISION (X → Y → Z)
+# =========================================================================
+
+functio resolve_x(
+    de voxel.World world,
+    f32 x,
+    f32 y,
+    f32 z,
+    f32 dx
+) → f32 {
+    si dx ≡ (0.0 ∷ f32) {
+        redde x
+    }
+    fixum f32 proposed ← x + dx
+    fixum triga.Box3 bounds ← player_box_at(proposed, y, z)
+    fixum numerus x0 ← cell_min(bounds.min.x)
+    fixum numerus x1 ← cell_max(bounds.max.x)
+    fixum numerus y0 ← cell_min(bounds.min.y)
+    fixum numerus y1 ← cell_max(bounds.max.y)
+    fixum numerus z0 ← cell_min(bounds.min.z)
+    fixum numerus z1 ← cell_max(bounds.max.z)
+    varia f32 result ← proposed
+    fixum f32 half ← player_half_width()
+    varia numerus iy ← y0
+    dum iy ≤ y1 {
+        varia numerus iz ← z0
+        dum iz ≤ z1 {
+            varia numerus ix ← x0
+            dum ix ≤ x1 {
+                si world_cell_is_solid(world, ix, iy, iz) {
+                    si dx > 0.0 {
+                        fixum f32 face ← (ix ↦ f32) - half
+                        si face < result {
+                            result ← face
+                        }
+                    }
+                    si dx < 0.0 {
+                        fixum f32 face ← (ix ↦ f32) + 1.0 ∷ f32 + half
+                        si face > result {
+                            result ← face
+                        }
+                    }
+                }
+                ix ← ix + 1
+            }
+            iz ← iz + 1
+        }
+        iy ← iy + 1
+    }
+    redde result
+}
+
+functio resolve_y(
+    de voxel.World world,
+    f32 x,
+    f32 y,
+    f32 z,
+    f32 dy
+) → Player {
+    si dy ≡ (0.0 ∷ f32) {
+        redde Player {
+            x = x,
+            y = y,
+            z = z,
+            velocity_y = 0.0 ∷ f32,
+            grounded = player_is_grounded(world, x, y, z)
+        }
+    }
+    fixum f32 proposed ← y + dy
+    fixum triga.Box3 bounds ← player_box_at(x, proposed, z)
+    fixum numerus x0 ← cell_min(bounds.min.x)
+    fixum numerus x1 ← cell_max(bounds.max.x)
+    fixum numerus y0 ← cell_min(bounds.min.y)
+    fixum numerus y1 ← cell_max(bounds.max.y)
+    fixum numerus z0 ← cell_min(bounds.min.z)
+    fixum numerus z1 ← cell_max(bounds.max.z)
+    varia f32 result ← proposed
+    varia bivalens hit_ground ← falsum
+    varia bivalens hit_ceiling ← falsum
+    varia numerus iy ← y0
+    dum iy ≤ y1 {
+        varia numerus iz ← z0
+        dum iz ≤ z1 {
+            varia numerus ix ← x0
+            dum ix ≤ x1 {
+                si world_cell_is_solid(world, ix, iy, iz) {
+                    si dy < 0.0 {
+                        fixum f32 face ← (iy ↦ f32) + 1.0 ∷ f32
+                        si face > result {
+                            result ← face
+                            hit_ground ← verum
+                        }
+                    }
+                    si dy > 0.0 {
+                        fixum f32 face ← (iy ↦ f32) - player_height()
+                        si face < result {
+                            result ← face
+                            hit_ceiling ← verum
+                        }
+                    }
+                }
+                ix ← ix + 1
+            }
+            iz ← iz + 1
+        }
+        iy ← iy + 1
+    }
+    varia f32 velocity_y ← 0.0 ∷ f32
+    si hit_ground ≡ falsum et hit_ceiling ≡ falsum {
+        # Keep residual vertical velocity when free-falling / rising unblocked.
+        # Caller supplies intended velocity after gravity; recompute from dy/dt later.
+        velocity_y ← 0.0 ∷ f32
+    }
+    si hit_ground {
+        velocity_y ← 0.0 ∷ f32
+    }
+    si hit_ceiling {
+        velocity_y ← 0.0 ∷ f32
+    }
+    fixum bivalens grounded ← hit_ground aut player_is_grounded(world, x, result, z)
+    redde Player {
+        x = x,
+        y = result,
+        z = z,
+        velocity_y = velocity_y,
+        grounded = grounded
+    }
+}
+
+functio resolve_z(
+    de voxel.World world,
+    f32 x,
+    f32 y,
+    f32 z,
+    f32 dz
+) → f32 {
+    si dz ≡ (0.0 ∷ f32) {
+        redde z
+    }
+    fixum f32 proposed ← z + dz
+    fixum triga.Box3 bounds ← player_box_at(x, y, proposed)
+    fixum numerus x0 ← cell_min(bounds.min.x)
+    fixum numerus x1 ← cell_max(bounds.max.x)
+    fixum numerus y0 ← cell_min(bounds.min.y)
+    fixum numerus y1 ← cell_max(bounds.max.y)
+    fixum numerus z0 ← cell_min(bounds.min.z)
+    fixum numerus z1 ← cell_max(bounds.max.z)
+    varia f32 result ← proposed
+    fixum f32 half ← player_half_width()
+    varia numerus iy ← y0
+    dum iy ≤ y1 {
+        varia numerus iz ← z0
+        dum iz ≤ z1 {
+            varia numerus ix ← x0
+            dum ix ≤ x1 {
+                si world_cell_is_solid(world, ix, iy, iz) {
+                    si dz > 0.0 {
+                        fixum f32 face ← (iz ↦ f32) - half
+                        si face < result {
+                            result ← face
+                        }
+                    }
+                    si dz < 0.0 {
+                        fixum f32 face ← (iz ↦ f32) + 1.0 ∷ f32 + half
+                        si face > result {
+                            result ← face
+                        }
+                    }
+                }
+                ix ← ix + 1
+            }
+            iz ← iz + 1
+        }
+        iy ← iy + 1
+    }
+    redde result
+}
+
+# Probe a hair below the feet for standing support.
+functio player_is_grounded(
+    de voxel.World world,
+    f32 x,
+    f32 y,
+    f32 z
+) → bivalens {
+    fixum f32 probe_y ← y - collision_epsilon()
+    fixum triga.Box3 bounds ← player_box_at(x, probe_y, z)
+    # Only sample the bottom slab just under the feet.
+    fixum numerus x0 ← cell_min(bounds.min.x)
+    fixum numerus x1 ← cell_max(bounds.max.x)
+    fixum numerus y_cell ← cell_min(probe_y)
+    fixum numerus z0 ← cell_min(bounds.min.z)
+    fixum numerus z1 ← cell_max(bounds.max.z)
+    varia numerus iz ← z0
+    dum iz ≤ z1 {
+        varia numerus ix ← x0
+        dum ix ≤ x1 {
+            si world_cell_is_solid(world, ix, y_cell, iz) {
+                redde verum
+            }
+            ix ← ix + 1
+        }
+        iz ← iz + 1
+    }
+    redde falsum
+}
+
+functio move_player_collided(
+    de voxel.World world,
+    de Player player,
+    f32 dx,
+    f32 dy,
+    f32 dz,
+    f32 velocity_y_after_gravity
+) → Player {
+    fixum f32 x1 ← resolve_x(world, player.x, player.y, player.z, dx)
+    fixum Player after_y ← resolve_y(world, x1, player.y, player.z, dy)
+    fixum f32 z1 ← resolve_z(world, after_y.x, after_y.y, player.z, dz)
+    varia f32 velocity_y ← velocity_y_after_gravity
+    si after_y.grounded {
+        velocity_y ← 0.0 ∷ f32
+    }
+    si dy > 0.0 et after_y.y < player.y + dy - collision_epsilon() {
+        # Ceiling hit zeroes upward velocity.
+        velocity_y ← 0.0 ∷ f32
+    }
+    si dy < 0.0 et after_y.y > player.y + dy + collision_epsilon() {
+        # Floor hit zeroes downward velocity.
+        velocity_y ← 0.0 ∷ f32
+    }
+    fixum bivalens grounded ← after_y.grounded aut player_is_grounded(
+        world,
+        after_y.x,
+        after_y.y,
+        z1
+    )
+    si grounded {
+        velocity_y ← 0.0 ∷ f32
+    }
+    redde Player {
+        x = after_y.x,
+        y = after_y.y,
+        z = z1,
+        velocity_y = velocity_y,
+        grounded = grounded
+    }
+}
+
+# =========================================================================
+# FRAME STEP
+# =========================================================================
+
+functio clamp_delta_seconds(f32 delta_seconds) → f32 {
+    si delta_seconds ≤ 0.0 {
+        redde 0.0 ∷ f32
+    }
+    si delta_seconds > max_delta_seconds() {
+        redde max_delta_seconds()
+    }
+    redde delta_seconds
+}
+
+functio planar_displacement(
+    de Camera camera,
+    de InputState input,
+    f32 delta_seconds
+) → triga.Vector3 {
+    redde triga.camera_motus_planus_ex_yaw(
+        camera.yaw_degrees,
+        forward_amount(input),
+        right_amount(input),
+        move_speed(),
+        delta_seconds
+    )
+}
+
+# Integrate gravity, planar WASD motion, and X→Y→Z collision for one frame.
+functio step_player(
+    de voxel.World world,
+    de Player player,
+    de Camera camera,
+    de InputState input,
+    f32 delta_seconds
+) → Player {
+    fixum f32 dt ← clamp_delta_seconds(delta_seconds)
+    fixum triga.Vector3 planar ← planar_displacement(camera, input, dt)
+    fixum f32 velocity_y ← player.velocity_y - gravity() * dt
+    fixum f32 dy ← velocity_y * dt
+    redde move_player_collided(
+        world,
+        player,
+        planar.x,
+        dy,
+        planar.z,
+        velocity_y
+    )
+}
+
+functio step_application(
+    de voxel.World world,
+    de Application app,
+    f32 delta_seconds
+) → Application {
+    # Look: mouse deltas apply only while pointer lock is active.
+    varia Camera camera ← app.camera
+    varia InputState input ← app.input
+    si input.pointer_locked {
+        fixum f32 sens ← mouse_sensitivity()
+        camera ← apply_yaw_pitch(
+            camera,
+            input.mouse_dx * sens,
+            0.0 ∷ f32 - input.mouse_dy * sens
+        )
+    }
+    input ← consume_mouse_delta(input)
+
+    fixum Player next_player ← step_player(
+        world,
+        app.player,
+        camera,
+        input,
+        delta_seconds
+    )
+
+    redde Application {
+        camera = camera,
+        input = input,
+        player = next_player
+    }
+}
