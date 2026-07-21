@@ -122,6 +122,10 @@ function rewriteTrigaImports(filePath) {
     /import\s*\{\s*geometry\s*\}\s*from\s*["']triga:geometry["']\s*;?/g,
     'import { geometry } from "./triga-geometry.js";',
   );
+  code = code.replace(
+    /import\s*\{\s*scene\s*\}\s*from\s*["']triga:scene["']\s*;?/g,
+    'import { scene } from "./triga-scene.js";',
+  );
   // Node ESM requires explicit extensions for relative imports.
   code = code.replace(
     /from\s*["']\.\/voxel["']/g,
@@ -186,6 +190,7 @@ function main() {
 
   const geometryRaw = emitTs(join(TRIGA_SRC, "geometry.fab"));
   const trigaRaw = emitTs(join(TRIGA_SRC, "triga.fab"));
+  const sceneRaw = emitTs(join(TRIGA_SRC, "scene.fab"));
 
   writeFileSync(
     join(TS_ROOT, "triga-geometry.ts"),
@@ -197,6 +202,21 @@ function main() {
       "triga:geometry": "./triga-geometry.js",
     }),
   );
+  // Optional ResourceHandle fields (previous/current) must be explicit null in
+  // TS emit — omitted optional properties are undefined, but Faber `est nihil`
+  // lowers to `=== null`. Without this, created transitions look like replaced.
+  let sceneWrapped = wrapNamespace(sceneRaw, "scene", {
+    "triga:triga": "./triga-triga.js",
+  });
+  sceneWrapped = sceneWrapped.replace(
+    /return Object\.assign\(new ResourceLifecycleTransition\(\), \{ logical_index: handle\.index, current: handle, changed: true, removed: false \}\);/g,
+    "return Object.assign(new ResourceLifecycleTransition(), { logical_index: handle.index, previous: null, current: handle, changed: true, removed: false });",
+  );
+  sceneWrapped = sceneWrapped.replace(
+    /return Object\.assign\(new ResourceLifecycleTransition\(\), \{ logical_index: handle\.index, previous: handle, changed: true, removed: true \}\);/g,
+    "return Object.assign(new ResourceLifecycleTransition(), { logical_index: handle.index, previous: handle, current: null, changed: true, removed: true });",
+  );
+  writeFileSync(join(TS_ROOT, "triga-scene.ts"), sceneWrapped);
 
   // Local HV-05/06 modules: Faber emits free functions; browser product imports
   // them as namespaces (`import { voxel } from "./voxel"`).
@@ -208,6 +228,7 @@ function main() {
     {
       "triga:triga": "./triga-triga.js",
       "triga:geometry": "./triga-geometry.js",
+      "triga:scene": "./triga-scene.js",
     },
     { truncatingDivision: true },
   );

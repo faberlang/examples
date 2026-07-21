@@ -1,26 +1,30 @@
-# Hello Voxel — HV-06C: first-person browser interaction through HV-05 path.
+# Hello Voxel — HV-06C/HV-07C: first-person interaction + incremental chunk resources.
 #
 # Package owns the authoritative world, camera/player state, selection outline
-# (Triga box_wire_*), and edit mutations via application.try_remove/try_place.
-# Host only uploads package payloads and submits draws — no host world mutation.
+# (Triga box_wire_*), dirty drain remesh, and per-chunk resource generations.
+# Host only uploads package payloads and submits multi-draw — no host world mutation.
 #
 # Contract:
 #   - WASD + pointer-lock look + primary/secondary edit change Faber state.
 #   - Focus loss clears movement keys immediately.
 #   - Pointer-lock denial is an explicit inspectable degraded state (never hang).
-#   - Residual single-buffer path for world mesh remains; draw_count is ownership
-#     of non-empty chunks (not a multi-draw host claim). Selection outline is a
-#     separate structural line payload via box_wire_*.
+#   - Edits mark the locked affected chunk set; dirty drain remeshes once per frame.
+#   - Admitted graphics path is per-chunk multi-draw (HV-07B host APIs).
+#   - Concatenated positions/colors/indices remain package ownership totals only.
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
 importa ex "triga:triga" privata triga
+importa ex "triga:scene" privata scene
 importa ex "./voxel" privata voxel
 importa ex "./meshing" privata meshing
 importa ex "./application" privata application
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
+
+# Admitted host residual path after HV-07B/C (not concatenated single-buffer).
+functio residual_path_multi_draw() → textus { redde "per-chunk-multi-draw" }
 
 # =========================================================================
 # SERIALIZE — package-owned numeric lists as host-upload text
@@ -54,6 +58,20 @@ functio lista_u32_textus(lista<u32> values) → textus {
     redde out
 }
 
+functio lista_numerus_textus(lista<numerus> values) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < values.longitudo() {
+        si i ≡ 0 {
+            out ← values[i] ↦ textus
+        } secus {
+            out ← "§,§"(out, values[i] ↦ textus)
+        }
+        i ← i + 1
+    }
+    redde out
+}
+
 functio bivalens_textus(bivalens value) → textus {
     si value {
         redde "1"
@@ -62,7 +80,7 @@ functio bivalens_textus(bivalens value) → textus {
 }
 
 # =========================================================================
-# WORLD MESH — authoritative world → four chunk meshes
+# WORLD MESH / RESOURCE TABLE — dirty drain → per-chunk multi-draw
 # =========================================================================
 
 genus WorldChunkBatch {
@@ -87,7 +105,7 @@ functio append_f32(lista<f32> dest, lista<f32> src) → lista<f32> {
     redde out
 }
 
-# Remap chunk-local indices into a concatenated upload buffer (HV-04 residual).
+# Remap chunk-local indices into a concatenated ownership total (not admitted path).
 functio append_indices_offset(
     lista<u32> dest,
     lista<u32> src,
@@ -103,8 +121,32 @@ functio append_indices_offset(
     redde out
 }
 
-functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
-    si voxel.world_valid(world) ≡ falsum {
+functio chunk_cx_from_index(numerus chunk_index) → numerus {
+    redde chunk_index % voxel.chunk_count_x()
+}
+
+functio chunk_cz_from_index(numerus chunk_index) → numerus {
+    redde chunk_index / voxel.chunk_count_x()
+}
+
+functio dirty_mark_all() → voxel.DirtySet {
+    varia voxel.DirtySet dirty ← voxel.dirty_empty()
+    varia numerus i ← 0
+    dum i < voxel.chunk_count() {
+        fixum voxel.DirtySet ∪ nihil marked ← voxel.dirty_mark(dirty, i)
+        si marked non est nihil {
+            dirty ← voxel.DirtySet { flags = marked!.flags }
+        }
+        i ← i + 1
+    }
+    redde dirty
+}
+
+# Build ownership totals + per-chunk meshes from the live resource table.
+functio batch_from_resource_table(
+    de meshing.ChunkResourceTable table
+) → WorldChunkBatch ∪ nihil {
+    si meshing.chunk_resource_table_valid(table) ≡ falsum {
         redde nihil
     }
 
@@ -117,42 +159,37 @@ functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
     varia numerus total_vertices ← 0
     varia numerus total_indices ← 0
 
-    varia numerus cz ← 0
-    dum cz < voxel.chunk_count_z() {
-        varia numerus cx ← 0
-        dum cx < voxel.chunk_count_x() {
-            fixum meshing.ChunkMesh ∪ nihil mesh_result ← meshing.mesh_chunk(world, cx, cz)
-            si mesh_result est nihil {
-                redde nihil
-            }
-            fixum meshing.ChunkMesh mesh ← meshing.ChunkMesh {
-                cx = mesh_result!.cx,
-                cz = mesh_result!.cz,
-                face_count = mesh_result!.face_count,
-                positions = mesh_result!.positions,
-                colors = mesh_result!.colors,
-                indices = mesh_result!.indices
-            }
-            si meshing.chunk_mesh_matches_face_count(mesh) ≡ falsum {
-                redde nihil
-            }
-            meshes.appende(mesh)
-            si mesh.face_count > 0 {
-                non_empty ← non_empty + 1
-                total_faces ← total_faces + mesh.face_count
-                total_vertices ← total_vertices + mesh.face_count * 4
-                total_indices ← total_indices + mesh.face_count * 6
-                positions ← append_f32(positions, mesh.positions)
-                colors ← append_f32(colors, mesh.colors)
-                indices ← append_indices_offset(
-                    indices,
-                    mesh.indices,
-                    total_vertices - mesh.face_count * 4
-                )
-            }
-            cx ← cx + 1
+    varia numerus i ← 0
+    dum i < table.chunks.longitudo() {
+        fixum meshing.ChunkResourceState state ← table.chunks[i]
+        fixum numerus cx ← chunk_cx_from_index(i)
+        fixum numerus cz ← chunk_cz_from_index(i)
+        fixum meshing.ChunkMesh mesh ← meshing.ChunkMesh {
+            cx = cx,
+            cz = cz,
+            face_count = state.face_count,
+            positions = state.positions,
+            colors = state.colors,
+            indices = state.indices
         }
-        cz ← cz + 1
+        si meshing.chunk_mesh_matches_face_count(mesh) ≡ falsum {
+            redde nihil
+        }
+        meshes.appende(mesh)
+        si state.live et state.face_count > 0 {
+            non_empty ← non_empty + 1
+            total_faces ← total_faces + state.face_count
+            total_vertices ← total_vertices + state.face_count * 4
+            total_indices ← total_indices + state.face_count * 6
+            positions ← append_f32(positions, state.positions)
+            colors ← append_f32(colors, state.colors)
+            indices ← append_indices_offset(
+                indices,
+                state.indices,
+                total_vertices - state.face_count * 4
+            )
+        }
+        i ← i + 1
     }
 
     redde WorldChunkBatch {
@@ -166,6 +203,24 @@ functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
         colors = colors,
         indices = indices
     }
+}
+
+# Full remesh of the world into a resource table (bootstrap / fixture only).
+functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
+    si voxel.world_valid(world) ≡ falsum {
+        redde nihil
+    }
+    fixum meshing.ChunkResourceTable empty ← meshing.empty_chunk_resource_table()
+    fixum voxel.DirtySet dirty ← dirty_mark_all()
+    fixum meshing.DirtyRemeshResult ∪ nihil remesh ← meshing.remesh_dirty_chunks(
+        world,
+        dirty,
+        empty
+    )
+    si remesh est nihil {
+        redde nihil
+    }
+    redde batch_from_resource_table(remesh!.resources)
 }
 
 # HV-05C name retained for harness source ownership checks.
@@ -189,9 +244,19 @@ functio emit_chunk_geometry(
     dom.attr_set(canvas, "§§"(prefix, "-indices"), lista_u32_textus(mesh.indices))
 }
 
+functio emit_chunk_resource_state(
+    dom.Element canvas,
+    de meshing.ChunkResourceState state,
+    numerus slot
+) → vacuum {
+    fixum textus prefix ← "§§"("data-hv-c", slot ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-generation"), state.handle.generation ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-live"), bivalens_textus(state.live))
+    dom.attr_set(canvas, "§§"(prefix, "-logical-id"), state.handle.index ↦ textus)
+}
+
 functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → vacuum {
-    # Ownership counts follow non-empty chunks. Residual host path may still
-    # upload one concatenated buffer — do not treat this as multi-draw done.
+    # Ownership counts follow non-empty chunks. Admitted path is multi-draw.
     dom.attr_set(canvas, "data-hv-chunk-count", batch.chunk_count ↦ textus)
     dom.attr_set(canvas, "data-hv-non-empty-chunk-count", batch.non_empty_count ↦ textus)
     dom.attr_set(canvas, "data-hv-resource-pair-count", batch.non_empty_count ↦ textus)
@@ -199,8 +264,10 @@ functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → va
     dom.attr_set(canvas, "data-hv-total-face-count", batch.total_face_count ↦ textus)
     dom.attr_set(canvas, "data-hv-vertex-count", batch.total_vertex_count ↦ textus)
     dom.attr_set(canvas, "data-hv-index-count", batch.total_index_count ↦ textus)
-    dom.attr_set(canvas, "data-hv-residual-path", "concatenated-single-buffer")
+    dom.attr_set(canvas, "data-hv-residual-path", residual_path_multi_draw())
 
+    # Concatenated totals remain package ownership evidence (HV-04B/emit), not
+    # the admitted host draw path.
     dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(batch.positions))
     dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(batch.colors))
     dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices))
@@ -210,6 +277,99 @@ functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → va
         emit_chunk_geometry(canvas, batch.meshes[i], i)
         i ← i + 1
     }
+}
+
+# Host replace payload contract (HV-07B):
+#   logical_id + generation + payload (null = remove).
+# Only changed lifecycle transitions are queued for the host.
+functio emit_host_replace_queue(
+    dom.Element canvas,
+    de lista<scene.ResourceLifecycleTransition> transitions,
+    de meshing.ChunkResourceTable resources
+) → vacuum {
+    varia numerus replace_count ← 0
+    varia numerus i ← 0
+    dum i < transitions.longitudo() {
+        fixum scene.ResourceLifecycleTransition t ← transitions[i]
+        si t.changed {
+            fixum textus prefix ← "§§"("data-hv-host-replace-", replace_count ↦ textus)
+            dom.attr_set(canvas, "§§"(prefix, "-logical-id"), t.logical_index ↦ textus)
+            si t.removed {
+                # Remove uses the previous (still live) generation.
+                varia numerus gen ← 0
+                si t.previous non est nihil {
+                    gen ← t.previous!.generation
+                }
+                dom.attr_set(canvas, "§§"(prefix, "-generation"), gen ↦ textus)
+                dom.attr_set(canvas, "§§"(prefix, "-kind"), "removed")
+                dom.attr_set(canvas, "§§"(prefix, "-positions"), "")
+                dom.attr_set(canvas, "§§"(prefix, "-colors"), "")
+                dom.attr_set(canvas, "§§"(prefix, "-indices"), "")
+            } secus {
+                # Create or replace: host wants the new generation + mesh payload.
+                varia numerus gen ← 0
+                si t.current non est nihil {
+                    gen ← t.current!.generation
+                }
+                dom.attr_set(canvas, "§§"(prefix, "-generation"), gen ↦ textus)
+                si t.previous est nihil {
+                    dom.attr_set(canvas, "§§"(prefix, "-kind"), "created")
+                } secus {
+                    dom.attr_set(canvas, "§§"(prefix, "-kind"), "replaced")
+                }
+                fixum meshing.ChunkResourceState state ← resources.chunks[t.logical_index]
+                dom.attr_set(
+                    canvas,
+                    "§§"(prefix, "-positions"),
+                    lista_f32_textus(state.positions)
+                )
+                dom.attr_set(
+                    canvas,
+                    "§§"(prefix, "-colors"),
+                    lista_f32_textus(state.colors)
+                )
+                dom.attr_set(
+                    canvas,
+                    "§§"(prefix, "-indices"),
+                    lista_u32_textus(state.indices)
+                )
+            }
+            replace_count ← replace_count + 1
+        }
+        i ← i + 1
+    }
+    dom.attr_set(canvas, "data-hv-host-replace-count", replace_count ↦ textus)
+}
+
+functio emit_resource_snapshot(
+    dom.Element canvas,
+    de meshing.ChunkResourceTable resources,
+    de lista<numerus> remeshed,
+    de lista<scene.ResourceLifecycleTransition> transitions
+) → vacuum {
+    varia lista<numerus> gens ← vacua
+    varia lista<numerus> live_flags ← vacua
+    varia numerus i ← 0
+    dum i < resources.chunks.longitudo() {
+        fixum meshing.ChunkResourceState state ← resources.chunks[i]
+        emit_chunk_resource_state(canvas, state, i)
+        gens.appende(state.handle.generation)
+        si state.live {
+            live_flags.appende(1)
+        } secus {
+            live_flags.appende(0)
+        }
+        i ← i + 1
+    }
+    dom.attr_set(canvas, "data-hv-resource-gens", lista_numerus_textus(gens))
+    dom.attr_set(canvas, "data-hv-resource-live", lista_numerus_textus(live_flags))
+    dom.attr_set(canvas, "data-hv-remeshed", lista_numerus_textus(remeshed))
+    emit_host_replace_queue(canvas, transitions, resources)
+}
+
+functio clear_host_replace_queue(dom.Element canvas) → vacuum {
+    dom.attr_set(canvas, "data-hv-host-replace-count", "0")
+    dom.attr_set(canvas, "data-hv-remeshed", "")
 }
 
 # =========================================================================
@@ -435,7 +595,7 @@ functio aspect_from_resize(dom.ResizeState resize) → f32 {
 }
 
 # =========================================================================
-# CONTROLLER — first-person interaction + four-chunk residual render path
+# CONTROLLER — first-person interaction + dirty drain multi-draw path
 # =========================================================================
 
 @ WebController { selector = "#hello-voxel-root" }
@@ -453,16 +613,38 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked")
     dom.attr_set(canvas, "data-hv-pointer-lock-supported", "0")
     dom.attr_set(canvas, "data-hv-pointer-lock-denied", "0")
+    dom.attr_set(canvas, "data-hv-residual-path", residual_path_multi_draw())
+    clear_host_replace_queue(canvas)
 
     varia f32 live_aspect ← DEFAULT_ASPECT
     varia voxel.World live_world ← voxel.fixture_world()
     varia application.Application live_app ← application.spawn_application()
+    varia voxel.DirtySet live_dirty ← voxel.dirty_empty()
+    varia meshing.ChunkResourceTable live_resources ← meshing.empty_chunk_resource_table()
     varia numerus edit_count ← 0
     varia textus last_edit ← "none"
     # 1 = remesh pending, 0 = clean (numerus avoids bare verum/falsum prefix traps).
-    varia numerus remesh_pending ← 1
+    varia numerus remesh_pending ← 0
 
-    fixum WorldChunkBatch ∪ nihil batch_result ← mesh_world(live_world)
+    # Bootstrap: mark all chunks dirty once, remesh into the resource table.
+    live_dirty ← dirty_mark_all()
+    fixum meshing.DirtyRemeshResult ∪ nihil bootstrap ← meshing.remesh_dirty_chunks(
+        live_world,
+        live_dirty,
+        live_resources
+    )
+    si bootstrap est nihil {
+        dom.text_set(status, "package-mesh-failed")
+        dom.class_add(status, "failed")
+        dom.attr_set(canvas, "data-hv-resource-pair-count", "0")
+        dom.attr_set(canvas, "data-hv-draw-count", "0")
+        dom.attr_set(canvas, "data-hv-interaction", "mesh-failed")
+        redde vacua
+    }
+    live_dirty ← voxel.DirtySet { flags = bootstrap!.dirty.flags }
+    live_resources ← meshing.ChunkResourceTable { chunks = bootstrap!.resources.chunks }
+
+    fixum WorldChunkBatch ∪ nihil batch_result ← batch_from_resource_table(live_resources)
     si batch_result est nihil {
         dom.text_set(status, "package-mesh-failed")
         dom.class_add(status, "failed")
@@ -494,7 +676,13 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     }
 
     emit_world_geometry(canvas, batch)
-    remesh_pending ← 0
+    # Bootstrap host replace queue: every live chunk is a create at gen 0.
+    emit_resource_snapshot(
+        canvas,
+        live_resources,
+        bootstrap!.remeshed,
+        bootstrap!.transitions
+    )
     emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit)
 
     dom.text_set(status, "package-ready")
@@ -511,20 +699,39 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
             live_app ← application.step_application(live_world, live_app, delta_seconds)
 
             si remesh_pending ≡ 1 {
-                fixum WorldChunkBatch ∪ nihil remesh ← mesh_world(live_world)
+                fixum meshing.DirtyRemeshResult ∪ nihil remesh ← meshing.remesh_dirty_chunks(
+                    live_world,
+                    live_dirty,
+                    live_resources
+                )
                 si remesh non est nihil {
-                    fixum WorldChunkBatch next_batch ← WorldChunkBatch {
-                        chunk_count = remesh!.chunk_count,
-                        non_empty_count = remesh!.non_empty_count,
-                        total_face_count = remesh!.total_face_count,
-                        total_vertex_count = remesh!.total_vertex_count,
-                        total_index_count = remesh!.total_index_count,
-                        meshes = remesh!.meshes,
-                        positions = remesh!.positions,
-                        colors = remesh!.colors,
-                        indices = remesh!.indices
+                    live_dirty ← voxel.DirtySet { flags = remesh!.dirty.flags }
+                    live_resources ← meshing.ChunkResourceTable {
+                        chunks = remesh!.resources.chunks
                     }
-                    emit_world_geometry(canvas, next_batch)
+                    fixum WorldChunkBatch ∪ nihil next_result ← batch_from_resource_table(
+                        live_resources
+                    )
+                    si next_result non est nihil {
+                        fixum WorldChunkBatch next_batch ← WorldChunkBatch {
+                            chunk_count = next_result!.chunk_count,
+                            non_empty_count = next_result!.non_empty_count,
+                            total_face_count = next_result!.total_face_count,
+                            total_vertex_count = next_result!.total_vertex_count,
+                            total_index_count = next_result!.total_index_count,
+                            meshes = next_result!.meshes,
+                            positions = next_result!.positions,
+                            colors = next_result!.colors,
+                            indices = next_result!.indices
+                        }
+                        emit_world_geometry(canvas, next_batch)
+                    }
+                    emit_resource_snapshot(
+                        canvas,
+                        live_resources,
+                        remesh!.remeshed,
+                        remesh!.transitions
+                    )
                     remesh_pending ← 0
                 }
             }
@@ -581,34 +788,57 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     fixum dom.Subscription pointer_down_sub ←
         dom.on_pointer(canvas, "pointerdown", (dom.PointerState pointer) → vacuum ∴ fac {
             # button 0 = primary remove; button 2 = secondary place.
+            # Dirty-aware edits mark only the locked affected chunk set.
             si pointer.button ≡ 0 {
-                fixum voxel.World ∪ nihil removed ← application.try_remove(
+                fixum voxel.WorldEdit ∪ nihil removed ← application.try_remove_dirty(
                     live_world,
+                    live_dirty,
                     live_app.camera,
                     live_app.player
                 )
                 si removed non est nihil {
-                    live_world ← voxel.World { chunks = removed!.chunks }
-                    edit_count ← edit_count + 1
-                    last_edit ← "remove"
-                    remesh_pending ← 1
-                    dom.attr_set(canvas, "data-hv-edit-count", edit_count ↦ textus)
+                    si removed!.changed {
+                        live_world ← voxel.World { chunks = removed!.world.chunks }
+                        live_dirty ← voxel.DirtySet { flags = removed!.dirty.flags }
+                        edit_count ← edit_count + 1
+                        last_edit ← "remove"
+                        remesh_pending ← 1
+                        dom.attr_set(canvas, "data-hv-edit-count", edit_count ↦ textus)
+                        dom.attr_set(
+                            canvas,
+                            "data-hv-dirty-count",
+                            voxel.dirty_count(live_dirty) ↦ textus
+                        )
+                    } secus {
+                        last_edit ← "remove-noop"
+                    }
                 } secus {
                     last_edit ← "remove-reject"
                 }
             }
             si pointer.button ≡ 2 {
-                fixum voxel.World ∪ nihil placed ← application.try_place(
+                fixum voxel.WorldEdit ∪ nihil placed ← application.try_place_dirty(
                     live_world,
+                    live_dirty,
                     live_app.camera,
                     live_app.player
                 )
                 si placed non est nihil {
-                    live_world ← voxel.World { chunks = placed!.chunks }
-                    edit_count ← edit_count + 1
-                    last_edit ← "place"
-                    remesh_pending ← 1
-                    dom.attr_set(canvas, "data-hv-edit-count", edit_count ↦ textus)
+                    si placed!.changed {
+                        live_world ← voxel.World { chunks = placed!.world.chunks }
+                        live_dirty ← voxel.DirtySet { flags = placed!.dirty.flags }
+                        edit_count ← edit_count + 1
+                        last_edit ← "place"
+                        remesh_pending ← 1
+                        dom.attr_set(canvas, "data-hv-edit-count", edit_count ↦ textus)
+                        dom.attr_set(
+                            canvas,
+                            "data-hv-dirty-count",
+                            voxel.dirty_count(live_dirty) ↦ textus
+                        )
+                    } secus {
+                        last_edit ← "place-noop"
+                    }
                 } secus {
                     last_edit ← "place-reject"
                 }

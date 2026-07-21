@@ -1068,6 +1068,124 @@ functio try_place(
 }
 
 # =========================================================================
+# HV-07C: DIRTY-AWARE EDITS (world_set_dirty → affected chunk set)
+# =========================================================================
+
+# Remove hit solid and mark only the locked affected chunk set dirty.
+functio remove_hit_dirty(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    de VoxelHit hit
+) → voxel.WorldEdit ∪ nihil {
+    fixum numerus ∪ nihil id ← voxel.world_get(
+        world,
+        hit.hit_x,
+        hit.hit_y,
+        hit.hit_z
+    )
+    si id est nihil {
+        redde nihil
+    }
+    si voxel.block_is_solid(id vel 0) ≡ falsum {
+        redde nihil
+    }
+    redde voxel.world_set_dirty(
+        world,
+        dirty,
+        hit.hit_x,
+        hit.hit_y,
+        hit.hit_z,
+        voxel.block_air()
+    )
+}
+
+# Place solid at preceding empty cell; dirties the locked affected set.
+functio place_at_preceding_dirty(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    de Player player,
+    de VoxelHit hit
+) → voxel.WorldEdit ∪ nihil {
+    si hit.has_preceding ≡ falsum {
+        redde nihil
+    }
+    fixum numerus ∪ nihil id ← voxel.world_get(
+        world,
+        hit.prev_x,
+        hit.prev_y,
+        hit.prev_z
+    )
+    si id est nihil {
+        redde nihil
+    }
+    si voxel.block_is_air(id vel 1) ≡ falsum {
+        redde nihil
+    }
+    si placement_intersects_player(
+        player,
+        hit.prev_x,
+        hit.prev_y,
+        hit.prev_z
+    ) {
+        redde nihil
+    }
+    redde voxel.world_set_dirty(
+        world,
+        dirty,
+        hit.prev_x,
+        hit.prev_y,
+        hit.prev_z,
+        voxel.block_solid()
+    )
+}
+
+functio try_remove_dirty(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    de Camera camera,
+    de Player player
+) → voxel.WorldEdit ∪ nihil {
+    fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
+    si hit_result est nihil {
+        redde nihil
+    }
+    fixum VoxelHit hit ← VoxelHit {
+        hit_x = hit_result!.hit_x,
+        hit_y = hit_result!.hit_y,
+        hit_z = hit_result!.hit_z,
+        prev_x = hit_result!.prev_x,
+        prev_y = hit_result!.prev_y,
+        prev_z = hit_result!.prev_z,
+        has_preceding = hit_result!.has_preceding,
+        distance = hit_result!.distance
+    }
+    redde remove_hit_dirty(world, dirty, hit)
+}
+
+functio try_place_dirty(
+    de voxel.World world,
+    de voxel.DirtySet dirty,
+    de Camera camera,
+    de Player player
+) → voxel.WorldEdit ∪ nihil {
+    fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
+    si hit_result est nihil {
+        redde nihil
+    }
+    fixum VoxelHit hit ← VoxelHit {
+        hit_x = hit_result!.hit_x,
+        hit_y = hit_result!.hit_y,
+        hit_z = hit_result!.hit_z,
+        prev_x = hit_result!.prev_x,
+        prev_y = hit_result!.prev_y,
+        prev_z = hit_result!.prev_z,
+        has_preceding = hit_result!.has_preceding,
+        distance = hit_result!.distance
+    }
+    redde place_at_preceding_dirty(world, dirty, player, hit)
+}
+
+# =========================================================================
 # SELECTION OUTLINE (Triga box_wire_* → package-owned line payload)
 # =========================================================================
 

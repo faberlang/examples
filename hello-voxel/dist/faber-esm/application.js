@@ -625,6 +625,48 @@ function try_place(world, camera, player) {
     const hit = Object.assign(new VoxelHit(), { hit_x: hit_result.hit_x, hit_y: hit_result.hit_y, hit_z: hit_result.hit_z, prev_x: hit_result.prev_x, prev_y: hit_result.prev_y, prev_z: hit_result.prev_z, has_preceding: hit_result.has_preceding, distance: hit_result.distance });
     return place_at_preceding(world, player, hit);
 }
+function remove_hit_dirty(world, dirty, hit) {
+    const id = voxel.world_get(world, hit.hit_x, hit.hit_y, hit.hit_z);
+    if ((id === null)) {
+        return null;
+    }
+    if ((voxel.block_is_solid((id ?? 0)) === false)) {
+        return null;
+    }
+    return voxel.world_set_dirty(world, dirty, hit.hit_x, hit.hit_y, hit.hit_z, voxel.block_air());
+}
+function place_at_preceding_dirty(world, dirty, player, hit) {
+    if ((hit.has_preceding === false)) {
+        return null;
+    }
+    const id = voxel.world_get(world, hit.prev_x, hit.prev_y, hit.prev_z);
+    if ((id === null)) {
+        return null;
+    }
+    if ((voxel.block_is_air((id ?? 1)) === false)) {
+        return null;
+    }
+    if (placement_intersects_player(player, hit.prev_x, hit.prev_y, hit.prev_z)) {
+        return null;
+    }
+    return voxel.world_set_dirty(world, dirty, hit.prev_x, hit.prev_y, hit.prev_z, voxel.block_solid());
+}
+function try_remove_dirty(world, dirty, camera, player) {
+    const hit_result = select_voxel(world, camera, player);
+    if ((hit_result === null)) {
+        return null;
+    }
+    const hit = Object.assign(new VoxelHit(), { hit_x: hit_result.hit_x, hit_y: hit_result.hit_y, hit_z: hit_result.hit_z, prev_x: hit_result.prev_x, prev_y: hit_result.prev_y, prev_z: hit_result.prev_z, has_preceding: hit_result.has_preceding, distance: hit_result.distance });
+    return remove_hit_dirty(world, dirty, hit);
+}
+function try_place_dirty(world, dirty, camera, player) {
+    const hit_result = select_voxel(world, camera, player);
+    if ((hit_result === null)) {
+        return null;
+    }
+    const hit = Object.assign(new VoxelHit(), { hit_x: hit_result.hit_x, hit_y: hit_result.hit_y, hit_z: hit_result.hit_z, prev_x: hit_result.prev_x, prev_y: hit_result.prev_y, prev_z: hit_result.prev_z, has_preceding: hit_result.has_preceding, distance: hit_result.distance });
+    return place_at_preceding_dirty(world, dirty, player, hit);
+}
 class SelectionOutline {
     active;
     hit_x;
@@ -721,6 +763,7 @@ export const application = {
     pitch_max_degrees,
     pitch_min_degrees,
     place_at_preceding,
+    place_at_preceding_dirty,
     placement_intersects_player,
     planar_displacement,
     player_box,
@@ -733,6 +776,7 @@ export const application = {
     player_width,
     queue_mouse_delta,
     remove_hit,
+    remove_hit_dirty,
     resolve_x,
     resolve_y,
     resolve_z,
@@ -753,7 +797,9 @@ export const application = {
     step_application,
     step_player,
     try_place,
+    try_place_dirty,
     try_remove,
+    try_remove_dirty,
     voxel_cell_box,
     voxel_dda,
     world_cell_is_solid,

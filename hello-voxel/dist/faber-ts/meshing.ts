@@ -7,6 +7,8 @@ import { triga } from "./triga-triga.js";
 
 import { geometry } from "./triga-geometry.js";
 
+import { scene } from "./triga-scene.js";
+
 class ChunkMesh {
     cx!: number;
     cz!: number;
@@ -174,19 +176,296 @@ function chunk_mesh_face_winding_matches(mesh: ChunkMesh, face_index: number, fa
     const winding: any = triga.vector3_normalizata(triga.vector3_cross(edge_ab, edge_ac));
     return ((((winding.x as number) === (expected_normal!.x as number)) && ((winding.y as number) === (expected_normal!.y as number))) && ((winding.z as number) === (expected_normal!.z as number)));
 }
+class ChunkResourceState {
+    handle!: any;
+    live!: boolean;
+    face_count!: number;
+    positions!: Array<number>;
+    colors!: Array<number>;
+    indices!: Array<number>;
+}
+
+class ChunkResourceTable {
+    chunks!: Array<ChunkResourceState>;
+}
+
+class ChunkResourceApply {
+    state!: ChunkResourceState;
+    transition!: any;
+}
+
+class DirtyRemeshResult {
+    dirty!: any;
+    resources!: ChunkResourceTable;
+    transitions!: Array<any>;
+    remeshed!: Array<number>;
+}
+
+function chunk_logical_handle(chunk_index: number): any | null {
+    if (((chunk_index < 0) || (chunk_index >= voxel.chunk_count()))) {
+        return null;
+    }
+    return Object.assign({}, { index: chunk_index, generation: 0 });
+}
+function empty_chunk_resource(chunk_index: number): ChunkResourceState | null {
+    const handle: any | null = chunk_logical_handle(chunk_index);
+    if ((handle === null)) {
+        return null;
+    }
+    return Object.assign(new ChunkResourceState(), { handle: Object.assign({}, { index: handle!.index, generation: handle!.generation }), live: false, face_count: 0, positions: [], colors: [], indices: [] });
+}
+function empty_chunk_resource_table(): ChunkResourceTable {
+    let chunks: Array<ChunkResourceState> = [];
+    let i: number = 0;
+    while ((i < voxel.chunk_count())) {
+        const state: ChunkResourceState | null = empty_chunk_resource(i);
+        if ((state !== null)) {
+            chunks.push(Object.assign(new ChunkResourceState(), { handle: Object.assign({}, { index: state!.handle.index, generation: state!.handle.generation }), live: state!.live, face_count: state!.face_count, positions: state!.positions, colors: state!.colors, indices: state!.indices }));
+        }
+        i = (i + 1);
+    }
+    return Object.assign(new ChunkResourceTable(), { chunks: chunks });
+}
+function f32_list_equal(a: Array<number>, b: Array<number>): boolean {
+    if (((a.length as number) !== (b.length as number))) {
+        return false;
+    }
+    let i: number = 0;
+    while ((i < a.length)) {
+        if (((((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(a, i) as number) !== (((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(b, i) as number))) {
+            return false;
+        }
+        i = (i + 1);
+    }
+    return true;
+}
+function u32_list_equal(a: Array<number>, b: Array<number>): boolean {
+    if (((a.length as number) !== (b.length as number))) {
+        return false;
+    }
+    let i: number = 0;
+    while ((i < a.length)) {
+        if (((((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(a, i) as number) !== (((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(b, i) as number))) {
+            return false;
+        }
+        i = (i + 1);
+    }
+    return true;
+}
+function chunk_resource_payload_matches(state: ChunkResourceState, mesh: ChunkMesh): boolean {
+    if (((state.live as boolean) === (false as boolean))) {
+        return false;
+    }
+    if (((state.face_count as number) !== (mesh.face_count as number))) {
+        return false;
+    }
+    return ((f32_list_equal(state.positions, mesh.positions) && f32_list_equal(state.colors, mesh.colors)) && u32_list_equal(state.indices, mesh.indices));
+}
+function live_state_from_mesh(handle: any, mesh: ChunkMesh): ChunkResourceState {
+    return Object.assign(new ChunkResourceState(), { handle: Object.assign({}, { index: handle.index, generation: handle.generation }), live: true, face_count: mesh.face_count, positions: mesh.positions, colors: mesh.colors, indices: mesh.indices });
+}
+function empty_state_at(handle: any): ChunkResourceState {
+    return Object.assign(new ChunkResourceState(), { handle: Object.assign({}, { index: handle.index, generation: handle.generation }), live: false, face_count: 0, positions: [], colors: [], indices: [] });
+}
+function chunk_resource_table_valid(table: ChunkResourceTable): boolean {
+    if (((table.chunks.length as number) !== (voxel.chunk_count() as number))) {
+        return false;
+    }
+    let i: number = 0;
+    while ((i < table.chunks.length)) {
+        const state: ChunkResourceState = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(table.chunks, i);
+        if (((state.handle.index as number) !== (i as number))) {
+            return false;
+        }
+        if (((state.live as boolean) === (false as boolean))) {
+            if ((((((state.face_count as number) !== (0 as number)) || ((state.positions.length as number) !== (0 as number))) || ((state.colors.length as number) !== (0 as number))) || ((state.indices.length as number) !== (0 as number)))) {
+                return false;
+            }
+        } else {
+            if (((state.face_count as number) === (0 as number))) {
+                return false;
+            }
+            if (((((state.positions.length as number) !== ((state.face_count * 12) as number)) || ((state.colors.length as number) !== ((state.face_count * 12) as number))) || ((state.indices.length as number) !== ((state.face_count * 6) as number)))) {
+                return false;
+            }
+        }
+        i = (i + 1);
+    }
+    return true;
+}
+function apply_chunk_mesh_resource(state: ChunkResourceState, mesh: ChunkMesh): ChunkResourceApply | null {
+    if (((state.handle.index < 0) || (state.handle.index >= voxel.chunk_count()))) {
+        return null;
+    }
+    const faces: number = mesh.face_count;
+    if (((faces as number) === (0 as number))) {
+        if (state.live) {
+            const previous: any = Object.assign({}, { index: state.handle.index, generation: state.handle.generation });
+            return Object.assign(new ChunkResourceApply(), { state: empty_state_at(previous), transition: scene.resource_lifecycle_removed(previous) });
+        }
+        const stable: any = Object.assign({}, { index: state.handle.index, generation: state.handle.generation });
+        return Object.assign(new ChunkResourceApply(), { state: empty_state_at(stable), transition: Object.assign({}, { logical_index: stable.index, previous: stable, current: stable, changed: false, removed: false }) });
+    }
+    if (((state.live as boolean) === (false as boolean))) {
+        const created: any = Object.assign({}, { index: state.handle.index, generation: state.handle.generation });
+        return Object.assign(new ChunkResourceApply(), { state: live_state_from_mesh(created, mesh), transition: scene.resource_lifecycle_created(created) });
+    }
+    if (chunk_resource_payload_matches(state, mesh)) {
+        const stable: any = Object.assign({}, { index: state.handle.index, generation: state.handle.generation });
+        return Object.assign(new ChunkResourceApply(), { state: live_state_from_mesh(stable, mesh), transition: scene.resource_lifecycle_unchanged(stable) });
+    }
+    const previous: any = Object.assign({}, { index: state.handle.index, generation: state.handle.generation });
+    const replaced: any = scene.resource_lifecycle_replaced(previous);
+    const current: any = Object.assign({}, { index: previous.index, generation: (previous.generation + 1) });
+    return Object.assign(new ChunkResourceApply(), { state: live_state_from_mesh(current, mesh), transition: replaced });
+}
+function _table_with_state(table: ChunkResourceTable, chunk_index: number, state: ChunkResourceState): ChunkResourceTable | null {
+    if (((chunk_resource_table_valid(table) as boolean) === (false as boolean))) {
+        return null;
+    }
+    if (((chunk_index < 0) || (chunk_index >= table.chunks.length))) {
+        return null;
+    }
+    let chunks: Array<ChunkResourceState> = [];
+    let i: number = 0;
+    while ((i < table.chunks.length)) {
+        if (((i as number) === (chunk_index as number))) {
+            chunks.push(Object.assign(new ChunkResourceState(), { handle: Object.assign({}, { index: state.handle.index, generation: state.handle.generation }), live: state.live, face_count: state.face_count, positions: state.positions, colors: state.colors, indices: state.indices }));
+        } else {
+            const existing: ChunkResourceState = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(table.chunks, i);
+            chunks.push(Object.assign(new ChunkResourceState(), { handle: Object.assign({}, { index: existing.handle.index, generation: existing.handle.generation }), live: existing.live, face_count: existing.face_count, positions: existing.positions, colors: existing.colors, indices: existing.indices }));
+        }
+        i = (i + 1);
+    }
+    return Object.assign(new ChunkResourceTable(), { chunks: chunks });
+}
+function remesh_dirty_chunks(world: any, dirty: any, resources: ChunkResourceTable): DirtyRemeshResult | null {
+    if (((voxel.world_valid(world) as boolean) === (false as boolean))) {
+        return null;
+    }
+    if (((voxel.dirty_valid(dirty) as boolean) === (false as boolean))) {
+        return null;
+    }
+    if (((chunk_resource_table_valid(resources) as boolean) === (false as boolean))) {
+        return null;
+    }
+    const drained: any | null = voxel.dirty_drain(dirty);
+    if ((drained === null)) {
+        return null;
+    }
+    let table: ChunkResourceTable = Object.assign(new ChunkResourceTable(), { chunks: resources.chunks });
+    let transitions: Array<any> = [];
+    let remeshed: Array<number> = [];
+    let i: number = 0;
+    while ((i < drained!.chunks.length)) {
+        const chunk_index: number = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(drained!.chunks, i);
+        const chunk: any = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(world.chunks, chunk_index);
+        const mesh_result: ChunkMesh | null = mesh_chunk(world, chunk.cx, chunk.cz);
+        if ((mesh_result === null)) {
+            return null;
+        }
+        const mesh: ChunkMesh = Object.assign(new ChunkMesh(), { cx: mesh_result!.cx, cz: mesh_result!.cz, face_count: mesh_result!.face_count, positions: mesh_result!.positions, colors: mesh_result!.colors, indices: mesh_result!.indices });
+        const prior: ChunkResourceState = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(table.chunks, chunk_index);
+        const applied: ChunkResourceApply | null = apply_chunk_mesh_resource(prior, mesh);
+        if ((applied === null)) {
+            return null;
+        }
+        const next_table: ChunkResourceTable | null = _table_with_state(table, chunk_index, applied!.state);
+        if ((next_table === null)) {
+            return null;
+        }
+        table = Object.assign(new ChunkResourceTable(), { chunks: next_table!.chunks });
+        transitions.push(applied!.transition);
+        remeshed.push(chunk_index);
+        i = (i + 1);
+    }
+    return Object.assign(new DirtyRemeshResult(), { dirty: Object.assign({}, { flags: drained!.dirty.flags }), resources: table, transitions: transitions, remeshed: remeshed });
+}
+function resource_lifecycle_batch_for_table(before: ChunkResourceTable, remesh: DirtyRemeshResult): Array<any> | null {
+    if (((chunk_resource_table_valid(before) as boolean) === (false as boolean))) {
+        return null;
+    }
+    if (((chunk_resource_table_valid(remesh.resources) as boolean) === (false as boolean))) {
+        return null;
+    }
+    let batch: Array<any> = [];
+    let i: number = 0;
+    while ((i < voxel.chunk_count())) {
+        let found: boolean = false;
+        let j: number = 0;
+        while ((j < remesh.remeshed.length)) {
+            if (((((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(remesh.remeshed, j) as number) === (i as number))) {
+                batch.push(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(remesh.transitions, j));
+                found = true;
+            }
+            j = (j + 1);
+        }
+        if (((found as boolean) === (false as boolean))) {
+            const prior: ChunkResourceState = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(before.chunks, i);
+            const handle: any = Object.assign({}, { index: prior.handle.index, generation: prior.handle.generation });
+            if (prior.live) {
+                batch.push(scene.resource_lifecycle_unchanged(handle));
+            } else {
+                batch.push(Object.assign({}, { logical_index: handle.index, previous: handle, current: handle, changed: false, removed: false }));
+            }
+        }
+        i = (i + 1);
+    }
+    if (((scene.resource_lifecycles_valid(batch) as boolean) === (false as boolean))) {
+        return null;
+    }
+    return batch;
+}
+function chunk_generation(table: ChunkResourceTable, chunk_index: number): number | null {
+    if (((chunk_resource_table_valid(table) as boolean) === (false as boolean))) {
+        return null;
+    }
+    if (((chunk_index < 0) || (chunk_index >= table.chunks.length))) {
+        return null;
+    }
+    return ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(table.chunks, chunk_index).handle.generation;
+}
+function chunk_is_live(table: ChunkResourceTable, chunk_index: number): boolean {
+    if (((chunk_resource_table_valid(table) as boolean) === (false as boolean))) {
+        return false;
+    }
+    if (((chunk_index < 0) || (chunk_index >= table.chunks.length))) {
+        return false;
+    }
+    return ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(table.chunks, chunk_index).live;
+}
 
 export const meshing = {
   ChunkMesh,
+  ChunkResourceApply,
+  ChunkResourceState,
+  ChunkResourceTable,
+  DirtyRemeshResult,
+  _table_with_state,
   append_visible_face,
+  apply_chunk_mesh_resource,
+  chunk_generation,
+  chunk_is_live,
+  chunk_logical_handle,
   chunk_mesh_bounding_box,
   chunk_mesh_colored,
   chunk_mesh_count_face_code,
   chunk_mesh_face_winding_matches,
   chunk_mesh_facts,
   chunk_mesh_matches_face_count,
+  chunk_resource_payload_matches,
+  chunk_resource_table_valid,
   empty_chunk_mesh,
+  empty_chunk_resource,
+  empty_chunk_resource_table,
+  empty_state_at,
+  f32_list_equal,
   face_is_visible,
   face_neighbor_world,
+  live_state_from_mesh,
   mesh_chunk,
   neighbor_is_solid,
+  remesh_dirty_chunks,
+  resource_lifecycle_batch_for_table,
+  u32_list_equal,
 };

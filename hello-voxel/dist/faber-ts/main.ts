@@ -6,6 +6,8 @@ import { dom } from "web:dom";
 
 import { triga } from "./triga-triga.js";
 
+import { scene } from "./triga-scene.js";
+
 import { voxel } from "./voxel.js";
 
 import { meshing } from "./meshing.js";
@@ -14,6 +16,9 @@ import { application } from "./application.js";
 
 const DEFAULT_ASPECT: number = 1.778 as number;
 
+function residual_path_multi_draw(): string {
+    return "per-chunk-multi-draw";
+}
 function lista_f32_textus(values: Array<number>): string {
     let out: string = "";
     let i: number = 0;
@@ -28,6 +33,19 @@ function lista_f32_textus(values: Array<number>): string {
     return out;
 }
 function lista_u32_textus(values: Array<number>): string {
+    let out: string = "";
+    let i: number = 0;
+    while ((i < values.length)) {
+        if (((i as number) === (0 as number))) {
+            out = String(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i));
+        } else {
+            out = `${out},${String(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i))}`;
+        }
+        i = (i + 1);
+    }
+    return out;
+}
+function lista_numerus_textus(values: Array<number>): string {
     let out: string = "";
     let i: number = 0;
     while ((i < values.length)) {
@@ -77,8 +95,26 @@ function append_indices_offset(dest: Array<number>, src: Array<number>, vertex_b
     }
     return out;
 }
-function mesh_world(world: any): WorldChunkBatch | null {
-    if (((voxel.world_valid(world) as boolean) === (false as boolean))) {
+function chunk_cx_from_index(chunk_index: number): number {
+    return (chunk_index % voxel.chunk_count_x());
+}
+function chunk_cz_from_index(chunk_index: number): number {
+    return (chunk_index / voxel.chunk_count_x());
+}
+function dirty_mark_all(): any {
+    let dirty: any = voxel.dirty_empty();
+    let i: number = 0;
+    while ((i < voxel.chunk_count())) {
+        const marked: any | null = voxel.dirty_mark(dirty, i);
+        if ((marked !== null)) {
+            dirty = Object.assign({}, { flags: marked!.flags });
+        }
+        i = (i + 1);
+    }
+    return dirty;
+}
+function batch_from_resource_table(table: any): WorldChunkBatch | null {
+    if (((meshing.chunk_resource_table_valid(table) as boolean) === (false as boolean))) {
         return null;
     }
     let meshes: Array<any> = [];
@@ -89,33 +125,40 @@ function mesh_world(world: any): WorldChunkBatch | null {
     let total_faces: number = 0;
     let total_vertices: number = 0;
     let total_indices: number = 0;
-    let cz: number = 0;
-    while ((cz < voxel.chunk_count_z())) {
-        let cx: number = 0;
-        while ((cx < voxel.chunk_count_x())) {
-            const mesh_result: any | null = meshing.mesh_chunk(world, cx, cz);
-            if ((mesh_result === null)) {
-                return null;
-            }
-            const mesh: any = Object.assign({}, { cx: mesh_result!.cx, cz: mesh_result!.cz, face_count: mesh_result!.face_count, positions: mesh_result!.positions, colors: mesh_result!.colors, indices: mesh_result!.indices });
-            if (((meshing.chunk_mesh_matches_face_count(mesh) as boolean) === (false as boolean))) {
-                return null;
-            }
-            meshes.push(mesh);
-            if ((mesh.face_count > 0)) {
-                non_empty = (non_empty + 1);
-                total_faces = (total_faces + mesh.face_count);
-                total_vertices = (total_vertices + (mesh.face_count * 4));
-                total_indices = (total_indices + (mesh.face_count * 6));
-                positions = append_f32(positions, mesh.positions);
-                colors = append_f32(colors, mesh.colors);
-                indices = append_indices_offset(indices, mesh.indices, (total_vertices - (mesh.face_count * 4)));
-            }
-            cx = (cx + 1);
+    let i: number = 0;
+    while ((i < table.chunks.length)) {
+        const state: any = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(table.chunks, i);
+        const cx: number = chunk_cx_from_index(i);
+        const cz: number = chunk_cz_from_index(i);
+        const mesh: any = Object.assign({}, { cx: cx, cz: cz, face_count: state.face_count, positions: state.positions, colors: state.colors, indices: state.indices });
+        if (((meshing.chunk_mesh_matches_face_count(mesh) as boolean) === (false as boolean))) {
+            return null;
         }
-        cz = (cz + 1);
+        meshes.push(mesh);
+        if ((state.live && (state.face_count > 0))) {
+            non_empty = (non_empty + 1);
+            total_faces = (total_faces + state.face_count);
+            total_vertices = (total_vertices + (state.face_count * 4));
+            total_indices = (total_indices + (state.face_count * 6));
+            positions = append_f32(positions, state.positions);
+            colors = append_f32(colors, state.colors);
+            indices = append_indices_offset(indices, state.indices, (total_vertices - (state.face_count * 4)));
+        }
+        i = (i + 1);
     }
     return Object.assign(new WorldChunkBatch(), { chunk_count: voxel.chunk_count(), non_empty_count: non_empty, total_face_count: total_faces, total_vertex_count: total_vertices, total_index_count: total_indices, meshes: meshes, positions: positions, colors: colors, indices: indices });
+}
+function mesh_world(world: any): WorldChunkBatch | null {
+    if (((voxel.world_valid(world) as boolean) === (false as boolean))) {
+        return null;
+    }
+    const empty: any = meshing.empty_chunk_resource_table();
+    const dirty: any = dirty_mark_all();
+    const remesh: any | null = meshing.remesh_dirty_chunks(world, dirty, empty);
+    if ((remesh === null)) {
+        return null;
+    }
+    return batch_from_resource_table(remesh!.resources);
 }
 function mesh_fixture_world(): WorldChunkBatch | null {
     return mesh_world(voxel.fixture_world());
@@ -131,6 +174,12 @@ function emit_chunk_geometry(canvas: any, mesh: any, slot: number): void {
     dom.attr_set(canvas, `${prefix}${"-colors"}`, lista_f32_textus(mesh.colors));
     dom.attr_set(canvas, `${prefix}${"-indices"}`, lista_u32_textus(mesh.indices));
 }
+function emit_chunk_resource_state(canvas: any, state: any, slot: number): void {
+    const prefix: string = `${"data-hv-c"}${String(slot)}`;
+    dom.attr_set(canvas, `${prefix}${"-generation"}`, String(state.handle.generation));
+    dom.attr_set(canvas, `${prefix}${"-live"}`, bivalens_textus(state.live));
+    dom.attr_set(canvas, `${prefix}${"-logical-id"}`, String(state.handle.index));
+}
 function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
     dom.attr_set(canvas, "data-hv-chunk-count", String(batch.chunk_count));
     dom.attr_set(canvas, "data-hv-non-empty-chunk-count", String(batch.non_empty_count));
@@ -139,7 +188,7 @@ function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
     dom.attr_set(canvas, "data-hv-total-face-count", String(batch.total_face_count));
     dom.attr_set(canvas, "data-hv-vertex-count", String(batch.total_vertex_count));
     dom.attr_set(canvas, "data-hv-index-count", String(batch.total_index_count));
-    dom.attr_set(canvas, "data-hv-residual-path", "concatenated-single-buffer");
+    dom.attr_set(canvas, "data-hv-residual-path", residual_path_multi_draw());
     dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(batch.positions));
     dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(batch.colors));
     dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices));
@@ -148,6 +197,70 @@ function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
         emit_chunk_geometry(canvas, ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(batch.meshes, i), i);
         i = (i + 1);
     }
+}
+function emit_host_replace_queue(canvas: any, transitions: Array<any>, resources: any): void {
+    let replace_count: number = 0;
+    let i: number = 0;
+    while ((i < transitions.length)) {
+        const t: any = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(transitions, i);
+        if (t.changed) {
+            const prefix: string = `${"data-hv-host-replace-"}${String(replace_count)}`;
+            dom.attr_set(canvas, `${prefix}${"-logical-id"}`, String(t.logical_index));
+            if (t.removed) {
+                let gen: number = 0;
+                if ((t.previous !== null)) {
+                    gen = t.previous!.generation;
+                }
+                dom.attr_set(canvas, `${prefix}${"-generation"}`, String(gen));
+                dom.attr_set(canvas, `${prefix}${"-kind"}`, "removed");
+                dom.attr_set(canvas, `${prefix}${"-positions"}`, "");
+                dom.attr_set(canvas, `${prefix}${"-colors"}`, "");
+                dom.attr_set(canvas, `${prefix}${"-indices"}`, "");
+            } else {
+                let gen: number = 0;
+                if ((t.current !== null)) {
+                    gen = t.current!.generation;
+                }
+                dom.attr_set(canvas, `${prefix}${"-generation"}`, String(gen));
+                if ((t.previous === null)) {
+                    dom.attr_set(canvas, `${prefix}${"-kind"}`, "created");
+                } else {
+                    dom.attr_set(canvas, `${prefix}${"-kind"}`, "replaced");
+                }
+                const state: any = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(resources.chunks, t.logical_index);
+                dom.attr_set(canvas, `${prefix}${"-positions"}`, lista_f32_textus(state.positions));
+                dom.attr_set(canvas, `${prefix}${"-colors"}`, lista_f32_textus(state.colors));
+                dom.attr_set(canvas, `${prefix}${"-indices"}`, lista_u32_textus(state.indices));
+            }
+            replace_count = (replace_count + 1);
+        }
+        i = (i + 1);
+    }
+    dom.attr_set(canvas, "data-hv-host-replace-count", String(replace_count));
+}
+function emit_resource_snapshot(canvas: any, resources: any, remeshed: Array<number>, transitions: Array<any>): void {
+    let gens: Array<number> = [];
+    let live_flags: Array<number> = [];
+    let i: number = 0;
+    while ((i < resources.chunks.length)) {
+        const state: any = ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(resources.chunks, i);
+        emit_chunk_resource_state(canvas, state, i);
+        gens.push(state.handle.generation);
+        if (state.live) {
+            live_flags.push(1);
+        } else {
+            live_flags.push(0);
+        }
+        i = (i + 1);
+    }
+    dom.attr_set(canvas, "data-hv-resource-gens", lista_numerus_textus(gens));
+    dom.attr_set(canvas, "data-hv-resource-live", lista_numerus_textus(live_flags));
+    dom.attr_set(canvas, "data-hv-remeshed", lista_numerus_textus(remeshed));
+    emit_host_replace_queue(canvas, transitions, resources);
+}
+function clear_host_replace_queue(canvas: any): void {
+    dom.attr_set(canvas, "data-hv-host-replace-count", "0");
+    dom.attr_set(canvas, "data-hv-remeshed", "");
 }
 function identity_matrix(): any {
     return triga.matrix4_identitas();
@@ -301,13 +414,29 @@ export function hello_voxel_controller(scope: any): Array<any> {
     dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked");
     dom.attr_set(canvas, "data-hv-pointer-lock-supported", "0");
     dom.attr_set(canvas, "data-hv-pointer-lock-denied", "0");
+    dom.attr_set(canvas, "data-hv-residual-path", residual_path_multi_draw());
+    clear_host_replace_queue(canvas);
     let live_aspect: number = DEFAULT_ASPECT;
     let live_world: any = voxel.fixture_world();
     let live_app: any = application.spawn_application();
+    let live_dirty: any = voxel.dirty_empty();
+    let live_resources: any = meshing.empty_chunk_resource_table();
     let edit_count: number = 0;
     let last_edit: string = "none";
-    let remesh_pending: number = 1;
-    const batch_result: WorldChunkBatch | null = mesh_world(live_world);
+    let remesh_pending: number = 0;
+    live_dirty = dirty_mark_all();
+    const bootstrap: any | null = meshing.remesh_dirty_chunks(live_world, live_dirty, live_resources);
+    if ((bootstrap === null)) {
+        dom.text_set(status, "package-mesh-failed");
+        dom.class_add(status, "failed");
+        dom.attr_set(canvas, "data-hv-resource-pair-count", "0");
+        dom.attr_set(canvas, "data-hv-draw-count", "0");
+        dom.attr_set(canvas, "data-hv-interaction", "mesh-failed");
+        return [];
+    }
+    live_dirty = Object.assign({}, { flags: bootstrap!.dirty.flags });
+    live_resources = Object.assign({}, { chunks: bootstrap!.resources.chunks });
+    const batch_result: WorldChunkBatch | null = batch_from_resource_table(live_resources);
     if ((batch_result === null)) {
         dom.text_set(status, "package-mesh-failed");
         dom.class_add(status, "failed");
@@ -326,7 +455,7 @@ export function hello_voxel_controller(scope: any): Array<any> {
         return [];
     }
     emit_world_geometry(canvas, batch);
-    remesh_pending = 0;
+    emit_resource_snapshot(canvas, live_resources, bootstrap!.remeshed, bootstrap!.transitions);
     emit_interaction_snapshot(canvas, live_world, live_app, live_aspect, last_edit);
     dom.text_set(status, "package-ready");
     dom.class_add(status, "ready");
@@ -336,10 +465,16 @@ export function hello_voxel_controller(scope: any): Array<any> {
     const frame_sub: any = dom.on_frame((frame: any) => (() => { const delta_seconds: number = (frame.delta_ms / 1000 as number);
      live_app = application.step_application(live_world, live_app, delta_seconds);
      if (((remesh_pending as number) === (1 as number))) {
-        const remesh: WorldChunkBatch | null = mesh_world(live_world);
+        const remesh: any | null = meshing.remesh_dirty_chunks(live_world, live_dirty, live_resources);
         if ((remesh !== null)) {
-            const next_batch: WorldChunkBatch = Object.assign(new WorldChunkBatch(), { chunk_count: remesh!.chunk_count, non_empty_count: remesh!.non_empty_count, total_face_count: remesh!.total_face_count, total_vertex_count: remesh!.total_vertex_count, total_index_count: remesh!.total_index_count, meshes: remesh!.meshes, positions: remesh!.positions, colors: remesh!.colors, indices: remesh!.indices });
-            emit_world_geometry(canvas, next_batch);
+            live_dirty = Object.assign({}, { flags: remesh!.dirty.flags });
+            live_resources = Object.assign({}, { chunks: remesh!.resources.chunks });
+            const next_result: WorldChunkBatch | null = batch_from_resource_table(live_resources);
+            if ((next_result !== null)) {
+                const next_batch: WorldChunkBatch = Object.assign(new WorldChunkBatch(), { chunk_count: next_result!.chunk_count, non_empty_count: next_result!.non_empty_count, total_face_count: next_result!.total_face_count, total_vertex_count: next_result!.total_vertex_count, total_index_count: next_result!.total_index_count, meshes: next_result!.meshes, positions: next_result!.positions, colors: next_result!.colors, indices: next_result!.indices });
+                emit_world_geometry(canvas, next_batch);
+            }
+            emit_resource_snapshot(canvas, live_resources, remesh!.remeshed, remesh!.transitions);
             remesh_pending = 0;
         }
     }
@@ -363,25 +498,37 @@ export function hello_voxel_controller(scope: any): Array<any> {
     const pointer_move_sub: any = dom.on_pointer(canvas, "pointermove", (pointer: any) => (() => { live_app = Object.assign({}, { camera: live_app.camera, input: application.queue_mouse_delta(live_app.input, pointer.movement_x, pointer.movement_y), player: live_app.player });
      })());
     const pointer_down_sub: any = dom.on_pointer(canvas, "pointerdown", (pointer: any) => (() => { if (((pointer.button as number) === (0 as number))) {
-        const removed: any | null = application.try_remove(live_world, live_app.camera, live_app.player);
+        const removed: any | null = application.try_remove_dirty(live_world, live_dirty, live_app.camera, live_app.player);
         if ((removed !== null)) {
-            live_world = Object.assign({}, { chunks: removed!.chunks });
-            edit_count = (edit_count + 1);
-            last_edit = "remove";
-            remesh_pending = 1;
-            dom.attr_set(canvas, "data-hv-edit-count", String(edit_count));
+            if (removed!.changed) {
+                live_world = Object.assign({}, { chunks: removed!.world.chunks });
+                live_dirty = Object.assign({}, { flags: removed!.dirty.flags });
+                edit_count = (edit_count + 1);
+                last_edit = "remove";
+                remesh_pending = 1;
+                dom.attr_set(canvas, "data-hv-edit-count", String(edit_count));
+                dom.attr_set(canvas, "data-hv-dirty-count", String(voxel.dirty_count(live_dirty)));
+            } else {
+                last_edit = "remove-noop";
+            }
         } else {
             last_edit = "remove-reject";
         }
     }
      if (((pointer.button as number) === (2 as number))) {
-        const placed: any | null = application.try_place(live_world, live_app.camera, live_app.player);
+        const placed: any | null = application.try_place_dirty(live_world, live_dirty, live_app.camera, live_app.player);
         if ((placed !== null)) {
-            live_world = Object.assign({}, { chunks: placed!.chunks });
-            edit_count = (edit_count + 1);
-            last_edit = "place";
-            remesh_pending = 1;
-            dom.attr_set(canvas, "data-hv-edit-count", String(edit_count));
+            if (placed!.changed) {
+                live_world = Object.assign({}, { chunks: placed!.world.chunks });
+                live_dirty = Object.assign({}, { flags: placed!.dirty.flags });
+                edit_count = (edit_count + 1);
+                last_edit = "place";
+                remesh_pending = 1;
+                dom.attr_set(canvas, "data-hv-edit-count", String(edit_count));
+                dom.attr_set(canvas, "data-hv-dirty-count", String(voxel.dirty_count(live_dirty)));
+            } else {
+                last_edit = "place-noop";
+            }
         } else {
             last_edit = "place-reject";
         }

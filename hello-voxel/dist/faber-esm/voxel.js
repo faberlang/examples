@@ -420,13 +420,250 @@ function empty_world_is_all_air(world) {
     }
     return true;
 }
+class DirtySet {
+    flags;
+}
+class DirtyDrain {
+    dirty;
+    chunks;
+}
+class WorldEdit {
+    world;
+    dirty;
+    changed;
+}
+function dirty_empty() {
+    let flags = [];
+    let i = 0;
+    while ((i < chunk_count())) {
+        flags.push(false);
+        i = (i + 1);
+    }
+    return Object.assign(new DirtySet(), { flags: flags });
+}
+function dirty_valid(dirty) {
+    return (dirty.flags.length === chunk_count());
+}
+function dirty_count(dirty) {
+    if ((dirty_valid(dirty) === false)) {
+        return 0;
+    }
+    let count = 0;
+    let i = 0;
+    while ((i < dirty.flags.length)) {
+        if (((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+            throw new Error("index trap"); return __v; })(dirty.flags, i)) {
+            count = (count + 1);
+        }
+        i = (i + 1);
+    }
+    return count;
+}
+function dirty_contains(dirty, chunk_index) {
+    if ((dirty_valid(dirty) === false)) {
+        return false;
+    }
+    if (((chunk_index < 0) || (chunk_index >= dirty.flags.length))) {
+        return false;
+    }
+    return ((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+        throw new Error("index trap"); return __v; })(dirty.flags, chunk_index);
+}
+function dirty_mark(dirty, chunk_index) {
+    if ((dirty_valid(dirty) === false)) {
+        return null;
+    }
+    if (((chunk_index < 0) || (chunk_index >= dirty.flags.length))) {
+        return null;
+    }
+    let flags = [];
+    let i = 0;
+    while ((i < dirty.flags.length)) {
+        if ((i === chunk_index)) {
+            flags.push(true);
+        }
+        else {
+            flags.push(((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+                throw new Error("index trap"); return __v; })(dirty.flags, i));
+        }
+        i = (i + 1);
+    }
+    return Object.assign(new DirtySet(), { flags: flags });
+}
+function dirty_mark_many(dirty, chunk_indices) {
+    if ((dirty_valid(dirty) === false)) {
+        return null;
+    }
+    let next = Object.assign(new DirtySet(), { flags: dirty.flags });
+    let i = 0;
+    while ((i < chunk_indices.length)) {
+        const marked = dirty_mark(next, ((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+            throw new Error("index trap"); return __v; })(chunk_indices, i));
+        if ((marked === null)) {
+            return null;
+        }
+        next = Object.assign(new DirtySet(), { flags: marked.flags });
+        i = (i + 1);
+    }
+    return next;
+}
+function dirty_drain(dirty) {
+    if ((dirty_valid(dirty) === false)) {
+        return null;
+    }
+    let chunks = [];
+    let i = 0;
+    while ((i < dirty.flags.length)) {
+        if (((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+            throw new Error("index trap"); return __v; })(dirty.flags, i)) {
+            chunks.push(i);
+        }
+        i = (i + 1);
+    }
+    return Object.assign(new DirtyDrain(), { dirty: dirty_empty(), chunks: chunks });
+}
+function logical_chunk_id(cx, cz) {
+    return chunk_index(cx, cz);
+}
+function affected_chunk_indices(x, y, z) {
+    const address_result = world_to_address(x, y, z);
+    if ((address_result === null)) {
+        return null;
+    }
+    const owning = address_result.chunk_index;
+    const lx = address_result.local.lx;
+    const lz = address_result.local.lz;
+    const cx = address_result.chunk.cx;
+    const cz = address_result.chunk.cz;
+    const edge = (chunk_size() - 1);
+    let mask = dirty_empty();
+    const own_marked = dirty_mark(mask, owning);
+    if ((own_marked === null)) {
+        return null;
+    }
+    mask = Object.assign(new DirtySet(), { flags: own_marked.flags });
+    if (((lx === 0) && (cx > 0))) {
+        const west = chunk_index((cx - 1), cz);
+        if ((west !== null)) {
+            const marked = dirty_mark(mask, (west ?? 0));
+            if ((marked !== null)) {
+                mask = Object.assign(new DirtySet(), { flags: marked.flags });
+            }
+        }
+    }
+    if (((lx === edge) && ((cx + 1) < chunk_count_x()))) {
+        const east = chunk_index((cx + 1), cz);
+        if ((east !== null)) {
+            const marked = dirty_mark(mask, (east ?? 0));
+            if ((marked !== null)) {
+                mask = Object.assign(new DirtySet(), { flags: marked.flags });
+            }
+        }
+    }
+    if (((lz === 0) && (cz > 0))) {
+        const north = chunk_index(cx, (cz - 1));
+        if ((north !== null)) {
+            const marked = dirty_mark(mask, (north ?? 0));
+            if ((marked !== null)) {
+                mask = Object.assign(new DirtySet(), { flags: marked.flags });
+            }
+        }
+    }
+    if (((lz === edge) && ((cz + 1) < chunk_count_z()))) {
+        const south = chunk_index(cx, (cz + 1));
+        if ((south !== null)) {
+            const marked = dirty_mark(mask, (south ?? 0));
+            if ((marked !== null)) {
+                mask = Object.assign(new DirtySet(), { flags: marked.flags });
+            }
+        }
+    }
+    const drained = dirty_drain(mask);
+    if ((drained === null)) {
+        return null;
+    }
+    return drained.chunks;
+}
+function dirty_mark_world_cell(dirty, x, y, z) {
+    const affected = affected_chunk_indices(x, y, z);
+    if ((affected === null)) {
+        return null;
+    }
+    const indices = (affected ?? []);
+    return dirty_mark_many(dirty, indices);
+}
+function world_set_dirty(world, dirty, x, y, z, block_id) {
+    if ((dirty_valid(dirty) === false)) {
+        return null;
+    }
+    const current = world_get(world, x, y, z);
+    if ((current === null)) {
+        return null;
+    }
+    if ((block_id_valid(block_id) === false)) {
+        return null;
+    }
+    if (((current ?? 0) === block_id)) {
+        return Object.assign(new WorldEdit(), { world: world, dirty: dirty, changed: false });
+    }
+    const next_world = world_set(world, x, y, z, block_id);
+    if ((next_world === null)) {
+        return null;
+    }
+    const next_dirty = dirty_mark_world_cell(dirty, x, y, z);
+    if ((next_dirty === null)) {
+        return null;
+    }
+    return Object.assign(new WorldEdit(), { world: Object.assign(new World(), { chunks: next_world.chunks }), dirty: Object.assign(new DirtySet(), { flags: next_dirty.flags }), changed: true });
+}
+function dirty_indices(dirty) {
+    if ((dirty_valid(dirty) === false)) {
+        return null;
+    }
+    let chunks = [];
+    let i = 0;
+    while ((i < dirty.flags.length)) {
+        if (((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+            throw new Error("index trap"); return __v; })(dirty.flags, i)) {
+            chunks.push(i);
+        }
+        i = (i + 1);
+    }
+    return chunks;
+}
+function dirty_matches_indices(dirty, expected) {
+    const actual = dirty_indices(dirty);
+    if ((actual === null)) {
+        return false;
+    }
+    const indices = (actual ?? []);
+    return indices_equal(indices, expected);
+}
+function indices_equal(a, b) {
+    if ((a.length !== b.length)) {
+        return false;
+    }
+    let i = 0;
+    while ((i < a.length)) {
+        if ((((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+            throw new Error("index trap"); return __v; })(a, i) !== ((__o, __i) => { const __v = __o[__i]; if (__v === undefined)
+            throw new Error("index trap"); return __v; })(b, i))) {
+            return false;
+        }
+        i = (i + 1);
+    }
+    return true;
+}
 export const voxel = {
     Chunk,
     ChunkAddress,
     ChunkCoord,
+    DirtyDrain,
+    DirtySet,
     LocalCoord,
     World,
     WorldCoord,
+    WorldEdit,
     _chunk_with_block,
     _fixture_cut_cavity,
     _fixture_fill_cross_boundary,
@@ -434,6 +671,7 @@ export const voxel = {
     _fixture_fill_pillar,
     _fixture_fill_wall,
     address_to_world,
+    affected_chunk_indices,
     block_air,
     block_id_valid,
     block_is_air,
@@ -447,6 +685,16 @@ export const voxel = {
     chunk_index,
     chunk_size,
     count_world_cells,
+    dirty_contains,
+    dirty_count,
+    dirty_drain,
+    dirty_empty,
+    dirty_indices,
+    dirty_mark,
+    dirty_mark_many,
+    dirty_mark_world_cell,
+    dirty_matches_indices,
+    dirty_valid,
     empty_chunk,
     empty_chunk_blocks,
     empty_world,
@@ -463,12 +711,15 @@ export const voxel = {
     fixture_wall_y_min,
     fixture_wall_z,
     fixture_world,
+    indices_equal,
     local_coord_valid,
     local_index,
+    logical_chunk_id,
     world_cell_count,
     world_get,
     world_in_bounds,
     world_set,
+    world_set_dirty,
     world_size_x,
     world_size_y,
     world_size_z,

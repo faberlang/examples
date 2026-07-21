@@ -108,8 +108,8 @@ assert(runtime.failures.length === 0, `expected 0 failures, got ${runtime.failur
 assert(status.textContent === "package-ready", `status ready, got ${status.textContent}`);
 assert(canvas.getAttribute("data-hv-interaction") === "ready", "interaction ready");
 assert(canvas.getAttribute("data-hv-payload-kind") === "four-chunk-world", "payload four-chunk");
-assert(canvas.getAttribute("data-hv-residual-path") === "concatenated-single-buffer",
-  "residual path declared (not multi-draw claim)");
+assert(canvas.getAttribute("data-hv-residual-path") === "per-chunk-multi-draw",
+  "admitted residual path is per-chunk multi-draw (HV-07)");
 
 // Spawn state
 const spawnX = Number(canvas.getAttribute("data-hv-player-x"));
@@ -351,12 +351,12 @@ assert(canvas.getAttribute("data-hv-key-a") === "1", "controller still accepts i
 void lockModeBeforeDeny;
 void probeIdAfterRemove;
 
-// Ownership: draw-count is non-empty chunk ownership, residual path declared.
+// Ownership: draw-count is non-empty chunk ownership; multi-draw path admitted.
 const drawCount = Number(canvas.getAttribute("data-hv-draw-count"));
 const nonEmpty = Number(canvas.getAttribute("data-hv-non-empty-chunk-count"));
 assert(drawCount === nonEmpty, `draw-count ${drawCount} matches non-empty ${nonEmpty} ownership`);
-assert(canvas.getAttribute("data-hv-residual-path") === "concatenated-single-buffer",
-  "still residual single-buffer (no multi-draw claim)");
+assert(canvas.getAttribute("data-hv-residual-path") === "per-chunk-multi-draw",
+  "admitted residual path remains per-chunk multi-draw");
 
 runtime.dispose();
 
