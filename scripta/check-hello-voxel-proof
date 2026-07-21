@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+# HV-04C: Hello Voxel browser proof harness.
+#
+# Builds the hello-voxel Faber package, runs the controller-mount test, and
+# validates the expected HV-04B artifact structure. Documents the manual
+# browser steps for pixel-level GPU proof.
+#
+# Usage:
+#   ./scripta/check-hello-voxel-proof           # build + check
+#   ./scripta/check-hello-voxel-proof check     # existing artifacts only
+#   ./scripta/check-hello-voxel-proof build     # build only
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+HELLO_VOXEL="$REPO_ROOT/hello-voxel"
+FABER_BIN="${FABER:-$REPO_ROOT/../faber/target/debug/faber}"
+WORKSPACE_ROOT="$(cd "$REPO_ROOT/.." && pwd)"
+
+usage() {
+  cat >&2 <<'USAGE'
+usage: ./scripta/check-hello-voxel-proof [build|check]
+
+Commands:
+  (default)  Build hello-voxel and run all checks.
+  build      Build hello-voxel only.
+  check      Run checks on existing build artifacts.
+USAGE
+}
+
+build_package() {
+  echo "--- Building hello-voxel package ---"
+  cat > "$HELLO_VOXEL/faber.lock" <<LOCK
+
+[[package]]
+name = "web"
+version = "0.1.0"
+source = "path"
+package_root = "$WORKSPACE_ROOT/faber-web"
+kind = "lib"
+target_language = "ts"
+target_triple = "browser"
+target_manifest = ""
+interface_root = "$WORKSPACE_ROOT/faber-web/src"
+artifact = ""
+crate = "web"
+rustc = ""
+LOCK
+
+  ( cd "$HELLO_VOXEL" && "$FABER_BIN" build --package . )
+}
+
+run_checks() {
+  local exit_code=0
+
+  echo ""
+  echo "--- Checking HV-03 controller mount ---"
+  if node --import "$REPO_ROOT/browser-app/tests/register-hooks.mjs" \
+         "$HELLO_VOXEL/tests/browser-fixture-test.mjs" 2>&1; then
+    echo "PASS: HV-03 controller mount"
+  else
+    echo "FAIL: HV-03 controller mount" >&2
+    exit_code=1
+  fi
+
+  echo ""
+  echo "--- Checking HV-04C proof harness ---"
+  if node --import "$REPO_ROOT/browser-app/tests/register-hooks.mjs" \
+         "$HELLO_VOXEL/tests/cube-proof-test.mjs" 2>&1; then
+    echo "PASS: HV-04C proof harness"
+  else
+    echo "FAIL: HV-04C proof harness" >&2
+    exit_code=1
+  fi
+
+  echo ""
+  echo "--- Checking dist artifact structure ---"
+  local missing=0
+  local required_paths=(
+    "dist/faber-esm/faber-browser.js"
+    "dist/faber-esm/main.js"
+    "dist/faber-ts/main.ts"
+    "dist/controllers.json"
+    "dist/assets.json"
+    "dist/pages/index.html"
+    "dist/styles/main.css"
+    "dist/public/draw.json"
+  )
+  for p in "${required_paths[@]}"; do
+    if [ -f "$HELLO_VOXEL/$p" ]; then
+      echo "  found: $p"
+    else
+      echo "  MISSING: $p" >&2
+      missing=1
+    fi
+  done
+
+  if [ "$missing" -eq 0 ]; then
+    echo "PASS: all current dist artifacts present"
+  else
+    echo "FAIL: missing dist artifacts" >&2
+    exit_code=1
+  fi
+
+  echo ""
+  echo "--- Checking HV-04B artifact readiness ---"
+  # These paths are expected after HV-04B lands (cube geometry/shaders).
+  # Graceful: warn if absent, do not fail the proof.
+  local hvb_paths=(
+    "dist/generated/vertex-positions.bin"
+    "dist/generated/vertex-colors.bin"
+    "dist/generated/indices.bin"
+    "dist/generated/transform.bin"
+    "dist/generated/draw.json"
+  )
+  local any_hvb=0
+  for p in "${hvb_paths[@]}"; do
+    if [ -f "$HELLO_VOXEL/$p" ]; then
+      echo "  HV-04B present: $p"
+      any_hvb=1
+    fi
+  done
+  if [ "$any_hvb" -eq 0 ]; then
+    echo "  (HV-04B artifacts not yet landed — proof ready to consume them)"
+  fi
+
+  echo ""
+  if [ "$exit_code" -eq 0 ]; then
+    echo "=== HV-04C: all checks passed ==="
+  else
+    echo "=== HV-04C: some checks FAILED ===" >&2
+  fi
+  return "$exit_code"
+}
+
+if [ $# -eq 0 ] || [ "$1" = "build" ]; then
+  build_package
+fi
+
+if [ $# -eq 0 ] || [ "$1" = "check" ]; then
+  run_checks
+fi

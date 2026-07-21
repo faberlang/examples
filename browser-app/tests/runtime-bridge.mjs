@@ -12,6 +12,15 @@ let nextSubscriptionId = 1;
 let nextFrameRequestId = 1;
 const frameRequests = new Map();
 
+function resolveRoot(sc) {
+  if (sc.root) return sc.root;
+  const doc = globalThis.document;
+  if (!sc.selector || sc.selector.length === 0) return doc;
+  const root = doc.querySelector(sc.selector);
+  if (!root) throw new Error(`web:dom scope root not found for selector: ${sc.selector}`);
+  return root;
+}
+
 function scope(selector) {
   const doc = globalThis.document;
   if (!selector || selector.length === 0) return { root: doc, selector };
@@ -21,7 +30,8 @@ function scope(selector) {
 }
 
 function require(sc, selector) {
-  const el = sc.root.querySelector(selector);
+  const root = resolveRoot(sc);
+  const el = root.querySelector(selector);
   if (!el) throw new Error(`web:dom required selector not found: ${selector}`);
   return el;
 }
@@ -55,9 +65,9 @@ function cancelFrame(id) {
 export const dom = {
   scope,
   element(selector) { return { selector }; },
-  query(sc, selector) { return sc.root.querySelector(selector); },
+  query(sc, selector) { return resolveRoot(sc).querySelector(selector); },
   require,
-  all(sc, selector) { return Array.from(sc.root.querySelectorAll(selector)); },
+  all(sc, selector) { return Array.from(resolveRoot(sc).querySelectorAll(selector)); },
   text_set(el, val) { el.textContent = val; },
   attr_set(el, name, val) { el.setAttribute(name, val); },
   attr_remove(el, name) { el.removeAttribute(name); },
