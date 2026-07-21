@@ -1,14 +1,16 @@
 # Hello Voxel — HV-04B: Indexed cube application.
 #
-# This controller owns the cube payload (8 positions, 8 RGB colors, 36 u32
-# indices) as Faber package source data, camera setup, frame-driven model
-# update, and resize-driven projection. The runtime host reads the emitted
-# draw manifest and cube state from the package output for GPU submission.
-#
-# No host-side scene reconstruction. No voxel world. No three.js.
+# Faber owns the locked cube payload, camera, and transform matrices.
+# Triga supplies column-major matrix ops and perspective/view composition.
+# The host only uploads package-owned geometry and the 32-float transform
+# payload — it does not construct cube geometry or matrices.
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
+importa ex "triga:triga" privata triga
+
+# Default canvas aspect (960×540). Resize rewrites projection with live aspect.
+fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
 
 # =========================================================================
 # CUBE PAYLOAD — source data, not host-JS construction
@@ -56,30 +58,175 @@ functio cube_indices() → lista<u32> {
 }
 
 # =========================================================================
-# FRAME UPDATE — model rotation from frame time
-#
-# On each animation frame, increment a per-canvas frame count and advance
-# the Y-axis rotation angle. The host reads these data attributes to build
-# the model matrix for each frame.
+# SERIALIZE — package-owned numeric lists as host-upload text
+# =========================================================================
+
+functio lista_f32_textus(lista<f32> values) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < values.longitudo() {
+        si i ≡ 0 {
+            out ← values[i] ↦ textus
+        } secus {
+            out ← "§,§"(out, values[i] ↦ textus)
+        }
+        i ← i + 1
+    }
+    redde out
+}
+
+functio lista_u32_textus(lista<u32> values) → textus {
+    varia textus out ← ""
+    varia numerus i ← 0
+    dum i < values.longitudo() {
+        si i ≡ 0 {
+            out ← values[i] ↦ textus
+        } secus {
+            out ← "§,§"(out, values[i] ↦ textus)
+        }
+        i ← i + 1
+    }
+    redde out
+}
+
+# =========================================================================
+# TRANSFORMS — Triga model + view-projection → 32-float payload
+# =========================================================================
+
+functio cube_model_matrix(f32 angle_radians) → triga.Matrix4 {
+    fixum triga.Quaternion ∪ nihil rotation_result ← triga.euler_ad_quaternionem(
+        triga.euler(0.0 ∷ f32, angle_radians, 0.0 ∷ f32)
+    )
+    varia triga.Quaternion rotation ← triga.quaternion(
+        0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32
+    )
+    si rotation_result non est nihil {
+        rotation ← triga.Quaternion {
+            x = rotation_result!.x,
+            y = rotation_result!.y,
+            z = rotation_result!.z,
+            w = rotation_result!.w
+        }
+    }
+    # Center the unit cube at the origin so Y-rotation orbits the mesh.
+    redde triga.matrix4_composita(
+        triga.vector3(-0.5 ∷ f32, -0.5 ∷ f32, -0.5 ∷ f32),
+        rotation,
+        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
+    )
+}
+
+functio cube_view_projection(f32 aspect) → triga.Matrix4 {
+    varia f32 safe_aspect ← 1.0 ∷ f32
+    si aspect > 0.0 {
+        safe_aspect ← aspect
+    }
+    fixum triga.Matrix4 ∪ nihil projection_result ← triga.matrix4_perspectiva(
+        50.0 ∷ f32,
+        safe_aspect,
+        0.1 ∷ f32,
+        100.0 ∷ f32
+    )
+    fixum triga.Matrix4 ∪ nihil view_result ← triga.matrix4_conspectus(
+        triga.vector3(3.0 ∷ f32, 2.0 ∷ f32, 5.0 ∷ f32),
+        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        triga.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
+    )
+    varia triga.Matrix4 projection ← triga.matrix4_identitas()
+    varia triga.Matrix4 view ← triga.matrix4_identitas()
+    si projection_result non est nihil {
+        projection ← triga.Matrix4 { elements = projection_result!.elements }
+    }
+    si view_result non est nihil {
+        view ← triga.Matrix4 { elements = view_result!.elements }
+    }
+    redde triga.matrix4_multiplicata(projection, view)
+}
+
+functio cube_transform_payload(f32 angle_radians, f32 aspect) → triga.TransformPayload {
+    fixum triga.Matrix4 model ← cube_model_matrix(angle_radians)
+    fixum triga.Matrix4 view_projection ← cube_view_projection(aspect)
+    fixum triga.TransformPayload ∪ nihil packed ← triga.transform_payload(model, view_projection)
+    si packed non est nihil {
+        redde triga.TransformPayload { values = packed!.values }
+    }
+    # Locked contract fallback: identity model + identity view-projection.
+    redde triga.TransformPayload {
+        values = [
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0,
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ]
+    }
+}
+
+functio emit_cube_geometry(dom.Element canvas) → vacuum {
+    fixum lista<f32> positions ← cube_positions()
+    fixum lista<f32> colors ← cube_colors()
+    fixum lista<u32> indices ← cube_indices()
+    dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(positions))
+    dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(colors))
+    dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(indices))
+    dom.attr_set(canvas, "data-hv-vertex-count", positions.longitudo() / 3 ↦ textus)
+    dom.attr_set(canvas, "data-hv-index-count", indices.longitudo() ↦ textus)
+}
+
+functio emit_transform(dom.Element canvas, f32 angle_radians, f32 aspect) → vacuum {
+    fixum triga.TransformPayload payload ← cube_transform_payload(angle_radians, aspect)
+    fixum lista<f32> values ← payload.values
+    varia lista<f32> model_values ← vacua
+    varia lista<f32> vp_values ← vacua
+    varia numerus i ← 0
+    dum i < 16 {
+        model_values.appende(values[i])
+        i ← i + 1
+    }
+    dum i < 32 {
+        vp_values.appende(values[i])
+        i ← i + 1
+    }
+    dom.attr_set(canvas, "data-hv-transform", lista_f32_textus(values))
+    dom.attr_set(canvas, "data-hv-model-matrix", lista_f32_textus(model_values))
+    dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values))
+    dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
+}
+
+# =========================================================================
+# FRAME UPDATE — model rotation from frame time via Triga
 # =========================================================================
 
 functio update_frame(dom.Element canvas, dom.FrameState frame) → vacuum {
-    # Write frame count as a data attribute — host reads this to verify
-    # advancing frame state.
+    # Advance Y-axis rotation from frame index (deterministic two-frame proof).
+    # Model matrix is independent of aspect; projection uses DEFAULT_ASPECT here
+    # and is rewritten on resize with the live aspect.
+    fixum f32 angle ← (frame.frame ↦ f32) * 0.05 ∷ f32
+    emit_transform(canvas, angle, DEFAULT_ASPECT)
     dom.attr_set(canvas, "data-hv-frame-count", frame.frame ↦ textus)
+    dom.attr_set(canvas, "data-hv-angle", angle ↦ textus)
     dom.class_add(canvas, "hv-frame-active")
 }
 
 # =========================================================================
-# RESIZE UPDATE — projection from resize state
-#
-# On each window resize, update the canvas data attributes so the host can
-# rebuild the perspective projection matrix.
+# RESIZE UPDATE — projection aspect from resize state via Triga
 # =========================================================================
 
 functio update_resize(dom.Element canvas, dom.ResizeState resize) → vacuum {
+    fixum f32 width ← resize.width ↦ f32
+    fixum f32 height ← resize.height ↦ f32
+    varia f32 aspect ← 1.0 ∷ f32
+    si height > 0.0 {
+        aspect ← width / height
+    }
     dom.attr_set(canvas, "data-hv-width", resize.width ↦ textus)
     dom.attr_set(canvas, "data-hv-height", resize.height ↦ textus)
+    dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
+    # Re-emit view-projection with live aspect (model angle held at 0 until next frame).
+    emit_transform(canvas, 0.0 ∷ f32, aspect)
     dom.class_add(canvas, "hv-resize-active")
 }
 
@@ -88,31 +235,32 @@ functio update_resize(dom.Element canvas, dom.ResizeState resize) → vacuum {
 # =========================================================================
 
 @ WebController { selector = "#hello-voxel-root" }
-functio hello_voxel_controller(dom.Scope scope) → dom.Subscription {
-    # --- DOM bindings ---
+functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     fixum dom.Element status ← dom.require(scope, ".hv-status")
     fixum dom.Element canvas ← dom.require(scope, ".hv-canvas")
 
-    # --- Write initial camera state to canvas as data attributes ---
+    # Camera scalars remain as documentation/evidence; matrices are package-owned.
     dom.attr_set(canvas, "data-hv-fov", "50")
-    dom.attr_set(canvas, "data-hv-aspect", "1.778")
     dom.attr_set(canvas, "data-hv-near", "0.1")
     dom.attr_set(canvas, "data-hv-far", "100.0")
     dom.attr_set(canvas, "data-hv-eye-x", "3.0")
     dom.attr_set(canvas, "data-hv-eye-y", "2.0")
     dom.attr_set(canvas, "data-hv-eye-z", "5.0")
-    dom.attr_set(canvas, "data-hv-target-x", "0.5")
-    dom.attr_set(canvas, "data-hv-target-y", "0.5")
-    dom.attr_set(canvas, "data-hv-target-z", "0.5")
+    dom.attr_set(canvas, "data-hv-target-x", "0.0")
+    dom.attr_set(canvas, "data-hv-target-y", "0.0")
+    dom.attr_set(canvas, "data-hv-target-z", "0.0")
 
-    # --- cube source data attributes for host consumption ---
-    dom.attr_set(canvas, "data-hv-vertex-count", "8")
-    dom.attr_set(canvas, "data-hv-index-count", "36")
+    # Live cube payload + initial transform (host uploads only).
+    emit_cube_geometry(canvas)
+    emit_transform(canvas, 0.0 ∷ f32, DEFAULT_ASPECT)
 
-    # --- Signal package admission ---
     dom.text_set(status, "package-ready")
     dom.class_add(status, "ready")
 
-    # --- Register and return frame subscription — lifecycle cleanup ---
-    redde dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame))
+    # Frame advances model matrix; resize updates projection inputs.
+    fixum dom.Subscription frame_sub ←
+        dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame))
+    fixum dom.Subscription resize_sub ←
+        dom.on_resize((dom.ResizeState resize) → vacuum ∴ update_resize(canvas, resize))
+    redde [frame_sub, resize_sub]
 }

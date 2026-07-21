@@ -4,6 +4,10 @@ import { web } from "web:web";
 
 import { dom } from "web:dom";
 
+import { triga } from "./triga-triga.js";
+
+const DEFAULT_ASPECT: number = 1.778 as number;
+
 function cube_positions(): Array<number> {
     return [0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1];
 }
@@ -13,31 +17,132 @@ function cube_colors(): Array<number> {
 function cube_indices(): Array<number> {
     return [0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6, 0, 4, 5, 0, 5, 1, 3, 2, 6, 3, 6, 7, 1, 5, 6, 1, 6, 2, 0, 3, 7, 0, 7, 4];
 }
+function lista_f32_textus(values: Array<number>): string {
+    let out: string = "";
+    let i: number = 0;
+    while ((i < values.length)) {
+        if (((i as number) === (0 as number))) {
+            out = String(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i));
+        } else {
+            out = `${out},${String(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i))}`;
+        }
+        i = (i + 1);
+    }
+    return out;
+}
+function lista_u32_textus(values: Array<number>): string {
+    let out: string = "";
+    let i: number = 0;
+    while ((i < values.length)) {
+        if (((i as number) === (0 as number))) {
+            out = String(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i));
+        } else {
+            out = `${out},${String(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i))}`;
+        }
+        i = (i + 1);
+    }
+    return out;
+}
+function cube_model_matrix(angle_radians: number): any {
+    const rotation_result: any | null = triga.euler_ad_quaternionem(triga.euler(0 as number, angle_radians, 0 as number));
+    let rotation: any = triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number);
+    if ((rotation_result !== null)) {
+        rotation = Object.assign({}, { x: rotation_result!.x, y: rotation_result!.y, z: rotation_result!.z, w: rotation_result!.w });
+    }
+    return triga.matrix4_composita(triga.vector3(-0.5 as number, -0.5 as number, -0.5 as number), rotation, triga.vector3(1 as number, 1 as number, 1 as number));
+}
+function cube_view_projection(aspect: number): any {
+    let safe_aspect: number = 1 as number;
+    if ((aspect > 0)) {
+        safe_aspect = aspect;
+    }
+    const projection_result: any | null = triga.matrix4_perspectiva(50 as number, safe_aspect, 0.1 as number, 100 as number);
+    const view_result: any | null = triga.matrix4_conspectus(triga.vector3(3 as number, 2 as number, 5 as number), triga.vector3(0 as number, 0 as number, 0 as number), triga.vector3(0 as number, 1 as number, 0 as number));
+    let projection: any = triga.matrix4_identitas();
+    let view: any = triga.matrix4_identitas();
+    if ((projection_result !== null)) {
+        projection = Object.assign({}, { elements: projection_result!.elements });
+    }
+    if ((view_result !== null)) {
+        view = Object.assign({}, { elements: view_result!.elements });
+    }
+    return triga.matrix4_multiplicata(projection, view);
+}
+function cube_transform_payload(angle_radians: number, aspect: number): any {
+    const model: any = cube_model_matrix(angle_radians);
+    const view_projection: any = cube_view_projection(aspect);
+    const packed: any | null = triga.transform_payload(model, view_projection);
+    if ((packed !== null)) {
+        return Object.assign({}, { values: packed!.values });
+    }
+    return Object.assign({}, { values: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] });
+}
+function emit_cube_geometry(canvas: any): void {
+    const positions: Array<number> = cube_positions();
+    const colors: Array<number> = cube_colors();
+    const indices: Array<number> = cube_indices();
+    dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(positions));
+    dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(colors));
+    dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(indices));
+    dom.attr_set(canvas, "data-hv-vertex-count", String((positions.length / 3)));
+    dom.attr_set(canvas, "data-hv-index-count", String(indices.length));
+}
+function emit_transform(canvas: any, angle_radians: number, aspect: number): void {
+    const payload: any = cube_transform_payload(angle_radians, aspect);
+    const values: Array<number> = payload.values;
+    let model_values: Array<number> = [];
+    let vp_values: Array<number> = [];
+    let i: number = 0;
+    while ((i < 16)) {
+        model_values.push(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i));
+        i = (i + 1);
+    }
+    while ((i < 32)) {
+        vp_values.push(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(values, i));
+        i = (i + 1);
+    }
+    dom.attr_set(canvas, "data-hv-transform", lista_f32_textus(values));
+    dom.attr_set(canvas, "data-hv-model-matrix", lista_f32_textus(model_values));
+    dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values));
+    dom.attr_set(canvas, "data-hv-aspect", String(aspect));
+}
 function update_frame(canvas: any, frame: any): void {
+    const angle: number = (frame.frame * 0.05 as number);
+    emit_transform(canvas, angle, DEFAULT_ASPECT);
     dom.attr_set(canvas, "data-hv-frame-count", String(frame.frame));
+    dom.attr_set(canvas, "data-hv-angle", String(angle));
     dom.class_add(canvas, "hv-frame-active");
 }
 function update_resize(canvas: any, resize: any): void {
+    const width: number = resize.width;
+    const height: number = resize.height;
+    let aspect: number = 1 as number;
+    if ((height > 0)) {
+        aspect = (width / height);
+    }
     dom.attr_set(canvas, "data-hv-width", String(resize.width));
     dom.attr_set(canvas, "data-hv-height", String(resize.height));
+    dom.attr_set(canvas, "data-hv-aspect", String(aspect));
+    emit_transform(canvas, 0 as number, aspect);
     dom.class_add(canvas, "hv-resize-active");
 }
-export function hello_voxel_controller(scope: any): any {
+export function hello_voxel_controller(scope: any): Array<any> {
     const status: any = dom.require(scope, ".hv-status");
     const canvas: any = dom.require(scope, ".hv-canvas");
     dom.attr_set(canvas, "data-hv-fov", "50");
-    dom.attr_set(canvas, "data-hv-aspect", "1.778");
     dom.attr_set(canvas, "data-hv-near", "0.1");
     dom.attr_set(canvas, "data-hv-far", "100.0");
     dom.attr_set(canvas, "data-hv-eye-x", "3.0");
     dom.attr_set(canvas, "data-hv-eye-y", "2.0");
     dom.attr_set(canvas, "data-hv-eye-z", "5.0");
-    dom.attr_set(canvas, "data-hv-target-x", "0.5");
-    dom.attr_set(canvas, "data-hv-target-y", "0.5");
-    dom.attr_set(canvas, "data-hv-target-z", "0.5");
-    dom.attr_set(canvas, "data-hv-vertex-count", "8");
-    dom.attr_set(canvas, "data-hv-index-count", "36");
+    dom.attr_set(canvas, "data-hv-target-x", "0.0");
+    dom.attr_set(canvas, "data-hv-target-y", "0.0");
+    dom.attr_set(canvas, "data-hv-target-z", "0.0");
+    emit_cube_geometry(canvas);
+    emit_transform(canvas, 0 as number, DEFAULT_ASPECT);
     dom.text_set(status, "package-ready");
     dom.class_add(status, "ready");
-    return dom.on_frame((frame: any) => update_frame(canvas, frame));
+    const frame_sub: any = dom.on_frame((frame: any) => update_frame(canvas, frame));
+    const resize_sub: any = dom.on_resize((resize: any) => update_resize(canvas, resize));
+    return [frame_sub, resize_sub];
 }

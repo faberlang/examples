@@ -138,15 +138,18 @@ assert(status.classList.has("ready"), "status gains ready class");
 // Structural package admission only — not GPU/pixel evidence.
 // ---------------------------------------------------------------------------
 assert(canvas.getAttribute("data-hv-fov") === "50", "canvas has data-hv-fov");
-assert(canvas.getAttribute("data-hv-aspect") === "1.778", "canvas has data-hv-aspect");
+// Aspect is live from on_resize initial emit (960×540) or package default.
+const mountAspect = Number(canvas.getAttribute("data-hv-aspect"));
+assert(Number.isFinite(mountAspect) && mountAspect > 0, "canvas has positive data-hv-aspect");
 assert(canvas.getAttribute("data-hv-near") === "0.1", "canvas has data-hv-near");
 assert(canvas.getAttribute("data-hv-far") === "100.0", "canvas has data-hv-far");
 assert(canvas.getAttribute("data-hv-eye-x") === "3.0", "canvas has data-hv-eye-x");
 assert(canvas.getAttribute("data-hv-eye-y") === "2.0", "canvas has data-hv-eye-y");
 assert(canvas.getAttribute("data-hv-eye-z") === "5.0", "canvas has data-hv-eye-z");
-assert(canvas.getAttribute("data-hv-target-x") === "0.5", "canvas has data-hv-target-x");
-assert(canvas.getAttribute("data-hv-target-y") === "0.5", "canvas has data-hv-target-y");
-assert(canvas.getAttribute("data-hv-target-z") === "0.5", "canvas has data-hv-target-z");
+// Model centers the unit cube at the origin; camera looks at origin.
+assert(canvas.getAttribute("data-hv-target-x") === "0.0", "canvas has data-hv-target-x");
+assert(canvas.getAttribute("data-hv-target-y") === "0.0", "canvas has data-hv-target-y");
+assert(canvas.getAttribute("data-hv-target-z") === "0.0", "canvas has data-hv-target-z");
 assert(canvas.getAttribute("data-hv-vertex-count") === "8", "canvas has data-hv-vertex-count");
 assert(canvas.getAttribute("data-hv-index-count") === "36", "canvas has data-hv-index-count");
 

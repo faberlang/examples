@@ -1,11 +1,8 @@
-{
-  "controllers": [
-    {
-      "export": "hello_voxel_controller",
-      "module": "./main.js",
-      "name": "hello_voxel_controller",
-      "selector": "#hello-voxel-root"
-    }
-  ],
-  "version": 1
-}
+[
+  {
+    "name": "hello_voxel_controller",
+    "selector": "#hello-voxel-root",
+    "module": "./main.js",
+    "export": "hello_voxel_controller"
+  }
+]

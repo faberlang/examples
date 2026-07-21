@@ -4,7 +4,7 @@
 // controller through the generated lifecycle helper. It proves package and DOM
 // admission only. It does not claim rendering or WebGPU execution.
 
-import { FakeElement } from "../../browser-app/tests/fake-dom.mjs";
+import { FakeElement, FakeEventTarget } from "../../browser-app/tests/fake-dom.mjs";
 
 const FAIL = "\x1b[31mFAIL\x1b[0m";
 const PASS = "\x1b[32mPASS\x1b[0m";
@@ -49,6 +49,14 @@ function buildHelloVoxelDom() {
 
   return { root, status };
 }
+
+// Frame + resize subscriptions require rAF and window (HV-04B on_resize).
+globalThis.requestAnimationFrame = (cb) => 0;
+globalThis.cancelAnimationFrame = () => {};
+globalThis.window = new FakeEventTarget();
+globalThis.window.innerWidth = 960;
+globalThis.window.innerHeight = 540;
+globalThis.window.devicePixelRatio = 1;
 
 const { root, status } = buildHelloVoxelDom();
 globalThis.document = root;
