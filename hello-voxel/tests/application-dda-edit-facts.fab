@@ -1,0 +1,521 @@
+# HV-06B focused facts: voxel DDA (axis, diagonal, empty, boundary, range 6)
+# and edit semantics (remove, place, player-box overlap reject).
+#
+# Run (from package root):
+#   faber run --compile tests/application-dda-edit-facts.fab
+#   # or: tests/run-hv06b.sh
+
+importa ex "../src/voxel" privata voxel
+importa ex "../src/application" privata application
+importa ex "triga:triga" privata triga
+
+functio approx(f32 a, f32 b, f32 eps) → bivalens {
+    redde (a - b).absolutum() ≤ eps
+}
+
+functio player_at(f32 x, f32 y, f32 z) → application.Player {
+    redde application.Player {
+        x = x,
+        y = y,
+        z = z,
+        velocity_y = 0.0 ∷ f32,
+        grounded = verum
+    }
+}
+
+functio camera_look(f32 yaw, f32 pitch) → application.Camera {
+    redde application.Camera {
+        yaw_degrees = yaw,
+        pitch_degrees = pitch
+    }
+}
+
+# World with a single solid at (x,y,z).
+functio world_with_solid(numerus x, numerus y, numerus z) → voxel.World {
+    fixum voxel.World empty ← voxel.empty_world()
+    fixum voxel.World ∪ nihil set_result ← voxel.world_set(
+        empty, x, y, z, voxel.block_solid()
+    )
+    redde voxel.World { chunks = set_result!.chunks }
+}
+
+# World with two solids.
+functio world_with_two_solids(
+    numerus x0,
+    numerus y0,
+    numerus z0,
+    numerus x1,
+    numerus y1,
+    numerus z1
+) → voxel.World {
+    fixum voxel.World first ← world_with_solid(x0, y0, z0)
+    fixum voxel.World ∪ nihil set_result ← voxel.world_set(
+        first, x1, y1, z1, voxel.block_solid()
+    )
+    redde voxel.World { chunks = set_result!.chunks }
+}
+
+incipit {
+    # ------------------------------------------------------------------
+    # Constants
+    # ------------------------------------------------------------------
+    adfirma application.select_range() ≡ (6.0 ∷ f32),
+        "selection reach is locked at 6 blocks"
+
+    # ------------------------------------------------------------------
+    # Axis-aligned DDA (+X)
+    # ------------------------------------------------------------------
+    # Solid at (5, 2, 4). Ray from (1.5, 2.5, 4.5) along +X.
+    fixum voxel.World axis_world ← world_with_solid(5, 2, 4)
+    fixum triga.Vector3 axis_origin ← triga.vector3(
+        1.5 ∷ f32,
+        2.5 ∷ f32,
+        4.5 ∷ f32
+    )
+    fixum triga.Vector3 axis_dir ← triga.vector3(
+        1.0 ∷ f32,
+        0.0 ∷ f32,
+        0.0 ∷ f32
+    )
+    fixum application.VoxelHit ∪ nihil axis_hit ← application.voxel_dda(
+        axis_world,
+        axis_origin,
+        axis_dir,
+        application.select_range()
+    )
+    adfirma axis_hit non est nihil,
+        "axis +X ray hits the solid within range"
+    adfirma axis_hit!.hit_x ≡ 5 et axis_hit!.hit_y ≡ 2 et axis_hit!.hit_z ≡ 4,
+        "axis hit coordinate is the solid cell"
+    adfirma axis_hit!.has_preceding,
+        "axis hit reports a preceding empty cell"
+    adfirma axis_hit!.prev_x ≡ 4 et axis_hit!.prev_y ≡ 2 et axis_hit!.prev_z ≡ 4,
+        "axis preceding is the empty cell west of the solid"
+    adfirma approx(axis_hit!.distance, 3.5 ∷ f32, 0.0001 ∷ f32),
+        "axis hit distance is origin→solid face (5 - 1.5 = 3.5)"
+
+    # -Z axis
+    fixum voxel.World axis_z_world ← world_with_solid(8, 3, 2)
+    fixum application.VoxelHit ∪ nihil axis_z_hit ← application.voxel_dda(
+        axis_z_world,
+        triga.vector3(8.5 ∷ f32, 3.5 ∷ f32, 6.5 ∷ f32),
+        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32 - 1.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma axis_z_hit non est nihil,
+        "axis -Z ray hits the solid"
+    adfirma axis_z_hit!.hit_x ≡ 8 et axis_z_hit!.hit_y ≡ 3 et axis_z_hit!.hit_z ≡ 2,
+        "axis -Z hit is the solid cell"
+    adfirma axis_z_hit!.prev_x ≡ 8 et axis_z_hit!.prev_y ≡ 3 et axis_z_hit!.prev_z ≡ 3,
+        "axis -Z preceding is the empty cell on the +Z face of the solid"
+
+    # ------------------------------------------------------------------
+    # Diagonal DDA
+    # ------------------------------------------------------------------
+    # Exact (1,1,1) diagonal visits cells with equal X/Y/Z. Solid on that path.
+    fixum voxel.World diag_world ← world_with_solid(4, 4, 4)
+    fixum f32 inv_sqrt3 ← 0.57735026919 ∷ f32
+    fixum application.VoxelHit ∪ nihil diag_hit ← application.voxel_dda(
+        diag_world,
+        triga.vector3(1.5 ∷ f32, 1.5 ∷ f32, 1.5 ∷ f32),
+        triga.vector3(inv_sqrt3, inv_sqrt3, inv_sqrt3),
+        application.select_range()
+    )
+    adfirma diag_hit non est nihil,
+        "diagonal ray hits the solid"
+    adfirma diag_hit!.hit_x ≡ 4 et diag_hit!.hit_y ≡ 4 et diag_hit!.hit_z ≡ 4,
+        "diagonal hit coordinate is the solid"
+    adfirma diag_hit!.has_preceding,
+        "diagonal hit has a preceding empty cell"
+    # Preceding must be a 6-adjacent neighbor of the hit (Manhattan distance 1).
+    fixum numerus diag_dx ← (diag_hit!.hit_x - diag_hit!.prev_x).absolutum()
+    fixum numerus diag_dy ← (diag_hit!.hit_y - diag_hit!.prev_y).absolutum()
+    fixum numerus diag_dz ← (diag_hit!.hit_z - diag_hit!.prev_z).absolutum()
+    adfirma (diag_dx + diag_dy + diag_dz) ≡ 1,
+        "diagonal preceding is face-adjacent to the hit"
+    adfirma diag_hit!.distance ≤ application.select_range(),
+        "diagonal hit distance is within range"
+    # Entering x=y=z=4 from 1.5 is Δ=2.5 per axis → t = 2.5 * √3 ≈ 4.330.
+    adfirma approx(diag_hit!.distance, 4.330127 ∷ f32, 0.01 ∷ f32),
+        "diagonal hit distance is 2.5 * √3"
+
+    # First solid along the diagonal wins when two solids are present.
+    fixum voxel.World diag_two ← world_with_two_solids(3, 3, 3, 5, 5, 5)
+    fixum application.VoxelHit ∪ nihil diag_first ← application.voxel_dda(
+        diag_two,
+        triga.vector3(1.5 ∷ f32, 1.5 ∷ f32, 1.5 ∷ f32),
+        triga.vector3(inv_sqrt3, inv_sqrt3, inv_sqrt3),
+        application.select_range()
+    )
+    adfirma diag_first non est nihil,
+        "diagonal ray with two solids still hits"
+    adfirma diag_first!.hit_x ≡ 3 et diag_first!.hit_y ≡ 3 et diag_first!.hit_z ≡ 3,
+        "diagonal selects the nearer solid, not the farther one"
+
+    # ------------------------------------------------------------------
+    # Empty / miss
+    # ------------------------------------------------------------------
+    fixum voxel.World empty ← voxel.empty_world()
+    fixum application.VoxelHit ∪ nihil empty_hit ← application.voxel_dda(
+        empty,
+        triga.vector3(8.5 ∷ f32, 4.5 ∷ f32, 8.5 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma empty_hit est nihil,
+        "empty world yields no DDA hit"
+
+    # Solid present but ray points away.
+    fixum voxel.World away_world ← world_with_solid(10, 2, 10)
+    fixum application.VoxelHit ∪ nihil away_hit ← application.voxel_dda(
+        away_world,
+        triga.vector3(5.5 ∷ f32, 2.5 ∷ f32, 10.5 ∷ f32),
+        triga.vector3(0.0 ∷ f32 - 1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma away_hit est nihil,
+        "ray pointing away from the only solid misses"
+
+    # Zero direction is a miss.
+    fixum application.VoxelHit ∪ nihil zero_hit ← application.voxel_dda(
+        axis_world,
+        axis_origin,
+        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma zero_hit est nihil,
+        "zero-length direction yields no hit"
+
+    # ------------------------------------------------------------------
+    # Boundary cells (world edges)
+    # ------------------------------------------------------------------
+    fixum voxel.World boundary_low ← world_with_solid(0, 0, 0)
+    fixum application.VoxelHit ∪ nihil boundary_hit ← application.voxel_dda(
+        boundary_low,
+        triga.vector3(3.5 ∷ f32, 0.5 ∷ f32, 0.5 ∷ f32),
+        triga.vector3(0.0 ∷ f32 - 1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma boundary_hit non est nihil,
+        "boundary solid at world origin is selectable"
+    adfirma boundary_hit!.hit_x ≡ 0 et boundary_hit!.hit_y ≡ 0
+        et boundary_hit!.hit_z ≡ 0,
+        "boundary hit is (0,0,0)"
+    adfirma boundary_hit!.prev_x ≡ 1 et boundary_hit!.prev_y ≡ 0
+        et boundary_hit!.prev_z ≡ 0,
+        "boundary preceding is the in-bounds empty neighbor"
+
+    fixum voxel.World boundary_far ← world_with_solid(31, 15, 31)
+    fixum application.VoxelHit ∪ nihil far_hit ← application.voxel_dda(
+        boundary_far,
+        triga.vector3(28.5 ∷ f32, 15.5 ∷ f32, 31.5 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma far_hit non est nihil,
+        "far-corner solid is selectable"
+    adfirma far_hit!.hit_x ≡ 31 et far_hit!.hit_y ≡ 15 et far_hit!.hit_z ≡ 31,
+        "far-corner hit is (31,15,31)"
+    adfirma far_hit!.prev_x ≡ 30 et far_hit!.prev_y ≡ 15 et far_hit!.prev_z ≡ 31,
+        "far-corner preceding stays in-bounds"
+
+    # ------------------------------------------------------------------
+    # Range limit 6
+    # ------------------------------------------------------------------
+    # Origin x=2.5, dir +X. Enter cell x=9 at t=6.5 > 6 → miss.
+    fixum voxel.World far_solid ← world_with_solid(9, 1, 5)
+    fixum application.VoxelHit ∪ nihil out_of_range ← application.voxel_dda(
+        far_solid,
+        triga.vector3(2.5 ∷ f32, 1.5 ∷ f32, 5.5 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma out_of_range est nihil,
+        "solid entered at distance 6.5 is outside range 6"
+
+    # Enter cell x=8 at t=5.5 ≤ 6 → hit.
+    fixum voxel.World near_solid ← world_with_solid(8, 1, 5)
+    fixum application.VoxelHit ∪ nihil in_range ← application.voxel_dda(
+        near_solid,
+        triga.vector3(2.5 ∷ f32, 1.5 ∷ f32, 5.5 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma in_range non est nihil,
+        "solid entered at distance 5.5 is inside range 6"
+    adfirma in_range!.hit_x ≡ 8 et in_range!.hit_y ≡ 1 et in_range!.hit_z ≡ 5,
+        "in-range hit is the solid at x=8"
+    adfirma approx(in_range!.distance, 5.5 ∷ f32, 0.0001 ∷ f32),
+        "in-range hit distance is 5.5"
+
+    # Exact boundary: enter at t=6.0 counts as a hit (distance > max only misses).
+    fixum voxel.World edge_solid ← world_with_solid(8, 1, 6)
+    fixum application.VoxelHit ∪ nihil edge_range ← application.voxel_dda(
+        edge_solid,
+        triga.vector3(2.0 ∷ f32, 1.5 ∷ f32, 6.5 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma edge_range non est nihil,
+        "solid entered at exact distance 6 is still in range"
+    adfirma approx(edge_range!.distance, 6.0 ∷ f32, 0.0001 ∷ f32),
+        "edge-of-range hit distance is exactly 6"
+
+    # ------------------------------------------------------------------
+    # Remove hit (primary)
+    # ------------------------------------------------------------------
+    fixum voxel.World remove_world ← world_with_solid(5, 2, 4)
+    fixum application.VoxelHit ∪ nihil remove_sel ← application.voxel_dda(
+        remove_world,
+        axis_origin,
+        axis_dir,
+        application.select_range()
+    )
+    adfirma remove_sel non est nihil,
+        "remove fixture has a selectable solid"
+    fixum application.VoxelHit remove_hit ← application.VoxelHit {
+        hit_x = remove_sel!.hit_x,
+        hit_y = remove_sel!.hit_y,
+        hit_z = remove_sel!.hit_z,
+        prev_x = remove_sel!.prev_x,
+        prev_y = remove_sel!.prev_y,
+        prev_z = remove_sel!.prev_z,
+        has_preceding = remove_sel!.has_preceding,
+        distance = remove_sel!.distance
+    }
+    fixum voxel.World ∪ nihil after_remove ← application.remove_hit(
+        remove_world,
+        remove_hit
+    )
+    adfirma after_remove non est nihil,
+        "remove_hit applies on a solid selection"
+    fixum voxel.World removed_world ← voxel.World { chunks = after_remove!.chunks }
+    fixum numerus ∪ nihil removed_id ← voxel.world_get(removed_world, 5, 2, 4)
+    adfirma removed_id non est nihil et (removed_id vel 1) ≡ voxel.block_air(),
+        "remove_hit sets the hit cell to air"
+    # Re-cast after removal: no hit.
+    fixum application.VoxelHit ∪ nihil after_remove_sel ← application.voxel_dda(
+        removed_world,
+        axis_origin,
+        axis_dir,
+        application.select_range()
+    )
+    adfirma after_remove_sel est nihil,
+        "after removal the same ray misses"
+
+    # ------------------------------------------------------------------
+    # Place at preceding (secondary), solid id 1
+    # ------------------------------------------------------------------
+    fixum voxel.World place_world ← world_with_solid(5, 2, 4)
+    fixum application.VoxelHit ∪ nihil place_sel ← application.voxel_dda(
+        place_world,
+        axis_origin,
+        axis_dir,
+        application.select_range()
+    )
+    adfirma place_sel non est nihil et place_sel!.has_preceding,
+        "place fixture has hit + preceding"
+    # Player far from the placement cell so overlap check passes.
+    fixum application.Player far_player ← player_at(
+        20.5 ∷ f32,
+        1.0 ∷ f32,
+        20.5 ∷ f32
+    )
+    fixum application.VoxelHit place_hit ← application.VoxelHit {
+        hit_x = place_sel!.hit_x,
+        hit_y = place_sel!.hit_y,
+        hit_z = place_sel!.hit_z,
+        prev_x = place_sel!.prev_x,
+        prev_y = place_sel!.prev_y,
+        prev_z = place_sel!.prev_z,
+        has_preceding = place_sel!.has_preceding,
+        distance = place_sel!.distance
+    }
+    adfirma place_hit.prev_x ≡ 4 et place_hit.prev_y ≡ 2 et place_hit.prev_z ≡ 4,
+        "place preceding is (4,2,4)"
+    adfirma application.placement_intersects_player(
+        far_player,
+        place_hit.prev_x,
+        place_hit.prev_y,
+        place_hit.prev_z
+    ) ≡ falsum,
+        "far player does not intersect the placement cell"
+    fixum voxel.World ∪ nihil after_place ← application.place_at_preceding(
+        place_world,
+        far_player,
+        place_hit
+    )
+    adfirma after_place non est nihil,
+        "place_at_preceding applies when legal"
+    fixum voxel.World placed_world ← voxel.World { chunks = after_place!.chunks }
+    fixum numerus ∪ nihil placed_id ← voxel.world_get(placed_world, 4, 2, 4)
+    adfirma placed_id non est nihil et (placed_id vel 0) ≡ voxel.block_solid(),
+        "place writes solid id 1 at the preceding cell"
+    fixum numerus ∪ nihil still_hit ← voxel.world_get(placed_world, 5, 2, 4)
+    adfirma still_hit non est nihil et (still_hit vel 0) ≡ voxel.block_solid(),
+        "place does not mutate the original hit cell"
+
+    # New ray from farther west now hits the newly placed solid first.
+    fixum application.VoxelHit ∪ nihil placed_sel ← application.voxel_dda(
+        placed_world,
+        triga.vector3(1.5 ∷ f32, 2.5 ∷ f32, 4.5 ∷ f32),
+        axis_dir,
+        application.select_range()
+    )
+    adfirma placed_sel non est nihil,
+        "after place the ray still hits"
+    adfirma placed_sel!.hit_x ≡ 4 et placed_sel!.hit_y ≡ 2 et placed_sel!.hit_z ≡ 4,
+        "after place the nearer solid at preceding is selected first"
+
+    # ------------------------------------------------------------------
+    # Player-box overlap reject
+    # ------------------------------------------------------------------
+    # Solid at (10,1,10). Ray from (10.5, 2.5, 7.5) along +Z → hit (10,1,10),
+    # preceding (10,1,9). Player standing such that AABB overlaps (10,1,9).
+    fixum voxel.World overlap_world ← world_with_solid(10, 1, 10)
+    fixum application.VoxelHit ∪ nihil overlap_sel ← application.voxel_dda(
+        overlap_world,
+        triga.vector3(10.5 ∷ f32, 1.5 ∷ f32, 7.5 ∷ f32),
+        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
+        application.select_range()
+    )
+    adfirma overlap_sel non est nihil,
+        "overlap fixture selects the solid"
+    adfirma overlap_sel!.hit_x ≡ 10 et overlap_sel!.hit_y ≡ 1
+        et overlap_sel!.hit_z ≡ 10,
+        "overlap fixture hit is (10,1,10)"
+    adfirma overlap_sel!.prev_x ≡ 10 et overlap_sel!.prev_y ≡ 1
+        et overlap_sel!.prev_z ≡ 9,
+        "overlap fixture preceding is (10,1,9)"
+
+    # Player centered in the preceding cell horizontally; feet at y=1 so the
+    # unit cell [10,11]×[1,2]×[9,10] intersects the 0.6×1.8 player box.
+    fixum application.Player blocking_player ← player_at(
+        10.5 ∷ f32,
+        1.0 ∷ f32,
+        9.5 ∷ f32
+    )
+    adfirma application.placement_intersects_player(
+        blocking_player,
+        overlap_sel!.prev_x,
+        overlap_sel!.prev_y,
+        overlap_sel!.prev_z
+    ),
+        "blocking player AABB intersects the preceding cell"
+    fixum application.VoxelHit overlap_hit ← application.VoxelHit {
+        hit_x = overlap_sel!.hit_x,
+        hit_y = overlap_sel!.hit_y,
+        hit_z = overlap_sel!.hit_z,
+        prev_x = overlap_sel!.prev_x,
+        prev_y = overlap_sel!.prev_y,
+        prev_z = overlap_sel!.prev_z,
+        has_preceding = overlap_sel!.has_preceding,
+        distance = overlap_sel!.distance
+    }
+    fixum voxel.World ∪ nihil rejected ← application.place_at_preceding(
+        overlap_world,
+        blocking_player,
+        overlap_hit
+    )
+    adfirma rejected est nihil,
+        "place is rejected when preceding intersects the player AABB"
+    fixum numerus ∪ nihil still_air ← voxel.world_get(overlap_world, 10, 1, 9)
+    adfirma still_air non est nihil et (still_air vel 1) ≡ voxel.block_air(),
+        "rejected place leaves the preceding cell as air"
+
+    # Same selection with a far player succeeds.
+    fixum voxel.World ∪ nihil allowed ← application.place_at_preceding(
+        overlap_world,
+        far_player,
+        overlap_hit
+    )
+    adfirma allowed non est nihil,
+        "same place succeeds when the player is clear of the cell"
+
+    # ------------------------------------------------------------------
+    # Camera-path select / try_remove / try_place
+    # ------------------------------------------------------------------
+    # Fixture wall at z=8, y in [1..6]. Spawn at (20.5, 1, 20.5), yaw 0 faces -Z.
+    # Looking slightly down toward the wall from spawn is long; use a player
+    # closer to the wall looking -Z (yaw 0).
+    fixum voxel.World fixture ← voxel.fixture_world()
+    fixum application.Player near_wall ← player_at(
+        16.0 ∷ f32,
+        1.0 ∷ f32,
+        12.0 ∷ f32
+    )
+    # Eye at y = 1 + 1.62 = 2.62, pitch 0, yaw 0 → dir (0,0,-1).
+    # Hits wall solid at z=8, y=2 (floor of 2.62), preceding z=9.
+    fixum application.Camera face_neg_z ← camera_look(0.0 ∷ f32, 0.0 ∷ f32)
+    fixum application.VoxelHit ∪ nihil cam_hit ← application.select_voxel(
+        fixture,
+        face_neg_z,
+        near_wall
+    )
+    adfirma cam_hit non est nihil,
+        "select_voxel from camera hits the fixture wall"
+    adfirma cam_hit!.hit_z ≡ voxel.fixture_wall_z(),
+        "camera selection hit z is the fixture wall"
+    adfirma cam_hit!.has_preceding,
+        "camera selection reports preceding"
+    adfirma cam_hit!.prev_z ≡ voxel.fixture_wall_z() + 1,
+        "camera preceding is the empty cell on the +Z side of the wall"
+
+    fixum voxel.World ∪ nihil cam_removed ← application.try_remove(
+        fixture,
+        face_neg_z,
+        near_wall
+    )
+    adfirma cam_removed non est nihil,
+        "try_remove mutates through the camera ray"
+    fixum voxel.World cam_removed_world ← voxel.World {
+        chunks = cam_removed!.chunks
+    }
+    fixum numerus ∪ nihil wall_gone ← voxel.world_get(
+        cam_removed_world,
+        cam_hit!.hit_x,
+        cam_hit!.hit_y,
+        cam_hit!.hit_z
+    )
+    adfirma wall_gone non est nihil et (wall_gone vel 1) ≡ voxel.block_air(),
+        "try_remove cleared the selected wall cell"
+
+    # Place against the pillar via camera: stand south of pillar, look -Z? 
+    # Pillar at (4, *, 24). Stand at (4.0, 1, 27), yaw 0 (-Z) looks at pillar.
+    fixum application.Player near_pillar ← player_at(
+        4.0 ∷ f32,
+        1.0 ∷ f32,
+        27.0 ∷ f32
+    )
+    fixum application.VoxelHit ∪ nihil pillar_hit ← application.select_voxel(
+        fixture,
+        face_neg_z,
+        near_pillar
+    )
+    adfirma pillar_hit non est nihil,
+        "camera selects the fixture pillar"
+    adfirma pillar_hit!.hit_x ≡ voxel.fixture_pillar_x()
+        et pillar_hit!.hit_z ≡ voxel.fixture_pillar_z(),
+        "pillar selection hit matches fixture pillar XZ"
+    # Place at preceding (south of pillar) with player still south but clear:
+    # preceding should be z=25; player at z=27 with half-width 0.3 spans
+    # [26.7, 27.3] — does not reach z=25 cell [25,26].
+    fixum voxel.World ∪ nihil pillar_placed ← application.try_place(
+        fixture,
+        face_neg_z,
+        near_pillar
+    )
+    adfirma pillar_placed non est nihil,
+        "try_place against pillar succeeds when player is clear"
+    fixum voxel.World pillar_placed_world ← voxel.World {
+        chunks = pillar_placed!.chunks
+    }
+    fixum numerus ∪ nihil placed_prev ← voxel.world_get(
+        pillar_placed_world,
+        pillar_hit!.prev_x,
+        pillar_hit!.prev_y,
+        pillar_hit!.prev_z
+    )
+    adfirma placed_prev non est nihil et (placed_prev vel 0) ≡ voxel.block_solid(),
+        "try_place wrote solid id 1 at the preceding cell"
+}

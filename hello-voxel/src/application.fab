@@ -1,6 +1,6 @@
-# Hello Voxel — HV-06A: camera, input state, and collision.
+# Hello Voxel — HV-06A/B: camera, input, collision, voxel DDA, and edit semantics.
 #
-# Locked contract (goal 06 / delivery HV-06A):
+# Locked contract (goal 06 / delivery HV-06A + HV-06B):
 #   - Yaw around +Y; pitch clamped to ±89°; mouse deltas only under pointer lock.
 #   - WASD physical codes; frame time in seconds; fixed speed; horizontal forward/right.
 #   - Focus loss clears movement keys immediately.
@@ -8,8 +8,12 @@
 #   - Gravity + grounded walking; no jump.
 #   - Spawn is a fixed empty location in the Goal 05 fixture world.
 #   - Unusually large frame deltas clamp to max_delta_seconds() (0.05 s).
+#   - Selection: voxel DDA from camera eye, max distance 6 blocks.
+#   - DDA returns hit solid cell + preceding empty cell (placement face).
+#   - Primary edit removes hit solid via world_set(air); secondary places solid id 1
+#     at preceding unless the cell intersects the player AABB.
 #
-# DDA / edit / browser wiring are HV-06B / HV-06C.
+# Browser wiring is HV-06C.
 
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga
@@ -80,6 +84,20 @@ genus Application {
     Camera camera
     InputState input
     Player player
+}
+
+# Voxel DDA hit: solid cell under the ray plus the empty cell stepped from
+# (adjacent placement target). has_preceding is false when the ray starts
+# inside a solid (no legal place face).
+genus VoxelHit {
+    numerus hit_x
+    numerus hit_y
+    numerus hit_z
+    numerus prev_x
+    numerus prev_y
+    numerus prev_z
+    bivalens has_preceding
+    f32 distance
 }
 
 # =========================================================================
@@ -732,4 +750,318 @@ functio step_application(
         input = input,
         player = next_player
     }
+}
+
+# =========================================================================
+# VOXEL DDA (app-owned; max distance 6)
+# =========================================================================
+
+# Locked selection reach in world units (block edge length = 1).
+functio select_range() → f32 { redde 6.0 ∷ f32 }
+
+# Large sentinel for zero direction components in Amanatides–Woo traversal.
+functio _dda_inf() → f32 { redde 1.0e30 ∷ f32 }
+
+functio _dda_eps() → f32 { redde 1.0e-8 ∷ f32 }
+
+functio voxel_cell_box(numerus x, numerus y, numerus z) → triga.Box3 {
+    redde triga.Box3 {
+        min = triga.vector3(x ↦ f32, y ↦ f32, z ↦ f32),
+        max = triga.vector3(
+            (x ↦ f32) + 1.0 ∷ f32,
+            (y ↦ f32) + 1.0 ∷ f32,
+            (z ↦ f32) + 1.0 ∷ f32
+        )
+    }
+}
+
+# True when placing a unit solid cell at (x,y,z) would intersect the player AABB.
+functio placement_intersects_player(
+    de Player player,
+    numerus x,
+    numerus y,
+    numerus z
+) → bivalens {
+    redde triga.box3_intersecat(player_box(player), voxel_cell_box(x, y, z))
+}
+
+functio _dda_step(f32 component) → numerus {
+    si component > _dda_eps() {
+        redde 1
+    }
+    si component < 0.0 ∷ f32 - _dda_eps() {
+        redde 0 - 1
+    }
+    redde 0
+}
+
+functio _dda_t_delta(f32 component) → f32 {
+    si component.absolutum() ≤ _dda_eps() {
+        redde _dda_inf()
+    }
+    redde 1.0 ∷ f32 / component.absolutum()
+}
+
+# Distance along the ray to the first boundary crossed when leaving the current
+# cell along one axis. Zero-component axes never win the min-t race.
+functio _dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
+    si component.absolutum() ≤ _dda_eps() {
+        redde _dda_inf()
+    }
+    si component > 0.0 {
+        redde ((cell ↦ f32) + 1.0 ∷ f32 - origin) / component
+    }
+    redde ((cell ↦ f32) - origin) / component
+}
+
+# Amanatides–Woo voxel traversal. Hits the first solid within max_distance;
+# preceding is the empty cell stepped from (placement face). Out-of-bounds
+# cells are air. Starting inside a solid yields a hit with has_preceding=false.
+functio voxel_dda(
+    de voxel.World world,
+    de triga.Vector3 origin,
+    de triga.Vector3 direction,
+    f32 max_distance
+) → VoxelHit ∪ nihil {
+    si max_distance < 0.0 {
+        redde nihil
+    }
+    fixum f32 len_sq ← direction.x * direction.x
+        + direction.y * direction.y
+        + direction.z * direction.z
+    si len_sq ≤ _dda_eps() {
+        redde nihil
+    }
+
+    varia numerus x ← floor_cell(origin.x)
+    varia numerus y ← floor_cell(origin.y)
+    varia numerus z ← floor_cell(origin.z)
+
+    fixum numerus step_x ← _dda_step(direction.x)
+    fixum numerus step_y ← _dda_step(direction.y)
+    fixum numerus step_z ← _dda_step(direction.z)
+
+    fixum f32 t_delta_x ← _dda_t_delta(direction.x)
+    fixum f32 t_delta_y ← _dda_t_delta(direction.y)
+    fixum f32 t_delta_z ← _dda_t_delta(direction.z)
+
+    varia f32 t_max_x ← _dda_t_max(origin.x, direction.x, x)
+    varia f32 t_max_y ← _dda_t_max(origin.y, direction.y, y)
+    varia f32 t_max_z ← _dda_t_max(origin.z, direction.z, z)
+
+    # Starting cell solid → hit with no legal placement face.
+    si world_cell_is_solid(world, x, y, z) {
+        redde VoxelHit {
+            hit_x = x,
+            hit_y = y,
+            hit_z = z,
+            prev_x = x,
+            prev_y = y,
+            prev_z = z,
+            has_preceding = falsum,
+            distance = 0.0 ∷ f32
+        }
+    }
+
+    varia numerus prev_x ← x
+    varia numerus prev_y ← y
+    varia numerus prev_z ← z
+    varia f32 distance ← 0.0 ∷ f32
+    varia numerus steps ← 0
+    # World diagonal upper bound (~55) plus margin; range 6 needs far fewer.
+    fixum numerus max_steps ← 128
+
+    dum steps < max_steps {
+        # Advance along the nearest voxel face.
+        si t_max_x < t_max_y {
+            si t_max_x < t_max_z {
+                distance ← t_max_x
+                si distance > max_distance {
+                    redde nihil
+                }
+                prev_x ← x
+                prev_y ← y
+                prev_z ← z
+                x ← x + step_x
+                t_max_x ← t_max_x + t_delta_x
+            } secus {
+                distance ← t_max_z
+                si distance > max_distance {
+                    redde nihil
+                }
+                prev_x ← x
+                prev_y ← y
+                prev_z ← z
+                z ← z + step_z
+                t_max_z ← t_max_z + t_delta_z
+            }
+        } secus {
+            si t_max_y < t_max_z {
+                distance ← t_max_y
+                si distance > max_distance {
+                    redde nihil
+                }
+                prev_x ← x
+                prev_y ← y
+                prev_z ← z
+                y ← y + step_y
+                t_max_y ← t_max_y + t_delta_y
+            } secus {
+                distance ← t_max_z
+                si distance > max_distance {
+                    redde nihil
+                }
+                prev_x ← x
+                prev_y ← y
+                prev_z ← z
+                z ← z + step_z
+                t_max_z ← t_max_z + t_delta_z
+            }
+        }
+
+        si world_cell_is_solid(world, x, y, z) {
+            redde VoxelHit {
+                hit_x = x,
+                hit_y = y,
+                hit_z = z,
+                prev_x = prev_x,
+                prev_y = prev_y,
+                prev_z = prev_z,
+                has_preceding = verum,
+                distance = distance
+            }
+        }
+        steps ← steps + 1
+    }
+    redde nihil
+}
+
+# Camera-centered selection: eye origin, view direction, locked range 6.
+functio select_voxel(
+    de voxel.World world,
+    de Camera camera,
+    de Player player
+) → VoxelHit ∪ nihil {
+    fixum triga.CameraYawPitchFacts facts ← camera_view_facts(camera, player)
+    redde voxel_dda(
+        world,
+        facts.ray.origin,
+        facts.ray.direction,
+        select_range()
+    )
+}
+
+# =========================================================================
+# EDIT SEMANTICS (world_get / world_set only; place solid id 1)
+# =========================================================================
+
+# Primary action: remove the hit solid (set air). No-op / nihil if missing hit.
+functio remove_hit(
+    de voxel.World world,
+    de VoxelHit hit
+) → voxel.World ∪ nihil {
+    fixum numerus ∪ nihil id ← voxel.world_get(
+        world,
+        hit.hit_x,
+        hit.hit_y,
+        hit.hit_z
+    )
+    si id est nihil {
+        redde nihil
+    }
+    si voxel.block_is_solid(id vel 0) ≡ falsum {
+        redde nihil
+    }
+    redde voxel.world_set(
+        world,
+        hit.hit_x,
+        hit.hit_y,
+        hit.hit_z,
+        voxel.block_air()
+    )
+}
+
+# Secondary action: place solid id 1 at the preceding empty cell unless the
+# unit cell intersects the player AABB. Rejects missing preceding, OOB, non-air.
+functio place_at_preceding(
+    de voxel.World world,
+    de Player player,
+    de VoxelHit hit
+) → voxel.World ∪ nihil {
+    si hit.has_preceding ≡ falsum {
+        redde nihil
+    }
+    fixum numerus ∪ nihil id ← voxel.world_get(
+        world,
+        hit.prev_x,
+        hit.prev_y,
+        hit.prev_z
+    )
+    si id est nihil {
+        redde nihil
+    }
+    si voxel.block_is_air(id vel 1) ≡ falsum {
+        redde nihil
+    }
+    si placement_intersects_player(
+        player,
+        hit.prev_x,
+        hit.prev_y,
+        hit.prev_z
+    ) {
+        redde nihil
+    }
+    redde voxel.world_set(
+        world,
+        hit.prev_x,
+        hit.prev_y,
+        hit.prev_z,
+        voxel.block_solid()
+    )
+}
+
+# Convenience: select then remove through the camera ray.
+functio try_remove(
+    de voxel.World world,
+    de Camera camera,
+    de Player player
+) → voxel.World ∪ nihil {
+    fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
+    si hit_result est nihil {
+        redde nihil
+    }
+    fixum VoxelHit hit ← VoxelHit {
+        hit_x = hit_result!.hit_x,
+        hit_y = hit_result!.hit_y,
+        hit_z = hit_result!.hit_z,
+        prev_x = hit_result!.prev_x,
+        prev_y = hit_result!.prev_y,
+        prev_z = hit_result!.prev_z,
+        has_preceding = hit_result!.has_preceding,
+        distance = hit_result!.distance
+    }
+    redde remove_hit(world, hit)
+}
+
+# Convenience: select then place at preceding through the camera ray.
+functio try_place(
+    de voxel.World world,
+    de Camera camera,
+    de Player player
+) → voxel.World ∪ nihil {
+    fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
+    si hit_result est nihil {
+        redde nihil
+    }
+    fixum VoxelHit hit ← VoxelHit {
+        hit_x = hit_result!.hit_x,
+        hit_y = hit_result!.hit_y,
+        hit_z = hit_result!.hit_z,
+        prev_x = hit_result!.prev_x,
+        prev_y = hit_result!.prev_y,
+        prev_z = hit_result!.prev_z,
+        has_preceding = hit_result!.has_preceding,
+        distance = hit_result!.distance
+    }
+    redde place_at_preceding(world, player, hit)
 }
