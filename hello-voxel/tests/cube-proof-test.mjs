@@ -387,7 +387,10 @@ if (!existsSync(pixelEvidencePath)) {
   // Fail black-stub+identity success: pure black coverage vs dark clear is not visual law.
   assert(pixels.frame1_non_black_coverage === true && pixels.frame2_non_black_coverage === true,
     "pixel evidence must show non-black coverage (vertex color path, not black fragment stub)");
-  info("pixel evidence present: non-background non-black central samples at two frames");
+  // Goal 04 visual law: rotation must change rendered RGB between frame samples.
+  assert(pixels.frames_rgb_differ === true,
+    "pixel evidence must show frames_rgb_differ (Goal 04 rotation changes rendered output)");
+  info("pixel evidence present: non-background non-black central samples at two frames; frames_rgb_differ");
 }
 
 // Depth buffer evidence is required for the depth gate (near/far attrs alone insufficient).

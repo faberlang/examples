@@ -262,7 +262,8 @@ async function main() {
       evidence.depth.depth_test_enabled !== true ||
       evidence.pixel.central_is_background !== false ||
       evidence.pixel.frame1_non_black_coverage !== true ||
-      evidence.pixel.frame2_non_black_coverage !== true
+      evidence.pixel.frame2_non_black_coverage !== true ||
+      evidence.pixel.frames_rgb_differ !== true
     ) {
       console.error("run-hv04c-host-proof: evidence failed gate assertions", {
         submit: evidence.submit,

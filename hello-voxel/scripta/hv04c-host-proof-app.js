@@ -253,7 +253,8 @@ async function main() {
       && frame1NonBg
       && frame2NonBg
       && frame1NonBlack
-      && frame2NonBlack,
+      && frame2NonBlack
+      && framesRgbDiffer,
     status: "ready",
     kind: "ok",
     artifact_id: artifact.artifact_id,
@@ -298,7 +299,7 @@ async function main() {
 
   statusEl.textContent = window.faberHv04cProof.ok
     ? `ready frames=${frameState.submittedFrameCount} rgbDiff=${framesRgbDiffer}`
-    : `incomplete clearOk=${clearControlOk} f1=${frame1NonBg}/${frame1NonBlack} f2=${frame2NonBg}/${frame2NonBlack}`;
+    : `incomplete clearOk=${clearControlOk} f1=${frame1NonBg}/${frame1NonBlack} f2=${frame2NonBg}/${frame2NonBlack} rgbDiff=${framesRgbDiffer}`;
 }
 
 function rgbToHex(r, g, b) {
