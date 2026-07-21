@@ -135,7 +135,7 @@ function writeEvidence(proof) {
     artifact_id: artifactId,
     method: "drawIndexed",
     drawIndexed: true,
-    index_count: proof.index_count ?? last.index_count ?? 36,
+    index_count: proof.index_count ?? last.index_count ?? null,
     instance_count: proof.instance_count ?? last.instance_count ?? 1,
     first_index: last.first_index ?? 0,
     base_vertex: last.base_vertex ?? 0,
@@ -256,9 +256,15 @@ async function main() {
     }
 
     const evidence = writeEvidence(proof);
+    const drawManifest = JSON.parse(
+      fs.readFileSync(path.join(GENERATED, "draw.json"), "utf-8"),
+    );
+    const expectedIndexCount = Number(drawManifest.index_count);
     if (
       evidence.submit.drawIndexed !== true ||
-      Number(evidence.submit.index_count) !== 36 ||
+      !Number.isFinite(expectedIndexCount) ||
+      expectedIndexCount <= 0 ||
+      Number(evidence.submit.index_count) !== expectedIndexCount ||
       evidence.depth.depth_test_enabled !== true ||
       evidence.pixel.central_is_background !== false ||
       evidence.pixel.frame1_non_black_coverage !== true ||

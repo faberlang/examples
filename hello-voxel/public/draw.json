@@ -3,5 +3,10 @@
   "instance_count": 1,
   "base_vertex": 0,
   "first_index": 0,
-  "index_count": 36
+  "index_count": 15732,
+  "resource_pair_count": 4,
+  "draw_count": 4,
+  "chunk_count": 4,
+  "non_empty_chunk_count": 4,
+  "payload_kind": "four-chunk-world"
 }

@@ -142,16 +142,22 @@ assert(canvas.getAttribute("data-hv-fov") === "50", "canvas has data-hv-fov");
 const mountAspect = Number(canvas.getAttribute("data-hv-aspect"));
 assert(Number.isFinite(mountAspect) && mountAspect > 0, "canvas has positive data-hv-aspect");
 assert(canvas.getAttribute("data-hv-near") === "0.1", "canvas has data-hv-near");
-assert(canvas.getAttribute("data-hv-far") === "100.0", "canvas has data-hv-far");
-assert(canvas.getAttribute("data-hv-eye-x") === "3.0", "canvas has data-hv-eye-x");
-assert(canvas.getAttribute("data-hv-eye-y") === "2.0", "canvas has data-hv-eye-y");
-assert(canvas.getAttribute("data-hv-eye-z") === "5.0", "canvas has data-hv-eye-z");
-// Model centers the unit cube at the origin; camera looks at origin.
-assert(canvas.getAttribute("data-hv-target-x") === "0.0", "canvas has data-hv-target-x");
-assert(canvas.getAttribute("data-hv-target-y") === "0.0", "canvas has data-hv-target-y");
-assert(canvas.getAttribute("data-hv-target-z") === "0.0", "canvas has data-hv-target-z");
-assert(canvas.getAttribute("data-hv-vertex-count") === "8", "canvas has data-hv-vertex-count");
-assert(canvas.getAttribute("data-hv-index-count") === "36", "canvas has data-hv-index-count");
+assert(canvas.getAttribute("data-hv-far") === "200.0", "canvas has data-hv-far");
+assert(canvas.getAttribute("data-hv-eye-x") === "48.0", "canvas has data-hv-eye-x");
+assert(canvas.getAttribute("data-hv-eye-y") === "10.0", "canvas has data-hv-eye-y");
+assert(canvas.getAttribute("data-hv-eye-z") === "48.0", "canvas has data-hv-eye-z");
+// Camera looks at world ground center of the 32×16×32 fixture.
+assert(canvas.getAttribute("data-hv-target-x") === "16.0", "canvas has data-hv-target-x");
+assert(canvas.getAttribute("data-hv-target-y") === "2.0", "canvas has data-hv-target-y");
+assert(canvas.getAttribute("data-hv-target-z") === "16.0", "canvas has data-hv-target-z");
+assert(canvas.getAttribute("data-hv-payload-kind") === "four-chunk-world", "payload-kind four-chunk-world");
+assert(canvas.getAttribute("data-hv-chunk-count") === "4", "chunk-count 4");
+assert(canvas.getAttribute("data-hv-resource-pair-count") === "4", "resource pairs follow non-empty");
+assert(canvas.getAttribute("data-hv-draw-count") === "4", "draws follow non-empty");
+const _vertexCount = Number(canvas.getAttribute("data-hv-vertex-count"));
+const _indexCount = Number(canvas.getAttribute("data-hv-index-count"));
+assert(Number.isFinite(_vertexCount) && _vertexCount > 8, `vertex-count world mesh, got ${_vertexCount}`);
+assert(Number.isFinite(_indexCount) && _indexCount > 36, `index-count world mesh, got ${_indexCount}`);
 
 // Depth range structural: near < far (not depth buffer evidence).
 const near = Number(canvas.getAttribute("data-hv-near"));
@@ -315,19 +321,25 @@ const _publicDrawData = JSON.parse(readFileSync(_publicDrawJsonPath, "utf-8"));
 
 assert(_drawData.index_format === "uint32",
   `draw.json index_format is uint32, got ${_drawData.index_format}`);
-assert(_drawData.index_count === 36,
-  `draw.json index_count is 36, got ${_drawData.index_count}`);
+assert(Number(_drawData.index_count) === _indexCount,
+  `draw.json index_count matches package ${_indexCount}, got ${_drawData.index_count}`);
 assert(_drawData.instance_count === 1,
   `draw.json instance_count is 1, got ${_drawData.instance_count}`);
 assert(_drawData.base_vertex === 0,
   `draw.json base_vertex is 0, got ${_drawData.base_vertex}`);
 assert(_drawData.first_index === 0,
   `draw.json first_index is 0, got ${_drawData.first_index}`);
+assert(Number(_drawData.resource_pair_count) === 4,
+  `draw.json resource_pair_count 4, got ${_drawData.resource_pair_count}`);
+assert(Number(_drawData.draw_count) === 4,
+  `draw.json draw_count 4, got ${_drawData.draw_count}`);
+assert(_drawData.payload_kind === "four-chunk-world",
+  `draw.json payload_kind four-chunk-world, got ${_drawData.payload_kind}`);
 
 assert(JSON.stringify(_drawData) === JSON.stringify(_publicDrawData),
   "dist/public/draw.json and public/draw.json match");
 
-info("package draw.json structural: index_format=uint32, index_count=36, instance_count=1");
+info(`package draw.json structural: index_count=${_indexCount}, resource_pairs=4, draws=4`);
 info("package draw.json is NOT GPU submission evidence");
 
 // Optional package geometry payloads (HV-04B live emission). Absence is incomplete, not soft-pass.
@@ -367,9 +379,10 @@ if (!existsSync(submitEvidencePath)) {
   const submit = JSON.parse(readFileSync(submitEvidencePath, "utf-8"));
   assert(submit.drawIndexed === true || submit.method === "drawIndexed",
     "submit evidence must record drawIndexed");
-  assert(Number(submit.index_count) === 36, `submit index_count 36, got ${submit.index_count}`);
+  assert(Number(submit.index_count) === _indexCount,
+    `submit index_count ${_indexCount}, got ${submit.index_count}`);
   assert(Number(submit.instance_count) === 1, `submit instance_count 1, got ${submit.instance_count}`);
-  info("live submit evidence present and asserts drawIndexed(36,1,…)");
+  info(`live submit evidence present and asserts drawIndexed(${_indexCount},1,…)`);
 }
 
 if (!existsSync(pixelEvidencePath)) {

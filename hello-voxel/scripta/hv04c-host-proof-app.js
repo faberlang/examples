@@ -114,22 +114,37 @@ async function main() {
   const transform1 = new Float32Array(await transformResponse.arrayBuffer());
   const transform2 = new Float32Array(await transform2Response.arrayBuffer());
 
-  if (positionsBuffer.byteLength !== 96) {
+  // HV-05C: package-owned four-chunk (or residual cube) sizes from draw.json.
+  // Fail closed on empty or mismatched position/color/index payloads.
+  const expectedIndexCount = Number(drawManifest.index_count);
+  if (!Number.isFinite(expectedIndexCount) || expectedIndexCount <= 0) {
     throw new FaberKernelContractError(
-      "package-positions",
-      `expected 96 bytes (8×vec3), got ${positionsBuffer.byteLength}`,
+      "drawManifest",
+      `invalid index_count ${drawManifest.index_count}`,
     );
   }
-  if (colorsBuffer.byteLength !== 96) {
-    throw new FaberKernelContractError(
-      "package-colors",
-      `expected 96 bytes (8×vec3), got ${colorsBuffer.byteLength}`,
-    );
-  }
-  if (indicesBuffer.byteLength !== 144) {
+  if (indicesBuffer.byteLength !== expectedIndexCount * 4) {
     throw new FaberKernelContractError(
       "package-indices",
-      `expected 144 bytes (36×u32), got ${indicesBuffer.byteLength}`,
+      `expected ${expectedIndexCount * 4} bytes (${expectedIndexCount}×u32), got ${indicesBuffer.byteLength}`,
+    );
+  }
+  if (positionsBuffer.byteLength === 0 || colorsBuffer.byteLength === 0) {
+    throw new FaberKernelContractError(
+      "package-geometry",
+      "empty positions or colors buffer",
+    );
+  }
+  if (positionsBuffer.byteLength !== colorsBuffer.byteLength) {
+    throw new FaberKernelContractError(
+      "package-geometry",
+      `positions ${positionsBuffer.byteLength}B != colors ${colorsBuffer.byteLength}B`,
+    );
+  }
+  if (positionsBuffer.byteLength % 12 !== 0) {
+    throw new FaberKernelContractError(
+      "package-positions",
+      `positions byte length not multiple of 12 (vec3 f32), got ${positionsBuffer.byteLength}`,
     );
   }
 
@@ -227,15 +242,34 @@ async function main() {
     samples.some((s) => s.a > 0 && s.hex !== clearHex && s.hex !== PURE_BLACK_HEX);
   const sampleHexes = (samples) =>
     samples.filter((s) => s.a > 0 && s.hex !== clearHex).map((s) => s.hex);
+  // Rotation law: same sample points must show different RGB after model change.
+  // Set-of-colors alone can stay equal when only face-direction palette is visible.
   const framesRgbDiffer = (() => {
-    const a = new Set(sampleHexes(samples1));
-    const b = new Set(sampleHexes(samples2));
-    if (a.size === 0 || b.size === 0) return false;
-    for (const hex of a) {
-      if (!b.has(hex)) return true;
+    if (!Array.isArray(samples1) || !Array.isArray(samples2) || samples1.length === 0) {
+      return false;
     }
-    for (const hex of b) {
-      if (!a.has(hex)) return true;
+    let anyCoverage = false;
+    for (let i = 0; i < samples1.length && i < samples2.length; i++) {
+      const a = samples1[i];
+      const b = samples2[i];
+      if (!a || !b) continue;
+      const aCov = a.a > 0 && a.hex !== clearHex && a.hex !== PURE_BLACK_HEX;
+      const bCov = b.a > 0 && b.hex !== clearHex && b.hex !== PURE_BLACK_HEX;
+      if (aCov || bCov) anyCoverage = true;
+      if (a.hex !== b.hex || a.r !== b.r || a.g !== b.g || a.b !== b.b) {
+        return true;
+      }
+    }
+    if (!anyCoverage) return false;
+    // Fallback: set membership across samples.
+    const setA = new Set(sampleHexes(samples1));
+    const setB = new Set(sampleHexes(samples2));
+    if (setA.size === 0 || setB.size === 0) return false;
+    for (const hex of setA) {
+      if (!setB.has(hex)) return true;
+    }
+    for (const hex of setB) {
+      if (!setA.has(hex)) return true;
     }
     return false;
   })();
@@ -288,6 +322,11 @@ async function main() {
       indices_bytes: indicesBuffer.byteLength,
       index_count: drawManifest.index_count,
       instance_count: drawManifest.instance_count,
+      resource_pair_count: drawManifest.resource_pair_count ?? null,
+      draw_count: drawManifest.draw_count ?? null,
+      chunk_count: drawManifest.chunk_count ?? null,
+      non_empty_chunk_count: drawManifest.non_empty_chunk_count ?? null,
+      payload_kind: drawManifest.payload_kind ?? null,
       source: "examples/hello-voxel package attrs → dist/generated bins",
     },
     lastSubmit: frameState.submits[frameState.submits.length - 1] ?? null,
@@ -310,16 +349,21 @@ function rgbToHex(r, g, b) {
 }
 
 function samplePoints(width, height) {
-  // Dense positive-quadrant samples for unit-cube positions in NDC [0,1]×[0,1].
+  // Dense central samples for the four-chunk world (camera looks at ground center).
+  // Residual unit-cube path still covers several of these NDC points.
   const pts = [];
   for (const [name, fx, fy] of [
-    ["q75_25", 0.75, 0.25],
-    ["q70_30", 0.70, 0.30],
-    ["q80_20", 0.80, 0.20],
-    ["q60_40", 0.60, 0.40],
-    ["q65_35", 0.65, 0.35],
-    ["q55_45", 0.55, 0.45],
     ["center", 0.50, 0.50],
+    ["c55_45", 0.55, 0.45],
+    ["c45_55", 0.45, 0.55],
+    ["c60_40", 0.60, 0.40],
+    ["c40_60", 0.40, 0.60],
+    ["c65_50", 0.65, 0.50],
+    ["c50_35", 0.50, 0.35],
+    ["c50_65", 0.50, 0.65],
+    ["c35_50", 0.35, 0.50],
+    ["q70_30", 0.70, 0.30],
+    ["q30_70", 0.30, 0.70],
   ]) {
     pts.push({
       name,

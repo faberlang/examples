@@ -1,0 +1,70 @@
+# HV-05C: four-chunk render integration facts (CPU / package ownership).
+# Proves non-empty resource/draw counts, face totals, and no residual cube.
+#
+# Run (from package root):
+#   faber run --compile tests/four-chunk-render-facts.fab
+
+importa ex "../src/voxel" privata voxel
+importa ex "../src/meshing" privata meshing
+
+incipit {
+    fixum voxel.World world ← voxel.fixture_world()
+    adfirma voxel.world_valid(world),
+        "fixture world is valid"
+    adfirma voxel.chunk_count() ≡ 4,
+        "locked world has four logical chunks"
+
+    varia numerus non_empty ← 0
+    varia numerus total_faces ← 0
+    varia numerus total_indices ← 0
+    varia numerus slot ← 0
+    varia numerus cz ← 0
+    dum cz < voxel.chunk_count_z() {
+        varia numerus cx ← 0
+        dum cx < voxel.chunk_count_x() {
+            fixum meshing.ChunkMesh ∪ nihil mesh_result ← meshing.mesh_chunk(world, cx, cz)
+            adfirma mesh_result non est nihil,
+                "mesh_chunk succeeds for every logical chunk"
+            fixum meshing.ChunkMesh mesh ← meshing.ChunkMesh {
+                cx = mesh_result!.cx,
+                cz = mesh_result!.cz,
+                face_count = mesh_result!.face_count,
+                positions = mesh_result!.positions,
+                colors = mesh_result!.colors,
+                indices = mesh_result!.indices
+            }
+            adfirma meshing.chunk_mesh_matches_face_count(mesh),
+                "chunk payload lengths match face_count"
+            adfirma mesh.cx ≡ cx,
+                "chunk mesh records cx"
+            adfirma mesh.cz ≡ cz,
+                "chunk mesh records cz"
+            # Fixture ground/wall/pillar/cross make every logical chunk non-empty.
+            adfirma mesh.face_count > 0,
+                "fixture chunk is non-empty"
+            non_empty ← non_empty + 1
+            total_faces ← total_faces + mesh.face_count
+            total_indices ← total_indices + mesh.face_count * 6
+            slot ← slot + 1
+            cx ← cx + 1
+        }
+        cz ← cz + 1
+    }
+
+    adfirma slot ≡ 4,
+        "visited four chunks"
+    adfirma non_empty ≡ 4,
+        "all four chunks non-empty for fixture"
+    # Resource pairs and draws follow non-empty effectively-visible chunks.
+    adfirma non_empty ≡ voxel.chunk_count(),
+        "resource_pair_count and draw_count equal non-empty count"
+    adfirma total_faces > 0,
+        "world emits visible faces"
+    adfirma total_indices ≡ total_faces * 6,
+        "index total is 6 per face"
+    # Not residual cube (6 faces / 36 indices).
+    adfirma total_faces > 6,
+        "world face count exceeds single cube"
+    adfirma total_indices > 36,
+        "world index count exceeds residual cube 36"
+}

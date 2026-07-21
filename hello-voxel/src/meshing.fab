@@ -5,7 +5,7 @@
 #   - Emit a face only when the adjacent cell is air or outside the world.
 #   - Each face: four vertices, six u32 indices, outward winding.
 #   - Vertex colors come from Triga face_code_color (six directions).
-#   - No greedy meshing. No GPU integration (HV-05C).
+#   - No greedy meshing. GPU/render integration is HV-05C (main.fab).
 
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga

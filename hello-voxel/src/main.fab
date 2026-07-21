@@ -1,62 +1,31 @@
-# Hello Voxel — HV-04B: Indexed cube application.
+# Hello Voxel — HV-05C: four-chunk render integration through HV-04 path.
 #
-# Faber owns the locked cube payload, camera, and transform matrices.
-# Triga supplies column-major matrix ops and perspective/view composition.
-# The host only uploads package-owned geometry and the 32-float transform
-# payload — it does not construct cube geometry or matrices.
+# Package owns the deterministic fixture world, per-chunk visible-face meshes,
+# resource-pair/draw counts, and transform matrices. Host only uploads package
+# payloads and submits drawIndexed — no host scene policy, no host geometry.
+#
+# Contract:
+#   - One vertex/index resource pair and one draw per non-empty chunk.
+#   - Empty chunks emit no resources and no draws.
+#   - HV-04 cube payload is replaced; residual cube tests must fail closed.
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
 importa ex "triga:triga" privata triga
+importa ex "./voxel" privata voxel
+importa ex "./meshing" privata meshing
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
-# DEFAULT_ASPECT is only the initial mount default — not used on later frames.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
 
-# =========================================================================
-# CUBE PAYLOAD — source data, not host-JS construction
-#
-# 8 corner positions and 8 corresponding RGB colours for a unit cube from
-# (0,0,0) to (1,1,1). The 36 u32 indices define 12 indexed triangles (2 per
-# face) with outward-facing winding.
-# =========================================================================
-
-functio cube_positions() → lista<f32> {
-    redde [
-        0.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 1.0,
-        1.0, 0.0, 1.0,
-        1.0, 1.0, 1.0,
-        0.0, 1.0, 1.0
-    ]
-}
-
-functio cube_colors() → lista<f32> {
-    redde [
-        1.0, 0.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 1.0,
-        1.0, 1.0, 0.0,
-        1.0, 0.0, 1.0,
-        0.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
-        0.2, 0.2, 0.2
-    ]
-}
-
-functio cube_indices() → lista<u32> {
-    redde [
-         0,  1,  2,  0,  2,  3,
-         4,  6,  5,  4,  7,  6,
-         0,  4,  5,  0,  5,  1,
-         3,  2,  6,  3,  6,  7,
-         1,  5,  6,  1,  6,  2,
-         0,  3,  7,  0,  7,  4
-    ]
-}
+# World framing: side-on view so Y-rotation changes visible face colors
+# (top-down greens alone do not differ across frames).
+fixum f32 WORLD_CENTER_X ← 16.0 ∷ f32
+fixum f32 WORLD_CENTER_Y ← 2.0 ∷ f32
+fixum f32 WORLD_CENTER_Z ← 16.0 ∷ f32
+fixum f32 EYE_X ← 48.0 ∷ f32
+fixum f32 EYE_Y ← 10.0 ∷ f32
+fixum f32 EYE_Z ← 48.0 ∷ f32
 
 # =========================================================================
 # SERIALIZE — package-owned numeric lists as host-upload text
@@ -91,10 +60,160 @@ functio lista_u32_textus(lista<u32> values) → textus {
 }
 
 # =========================================================================
-# TRANSFORMS — Triga model + view-projection → 32-float payload
+# WORLD MESH — fixture → four chunk meshes (authoritative → derived only)
 # =========================================================================
 
-functio cube_model_matrix(f32 angle_radians) → triga.Matrix4 {
+genus WorldChunkBatch {
+    numerus chunk_count
+    numerus non_empty_count
+    numerus total_face_count
+    numerus total_vertex_count
+    numerus total_index_count
+    lista<meshing.ChunkMesh> meshes
+    lista<f32> positions
+    lista<f32> colors
+    lista<u32> indices
+}
+
+functio append_f32(lista<f32> dest, lista<f32> src) → lista<f32> {
+    varia lista<f32> out ← dest
+    varia numerus i ← 0
+    dum i < src.longitudo() {
+        out.appende(src[i])
+        i ← i + 1
+    }
+    redde out
+}
+
+# Remap chunk-local indices into a concatenated upload buffer (HV-04 single
+# residual path). Per-chunk resource pairs remain the canonical multi-draw unit.
+functio append_indices_offset(
+    lista<u32> dest,
+    lista<u32> src,
+    numerus vertex_base
+) → lista<u32> {
+    varia lista<u32> out ← dest
+    varia numerus i ← 0
+    dum i < src.longitudo() {
+        fixum numerus shifted ← (src[i] ↦ numerus) + vertex_base
+        out.appende(shifted ↦ u32)
+        i ← i + 1
+    }
+    redde out
+}
+
+functio mesh_fixture_world() → WorldChunkBatch ∪ nihil {
+    fixum voxel.World world ← voxel.fixture_world()
+    si voxel.world_valid(world) ≡ falsum {
+        redde nihil
+    }
+
+    varia lista<meshing.ChunkMesh> meshes ← vacua
+    varia lista<f32> positions ← vacua
+    varia lista<f32> colors ← vacua
+    varia lista<u32> indices ← vacua
+    varia numerus non_empty ← 0
+    varia numerus total_faces ← 0
+    varia numerus total_vertices ← 0
+    varia numerus total_indices ← 0
+
+    varia numerus cz ← 0
+    dum cz < voxel.chunk_count_z() {
+        varia numerus cx ← 0
+        dum cx < voxel.chunk_count_x() {
+            fixum meshing.ChunkMesh ∪ nihil mesh_result ← meshing.mesh_chunk(world, cx, cz)
+            si mesh_result est nihil {
+                redde nihil
+            }
+            fixum meshing.ChunkMesh mesh ← meshing.ChunkMesh {
+                cx = mesh_result!.cx,
+                cz = mesh_result!.cz,
+                face_count = mesh_result!.face_count,
+                positions = mesh_result!.positions,
+                colors = mesh_result!.colors,
+                indices = mesh_result!.indices
+            }
+            si meshing.chunk_mesh_matches_face_count(mesh) ≡ falsum {
+                redde nihil
+            }
+            meshes.appende(mesh)
+            si mesh.face_count > 0 {
+                non_empty ← non_empty + 1
+                total_faces ← total_faces + mesh.face_count
+                total_vertices ← total_vertices + mesh.face_count * 4
+                total_indices ← total_indices + mesh.face_count * 6
+                positions ← append_f32(positions, mesh.positions)
+                colors ← append_f32(colors, mesh.colors)
+                indices ← append_indices_offset(
+                    indices,
+                    mesh.indices,
+                    total_vertices - mesh.face_count * 4
+                )
+            }
+            cx ← cx + 1
+        }
+        cz ← cz + 1
+    }
+
+    redde WorldChunkBatch {
+        chunk_count = voxel.chunk_count(),
+        non_empty_count = non_empty,
+        total_face_count = total_faces,
+        total_vertex_count = total_vertices,
+        total_index_count = total_indices,
+        meshes = meshes,
+        positions = positions,
+        colors = colors,
+        indices = indices
+    }
+}
+
+functio emit_chunk_geometry(
+    dom.Element canvas,
+    de meshing.ChunkMesh mesh,
+    numerus slot
+) → vacuum {
+    # "§§"(a, b) concatenates; slot is 0..3 for the locked four-chunk grid.
+    fixum textus prefix ← "§§"("data-hv-c", slot ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-cx"), mesh.cx ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-cz"), mesh.cz ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-face-count"), mesh.face_count ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-vertex-count"), (mesh.face_count * 4) ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-index-count"), (mesh.face_count * 6) ↦ textus)
+    dom.attr_set(canvas, "§§"(prefix, "-positions"), lista_f32_textus(mesh.positions))
+    dom.attr_set(canvas, "§§"(prefix, "-colors"), lista_f32_textus(mesh.colors))
+    dom.attr_set(canvas, "§§"(prefix, "-indices"), lista_u32_textus(mesh.indices))
+}
+
+functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → vacuum {
+    # Canonical multi-chunk counts: resource pairs and draws follow non-empty.
+    dom.attr_set(canvas, "data-hv-chunk-count", batch.chunk_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-non-empty-chunk-count", batch.non_empty_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-resource-pair-count", batch.non_empty_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-draw-count", batch.non_empty_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-total-face-count", batch.total_face_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-vertex-count", batch.total_vertex_count ↦ textus)
+    dom.attr_set(canvas, "data-hv-index-count", batch.total_index_count ↦ textus)
+
+    # Concatenated residual payload (HV-04 single buffer path for visible proof).
+    # Index totals and draw-count attrs keep multi-chunk ownership honest.
+    dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(batch.positions))
+    dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(batch.colors))
+    dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices))
+
+    varia numerus i ← 0
+    dum i < batch.meshes.longitudo() {
+        emit_chunk_geometry(canvas, batch.meshes[i], i)
+        i ← i + 1
+    }
+}
+
+# =========================================================================
+# TRANSFORMS — Triga model + view-projection → 32-float payload
+# Model rotates about world center so two frames differ (pixel law).
+# =========================================================================
+
+functio world_model_matrix(f32 angle_radians) → triga.Matrix4 {
     fixum triga.Quaternion ∪ nihil rotation_result ← triga.euler_ad_quaternionem(
         triga.euler(0.0 ∷ f32, angle_radians, 0.0 ∷ f32)
     )
@@ -109,15 +228,33 @@ functio cube_model_matrix(f32 angle_radians) → triga.Matrix4 {
             w = rotation_result!.w
         }
     }
-    # Center the unit cube at the origin so Y-rotation orbits the mesh.
-    redde triga.matrix4_composita(
-        triga.vector3(-0.5 ∷ f32, -0.5 ∷ f32, -0.5 ∷ f32),
+    # Translate so world center is origin, rotate, translate back.
+    fixum triga.Matrix4 to_origin ← triga.matrix4_composita(
+        triga.vector3(
+            0.0 ∷ f32 - WORLD_CENTER_X,
+            0.0 ∷ f32 - WORLD_CENTER_Y,
+            0.0 ∷ f32 - WORLD_CENTER_Z
+        ),
+        triga.quaternion(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
+    )
+    fixum triga.Matrix4 rotate ← triga.matrix4_composita(
+        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         rotation,
         triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
     )
+    fixum triga.Matrix4 from_origin ← triga.matrix4_composita(
+        triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z),
+        triga.quaternion(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
+        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
+    )
+    redde triga.matrix4_multiplicata(
+        from_origin,
+        triga.matrix4_multiplicata(rotate, to_origin)
+    )
 }
 
-functio cube_view_projection(f32 aspect) → triga.Matrix4 {
+functio world_view_projection(f32 aspect) → triga.Matrix4 {
     varia f32 safe_aspect ← 1.0 ∷ f32
     si aspect > 0.0 {
         safe_aspect ← aspect
@@ -126,11 +263,11 @@ functio cube_view_projection(f32 aspect) → triga.Matrix4 {
         50.0 ∷ f32,
         safe_aspect,
         0.1 ∷ f32,
-        100.0 ∷ f32
+        200.0 ∷ f32
     )
     fixum triga.Matrix4 ∪ nihil view_result ← triga.matrix4_conspectus(
-        triga.vector3(3.0 ∷ f32, 2.0 ∷ f32, 5.0 ∷ f32),
-        triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        triga.vector3(EYE_X, EYE_Y, EYE_Z),
+        triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z),
         triga.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
     )
     varia triga.Matrix4 projection ← triga.matrix4_identitas()
@@ -144,9 +281,9 @@ functio cube_view_projection(f32 aspect) → triga.Matrix4 {
     redde triga.matrix4_multiplicata(projection, view)
 }
 
-functio cube_transform_payload(f32 angle_radians, f32 aspect) → triga.TransformPayload {
-    fixum triga.Matrix4 model ← cube_model_matrix(angle_radians)
-    fixum triga.Matrix4 view_projection ← cube_view_projection(aspect)
+functio world_transform_payload(f32 angle_radians, f32 aspect) → triga.TransformPayload {
+    fixum triga.Matrix4 model ← world_model_matrix(angle_radians)
+    fixum triga.Matrix4 view_projection ← world_view_projection(aspect)
     fixum triga.TransformPayload ∪ nihil packed ← triga.transform_payload(model, view_projection)
     si packed non est nihil {
         redde triga.TransformPayload { values = packed!.values }
@@ -166,19 +303,8 @@ functio cube_transform_payload(f32 angle_radians, f32 aspect) → triga.Transfor
     }
 }
 
-functio emit_cube_geometry(dom.Element canvas) → vacuum {
-    fixum lista<f32> positions ← cube_positions()
-    fixum lista<f32> colors ← cube_colors()
-    fixum lista<u32> indices ← cube_indices()
-    dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(positions))
-    dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(colors))
-    dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(indices))
-    dom.attr_set(canvas, "data-hv-vertex-count", positions.longitudo() / 3 ↦ textus)
-    dom.attr_set(canvas, "data-hv-index-count", indices.longitudo() ↦ textus)
-}
-
 functio emit_transform(dom.Element canvas, f32 angle_radians, f32 aspect) → vacuum {
-    fixum triga.TransformPayload payload ← cube_transform_payload(angle_radians, aspect)
+    fixum triga.TransformPayload payload ← world_transform_payload(angle_radians, aspect)
     fixum lista<f32> values ← payload.values
     varia lista<f32> model_values ← vacua
     varia lista<f32> vp_values ← vacua
@@ -198,22 +324,17 @@ functio emit_transform(dom.Element canvas, f32 angle_radians, f32 aspect) → va
 }
 
 # =========================================================================
-# FRAME UPDATE — model rotation from frame time via Triga
+# FRAME / RESIZE
 # =========================================================================
 
 functio update_frame(dom.Element canvas, dom.FrameState frame, f32 aspect) → vacuum {
-    # Advance Y-axis rotation from frame index (deterministic two-frame proof).
-    # Projection uses the live aspect threaded from mount/resize (not DEFAULT_ASPECT).
-    fixum f32 angle ← (frame.frame ↦ f32) * 0.05 ∷ f32
+    # Larger step so two-frame pixel samples hit different face colors on the world.
+    fixum f32 angle ← (frame.frame ↦ f32) * 0.35 ∷ f32
     emit_transform(canvas, angle, aspect)
     dom.attr_set(canvas, "data-hv-frame-count", frame.frame ↦ textus)
     dom.attr_set(canvas, "data-hv-angle", angle ↦ textus)
     dom.class_add(canvas, "hv-frame-active")
 }
-
-# =========================================================================
-# RESIZE UPDATE — projection aspect from resize state via Triga
-# =========================================================================
 
 functio aspect_from_resize(dom.ResizeState resize) → f32 {
     fixum f32 width ← resize.width ↦ f32
@@ -228,13 +349,12 @@ functio update_resize(dom.Element canvas, dom.ResizeState resize, f32 aspect) �
     dom.attr_set(canvas, "data-hv-width", resize.width ↦ textus)
     dom.attr_set(canvas, "data-hv-height", resize.height ↦ textus)
     dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
-    # Re-emit view-projection with live aspect (model angle held at 0 until next frame).
     emit_transform(canvas, 0.0 ∷ f32, aspect)
     dom.class_add(canvas, "hv-resize-active")
 }
 
 # =========================================================================
-# CONTROLLER — mounts the cube application
+# CONTROLLER — mounts four-chunk world through HV-04 attribute path
 # =========================================================================
 
 @ WebController { selector = "#hello-voxel-root" }
@@ -242,28 +362,57 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
     fixum dom.Element status ← dom.require(scope, ".hv-status")
     fixum dom.Element canvas ← dom.require(scope, ".hv-canvas")
 
-    # Camera scalars remain as documentation/evidence; matrices are package-owned.
+    # Camera scalars remain package evidence; matrices are package-owned.
     dom.attr_set(canvas, "data-hv-fov", "50")
     dom.attr_set(canvas, "data-hv-near", "0.1")
-    dom.attr_set(canvas, "data-hv-far", "100.0")
-    dom.attr_set(canvas, "data-hv-eye-x", "3.0")
-    dom.attr_set(canvas, "data-hv-eye-y", "2.0")
-    dom.attr_set(canvas, "data-hv-eye-z", "5.0")
-    dom.attr_set(canvas, "data-hv-target-x", "0.0")
-    dom.attr_set(canvas, "data-hv-target-y", "0.0")
-    dom.attr_set(canvas, "data-hv-target-z", "0.0")
+    dom.attr_set(canvas, "data-hv-far", "200.0")
+    dom.attr_set(canvas, "data-hv-eye-x", "48.0")
+    dom.attr_set(canvas, "data-hv-eye-y", "10.0")
+    dom.attr_set(canvas, "data-hv-eye-z", "48.0")
+    dom.attr_set(canvas, "data-hv-target-x", "16.0")
+    dom.attr_set(canvas, "data-hv-target-y", "2.0")
+    dom.attr_set(canvas, "data-hv-target-z", "16.0")
+    dom.attr_set(canvas, "data-hv-payload-kind", "four-chunk-world")
 
-    # Live cube payload + initial transform (host uploads only).
-    # live_aspect is controller state: DEFAULT_ASPECT at mount only; resize
-    # rewrites it; every subsequent frame reads it (no DEFAULT_ASPECT clobber).
     varia f32 live_aspect ← DEFAULT_ASPECT
-    emit_cube_geometry(canvas)
+
+    fixum WorldChunkBatch ∪ nihil batch_result ← mesh_fixture_world()
+    si batch_result est nihil {
+        # Fail closed: do not emit cube residual or fake draws.
+        dom.text_set(status, "package-mesh-failed")
+        dom.class_add(status, "failed")
+        dom.attr_set(canvas, "data-hv-resource-pair-count", "0")
+        dom.attr_set(canvas, "data-hv-draw-count", "0")
+        redde vacua
+    }
+
+    fixum WorldChunkBatch batch ← WorldChunkBatch {
+        chunk_count = batch_result!.chunk_count,
+        non_empty_count = batch_result!.non_empty_count,
+        total_face_count = batch_result!.total_face_count,
+        total_vertex_count = batch_result!.total_vertex_count,
+        total_index_count = batch_result!.total_index_count,
+        meshes = batch_result!.meshes,
+        positions = batch_result!.positions,
+        colors = batch_result!.colors,
+        indices = batch_result!.indices
+    }
+
+    # Hard gate: fixture must produce four logical chunks and non-empty draws.
+    si batch.chunk_count ≠ 4 aut batch.non_empty_count ≠ 4 aut batch.total_index_count ≡ 0 {
+        dom.text_set(status, "package-mesh-invalid")
+        dom.class_add(status, "failed")
+        dom.attr_set(canvas, "data-hv-resource-pair-count", batch.non_empty_count ↦ textus)
+        dom.attr_set(canvas, "data-hv-draw-count", batch.non_empty_count ↦ textus)
+        redde vacua
+    }
+
+    emit_world_geometry(canvas, batch)
     emit_transform(canvas, 0.0 ∷ f32, live_aspect)
 
     dom.text_set(status, "package-ready")
     dom.class_add(status, "ready")
 
-    # Frame advances model with live aspect; resize rewrites live_aspect.
     fixum dom.Subscription frame_sub ←
         dom.on_frame((dom.FrameState frame) → vacuum ∴ update_frame(canvas, frame, live_aspect))
     fixum dom.Subscription resize_sub ←

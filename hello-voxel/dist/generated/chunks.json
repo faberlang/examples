@@ -1,0 +1,60 @@
+{
+  "chunks": [
+    {
+      "slot": 0,
+      "cx": 0,
+      "cz": 0,
+      "face_count": 746,
+      "vertex_count": 2984,
+      "index_count": 4476,
+      "files": [
+        "chunks/0/vertex-positions.bin",
+        "chunks/0/vertex-colors.bin",
+        "chunks/0/indices.bin",
+        "chunks/0/draw.json"
+      ]
+    },
+    {
+      "slot": 1,
+      "cx": 1,
+      "cz": 0,
+      "face_count": 744,
+      "vertex_count": 2976,
+      "index_count": 4464,
+      "files": [
+        "chunks/1/vertex-positions.bin",
+        "chunks/1/vertex-colors.bin",
+        "chunks/1/indices.bin",
+        "chunks/1/draw.json"
+      ]
+    },
+    {
+      "slot": 2,
+      "cx": 0,
+      "cz": 1,
+      "face_count": 586,
+      "vertex_count": 2344,
+      "index_count": 3516,
+      "files": [
+        "chunks/2/vertex-positions.bin",
+        "chunks/2/vertex-colors.bin",
+        "chunks/2/indices.bin",
+        "chunks/2/draw.json"
+      ]
+    },
+    {
+      "slot": 3,
+      "cx": 1,
+      "cz": 1,
+      "face_count": 546,
+      "vertex_count": 2184,
+      "index_count": 3276,
+      "files": [
+        "chunks/3/vertex-positions.bin",
+        "chunks/3/vertex-colors.bin",
+        "chunks/3/indices.bin",
+        "chunks/3/draw.json"
+      ]
+    }
+  ]
+}

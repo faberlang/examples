@@ -65,7 +65,7 @@ function collectExports(code) {
   return [...names].sort();
 }
 
-function patchEmitDefects(code) {
+function patchEmitDefects(code, { truncatingDivision = false } = {}) {
   let body = code;
   // Radix TS emit lowers indexed writes to an IIFE read used as assignment LHS.
   // Rewrite: ((__o,__i)=>{...return __v})(arr, idx) = value
@@ -76,11 +76,25 @@ function patchEmitDefects(code) {
   );
   // Standalone emit leaves some union types as unresolved_def.
   body = body.replace(/\bunresolved_def\b/g, "any");
+  // Faber `numerus` division truncates (Rust i64). TS emit uses float `/`, which
+  // breaks world_to_chunk_coord (x=1 → cx=0.0625) and chunk indexing.
+  if (truncatingDivision) {
+    // Match simple `(lhs / rhs)` including call forms like `chunk_size()`.
+    body = body.replace(
+      /\(([^()\n]+(?:\([^()]*\))?)\s*\/\s*([^()\n]+(?:\([^()]*\))?)\)/g,
+      (match, a, b) => {
+        if (match.includes("Math.trunc")) return match;
+        if (a.includes("Math.") || b.includes("Math.")) return match;
+        if (/\d+\.\d+/.test(a) || /\d+\.\d+/.test(b)) return match;
+        return `Math.trunc((${a.trim()}) / (${b.trim()}))`;
+      },
+    );
+  }
   return body;
 }
 
-function wrapNamespace(code, nsName, relativeImports = {}) {
-  let body = patchEmitDefects(code);
+function wrapNamespace(code, nsName, relativeImports = {}, patchOpts = {}) {
+  let body = patchEmitDefects(code, patchOpts);
   // Rewrite virtual library imports to relative files.
   for (const [spec, rel] of Object.entries(relativeImports)) {
     body = body.replaceAll(`from "${spec}"`, `from "${rel}"`);
@@ -98,17 +112,36 @@ function wrapNamespace(code, nsName, relativeImports = {}) {
   return `// @ts-nocheck\n${body.trimEnd()}\n${exportBlock}`;
 }
 
-function rewriteMainImports(mainPath) {
-  let code = readFileSync(mainPath, "utf-8");
+function rewriteTrigaImports(filePath) {
+  let code = readFileSync(filePath, "utf-8");
   code = code.replace(
-    /import\s*\{\s*triga\s*\}\s*from\s*["']triga:triga["']\s*;?/,
+    /import\s*\{\s*triga\s*\}\s*from\s*["']triga:triga["']\s*;?/g,
     'import { triga } from "./triga-triga.js";',
   );
   code = code.replace(
-    /import\s*\{\s*geometry\s*\}\s*from\s*["']triga:geometry["']\s*;?/,
+    /import\s*\{\s*geometry\s*\}\s*from\s*["']triga:geometry["']\s*;?/g,
     'import { geometry } from "./triga-geometry.js";',
   );
-  writeFileSync(mainPath, code);
+  // Node ESM requires explicit extensions for relative imports.
+  code = code.replace(
+    /from\s*["']\.\/voxel["']/g,
+    'from "./voxel.js"',
+  );
+  code = code.replace(
+    /from\s*["']\.\/meshing["']/g,
+    'from "./meshing.js"',
+  );
+  writeFileSync(filePath, code);
+}
+
+/** Wrap a local package module (free functions) as `export const ns = { ... }`. */
+function wrapLocalModule(fileName, nsName, relativeImports = {}, patchOpts = {}) {
+  const path = join(TS_ROOT, fileName);
+  if (!existsSync(path)) {
+    die(`missing local module ${path}`);
+  }
+  const raw = readFileSync(path, "utf-8");
+  writeFileSync(path, wrapNamespace(raw, nsName, relativeImports, patchOpts));
 }
 
 function writeControllersJson() {
@@ -161,7 +194,26 @@ function main() {
     }),
   );
 
-  rewriteMainImports(join(TS_ROOT, "main.ts"));
+  // Local HV-05 modules: Faber emits free functions; browser product imports
+  // them as namespaces (`import { voxel } from "./voxel"`).
+  // Voxel uses numerus integer division for chunk coords — must truncate in TS.
+  wrapLocalModule("voxel.ts", "voxel", {}, { truncatingDivision: true });
+  wrapLocalModule(
+    "meshing.ts",
+    "meshing",
+    {
+      "triga:triga": "./triga-triga.js",
+      "triga:geometry": "./triga-geometry.js",
+    },
+    { truncatingDivision: true },
+  );
+
+  rewriteTrigaImports(join(TS_ROOT, "main.ts"));
+  rewriteTrigaImports(join(TS_ROOT, "meshing.ts"));
+  // voxel has no external triga imports.
+  if (existsSync(join(TS_ROOT, "voxel.ts"))) {
+    rewriteTrigaImports(join(TS_ROOT, "voxel.ts"));
+  }
   runTsc();
   writeControllersJson();
 

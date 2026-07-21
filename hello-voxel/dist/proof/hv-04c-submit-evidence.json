@@ -1,9 +1,9 @@
 {
   "kind": "hv-04c-submit-evidence",
-  "artifact_id": "7f71d2cc19f3e6b0",
+  "artifact_id": "b5818cbbc0d5c780",
   "method": "drawIndexed",
   "drawIndexed": true,
-  "index_count": 36,
+  "index_count": 15732,
   "instance_count": 1,
   "first_index": 0,
   "base_vertex": 0,
@@ -12,7 +12,7 @@
     {
       "method": "drawIndexed",
       "drawIndexed": true,
-      "index_count": 36,
+      "index_count": 15732,
       "instance_count": 1,
       "first_index": 0,
       "base_vertex": 0,
@@ -31,7 +31,7 @@
     {
       "method": "drawIndexed",
       "drawIndexed": true,
-      "index_count": 36,
+      "index_count": 15732,
       "instance_count": 1,
       "first_index": 0,
       "base_vertex": 0,
@@ -49,11 +49,16 @@
     }
   ],
   "package": {
-    "positions_bytes": 96,
-    "colors_bytes": 96,
-    "indices_bytes": 144,
-    "index_count": 36,
+    "positions_bytes": 125856,
+    "colors_bytes": 125856,
+    "indices_bytes": 62928,
+    "index_count": 15732,
     "instance_count": 1,
+    "resource_pair_count": 4,
+    "draw_count": 4,
+    "chunk_count": 4,
+    "non_empty_chunk_count": 4,
+    "payload_kind": "four-chunk-world",
     "source": "examples/hello-voxel package attrs → dist/generated bins"
   },
   "source": "hosts/webgpu-browser runGraphicsFrame + hello-voxel package bins"

@@ -1,8 +1,8 @@
-// HV-04B ownership harness.
+// HV-04B/HV-05C ownership harness.
 //
-// Proves Faber-owned cube geometry and Triga matrix emission without treating
-// frame-count alone as model-matrix proof. Fails if geometry arrays or matrix
-// values are removed from the package output path.
+// Proves Faber-owned four-chunk world geometry and Triga matrix emission without
+// treating frame-count alone as model-matrix proof. Fails if geometry arrays or
+// matrix values are removed. Cube residual is not accepted as success.
 
 import { FakeElement, FakeEvent, FakeEventTarget } from "../../browser-app/tests/fake-dom.mjs";
 import { readFileSync, existsSync } from "node:fs";
@@ -93,30 +93,47 @@ assert(runtime.mounts.length === 1, `expected 1 mount, got ${runtime.mounts.leng
 assert(runtime.failures.length === 0, `expected 0 failures, got ${runtime.failures.length}`);
 assert(status.textContent === "package-ready", `status ready, got ${status.textContent}`);
 
-// --- Live cube payload (not counts alone) ---
+// --- Live four-chunk world payload (not counts alone) ---
+assert(canvas.getAttribute("data-hv-payload-kind") === "four-chunk-world", "payload-kind four-chunk-world");
+assert(canvas.getAttribute("data-hv-chunk-count") === "4", "chunk-count 4");
+assert(canvas.getAttribute("data-hv-non-empty-chunk-count") === "4", "non-empty 4");
+assert(canvas.getAttribute("data-hv-resource-pair-count") === "4", "resource pairs = non-empty");
+assert(canvas.getAttribute("data-hv-draw-count") === "4", "draws = non-empty");
+
+const totalFaces = Number(canvas.getAttribute("data-hv-total-face-count"));
+const vertexCount = Number(canvas.getAttribute("data-hv-vertex-count"));
+const indexCount = Number(canvas.getAttribute("data-hv-index-count"));
+assert(Number.isFinite(totalFaces) && totalFaces > 0, `total faces > 0, got ${totalFaces}`);
+assert(vertexCount === totalFaces * 4, `vertex-count ${vertexCount} = faces*4`);
+assert(indexCount === totalFaces * 6, `index-count ${indexCount} = faces*6`);
+
 const positions = parseFloatCsv(canvas.getAttribute("data-hv-positions"));
 const colors = parseFloatCsv(canvas.getAttribute("data-hv-colors"));
 const indices = parseCsv(canvas.getAttribute("data-hv-indices")).map(Number);
 
-assert(positions.length === 24, `positions length 24, got ${positions.length}`);
-assert(colors.length === 24, `colors length 24, got ${colors.length}`);
-assert(indices.length === 36, `indices length 36, got ${indices.length}`);
-assert(canvas.getAttribute("data-hv-vertex-count") === "8", "vertex-count 8");
-assert(canvas.getAttribute("data-hv-index-count") === "36", "index-count 36");
+assert(positions.length === vertexCount * 3, `positions length ${vertexCount * 3}, got ${positions.length}`);
+assert(colors.length === vertexCount * 3, `colors length ${vertexCount * 3}, got ${colors.length}`);
+assert(indices.length === indexCount, `indices length ${indexCount}, got ${indices.length}`);
+assert(Math.min(...indices) === 0, "indices start at 0");
+assert(Math.max(...indices) === vertexCount - 1, `indices cover verts 0..${vertexCount - 1}`);
 
-// Spot-check locked cube corners and first triangle indices.
-assert(positions[0] === 0 && positions[1] === 0 && positions[2] === 0, "corner 0 is origin");
-assert(positions[3] === 1 && positions[4] === 0 && positions[5] === 0, "corner 1 is +x");
-assert(indices[0] === 0 && indices[1] === 1 && indices[2] === 2, "first triangle 0,1,2");
-assert(Math.min(...indices) === 0 && Math.max(...indices) === 7, "indices cover verts 0..7");
+// Per-chunk resource pairs present (one pair per non-empty chunk).
+for (let i = 0; i < 4; i++) {
+  const faces = Number(canvas.getAttribute(`data-hv-c${i}-face-count`));
+  assert(Number.isFinite(faces) && faces > 0, `chunk ${i} non-empty face-count`);
+  const cPos = parseFloatCsv(canvas.getAttribute(`data-hv-c${i}-positions`));
+  const cIdx = parseCsv(canvas.getAttribute(`data-hv-c${i}-indices`)).map(Number);
+  assert(cPos.length === faces * 12, `chunk ${i} positions scale`);
+  assert(cIdx.length === faces * 6, `chunk ${i} indices scale`);
+}
 
-// Generated source must keep live cube helpers referenced (not dead private data).
+// Generated source must keep world mesh path (not residual cube helpers).
 const mainTsPath = fileURLToPath(new URL("../dist/faber-ts/main.ts", import.meta.url));
 assert(existsSync(mainTsPath), "dist/faber-ts/main.ts exists");
 const mainTs = readFileSync(mainTsPath, "utf-8");
-assert(mainTs.includes("cube_positions"), "generated source includes cube_positions");
-assert(mainTs.includes("cube_colors"), "generated source includes cube_colors");
-assert(mainTs.includes("cube_indices"), "generated source includes cube_indices");
+assert(mainTs.includes("mesh_fixture_world") || mainTs.includes("four-chunk-world"),
+  "generated source includes four-chunk world path");
+assert(!mainTs.includes("function cube_positions"), "cube residual helpers removed");
 assert(
   mainTs.includes("data-hv-positions") && mainTs.includes("data-hv-colors") && mainTs.includes("data-hv-indices"),
   "generated source emits geometry attributes",
@@ -233,8 +250,11 @@ assert(
 const drawPath = fileURLToPath(new URL("../dist/public/draw.json", import.meta.url));
 assert(existsSync(drawPath), "dist/public/draw.json exists");
 const draw = JSON.parse(readFileSync(drawPath, "utf-8"));
-assert(draw.index_count === 36, "draw.json index_count 36");
+assert(Number(draw.index_count) === indexCount, `draw.json index_count ${indexCount}`);
 assert(draw.index_format === "uint32", "draw.json index_format uint32");
+assert(Number(draw.resource_pair_count) === 4, "draw.json resource_pair_count 4");
+assert(Number(draw.draw_count) === 4, "draw.json draw_count 4");
+assert(draw.payload_kind === "four-chunk-world", "draw.json four-chunk-world");
 
 console.log(`\n${PASS}: ${passed} passed, ${failed} failed`);
 if (failed > 0) {

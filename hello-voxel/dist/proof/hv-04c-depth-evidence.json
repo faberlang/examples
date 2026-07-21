@@ -1,6 +1,6 @@
 {
   "kind": "hv-04c-depth-evidence",
-  "artifact_id": "7f71d2cc19f3e6b0",
+  "artifact_id": "b5818cbbc0d5c780",
   "depth_test_enabled": true,
   "depth_write_enabled": true,
   "depth_compare": "less",

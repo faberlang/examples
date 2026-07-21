@@ -6,17 +6,24 @@ import { dom } from "web:dom";
 
 import { triga } from "./triga-triga.js";
 
+import { voxel } from "./voxel.js";
+
+import { meshing } from "./meshing.js";
+
 const DEFAULT_ASPECT: number = 1.778 as number;
 
-function cube_positions(): Array<number> {
-    return [0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1];
-}
-function cube_colors(): Array<number> {
-    return [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0.2, 0.2, 0.2];
-}
-function cube_indices(): Array<number> {
-    return [0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6, 0, 4, 5, 0, 5, 1, 3, 2, 6, 3, 6, 7, 1, 5, 6, 1, 6, 2, 0, 3, 7, 0, 7, 4];
-}
+const WORLD_CENTER_X: number = 16 as number;
+
+const WORLD_CENTER_Y: number = 2 as number;
+
+const WORLD_CENTER_Z: number = 16 as number;
+
+const EYE_X: number = 48 as number;
+
+const EYE_Y: number = 10 as number;
+
+const EYE_Z: number = 48 as number;
+
 function lista_f32_textus(values: Array<number>): string {
     let out: string = "";
     let i: number = 0;
@@ -43,21 +50,124 @@ function lista_u32_textus(values: Array<number>): string {
     }
     return out;
 }
-function cube_model_matrix(angle_radians: number): any {
+class WorldChunkBatch {
+    chunk_count!: number;
+    non_empty_count!: number;
+    total_face_count!: number;
+    total_vertex_count!: number;
+    total_index_count!: number;
+    meshes!: Array<any>;
+    positions!: Array<number>;
+    colors!: Array<number>;
+    indices!: Array<number>;
+}
+
+function append_f32(dest: Array<number>, src: Array<number>): Array<number> {
+    let out: Array<number> = dest;
+    let i: number = 0;
+    while ((i < src.length)) {
+        out.push(((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(src, i));
+        i = (i + 1);
+    }
+    return out;
+}
+function append_indices_offset(dest: Array<number>, src: Array<number>, vertex_base: number): Array<number> {
+    let out: Array<number> = dest;
+    let i: number = 0;
+    while ((i < src.length)) {
+        const shifted: number = (((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(src, i) + vertex_base);
+        out.push(shifted);
+        i = (i + 1);
+    }
+    return out;
+}
+function mesh_fixture_world(): WorldChunkBatch | null {
+    const world: any = voxel.fixture_world();
+    if (((voxel.world_valid(world) as boolean) === (false as boolean))) {
+        return null;
+    }
+    let meshes: Array<any> = [];
+    let positions: Array<number> = [];
+    let colors: Array<number> = [];
+    let indices: Array<number> = [];
+    let non_empty: number = 0;
+    let total_faces: number = 0;
+    let total_vertices: number = 0;
+    let total_indices: number = 0;
+    let cz: number = 0;
+    while ((cz < voxel.chunk_count_z())) {
+        let cx: number = 0;
+        while ((cx < voxel.chunk_count_x())) {
+            const mesh_result: any | null = meshing.mesh_chunk(world, cx, cz);
+            if ((mesh_result === null)) {
+                return null;
+            }
+            const mesh: any = Object.assign({}, { cx: mesh_result!.cx, cz: mesh_result!.cz, face_count: mesh_result!.face_count, positions: mesh_result!.positions, colors: mesh_result!.colors, indices: mesh_result!.indices });
+            if (((meshing.chunk_mesh_matches_face_count(mesh) as boolean) === (false as boolean))) {
+                return null;
+            }
+            meshes.push(mesh);
+            if ((mesh.face_count > 0)) {
+                non_empty = (non_empty + 1);
+                total_faces = (total_faces + mesh.face_count);
+                total_vertices = (total_vertices + (mesh.face_count * 4));
+                total_indices = (total_indices + (mesh.face_count * 6));
+                positions = append_f32(positions, mesh.positions);
+                colors = append_f32(colors, mesh.colors);
+                indices = append_indices_offset(indices, mesh.indices, (total_vertices - (mesh.face_count * 4)));
+            }
+            cx = (cx + 1);
+        }
+        cz = (cz + 1);
+    }
+    return Object.assign(new WorldChunkBatch(), { chunk_count: voxel.chunk_count(), non_empty_count: non_empty, total_face_count: total_faces, total_vertex_count: total_vertices, total_index_count: total_indices, meshes: meshes, positions: positions, colors: colors, indices: indices });
+}
+function emit_chunk_geometry(canvas: any, mesh: any, slot: number): void {
+    const prefix: string = `${"data-hv-c"}${String(slot)}`;
+    dom.attr_set(canvas, `${prefix}${"-cx"}`, String(mesh.cx));
+    dom.attr_set(canvas, `${prefix}${"-cz"}`, String(mesh.cz));
+    dom.attr_set(canvas, `${prefix}${"-face-count"}`, String(mesh.face_count));
+    dom.attr_set(canvas, `${prefix}${"-vertex-count"}`, String((mesh.face_count * 4)));
+    dom.attr_set(canvas, `${prefix}${"-index-count"}`, String((mesh.face_count * 6)));
+    dom.attr_set(canvas, `${prefix}${"-positions"}`, lista_f32_textus(mesh.positions));
+    dom.attr_set(canvas, `${prefix}${"-colors"}`, lista_f32_textus(mesh.colors));
+    dom.attr_set(canvas, `${prefix}${"-indices"}`, lista_u32_textus(mesh.indices));
+}
+function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
+    dom.attr_set(canvas, "data-hv-chunk-count", String(batch.chunk_count));
+    dom.attr_set(canvas, "data-hv-non-empty-chunk-count", String(batch.non_empty_count));
+    dom.attr_set(canvas, "data-hv-resource-pair-count", String(batch.non_empty_count));
+    dom.attr_set(canvas, "data-hv-draw-count", String(batch.non_empty_count));
+    dom.attr_set(canvas, "data-hv-total-face-count", String(batch.total_face_count));
+    dom.attr_set(canvas, "data-hv-vertex-count", String(batch.total_vertex_count));
+    dom.attr_set(canvas, "data-hv-index-count", String(batch.total_index_count));
+    dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(batch.positions));
+    dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(batch.colors));
+    dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices));
+    let i: number = 0;
+    while ((i < batch.meshes.length)) {
+        emit_chunk_geometry(canvas, ((__o, __i) => { const __v = __o[__i]; if (__v === undefined) throw new Error("index trap"); return __v; })(batch.meshes, i), i);
+        i = (i + 1);
+    }
+}
+function world_model_matrix(angle_radians: number): any {
     const rotation_result: any | null = triga.euler_ad_quaternionem(triga.euler(0 as number, angle_radians, 0 as number));
     let rotation: any = triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number);
     if ((rotation_result !== null)) {
         rotation = Object.assign({}, { x: rotation_result!.x, y: rotation_result!.y, z: rotation_result!.z, w: rotation_result!.w });
     }
-    return triga.matrix4_composita(triga.vector3(-0.5 as number, -0.5 as number, -0.5 as number), rotation, triga.vector3(1 as number, 1 as number, 1 as number));
+    const to_origin: any = triga.matrix4_composita(triga.vector3((0 as number - WORLD_CENTER_X), (0 as number - WORLD_CENTER_Y), (0 as number - WORLD_CENTER_Z)), triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number), triga.vector3(1 as number, 1 as number, 1 as number));
+    const rotate: any = triga.matrix4_composita(triga.vector3(0 as number, 0 as number, 0 as number), rotation, triga.vector3(1 as number, 1 as number, 1 as number));
+    const from_origin: any = triga.matrix4_composita(triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z), triga.quaternion(0 as number, 0 as number, 0 as number, 1 as number), triga.vector3(1 as number, 1 as number, 1 as number));
+    return triga.matrix4_multiplicata(from_origin, triga.matrix4_multiplicata(rotate, to_origin));
 }
-function cube_view_projection(aspect: number): any {
+function world_view_projection(aspect: number): any {
     let safe_aspect: number = 1 as number;
     if ((aspect > 0)) {
         safe_aspect = aspect;
     }
-    const projection_result: any | null = triga.matrix4_perspectiva(50 as number, safe_aspect, 0.1 as number, 100 as number);
-    const view_result: any | null = triga.matrix4_conspectus(triga.vector3(3 as number, 2 as number, 5 as number), triga.vector3(0 as number, 0 as number, 0 as number), triga.vector3(0 as number, 1 as number, 0 as number));
+    const projection_result: any | null = triga.matrix4_perspectiva(50 as number, safe_aspect, 0.1 as number, 200 as number);
+    const view_result: any | null = triga.matrix4_conspectus(triga.vector3(EYE_X, EYE_Y, EYE_Z), triga.vector3(WORLD_CENTER_X, WORLD_CENTER_Y, WORLD_CENTER_Z), triga.vector3(0 as number, 1 as number, 0 as number));
     let projection: any = triga.matrix4_identitas();
     let view: any = triga.matrix4_identitas();
     if ((projection_result !== null)) {
@@ -68,27 +178,17 @@ function cube_view_projection(aspect: number): any {
     }
     return triga.matrix4_multiplicata(projection, view);
 }
-function cube_transform_payload(angle_radians: number, aspect: number): any {
-    const model: any = cube_model_matrix(angle_radians);
-    const view_projection: any = cube_view_projection(aspect);
+function world_transform_payload(angle_radians: number, aspect: number): any {
+    const model: any = world_model_matrix(angle_radians);
+    const view_projection: any = world_view_projection(aspect);
     const packed: any | null = triga.transform_payload(model, view_projection);
     if ((packed !== null)) {
         return Object.assign({}, { values: packed!.values });
     }
     return Object.assign({}, { values: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] });
 }
-function emit_cube_geometry(canvas: any): void {
-    const positions: Array<number> = cube_positions();
-    const colors: Array<number> = cube_colors();
-    const indices: Array<number> = cube_indices();
-    dom.attr_set(canvas, "data-hv-positions", lista_f32_textus(positions));
-    dom.attr_set(canvas, "data-hv-colors", lista_f32_textus(colors));
-    dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(indices));
-    dom.attr_set(canvas, "data-hv-vertex-count", String((positions.length / 3)));
-    dom.attr_set(canvas, "data-hv-index-count", String(indices.length));
-}
 function emit_transform(canvas: any, angle_radians: number, aspect: number): void {
-    const payload: any = cube_transform_payload(angle_radians, aspect);
+    const payload: any = world_transform_payload(angle_radians, aspect);
     const values: Array<number> = payload.values;
     let model_values: Array<number> = [];
     let vp_values: Array<number> = [];
@@ -107,7 +207,7 @@ function emit_transform(canvas: any, angle_radians: number, aspect: number): voi
     dom.attr_set(canvas, "data-hv-aspect", String(aspect));
 }
 function update_frame(canvas: any, frame: any, aspect: number): void {
-    const angle: number = (frame.frame * 0.05 as number);
+    const angle: number = (frame.frame * 0.35 as number);
     emit_transform(canvas, angle, aspect);
     dom.attr_set(canvas, "data-hv-frame-count", String(frame.frame));
     dom.attr_set(canvas, "data-hv-angle", String(angle));
@@ -133,15 +233,32 @@ export function hello_voxel_controller(scope: any): Array<any> {
     const canvas: any = dom.require(scope, ".hv-canvas");
     dom.attr_set(canvas, "data-hv-fov", "50");
     dom.attr_set(canvas, "data-hv-near", "0.1");
-    dom.attr_set(canvas, "data-hv-far", "100.0");
-    dom.attr_set(canvas, "data-hv-eye-x", "3.0");
-    dom.attr_set(canvas, "data-hv-eye-y", "2.0");
-    dom.attr_set(canvas, "data-hv-eye-z", "5.0");
-    dom.attr_set(canvas, "data-hv-target-x", "0.0");
-    dom.attr_set(canvas, "data-hv-target-y", "0.0");
-    dom.attr_set(canvas, "data-hv-target-z", "0.0");
+    dom.attr_set(canvas, "data-hv-far", "200.0");
+    dom.attr_set(canvas, "data-hv-eye-x", "48.0");
+    dom.attr_set(canvas, "data-hv-eye-y", "10.0");
+    dom.attr_set(canvas, "data-hv-eye-z", "48.0");
+    dom.attr_set(canvas, "data-hv-target-x", "16.0");
+    dom.attr_set(canvas, "data-hv-target-y", "2.0");
+    dom.attr_set(canvas, "data-hv-target-z", "16.0");
+    dom.attr_set(canvas, "data-hv-payload-kind", "four-chunk-world");
     let live_aspect: number = DEFAULT_ASPECT;
-    emit_cube_geometry(canvas);
+    const batch_result: WorldChunkBatch | null = mesh_fixture_world();
+    if ((batch_result === null)) {
+        dom.text_set(status, "package-mesh-failed");
+        dom.class_add(status, "failed");
+        dom.attr_set(canvas, "data-hv-resource-pair-count", "0");
+        dom.attr_set(canvas, "data-hv-draw-count", "0");
+        return [];
+    }
+    const batch: WorldChunkBatch = Object.assign(new WorldChunkBatch(), { chunk_count: batch_result!.chunk_count, non_empty_count: batch_result!.non_empty_count, total_face_count: batch_result!.total_face_count, total_vertex_count: batch_result!.total_vertex_count, total_index_count: batch_result!.total_index_count, meshes: batch_result!.meshes, positions: batch_result!.positions, colors: batch_result!.colors, indices: batch_result!.indices });
+    if (((((batch.chunk_count as number) !== (4 as number)) || ((batch.non_empty_count as number) !== (4 as number))) || ((batch.total_index_count as number) === (0 as number)))) {
+        dom.text_set(status, "package-mesh-invalid");
+        dom.class_add(status, "failed");
+        dom.attr_set(canvas, "data-hv-resource-pair-count", String(batch.non_empty_count));
+        dom.attr_set(canvas, "data-hv-draw-count", String(batch.non_empty_count));
+        return [];
+    }
+    emit_world_geometry(canvas, batch);
     emit_transform(canvas, 0 as number, live_aspect);
     dom.text_set(status, "package-ready");
     dom.class_add(status, "ready");
