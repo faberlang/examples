@@ -1,6 +1,6 @@
 +++
 term = "bivalens"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 canonical = true
 summary = "Primitive types bivalens, vacuum, and ignotum."

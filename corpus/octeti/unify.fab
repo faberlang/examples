@@ -1,6 +1,6 @@
 +++
 term = "octeti"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 canonical = false
 summary = "octeti unifies with lista<numerus<u8>> — every lista method works on octeti."

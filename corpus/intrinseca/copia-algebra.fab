@@ -1,6 +1,6 @@
 +++
 term = "copia"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 canonical = false
 summary = "Compiler-owned copia set-algebra methodi."

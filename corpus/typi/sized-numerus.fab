@@ -1,6 +1,6 @@
 +++
 term = "numerus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 canonical = false
 summary = "Sized numerus and fractus width annotations in type position."

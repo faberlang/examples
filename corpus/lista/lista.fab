@@ -1,6 +1,6 @@
 +++
 term = "lista"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 canonical = true
 summary = "Generic ordered collection type."

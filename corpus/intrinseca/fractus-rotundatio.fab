@@ -1,6 +1,6 @@
 +++
 term = "fractus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 canonical = false
 summary = "Compiler-owned fractus rounding methodi."

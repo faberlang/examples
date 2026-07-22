@@ -1,6 +1,6 @@
 +++
 term = "promissum"
-kind = "existing-home"
+kind = "keyword"
 category = "async"
 canonical = true
 summary = "Promise-like result type associated with futura functions."

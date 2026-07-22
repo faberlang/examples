@@ -1,6 +1,6 @@
 +++
 term = "nihil"
-kind = "existing-home"
+kind = "keyword"
 category = "literal"
 canonical = true
 summary = "Null literal and nullable union bindings."

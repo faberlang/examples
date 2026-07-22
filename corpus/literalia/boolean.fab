@@ -1,6 +1,6 @@
 +++
 term = "verum"
-kind = "existing-home"
+kind = "keyword"
 category = "literal"
 canonical = true
 summary = "Boolean literals verum and falsum with bivalens bindings."

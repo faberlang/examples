@@ -1,6 +1,6 @@
 +++
 term = "instans"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 canonical = true
 summary = "Absolute point-in-time primitive with precision contract."

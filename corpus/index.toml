@@ -2164,7 +2164,7 @@ category = "mutation"
 [[files]]
 path = "instans/instans.fab"
 term = "instans"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
@@ -2224,13 +2224,13 @@ category = "range"
 [[files]]
 path = "intrinseca/copia-algebra.fab"
 term = "copia"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
 path = "intrinseca/copia-fundamenta.fab"
 term = "copia"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
@@ -2242,13 +2242,13 @@ category = "intrinseca"
 [[files]]
 path = "intrinseca/fractus-comparatio.fab"
 term = "fractus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
 path = "intrinseca/fractus-rotundatio.fab"
 term = "fractus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
@@ -2260,25 +2260,25 @@ category = "intrinseca"
 [[files]]
 path = "intrinseca/numerus-methodi.fab"
 term = "numerus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
 path = "intrinseca/primitiva.fab"
 term = "bivalens"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
 path = "intrinseca/textus-quaestiones.fab"
 term = "textus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
 path = "intrinseca/textus-transformationes.fab"
 term = "textus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
@@ -2350,7 +2350,7 @@ category = "io"
 [[files]]
 path = "lista/lista.fab"
 term = "lista"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
@@ -2362,7 +2362,7 @@ category = "testing"
 [[files]]
 path = "lista/methodi-copiae.fab"
 term = "lista"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
@@ -2374,7 +2374,7 @@ category = "collection"
 [[files]]
 path = "lista/methodi-mutatio.fab"
 term = "lista"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
@@ -2392,7 +2392,7 @@ category = "literal"
 [[files]]
 path = "literalia/boolean.fab"
 term = "verum"
-kind = "existing-home"
+kind = "keyword"
 category = "literal"
 
 [[files]]
@@ -2404,7 +2404,7 @@ category = "template"
 [[files]]
 path = "literalia/nihil.fab"
 term = "nihil"
-kind = "existing-home"
+kind = "keyword"
 category = "literal"
 
 [[files]]
@@ -2556,13 +2556,13 @@ category = "type"
 [[files]]
 path = "octeti/octeti.fab"
 term = "octeti"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
 path = "octeti/unify.fab"
 term = "octeti"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
@@ -2784,7 +2784,7 @@ category = "testing"
 [[files]]
 path = "promissum/promissum.fab"
 term = "promissum"
-kind = "existing-home"
+kind = "keyword"
 category = "async"
 
 [[files]]
@@ -2982,13 +2982,13 @@ category = "type"
 [[files]]
 path = "tabula/methodi-accessus.fab"
 term = "tabula"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
 path = "tabula/tabula.fab"
 term = "tabula"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 
 [[files]]
@@ -3102,13 +3102,13 @@ category = "control-flow"
 [[files]]
 path = "typi/sized-family-error.fab"
 term = "numerus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]
 path = "typi/sized-numerus.fab"
 term = "numerus"
-kind = "existing-home"
+kind = "keyword"
 category = "type"
 
 [[files]]

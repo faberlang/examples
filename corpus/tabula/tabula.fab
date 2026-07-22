@@ -1,6 +1,6 @@
 +++
 term = "tabula"
-kind = "existing-home"
+kind = "keyword"
 category = "collection"
 canonical = true
 summary = "Generic key/value map type."
