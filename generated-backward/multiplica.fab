@@ -1,0 +1,30 @@
++++
+term = "generated backward multiplica"
+kind = "exemplum"
+category = "air"
+summary = "Stage 2 end-to-end exemplum: multiplica with generated backward companion."
+related = ["air lane", "backward", "generated gradient"]
++++
+
+# multiplica — generated backward exemplum
+#
+# This AIR-lane function is annotated for backward generation. The compiler
+# produces a gradient companion function named "multiplica_backward" (from
+# `@ radix backward "multiplica_backward"`) in the emitted MIR program.
+#
+# The backward function receives an upstream gradient and returns the
+# per-element gradient for each input:
+#   d_lhs = upstream * rhs
+#   d_rhs = upstream * lhs
+
+@ radix lane "air"
+@ radix backward "multiplica_backward"
+functio multiplica_pair(tf32[2, 2] a, tf32[2, 2] b) → tf32[2, 2] {
+    fixum tf32[2, 2] added ← a.addita(b)
+    fixum tf32[2, 2] interm ← added.subtrahe(b)
+    redde interm.multiplica(a)
+}
+
+incipit {
+    nota multiplica_pair
+}
