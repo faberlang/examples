@@ -24,7 +24,3 @@ functio da_verum() → bivalens {
 functio da_falsum() → bivalens {
     redde falsum
 }
-
-incipit {
-    redde
-}

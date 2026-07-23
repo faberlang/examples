@@ -20,7 +20,3 @@ related = ["textus", "functio"]
 functio da_textum() → textus {
     redde "textus"
 }
-
-incipit {
-    redde
-}
