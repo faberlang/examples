@@ -8,6 +8,23 @@ syntax = "solum.lege<textus>(via) | solum.lege<lista<textus>>(via) | solum.lege<
 related = ["ad", "solum", "generic"]
 +++
 
+# =============================================================================
+# solum lege generic — solum.lege<T> admits only supported materialization
+# target types.
+# =============================================================================
+#
+# What this teaches:
+#   • Generic materialization — `solum.lege<T>` reads file contents and
+#     materializes them into a specified target type
+#   • Supported type domain — only `textus`, `lista<textus>`, and `octeti` are
+#     accepted as T, enforced by compiler-owned `@ radix typus` metadata
+#
+# Common mistakes:
+#   • confusing ad route syntax — `solum.lege<T>` admits only `textus`, `lista<textus>`, and `octeti` as materialization targets
+#
+# See also: ad, solum, generic
+# =============================================================================
+
 # solum.lege<T> — generic materialization domain
 #
 # `solum.lege<T>` is constrained by compiler-owned `@ radix typus` metadata in

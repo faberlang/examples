@@ -9,6 +9,19 @@ aliases = ["iterate"]
 related = ["ex", "de", "ab"]
 +++
 
+# =============================================================================
+# itera — Starts a for-each iteration statement.
+# =============================================================================
+#
+# What this teaches:
+#   • nested iteration — combining `itera ex` and `itera ab` loops for Cartesian products
+#   • multiplication tables and coordinate grids as practical examples
+#
+# Common mistakes:
+#   • Using ab (range iteration) when ex or de is needed for a collection — each nested itera must independently choose the correct mode.
+#
+# See also: ex, de, ab
+# =============================================================================
 
 # itera ex — nested loops (Cartesian product)
 #

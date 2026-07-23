@@ -7,6 +7,21 @@ summary = "Success return type and recoverable alternate-exit type in function s
 syntax = "functio <name>(<params>) → <type> | functio <name>(<params>) → <success> ⇥ <error>"
 related = ["⇥", "functio", "redde", "iace", "cape"]
 +++
+
+# =============================================================================
+# → — Success return type and recoverable alternate-exit type in function signatures.
+# =============================================================================
+#
+# What this teaches:
+#   • Return type annotation — `→` separates a function signature from its success return type.
+#   • Fallible return — `⇥` after `→` declares a recoverable error type, paired with `iace` and `cape`.
+#
+# Common mistakes:
+#   • Forgetting the ⇥ error type in signatures that use iace.
+#
+# See also: ⇥, functio, redde, iace, cape
+# =============================================================================
+
 # operatores/function-types — → and ⇥
 #
 # GRAMMAR:

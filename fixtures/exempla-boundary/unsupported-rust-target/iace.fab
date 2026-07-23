@@ -1,3 +1,39 @@
+# =============================================================================
+# iace — throw statement for error signaling
+# =============================================================================
+#
+# What this example teaches:
+#   • iace — throw expression: `iace <value>` transfers control to the
+#     nearest enclosing cape (catch) block
+#   • Throw with string literal — `iace "Something went wrong"`
+#   • Throw with formatted message — `iace "Error code: §"(code)`
+#   • Conditional throw — `si <cond> { iace <msg> }` guard pattern
+#
+# Syntaxes used:
+#   • incipit — entry point (line 5)
+#   • fac — try block (lines 7, 14, 22)
+#   • iace — throw expression (lines 8, 17, 25)
+#   • cape — catch block (lines 10, 19, 28)
+#   • si — conditional (lines 23)
+#   • fixum — immutable binding (lines 13, 20)
+#   • nota — print (lines 11, 20, 29)
+#   • § — template interpolation (line 17)
+#
+# Alternate approaches (not shown):
+#   • Using ⇥ effect type instead of explicit fac/cape at every call site — declare → T ⇥ textus on the function signature to auto-propagate errors
+#
+# Anti-patterns (avoid these):
+#   • Using iace for normal control flow — iace is for errors; prefer redde or si/elige for branching logic
+#   • Throwing non-descriptive values — empty strings or bare numbers as error values lose context; include descriptive messages or typed error values
+#
+# Learning path:
+#   Before: Stage 2: fac/cape (basic error handling blocks)
+#   After:  Stage 11: ⇥ effect type annotations (propagating errors without fac/cape at every call site)
+#
+# Stage: fixture boundary, unsupported-rust-target, iace throw syntax
+# Backend: stepper
+# =============================================================================
+
 # Basic iace (throw) statement
 #
 # iace <expression>

@@ -1,3 +1,35 @@
+# =============================================================================
+# suite — nested test suites with praepara (setup) and probandum
+# =============================================================================
+#
+# What this example teaches:
+#   • probandum — test suite container for grouping related tests
+#   • Nested suites — probandum within probandum for hierarchical organization
+#   • praepara omnia — setup block that runs before all tests in the suite
+#
+# Syntaxes used:
+#   • probandum — test suite (lines 1, 11)
+#   • praepara omnia — suite-level setup (line 2)
+#   • proba — test case (lines 7, 13)
+#   • adfirma — assertion (lines 4, 8, 14)
+#   • fixum — immutable binding (line 3)
+#   • incipit — entry point (line 16)
+#
+# Alternate approaches (not shown):
+#   • praepara singula (before-each) for per-test setup — praepara singula runs before each proba in the suite; omnia runs once before all
+#   • postpara for teardown — postpara runs after tests for cleanup, symmetric with praepara
+#
+# Anti-patterns (avoid these):
+#   • Suite-level setup that assumes test execution order — tests may run in any order; praepara omnia must not depend on state from a specific test
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma, probandum (test suite structure)
+#   After:  Stage 10: proba/packages/* (CI integration, test selection flags)
+#
+# Stage: fixture boundary, proba suite, nested probandum + setup
+# Backend: stepper
+# =============================================================================
+
 probandum "math suite" {
     praepara omnia {
         fixum _ setup_value ← 1

@@ -8,6 +8,19 @@ syntax = "proba <name> futurum <reason> <block>"
 aliases = ["todo", "pending"]
 related = ["proba", "omitte"]
 +++
+# =============================================================================
+# futurum — Marks a test case as pending future work with a reason
+# =============================================================================
+#
+# What this teaches:
+#   • Marks a test case as pending future work with a reason.
+#   • Related keywords: proba, omitte
+#
+# Common mistakes:
+#   • Using `futurum` on tests that are actually implemented — `futurum` marks pending work; active tests should omit this modifier.
+#
+# See also: proba, omitte
+# =============================================================================
 
 # futurum — todo test modifier
 #

@@ -1,3 +1,40 @@
+# =============================================================================
+# proba — basic test (proba) statement syntax reference
+# =============================================================================
+#
+# What this example teaches:
+#   • proba — test case syntax: `proba "name" { body }`
+#   • adfirma — assertion keyword with equality, comparison, and logical operators
+#   • Test patterns — multiple assertions, variables, string interpolation,
+#     comparison operators, negation, and complex logical assertions
+#
+# Syntaxes used:
+#   • proba — test case declaration (lines 8, 13, 19, 27, 34, 43)
+#   • adfirma — assertion (lines 9, 14-16, 21-23, 28-31, 35-36, 44)
+#   • ≡ — equality comparison (lines 9, 16, 23, 36)
+#   • > / < — comparison (lines 29, 30)
+#   • ≥ / ≤ — greater-or-equal / less-or-equal (lines 31, 32)
+#   • non — negation prefix (lines 35, 36)
+#   • et — logical AND (line 44)
+#   • fixum — immutable binding (lines 20-22)
+#   • § — template interpolation (line 22)
+#
+# Alternate approaches (not shown):
+#   • probandum for nested test suites — wrap related proba in probandum "suite name" { ... } for hierarchical organization
+#   • omitte / futurum for test modifiers — proba "name" omitte "reason" { ... } and proba "name" futurum "reason" { ... }
+#
+# Anti-patterns (avoid these):
+#   • Tests with no assertions (vacuous pass) — a proba without adfirma always passes but proves nothing; every test needs at least one assertion
+#   • Using adfirma with side-effecting expressions — adfirma should check pure predicates; avoid side effects inside assertions that may confuse test ordering
+#
+# Learning path:
+#   Before: Stage 10: adfirma (assertion keyword)
+#   After:  Stage 10: proba/modificatores.fab + proba/packages/* (test modifiers and CI integration)
+#
+# Stage: fixture boundary, proba syntax, assertion patterns
+# Backend: stepper
+# =============================================================================
+
 # Basic proba (test) statements
 #
 # proba "name" { body }

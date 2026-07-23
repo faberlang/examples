@@ -1,3 +1,41 @@
+# =============================================================================
+# rm — GNU coreutils rm: remove files or directories
+# =============================================================================
+#
+# What this example teaches:
+#   • `solum.dele()` and `solum.amputa()` — standard library calls for file and
+#     directory tree removal
+#   • `@ optio` with `bivalens` type — boolean CLI flag (`-r`/`--recursive`)
+#     that toggles between `dele` and `amputa` behavior
+#   • `itera` over `@ operandus ceteri` — removing each path operand in a loop
+#
+# Syntaxes used:
+#   • `importa` — module import (line 1)
+#   • `si`/`secus` — conditional dispatch (lines 5-11)
+#   • `itera` — for-each over list (line 14)
+#   • `@ cli` / `@ optio` / `@ descriptio` / `@ operandus` — CLI annotations
+#     (lines 17-21)
+#   • `incipit` — entry point (line 22)
+#   • `solum.dele()` / `solum.amputa()` — file/directory removal
+#   • `bivalens` — boolean type
+#   • `textus`, `lista<...>` — type annotations
+#   • `.accipe()` not used (direct iteration)
+#
+# Alternate approaches (not shown):
+#   • `-f` force mode, `-i` interactive confirmation, `-v` verbose
+#   • `solum.amputa()` vs `solum.dele()` — removing directories requires
+#     explicit flag unlike GNU's `-r` default
+#
+# Anti-patterns (avoid these):
+#   • No proba block — should test with temp file fixtures
+#
+# Learning path:
+#   Before: yes
+#   After:  mkdir, rm, cp
+#
+# Stage: Stage 3, file-operand via solum
+# Backend: stepper
+# =============================================================================
 importa ex "norma:solum" privata solum
 
 functio remove_path(textus path, bivalens recursive) → vacuum {

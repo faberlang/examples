@@ -1,3 +1,29 @@
+# =============================================================================
+# Hindi locale (Devanagari) — undefined variable error
+# =============================================================================
+#
+# What this example teaches:
+#   • Undefined-variable diagnostic — referencing a name not in scope
+#   • Locale-aware diagnostics — Devanagari keyword set for error messages
+#
+# Syntaxes used:
+#   • आरंभ (incipit) — entry point (line 1)
+#   • दिखाओ (nota) — print to stdout (line 2)
+#
+# Alternate approaches (not shown):
+#   • Declaring variables before use: स्थिर पाठ नाम ← "मान" — always declare bindings before referencing them
+#
+# Anti-patterns (avoid these):
+#   • SEM001: unknown identifier — typos in Devanagari script produce the same "did you mean?" diagnostics as Latin; diagnostics are locale-agnostic underneath the keyword translation
+#
+# Learning path:
+#   Before: Stage 1: incipit, nota (basic module-scope output and entry-point block)
+#   After:  Stage 1: fixum, varia, si, redde, functio (correct declarations, bindings, and control flow)
+#
+# Stage: locale-reader, Devanagari locale undefined-variable fixture
+# Backend: stepper
+# =============================================================================
+
 आरंभ {
   दिखाओ अघोषित
 }

@@ -8,6 +8,21 @@ syntax = "@ operandus [ceteri] <type> <binding> [descriptio \"...\"] [ubique] [v
 related = ["optio", "cli", "imperium", "ceteri", "ubique"]
 +++
 
+# =============================================================================
+# operandus — Declares a CLI operand annotation.
+# =============================================================================
+#
+# What this teaches:
+#   • CLI operands — `@operandus` declares positional arguments for CLI subcommands.
+#   • Binding and description — Each operand specifies a type, binding name, and description.
+#   • Variadic operands — The `ceteri` keyword marks an operand that consumes remaining arguments.
+#
+# Common mistakes:
+#   • Duplicate operand bindings or type mismatches — each operand name must be unique and match its declared type.
+#
+# See also: optio, cli, imperium, ceteri, ubique
+# =============================================================================
+
 # operandus — CLI positional operand
 #
 # GRAMMAR:

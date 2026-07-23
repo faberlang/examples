@@ -1,3 +1,40 @@
+# =============================================================================
+# mathesis — cista package math interface
+# =============================================================================
+#
+# What this example teaches:
+#   • Cista package source — a package interface definition with target-neutral
+#     Faber source that can be bound to Rust implementations via cista.toml
+#   • Numeric functions — integer arithmetic (quadratum, cubum) and floating-point
+#     operations (duplicatum, dimidium, maximus, minimus)
+#   • fractus type — floating-point number type (lines 17, 22, 27, 35)
+#
+# Syntaxes used:
+#   • functio — function definitions (lines 6, 11, 16, 21, 26, 34)
+#   • → — return type annotation (lines 6, 11, 16, etc.)
+#   • numerus — integer type (lines 6, 11)
+#   • fractus — floating-point type (lines 17, 22, 27, 35)
+#   • redde — return value (lines 7, 12, 17, 22, 29, 31, 37)
+#   • si — conditional (lines 28, 36)
+#   • > / < — comparison operators (lines 28, 36)
+#   • * / / — arithmetic operators (lines 7, 12, 18, 23)
+#   • x * 2.0 — float literal multiplication (line 18)
+#
+# Alternate approaches (not shown):
+#   • Generic numeric functions using type parameters — <T: Numerus> would abstract over numerus/fractus without duplicating signatures
+#   • Inline Rust implementations via target bindings instead of Faber source — use cista.toml [[bindings]] to map Faber signatures to Rust/other target implementations
+#
+# Anti-patterns (avoid these):
+#   • Package interfaces with implementation details that leak target bindings — keep Faber source target-neutral; platform details belong in cista.toml binding sections, not in .fab interface files
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica → Stage 5: coreutils (package structure and import basics)
+#   After:  Stage 11: conversio/* suite (typed interfaces with advanced conversions)
+#
+# Stage: cista-lab, math interface package, target-neutral source
+# Backend: stepper (interface), Rust (via cista.toml bindings)
+# =============================================================================
+
 # mathesis.fab - Small cista package math interface
 #
 # This fixture keeps the Faber interface target-neutral. Rust implementation

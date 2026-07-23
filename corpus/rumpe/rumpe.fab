@@ -9,6 +9,21 @@ aliases = ["break"]
 related = ["perge", "dum"]
 +++
 
+# =============================================================================
+# rumpe — Breaks out of the innermost loop.
+# =============================================================================
+#
+# What this teaches:
+#   • Loop control flow — `rumpe` exits the innermost `dum` or `itera` loop
+#     immediately
+#   • In nested loops, only the innermost loop is broken; outer loops continue
+#     executing
+#
+# Common mistakes:
+#   • Using `rumpe` outside a breakable block — `dum`, `itera`, `fac`, `meus`, or `tuus` (SEM030).
+#
+# See also: perge, dum
+# =============================================================================
 
 # Break (rumpe) in loops
 #

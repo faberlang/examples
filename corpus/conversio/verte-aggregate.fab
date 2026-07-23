@@ -8,6 +8,21 @@ syntax = "Type { fields } | <lista-expression> ∷ lista<T> | { \"key\": value }
 related = ["verte", "genus", "lista", "tabula"]
 +++
 
+# =============================================================================
+# ∷ — Aggregate construction into struct, lista, and tabula targets.
+# =============================================================================
+#
+# What this teaches:
+#   • Aggregate construction pathways — genus values use typed `Type { fields }`, lista uses `∷` for static shape, tabula uses typed JSON literals.
+#   • Defaultable fields — omitted `sponte` and default-valued fields in genus constructors.
+#   • HIR/MIR agreement — aggregate construction should stay identical across Rust and MIR lowering.
+#
+# Common mistakes:
+#   • Omitting a mandatory genus field without a default or sponte marker — all required fields must be provided in the `Type { field = expr }` constructor.
+#
+# See also: verte, genus, lista, tabula
+# =============================================================================
+
 # conversio — aggregate construction
 #
 # WHY: aggregate construction should stay identical across HIR-direct Rust emit

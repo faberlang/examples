@@ -9,6 +9,20 @@ related = ["ante", "usque"]
 +++
 
 
+# =============================================================================
+# per — Sets the step for a range.
+# =============================================================================
+#
+# What this teaches:
+#   • Range stepping — `per <expr>` after a range specifies the increment between iterations.
+#   • Custom step sizes — Unlike the default step of 1, `per 2` iterates over even numbers only.
+#
+# Common mistakes:
+#   • Confusing `per` (range step) with `perge` (continue) — they are unrelated keywords.
+#
+# See also: ante, usque
+# =============================================================================
+
 # per — step size for range iteration
 #
 # itera ab <initium>‥<finis> per <gradus> <var> { … }   -- half-open range step

@@ -1,11 +1,56 @@
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps expand in the stdin-only stepper lane.
+# =============================================================================
+# expand — convert tabs to spaces
+# =============================================================================
+#
+# What this example teaches:
+#   • genus with multiple numeric fields — Tabulae struct storing up to 8 tab stops
+#   • discinde — custom comma-separated list splitter (matching cut's pattern)
+#   • ↦ numerus ⇥ — string-to-number conversion with fallback
+#   • Manual parser for short/long flags with argument — -tN, -t N, --tabs, --tabs=N, -i, --initial
+#   • Tab-stop math — computing spaces-to-next-stop with absolute and repeating modes
+#   • Large probandum suite — 10 tests covering custom stops, lists, initial-only
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → … — lines 12, 14, 30, 32, 36, 40, 68, 121, 127, 153, 177, 181, 186, 197-198, 202-203, 207
+#   • genus … { … } — lines 10-25, 27-30
+#   • dum — lines 50, 156, 188, 209
+#   • si / sin / secus — throughout
+#   • varia / fixum — throughout
+#   • ≡ / ≠ / > / < — throughout
+#   • itera ex — lines 80
+#   • redde — throughout
+#   • ↦ numerus ⇥ (conversion) — lines 34, 83
+#   • probandum / proba / adfirma — lines 244-277
+#   • @ cli / @ descriptio / @ operandus — lines 280-282
+#   • incipit — line 283
+#   • ∪ nihil — lines 188, 191
+#   • vel — throughout
+#   • vacua — lines 42, 122, 145
+#   • falsum / verum — throughout
+#
+# Stage: Stage 4, stdin-only tab expansion with GNU -t/-i parity
+# Backend: stepper
+#
 # This slice implements GNU expand's default tab stop, `-t N` for a single
 # repeating positive integer tab stop, comma/list absolute tab stops such as
-# `-t 4,8`, and initial-only `-i` tab expansion.
-# File operands, backspace/display-column semantics, invalid-option
-# diagnostics, help, and version output are deferred.
+# `-t 4,8`, and initial-only `-i` tab expansion. File operands, backspace/
+# display-column semantics, invalid-option diagnostics, help, and version
+# output are deferred.
+#
+# Alternate approaches (not shown):
+#   • generated @ optio parser for -t/-i vs manual parsing — needed because comma-list tab stops would be normalized before GNU-specific handling (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: cut, od
+#   After:  printf
+# =============================================================================
+
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 genus Tabulae {
     bivalens finita

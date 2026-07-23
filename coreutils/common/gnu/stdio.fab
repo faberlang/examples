@@ -1,11 +1,43 @@
-# Stdout helpers for GNU-style CLI utilities.
+# =============================================================================
+# stdio — Stdout line output helpers for GNU-style CLI utilities
+# =============================================================================
 #
-# Line output uses language `nota` (implicit newline).
+# What this example teaches:
+#   • functio — Minimal wrapper around the `nota` built-in for text output
+#   • nota — Language-level output construct with implicit newline
+#   • vacuum — Void return type indicating side-effect-only function
 #
-# Raw no-newline writes: package-MIR currently bridges `norma:consolum.dic`
-# only when the call lives in a package unit whose providers are rewritten
-# (see echo `scribe_sine_linea`). Prefer importing `norma:consolum` in the
-# package entry until shared `common/*` library providers rewrite correctly.
+# Syntaxes used:
+#   • functio — function definition (line 38)
+#   • vacuum — void/unit return type (line 38)
+#   • nota — output with implicit newline (line 39)
+#   • textus — string type parameter (line 38)
+#
+# Implementation notes:
+#   Line output uses language `nota` (implicit newline). Raw no-newline writes —
+#   package-MIR currently bridges `norma:consolum.dic` only when the call lives
+#   in a package unit whose providers are rewritten (see echo `scribe_sine_linea`).
+#   Prefer importing `norma:consolum` in the package entry until shared `common/*`
+#   library providers rewrite correctly.
+#
+# Alternate approaches (not shown):
+#   • consolum.dic() — raw no-newline output; used when trailing newline is not
+#     desired (see alternates: nota vs consolum.dic vs consolum.mone)
+#   • consolum.mone() — stderr error output; complements stdout-only nota for
+#     warnings and error messages
+#
+# Anti-patterns (avoid these):
+#   • Calling norma:consolum from shared common/* helpers — providers are not yet
+#     rewritten correctly for shared library units; prefer importing at the
+#     package entry point (see anti-patterns: norma:hal/* imports)
+#
+# Learning path:
+#   Before: functio (Stage 1), vacuum (Stage 3), nota (Stage 1)
+#   After:  true, false, pwd (Stage 5: first coreutils using gnu_stdio.scribe_linea)
+#
+# Stage: Stage 2+ shared coreutils helpers
+# Backend: both
+# =============================================================================
 
 functio scribe_linea(textus linea) → vacuum {
     nota linea

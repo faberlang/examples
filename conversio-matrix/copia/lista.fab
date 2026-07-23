@@ -1,6 +1,35 @@
-# Conversio matrix fixture: copia ↦ lista.
-# Setup: copia from a lista; measure copia ↦ lista (materialize elements).
-# Phase-1 model: rust ✓ (collect Vec); wasm-text ✓.
+# =============================================================================
+# copia ↦ lista — materialize set elements into a list
+# =============================================================================
+#
+# What this example teaches:
+#   • copia ↦ lista — materialize a set's elements into an ordered list
+#   • Two-step setup: lista → copia (seed), then copia → lista (collect)
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — lines 10, 11
+#   • incipit (entry point) — line 9
+#   • fixum (immutable binding) — line 10
+#
+# Alternate approaches (not shown):
+#   • [1,2,3] ∷ copia<numerus> — static ascription when the set semantics are known; avoids runtime dedup
+#   • copia<numerus> ∷ lista<numerus> — the reverse direction needs ↦ (materialization), not ∷
+
+# Anti-patterns (avoid these):
+#   • [1,1,2] ↦ copia<numerus> expecting two elements — duplicates are silently dropped; check .longitudo()
+#   • Assuming element order is preserved — copia sets have no guaranteed order
+
+# Pitfalls:
+#   • Duplicate elements are silently discarded — verifies count after conversion
+#   • Element order from the original lista is NOT preserved in copia
+
+# Learning path:
+#   Before: see lista/ and copia/ exempla (Stage 3–6 types)
+#   After:  see sort/src/main.fab (ordering and deduplication patterns)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum copia<numerus> s ← [1, 2, 3] ↦ copia<numerus>
     fixum _ r ← s ↦ lista<numerus>

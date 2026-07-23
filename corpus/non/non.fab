@@ -9,6 +9,19 @@ aliases = ["!"]
 related = ["verum", "falsum"]
 +++
 
+# =============================================================================
+# non — Negates a boolean expression.
+# =============================================================================
+#
+# What this teaches:
+#   • the `non` keyword — unary boolean negation (equivalent to `!`)
+#
+# Common mistakes:
+#   • Confusing non (logical negation) with ≠ (inequality comparison) — non negates a boolean, ≠ compares two values.
+#
+# See also: verum, falsum
+# =============================================================================
+
 # non — logical not
 #
 # GRAMMAR:

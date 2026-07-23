@@ -1,12 +1,92 @@
-# Hello Voxel — HV-05A: authoritative voxel world model.
+# =========================================================================
+# voxel — authoritative voxel world model (HV-05A) + dirty-chunk tracking (HV-07A)
+# =========================================================================
 #
-# Locked contract (goal 05 / delivery HV-05A):
-#   - World is 32 × 16 × 32 blocks (Y up).
-#   - Four chunks of 16 × 16 × 16 in an X/Z grid.
-#   - Block id 0 = air, block id 1 = opaque solid.
-#   - Flat local index: lx + 16 * (lz + 16 * ly).
-#   - World access resolves chunk + local coordinates before read/write.
-#   - Meshes are not storage (meshing is HV-05B).
+# What this example teaches:
+#   • `genus`/`functio` — type and function declarations for a chunked voxel domain
+#   • `World` + address resolution — bounds-safe `world_get`/`world_set` via chunk/local
+#   • `DirtySet` + affected chucks — interior/edge/diagonal edits dirty owning + adjacent
+#   • `dum` loops — nested iteration over world coordinates, chunk grids, and dirty flags
+#   • `∪ nihil` — nullable return types for OOB, invalid ids, and failed operations
+#   • `world_set_dirty` — no-op guard (same block id → `changed = falsum`, no dirtiness)
+#
+# Syntaxes used:
+#   • `genus`, `functio`, `importa` — declarations throughout
+#   • `dum` — iterative loops for fill, traversal, dirty marking
+#   • `si`/`secus` — conditionals for bounds checks, edge detection, no-op guards
+#   • `∪` union types (`numerus ∪ nihil`, `lista<numerus> ∪ nihil`)
+#   • `est nihil` / `non est nihil` — null checking
+#   • `↦` — type conversion (`numerus ↦ f32`, line 773)
+#   • `lista<...>` — generic lists
+#   • `bivalens`, `verum`/`falsum` — booleans
+#
+# Alternate approaches (not shown):
+#   • tabula<ChunkIndex, ChunkData> — keyed lookup vs flat lista indexing
+#   • in-place mutation — reusable chunk copies to reduce allocation
+#
+# Anti-patterns (avoid these):
+#   • direct chunk.blocks mutation — must go through `world_set` to preserve dirtiness
+#   • editing without marking dirty — every mutation must update the affected set
+#
+# Learning path:
+#   Before: Stages 1–4 (keywords + operators) + coreutils foundations
+#   After:  voxel-world-facts.fab
+#
+# Stage: HV-05A (world model, indexing, fixture), HV-07A (dirty sets, affected chunks)
+# Backend: Rust (WebGPU native)
+# =========================================================================
+
+# =========================================================================
+# Faber Quick Reference
+# =========================================================================
+#
+# New to Faber? Start here. Every keyword and operator used in these
+# examples is defined below — you will not find this glossary in any
+# individual file.
+#
+# Latin keywords used throughout these examples:
+#   functio  = function declaration    incipit  = program entry point
+#   genus    = struct / record type    fixum    = immutable binding (write-once)
+#   varia    = mutable binding         redde    = return a value
+#   vacua    = empty list              vacuum   = void / no return value
+#   nihil    = null / nothing          verum    = true
+#   falsum   = false                   aut      = or
+#   et       = and                     ergo     = then (guard-clause short-circuit)
+#   de       = borrowed parameter      vel      = nil-coalesce default (x vel 0)
+#   est      = is (identity check)     non      = not (negation)
+#   proba    = test / assert           adfirma  = affirmation assert
+#   probandum = test function          iace     = throw an error
+#
+# Operators:
+#   ↦  = type conversion (e.g., "42" ↦ numerus, via ↦ valor)
+#   ⇥  = effect/error channel on function signatures (e.g., → T ⇥ textus)
+#   ∪  = union type (e.g., textus ∪ nihil = nullable text)
+#   §  = string interpolation placeholder (e.g., "§.§"(a, b) → "a.b")
+#   ≡  = equality, ≠ = inequality
+#   ∴  = closure/lambda binding arrow (e.g., (Event e) → vacuum ∴ handler(e))
+#   ←  = assignment, = = struct field init (e.g., Chunk { cx = 0, cz = 1 })
+#   !  = force-unwrap (x! — panics if x est nihil)
+#
+# Control flow:
+#   si / sin / secus           = if / else-if / else
+#   elige / casu / ceterum     = switch / case / default
+#   dum                        = while loop
+#   itera ex                   = for-each over values
+#   fac { ... } cape err { ... } = try/catch (err is implicitly bound)
+#
+# Annotations:
+#   @ cli / @ optio / @ operandus / @ versio = CLI application metadata
+#   @ json                                    = JSON serialization marker
+#   @ WebController                           = DOM / browser controller binding
+#   @ futura                                  = async function marker
+#   @ privata / @ publica                     = visibility intent
+#   @ radix                                   = host type constraint (for ad routes)
+#
+# Host dispatch (stdlib spine):
+#   ad 'solum:lege' (via) ↦ T  = send route to host backend, convert result to T
+#
+# See the full language spec at: examples/corpus/ (faber explain source)
+# =========================================================================
 
 # =========================================================================
 # CONSTANTS

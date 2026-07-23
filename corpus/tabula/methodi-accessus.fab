@@ -9,6 +9,22 @@ aliases = ["map", "dictionary"]
 related = ["lista", "copia", "∷", "itera"]
 +++
 
+# =============================================================================
+# tabula — Generic key/value map type.
+# =============================================================================
+#
+# What this teaches:
+#   • Map access methods — `accipe`, `ponde`, `habet`, `dele`, `longitudo`, `vacua`
+#   • Null-safe access — using `vel` to supply defaults when a key is absent
+#
+# Common mistakes:
+#   • attempting to access a missing key without a default and getting a ∪ nihil value — use vel for fallback
+#
+# See also: lista, copia, ∷, itera
+# =============================================================================
+
+
+
 
 # tabula<K,V> access and mutation intrinsics
 #

@@ -8,6 +8,20 @@ syntax = "sparsa.accipe(indices) | sparsa.ponde(indices, value)"
 related = ["sparsa", "accipe", "ponde"]
 +++
 
+# =============================================================================
+# sparsa — Sparse tensor accipe/ponde access and zero-removal semantics.
+# =============================================================================
+#
+# What this teaches:
+#   • Sparse tensor access — reading values with `accipe` and writing with `ponde`
+#   • Zero-removal semantics — assigning zero removes the entry from storage
+#
+# Common mistakes:
+#   • assuming absent coordinates return an error rather than a zero value, or forgetting that ponde(…, 0.0) deletes the entry
+#
+# See also: sparsa, accipe, ponde
+# =============================================================================
+
 
 # sparsa — sparse access and update policy
 #

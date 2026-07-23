@@ -1,8 +1,49 @@
+# =============================================================================
+# printenv — GNU coreutils printenv: print all or part of environment
+# =============================================================================
+#
+# What this example teaches:
+#   • `fac`/`cape` (try/catch) — error handling around `processus.lege` for
+#     missing environment variables, swallowing the error with `tacet`
+#   • `norma:processus` import — calling into the standard library for
+#     process-level operations
+#   • `itera` over CLI `@ operandus` — processing variable-length operand lists
+#     from the framework parser
+#   • Compact entry point — no explicit stdin loop, mapping operands directly
+#     to the system environment
+#
+# Syntaxes used:
+#   • `importa` — module import with `privata` (line 1-2)
+#   • `fac`/`cape` — try/catch error handling (lines 9-12)
+#   • `tacet` — silence/ignore error (line 12)
+#   • `si`/`ergo` — conditional (not used in this file directly)
+#   • `itera` — for-each over list (line 25)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 14-19)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI declarations (lines 21-23)
+#   • `incipit` — entry point (line 24)
+#   • `functio` — function (line 7)
+#   • `textus`, `vacuum` — type annotations
+#   • `gnu_stdio.scribe_linea()` — common stdout helper
+#   • `processus.lege()` — environment variable lookup
+#
+# Alternate approaches (not shown):
+#   • Dump-all mode — print entire environment when no operands given
+#   • `-0` null-delimited output
+#
+# Anti-patterns (avoid these):
+#   • Empty `proba` body ("empty operand list is a no-op surface") —
+#         prefer an assertion that actually tests the behavior
+#
+# Learning path:
+#   Before: yes
+#   After:  cat
+#
+# Stage: Stage 3, named-operand slice via processus, full env dump deferred
+# Backend: stepper
+# =============================================================================
 importa ex "norma:processus" privata processus
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
-# Stage 3 keeps printenv in the named-operand slice. Full environment dumps need
-# enumeration support beyond processus.lege and stay out of this stepper subset.
 functio printenv_nomen(textus nomen) → vacuum {
     fac {
         fixum textus valor ← processus.lege(nomen)

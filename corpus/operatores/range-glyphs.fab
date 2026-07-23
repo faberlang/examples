@@ -8,6 +8,20 @@ syntax = "<expression> ‥ <expression> | <expression> … <expression>"
 related = ["‥", "…", "ante", "usque", "intra"]
 +++
 
+# =============================================================================
+# ‥ — Half-open and inclusive range endpoints in itera ab and intra.
+# =============================================================================
+#
+# What this teaches:
+#   • Exclusive ranges — `‥` (two dots) creates half-open ranges: start inclusive, end exclusive.
+#   • Inclusive ranges — `…` (three dots) creates inclusive ranges: both endpoints included.
+#
+# Common mistakes:
+#   • Confusing ‥ (exclusive range) with … (inclusive range) — off-by-one errors are the most common range bug.
+#
+# See also: ‥, …, ante, usque, intra
+# =============================================================================
+
 # operatores/range-glyphs — ‥ (exclusive) and … (inclusive)
 #
 # GRAMMAR:

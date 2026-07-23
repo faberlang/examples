@@ -1,5 +1,35 @@
-# Conversio matrix fixture: tabula ↦ lista.
-# Phase-1 model: rust ✓ (project keys/values); wasm-text ✓.
+# =============================================================================
+# tabula ↦ lista — project map keys/values into a list
+# =============================================================================
+#
+# What this example teaches:
+#   • tabula ↦ lista — extract entries from a map into a list
+#   • Type inference — target type <textus> determines key projection
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#   • tabula literal — line 9
+#   • lista<textus> (generic list type) — line 9
+#
+# Alternate approaches (not shown):
+#   • itera de tabula — iterate over keys without materializing a list; prefer for simple key access
+
+# Anti-patterns (avoid these):
+#   • tabula ∷ lista — static ascription cannot project keys; use ↦
+#   • Assuming value extraction — ↦ lista<textus> projects keys, not values
+
+# Pitfalls:
+#   • Only keys are projected into the list; values are discarded
+#   • Map ordering is not guaranteed; the resulting list order may vary
+
+# Learning path:
+#   Before: see tabula/ and lista/ exempla (Stage 6 types)
+#   After:  see vivilite/src/main.fab (tabula usage in SQLite row data)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← { "a": 1 } ↦ lista<textus>
 }

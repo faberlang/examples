@@ -8,6 +8,20 @@ syntax = "octeti"
 related = ["octeti", "lista", "numerus"]
 +++
 
+# =============================================================================
+# octeti — octeti unifies with lista<numerus<u8>> — every lista method works on octeti.
+# =============================================================================
+#
+# What this teaches:
+#   • Type unification — `octeti` and `lista<numerus<u8>>` are representation-identical and bidirectionally assignable.
+#   • Method inheritance — Because of unification, every `lista` method is available on `octeti` receivers.
+#
+# Common mistakes:
+#   • Forgetting that octeti carries the full lista API surface, not just byte operations.
+#
+# See also: octeti, lista, numerus
+# =============================================================================
+
 # octeti — lista<numerus<u8>> unification
 #
 # WHY: `octeti` is semantic sugar for `lista<numerus<u8>>`. The two are

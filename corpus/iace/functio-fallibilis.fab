@@ -7,6 +7,20 @@ summary = "Failable function returns with ⇥ error channel and fac/cape recover
 syntax = "functio <name>(<params>) → <type> ⇥ <error-type> <block>"
 related = ["functio", "⇥", "fac", "cape"]
 +++
+# =============================================================================
+# functio — Failable function returns with ⇥ error channel and fac/cape recovery
+# =============================================================================
+#
+# What this teaches:
+#   • Failable function returns with ⇥ error channel and fac/cape recovery.
+#   • Related keywords: functio, ⇥, fac, cape
+#
+# Common mistakes:
+#   • Calling a failable function (`→ T ⇥ E`) without handling the error path — wrap in `fac { ... } cape err { ... }` or declare `⇥` on the enclosing function.
+#
+# See also: functio, ⇥, fac, cape
+# =============================================================================
+
 # functio fallibilis — failable return with ⇥ error channel
 #
 # functio … → T ⇥ E

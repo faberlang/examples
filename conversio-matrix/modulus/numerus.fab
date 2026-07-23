@@ -1,7 +1,35 @@
-# Conversio matrix fixture: modulus ↦ numerus.
-# Setup: modulus<u32> from a numerus literal; measure modulus ↦ numerus.
-# Phase-1 model: rust ◐ (fallback `as`; compiles); wasm-text — (modular word not
-# representable, and hard-blocked on non-Rust targets).
+# =============================================================================
+# modulus ↦ numerus — unwrap modular integer to plain numerus
+# =============================================================================
+#
+# What this example teaches:
+#   • modulus ↦ numerus — unwrap a modular integer into a plain numerus
+#   • Rust fallback via `as` cast — compiles but no dedicated arm
+#   • wasm-text cannot represent modular words — hard-blocked
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 11
+#   • incipit (entry point) — line 9
+#   • fixum (immutable binding) — lines 10, 11
+#
+# Alternate approaches (not shown):
+#   • modulus<u32> ∷ numerus<u32> — ascription when the bit pattern is already a numerus value
+
+# Anti-patterns (avoid these):
+#   • modulus<u32> ∷ numerus<i64> — ascription across signedness; use ↦ for the conversion
+#   • Assuming the value wraps — modulus → numerus unwraps; no modular arithmetic
+
+# Pitfalls:
+#   • Always succeeds — the value unwraps directly; no runtime error
+#   • The result is a plain numerus; modular wrapping semantics are lost
+
+# Learning path:
+#   Before: see modulus/ exempla (Stage 5 types) and numerus/ exempla
+#   After:  see cksum/src/main.fab (modulus usage in checksum computation)
+
+# Stage: Phase-1 model, Rust fallback only
+# Backend: Rust ◐, wasm-text —
+# =============================================================================
 incipit {
     fixum modulus<u32> m ← 1779033703
     fixum _ r ← m ↦ numerus

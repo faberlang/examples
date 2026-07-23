@@ -8,6 +8,22 @@ syntax = "<expression> usque <expression>"
 related = ["ante", "…"]
 +++
 
+# =============================================================================
+# usque — Creates an inclusive range with a Latin keyword.
+# =============================================================================
+#
+# What this teaches:
+#   • Inclusive range — `ab <initium> usque <finis>` iterates including both endpoints
+#   • Range iteration — combining `itera` with `usque` for bounded loops
+#
+# Common mistakes:
+#   • confusing usque (inclusive range bound) with dum (loop) or intervallum (range type)
+#
+# See also: ante, …
+# =============================================================================
+
+
+
 
 # usque — inclusive upper bound for range iteration
 #

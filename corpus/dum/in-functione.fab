@@ -8,6 +8,20 @@ syntax = "dum <condition> <block>"
 related = ["dum", "functio"]
 +++
 
+# =============================================================================
+# dum — While loops inside function bodies.
+# =============================================================================
+#
+# What this teaches:
+#   • Loops in functions — `dum` inside function bodies for algorithms like factorial and power-of-two growth.
+#   • Algorithm implementation — using `dum` with mutable bindings for cumulative computation.
+#
+# Common mistakes:
+#   • Forgetting that `dum` evaluates the condition before each iteration — ensure the condition eventually evaluates to falsum or use `rumpe` to exit.
+#
+# See also: dum, functio
+# =============================================================================
+
 
 # dum — loops inside functions
 #

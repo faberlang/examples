@@ -1,3 +1,37 @@
+# =============================================================================
+# mkdir — create directories
+# =============================================================================
+#
+# What this example teaches:
+#   • solum.crea — creating directories via the stdlib filesystem API
+#   • itera ex — iterating a list of path operands
+#   • @ optio with bivalens — generated CLI for -p/--parents flag
+#   • probandum with empty input — confirming no crash on zero operands
+#   • Minimal functio — single loop wrapping a stdlib call
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → vacuum — line 3
+#   • itera ex — line 4
+#   • probandum / proba — lines 8-11
+#   • @ cli / @ descriptio / @ optio — lines 13-16
+#   • incipit — line 17
+#
+# Alternate approaches (not shown):
+#   • recursive mkdir -p via solum recursion vs flat directory creation — when solum gains recursive creation (alternates doc §API Design Patterns)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: mv, touch
+#   After:  cp
+#
+# Stage: Stage 2-4, directory creation parity
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "norma:solum" privata solum
 
 functio crea_directoria(lista<textus> paths) → vacuum {

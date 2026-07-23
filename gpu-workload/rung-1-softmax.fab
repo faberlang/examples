@@ -6,6 +6,25 @@ summary = "Softmax-forward workload floor probe."
 related = ["tensor", "softmax", "reduction", "broadcast", "nucleum"]
 +++
 
+# =============================================================================
+# rung-1-softmax — softmax forward workload floor probe
+# =============================================================================
+#
+# What this teaches:
+#   • Manual softmax computation — row-wise reduction (sum) and elementwise
+#     division, since tensor exponential syntax is not yet available
+#   • @ nucleum kernel — device function for GPU softmax
+#   • Element access patterns — .accipe() and .ponde() for reading/writing
+#     individual tensor elements by coordinate
+#   • vel operator — default value fallback: `expr vel 0.0` uses 0.0 if expr
+#     is unavailable
+#
+# Common mistakes:
+#   • Hardcoding row/column indices instead of using dynamic shapes — .accipe([0, 0]) with literal indices is brittle; prefer tensor reductions or shape-aware access patterns when available
+#
+# See also: tensor, softmax, reduction, broadcast, nucleum
+# =============================================================================
+
 # GPU workload rung 1 — softmax forward
 #
 # Current tensor intrinsics do not yet expose exponential syntax. The host

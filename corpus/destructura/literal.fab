@@ -9,6 +9,21 @@ aliases = ["json", "object"]
 related = ["genus", "∷", "ignotum", "tabula"]
 +++
 
+# =============================================================================
+# valor — JSON-shaped dynamic value literal for open object-shaped data.
+# =============================================================================
+#
+# What this teaches:
+#   • JSON valor literals — `{ "key": value, ... }` creates dynamic valor objects using JSON5 syntax with trailing commas.
+#   • Nested objects — JSON valor literals can be nested for complex data shapes.
+#   • Constraint — JSON valor literals accept only constant values (strings, numbers, booleans, null, nested objects/arrays); use genus or tabula for variable-backed construction.
+#
+# Common mistakes:
+#   • Using retired bare object literals `{ key = expr }` instead of genus construction `Type { field = expr }` — bare `{ }` is now a JSON valor literal with quoted keys and `:` separator.
+#
+# See also: genus, ∷, ignotum, tabula
+# =============================================================================
+
 # destructura — valor literal expressions (inline JSON)
 #
 # { "clavis": expr, ... }              -- JSON object literal (valor)

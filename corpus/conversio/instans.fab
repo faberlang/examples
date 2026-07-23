@@ -8,6 +8,21 @@ syntax = "<expression> ↦ instans | instans<ms> | instans<us> | instans<ns>"
 related = ["↦", "⇥", "textus"]
 +++
 
+# =============================================================================
+# instans — Conversio arms for instans precision family and textus datetime provenance.
+# =============================================================================
+#
+# What this teaches:
+#   • Precision family — `instans<ms>`, `instans<us>`, `instans<ns>` let you choose sub-second precision on datetime conversion.
+#   • Widening vs narrowing — coarse→fine widening is lossless; fine→coarse narrowing truncates sub-second bits.
+#   • RFC3339 roundtrip — text→instans parses, instans→textus emits at the declared precision without fabricated digits.
+#
+# Common mistakes:
+#   • Converting `instans<ns>` to `instans` and expecting sub-second precision in the text output — fine→coarse narrowing truncates sub-second bits.
+#
+# See also: ↦, ⇥, textus
+# =============================================================================
+
 # conversio — instans precision family and valor provenance
 #
 # WHY: `textus ↦ instans<N>` restores datetime provenance from wire carriers;

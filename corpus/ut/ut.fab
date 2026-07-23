@@ -9,6 +9,22 @@ aliases = ["as"]
 related = ["ex", "argumenta"]
 +++
 
+# =============================================================================
+# ut — Introduces an alias name.
+# =============================================================================
+#
+# What this teaches:
+#   • Parameter aliasing — `ut` renames function parameters for clarity or disambiguation
+#   • Import aliasing — also used in `importa` contexts for renamed imports
+#
+# Common mistakes:
+#   • confusing ut (import or parameter alias) with sicut (comparison) or velut (pattern match)
+#
+# See also: ex, argumenta
+# =============================================================================
+
+
+
 # ut — alias introducer
 #
 # GRAMMAR:

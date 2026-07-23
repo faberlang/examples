@@ -1,3 +1,35 @@
+# =============================================================================
+# pwd — GNU coreutils pwd: print name of current/working directory
+# =============================================================================
+#
+# What this example teaches:
+#   • `processus.sedes()` — standard library call for the current working
+#     directory, used as a single-expression entry point
+#   • Minimal `incipit` — no options or operands; the simplest possible CLI
+#     utility pattern
+#   • `importa` with `norma:processus` — importing from the standard library's
+#     process module
+#
+# Syntaxes used:
+#   • `importa` — module import (lines 1-2)
+#   • `@ cli` / `@ descriptio` — CLI annotations (lines 4-6)
+#   • `incipit` — entry point (line 7)
+#   • `processus.sedes()` — get working directory
+#   • `gnu_stdio.scribe_linea()` — stdout helper
+#
+# Alternate approaches (not shown):
+#   • `-P` / `-L` logical vs physical directory resolution
+#
+# Anti-patterns (avoid these):
+#   • None — this is the minimal utility pattern
+#
+# Learning path:
+#   Before: true, false
+#   After:  yes, echo
+#
+# Stage: Stage 3, no-input operand via processus
+# Backend: stepper
+# =============================================================================
 importa ex "norma:processus" privata processus
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

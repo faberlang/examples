@@ -1,3 +1,35 @@
+# =============================================================================
+# solum-json — file I/O and JSON round-trip via kernel imports
+# =============================================================================
+#
+# What this example teaches:
+#   • Multi-module kernel usage — combining processus (command execution),
+#     solum (file I/O), and json (serialization) from the kernel manifest
+#   • JSON round-trip — write data to file, read back, parse, and re-serialize
+#
+# Syntaxes used:
+#   • importa ex — kernel module imports (lines 1-3)
+#   • incipit — entry point (line 5)
+#   • processus.exsequi — shell command execution (line 7)
+#   • solum.lege<textus> — typed file read (line 8)
+#   • jsonio.solve — parse JSON string (line 8)
+#   • jsonio.pange — serialize value to JSON (line 8)
+#   • nota — print to stdout (line 8)
+#
+# Alternate approaches (not shown):
+#   • Using solum only, without processus, for file creation — solum.scribe() writes content directly without shell invocation
+#
+# Anti-patterns (avoid these):
+#   • Parsing untrusted JSON without validation — jsonio.solve() on unvalidated input may produce runtime errors; validate the structure before processing
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica (multi-module imports from kernel)
+#   After:  Stage 5: coreutils stdio (cat, echo, head — file and stdin/out processing)
+#
+# Stage: basic script-kernel, multi-module I/O, JSON serialization round-trip
+# Backend: stepper
+# =============================================================================
+
 importa ex "faber:processus" privata processus
 importa ex "faber:solum" privata fileio
 importa ex "faber:json" privata jsonio

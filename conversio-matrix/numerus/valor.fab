@@ -1,5 +1,34 @@
-# Conversio matrix fixture: numerus ↦ valor.
-# Phase-1 model: rust ✓ (into_valor boxing); wasm-text — (valor not representable).
+# =============================================================================
+# numerus ↦ valor — box integer into a dynamic valor
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ valor — box an integer into a dynamically-typed valor value
+#   • Lossless boxing — the integer is preserved inside the valor wrapper
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 42 ∷ valor — static ascription would not box the value; use ↦ for dynamic wrapping
+#   • valor ∷ numerus — the reverse extraction also needs ↦, not ∷
+
+# Anti-patterns (avoid these):
+#   • valor ∷ numerus — static ascription cannot extract from a dynamic box; use ↦
+#   • 42 ↦ valor then assuming it's still a plain numerus — valor is opaque; use ↦ to extract
+
+# Pitfalls:
+#   • Boxing is lossless — the integer is preserved inside the valor wrapper
+#   • wasm-text cannot represent valor; this path is Rust-only
+
+# Learning path:
+#   Before: see numerus/ exempla (Stage 3) and valor/ exempla (Stage 6)
+#   After:  see vivilite/src/main.fab (valor boxing for SQLite dynamic storage)
+
+# Stage: Phase-1 model, Rust only (valor not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ valor
 }

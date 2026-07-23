@@ -8,6 +8,21 @@ syntax = "<expression> ↦ octeti | <expression> ↦ textus | <expression> ↦ a
 related = ["↦", "octeti", "textus", "chorda"]
 +++
 
+# =============================================================================
+# ↦ — Text and byte conversio between textus, ascii, and octeti.
+# =============================================================================
+#
+# What this teaches:
+#   • Text↔byte bridges — `textus ↦ octeti` (UTF-8 encode), `ascii ↦ octeti` (ASCII encode), `octeti ↦ textus` (UTF-8 decode), `octeti ↦ ascii` (ASCII narrow).
+#   • Fallible decoding — byte-to-text conversions can fail on invalid bytes; recover with `⇥`.
+#   • Stdlib foundation — these language-level bridges are what stdlib's chorda mechanical trio (pange/solve/tempta) builds on.
+#
+# Common mistakes:
+#   • Assuming `octeti ↦ textus` always succeeds — invalid UTF-8 bytes require a `⇥` recovery value.
+#
+# See also: ↦, octeti, textus, chorda
+# =============================================================================
+
 
 # conversio — textus/ascii ↔ octeti (byte conversions)
 #

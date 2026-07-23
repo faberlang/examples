@@ -8,6 +8,22 @@ syntax = "varia <type> <name> ← <expr> | fixum <type> <name> ← <expr>"
 related = ["varia", "fixum", "←"]
 +++
 
+# =============================================================================
+# varia — Type-first fixum and varia bindings with explicit types.
+# =============================================================================
+#
+# What this teaches:
+#   • Typed declarations — `varia <type> <name>` and `fixum <type> <name>` with explicit type annotations
+#   • Mutability — `varia` for mutable bindings, `fixum` for immutable
+#
+# Common mistakes:
+#   • providing a type annotation that doesn't match the assigned expression's type — the compiler checks exact type agreement
+#
+# See also: varia, fixum, ←
+# =============================================================================
+
+
+
 
 # Typed variable declarations (type-first syntax)
 #

@@ -1,2 +1,25 @@
-# TODO
+# =============================================================================
+# postpara — test teardown fixture stub
+# =============================================================================
+#
+# What this example teaches:
+#   • postpara — test teardown blocks that declare post-test cleanup logic, running after each test or after the suite completes
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#
+# Alternate approaches (not shown):
+#   • Per-test teardown vs per-suite teardown — postpara omnia runs once after the suite; postpara singula runs after each test
+#
+# Anti-patterns (avoid these):
+#   • Teardown that assumes test state is still valid after failure — a test may have failed mid-execution; teardown code must handle partial or invalid state
+#
+# Learning path:
+#   Before: Stage 10: probandum, proba, adfirma (test structure basics)
+#   After:  Stage 10: proba/packages/* (test organization patterns)
+#
+# Stage: fixture boundary, proba teardown fixture, stub/minimal
+# Backend: stepper
+# =============================================================================
+
 incipit {}

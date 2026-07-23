@@ -1,3 +1,35 @@
+# =============================================================================
+# importa — import statement syntax reference
+# =============================================================================
+#
+# What this example teaches:
+#   • importa statement — all import syntax variants: named, aliased, wildcard
+#   • Named import — `importa ex "<src>" privata <name>` (lines 7-11)
+#   • Aliased import — `... privata <name> ut <alias>` (lines 12-14)
+#   • Wildcard import — `... privata * ut <alias>` (line 19)
+#   • Multiple sources — combining imports from different packages
+#
+# Syntaxes used:
+#   • importa ex — import keyword (lines 7-19, 22-24)
+#   • privata — private visibility (all imports)
+#   • ut — alias keyword (lines 12-14, 19)
+#   • incipit — entry point (line 42)
+#   • nota — print (line 43)
+#
+# Alternate approaches (not shown):
+#   • publica import for re-exporting symbols — importa ex "<path>" publica name makes the imported symbol visible to consumers of the current module
+#
+# Anti-patterns (avoid these):
+#   • Wildcard imports that pollute the namespace unnecessarily — prefer explicit named imports; use * ut alias only when consuming many symbols from one module
+#
+# Learning path:
+#   Before: Stage 9: importa (basic module import from stdlib paths)
+#   After:  Stage 5: coreutils (using stdlib imports in real CLI applications)
+#
+# Stage: fixture boundary, import syntax reference
+# Backend: stepper
+# =============================================================================
+
 # Import statements (importa)
 #
 # importa ex <source> privata <name>           - named imports

@@ -8,6 +8,21 @@ syntax = "de <expression>"
 related = ["ex", "in"]
 +++
 
+# =============================================================================
+# de — Introduces borrowed iteration or borrowed parameters.
+# =============================================================================
+#
+# What this teaches:
+#   • Borrowed iteration — `itera de <expr> fixum <ident> { ... }` iterates over a collection without taking ownership.
+#   • Tabula key iteration — iterating over tabula keys via borrowed iteration.
+#   • Index iteration — iterating over lista indices via `de`.
+#
+# Common mistakes:
+#   • Passing a `de` parameter to an `in` or `ex` position — mode mismatch; cannot pass a read-only reference where mutation or consumption is expected (SEM057).
+#
+# See also: ex, in
+# =============================================================================
+
 # de — borrowed iteration / parameters
 #
 # GRAMMAR:

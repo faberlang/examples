@@ -1,2 +1,25 @@
-# TODO
+# =============================================================================
+# omitte — skip/omit fixture stub
+# =============================================================================
+#
+# What this example teaches:
+#   • omitte — test-skip semantics; a modifier that marks a test as intentionally skipped with a documented reason
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#
+# Alternate approaches (not shown):
+#   • Using the omitte modifier on specific proba statements — proba "name" omitte "reason" { ... } skips a single test with documented rationale
+#
+# Anti-patterns (avoid these):
+#   • Skipping tests without documentation of the blocking issue — always provide a reason string in omitte/reason; undocumented skips hide technical debt
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma (basic test declaration)
+#   After:  Stage 10: proba/modificatores.fab (full omitte + futurum modifier reference)
+#
+# Stage: fixture boundary, omitte fixture stub
+# Backend: stepper
+# =============================================================================
+
 incipit {}

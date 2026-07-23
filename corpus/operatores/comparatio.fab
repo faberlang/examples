@@ -8,6 +8,20 @@ syntax = "<expression> ≡ <expression> | <expression> ≠ <expression> | <expre
 related = ["≠", "≤", "≥", "est", "adfirma"]
 +++
 
+# =============================================================================
+# ≡ — Equality and ordering comparisons returning bivalens.
+# =============================================================================
+#
+# What this teaches:
+#   • Comparison operators — `≡` (equal), `≠` (not equal), `≤` (less-or-equal), `≥` (greater-or-equal).
+#   • Chaining — Comparisons can be chained with `et` for interval tests like `0 < x et x < 10`.
+#
+# Common mistakes:
+#   • Using == instead of ≡ for equality, or != instead of ≠ for inequality — Faber uses Unicode operators.
+#
+# See also: ≠, ≤, ≥, est, adfirma
+# =============================================================================
+
 # operatores/comparatio — ≡ ≠ ≤ ≥
 #
 # GRAMMAR:

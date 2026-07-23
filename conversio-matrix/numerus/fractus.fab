@@ -1,6 +1,33 @@
-# Conversio matrix fixture: numerus ↦ fractus.
-# Expect: typechecks clean (dedicated Rust `as f64` arm).
+# =============================================================================
+# numerus ↦ fractus — convert integer to fraction
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ fractus — widen integer to fractional representation (as f64)
+#   • Safe, lossless — dedicated Rust arm, typechecks clean
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 10
+#   • incipit (entry point) — line 9
+#
+# Alternate approaches (not shown):
+#   • 42 ∷ fractus<f64> — static ascription of integer bits as float; use ↦ for proper widening
 
+# Anti-patterns (avoid these):
+#   • fractus ∷ numerus — the reverse needs ↦ (truncation), not ∷
+#   • 42 ↦ fractus<f32> — target width matters; f32 may lose precision for large integers
+
+# Pitfalls:
+#   • Safe for integers ≤ 2^53 — beyond that, f64 cannot represent all integers exactly
+#   • No runtime error — the conversion always succeeds
+
+# Learning path:
+#   Before: see numerus/ and fractus/ exempla (Stage 3–5 types)
+#   After:  see printf/src/main.fab (numeric formatting with width markers)
+
+# Stage: Phase-1 model, dedicated arm
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ fractus
 }

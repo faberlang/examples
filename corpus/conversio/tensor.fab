@@ -8,6 +8,21 @@ syntax = "<tensor> ↦ <tensor-type> | <lista> ↦ tensor | tensor ↦ lista"
 related = ["↦", "tensor", "lista"]
 +++
 
+# =============================================================================
+# ↦ — Tensor bridges and element-width conversio.
+# =============================================================================
+#
+# What this teaches:
+#   • Collection↔tensor — `lista ↦ tensor` with literal target shape or 1-d fallback; `tensor ↦ lista` flattens.
+#   • Element-width lattice — tensor element types widen/narrow following the scalar signed int (i8→i16→i32→i64), unsigned int, and float (f32→f64) lattices.
+#   • Conversion boundaries — scalar extraction, reshape, and broadcast construction reject at typecheck (use `accipe`, `forma`, `crea` instead).
+#
+# Common mistakes:
+#   • Expecting tensor↔lista conversion to preserve shape information — `tensor ↦ lista` flattens via `planata()`, losing dimension structure.
+#
+# See also: ↦, tensor, lista
+# =============================================================================
+
 
 # conversio — tensor bridges and element-width conversion
 #

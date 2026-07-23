@@ -10,6 +10,21 @@ related = ["discretio"]
 +++
 
 
+# =============================================================================
+# ordo — Declares an enumeration.
+# =============================================================================
+#
+# What this teaches:
+#   • Enumeration declaration — `ordo <Name> { member, ... }` declares a set of ordered, named constants.
+#   • Discriminant values — Members can have explicit numeric values with `= <number>`.
+#   • Pattern matching — `elige` with `casu` branches selects on ordo variants.
+#
+# Common mistakes:
+#   • Confusing ordo (enum with named constants) with discretio (tagged union with payloads) — ordo members carry no data.
+#
+# See also: discretio
+# =============================================================================
+
 # ordo — enumerated constants (ordered variants)
 #
 # ordo <Nomen> { <membrum>, … }

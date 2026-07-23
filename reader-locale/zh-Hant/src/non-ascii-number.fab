@@ -1,3 +1,34 @@
+# =============================================================================
+# Traditional Chinese locale — non-ASCII numerals (full-width digits)
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale numeral parsing — full-width digits １２ (U+FF11, U+FF12) parsed
+#     as numerus 12, with an explicit note that localized digits should be rejected
+#     in strict mode
+#
+# Syntaxes used:
+#   • 入口 (incipit) — entry point (line 1)
+#   • 常數 (fixum) — immutable binding (line 2)
+#   • 整數 (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • １２ — full-width digits (line 2)
+#   • 顯示 (nota) — print (line 3)
+#
+# Alternate approaches (not shown):
+#   • ASCII digits as a locale-independent alternative — 42 is always valid regardless of keyword set or numeral script
+#
+# Anti-patterns (avoid these):
+#   • Silently accepting non-ASCII digits in strict numeric contexts — localized digits may be valid in the parser but can cause confusion in cross-locale code; prefer ASCII digits in strict numeric constants
+#
+# Learning path:
+#   Before: Stage 1: fixum, numerus (numeric binding basics)
+#   After:  Stage 2: dum, elige, fac/cape (control flow with numeric comparisons)
+#
+# Stage: locale-reader, Traditional Chinese numeral edge case
+# Backend: stepper
+# =============================================================================
+
 入口 {
   常數 整數 計數 ← １２
   顯示 "不應接受本地化數字"

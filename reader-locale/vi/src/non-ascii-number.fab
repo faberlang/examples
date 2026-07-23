@@ -1,3 +1,32 @@
+# =============================================================================
+# Vietnamese locale — non-ASCII numerals (full-width digit)
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale numeral parsing — full-width digit １ (U+FF11) parsed as numerus 1
+#
+# Syntaxes used:
+#   • bắtđầu (incipit) — entry point (line 1)
+#   • hằng (fixum) — immutable binding (line 2)
+#   • số (numerus) — number type annotation (line 2)
+#   • ← — value binding (line 2)
+#   • １ — full-width digit one (line 2)
+#   • in (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ASCII digits alongside locale keywords: 42 is always valid regardless of locale keyword or numeral set
+#
+# Anti-patterns (avoid these):
+#   • Full-width digits (U+FF10–U+FF19) and other non-ASCII digits are valid in number literals — do not assume all scripts use ASCII digit code points
+#
+# Learning path:
+#   Before: Stage 1: fixum, numerus (numeric binding basics)
+#   After:  Stage 2: dum, elige, fac/cape (control flow with numeric comparisons)
+#
+# Stage: locale-reader, Vietnamese locale numeral edge case
+# Backend: stepper
+# =============================================================================
+
 bắtđầu {
   hằng số giá_trị ← １
   in giá_trị

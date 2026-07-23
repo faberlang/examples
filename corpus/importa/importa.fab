@@ -8,7 +8,19 @@ syntax = "importa ex <source> <privata|publica> (<name> [ut <alias>] | * ut <ali
 aliases = ["import"]
 related = ["ex", "privata", "publica", "ut"]
 +++
-
+# =============================================================================
+# importa — Imports names from another module or package source
+# =============================================================================
+#
+# What this teaches:
+#   • Imports names from another module or package source.
+#   • Related keywords: ex, privata, publica, ut
+#
+# Common mistakes:
+#   • Missing the `ex` source in the import record — an import record requires an `ex` source path.
+#
+# See also: ex, privata, publica, ut
+# =============================================================================
 
 # importa ex — named import from a sibling module
 #

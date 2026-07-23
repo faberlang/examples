@@ -8,6 +8,22 @@ syntax = "tensor.addita(other) | tensor.subtrahe(other) | tensor.multiplica(othe
 related = ["tensor", "fractus", "lista"]
 +++
 
+# =============================================================================
+# tensor — Tensor elementwise arithmetic with addita, subtrahe, and multiplica.
+# =============================================================================
+#
+# What this teaches:
+#   • Elementwise operations — `addita`, `subtrahe`, and `multiplica` apply per-element
+#   • Broadcast semantics — same-shape operations here; broadcast covered by typecheck tests
+#
+# Common mistakes:
+#   • mixing tensors of different shapes without explicit forma (reshape) or broadcast, or using elementwise ops on non-numeric tensors
+#
+# See also: tensor, fractus, lista
+# =============================================================================
+
+
+
 # tensor elementwise arithmetic — addita, subtrahe, multiplica with broadcast
 #
 # WHY: receiver methods lowered by radix into faber::Tensor<T> kernels. Same-shape

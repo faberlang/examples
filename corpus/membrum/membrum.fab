@@ -8,6 +8,21 @@ syntax = "<expr>.<field> | <expr>[<index>] | <expr>?.<field>"
 related = ["?.", "lista", "tabula", "genus"]
 +++
 
+# =============================================================================
+# membrum — Dot, bracket, chained, and optional member access expressions.
+# =============================================================================
+#
+# What this teaches:
+#   • dot access (`expr.field`) on genus records — direct field lookup
+#   • bracket access (`expr[index]`) on listas and tabulae — indexed access
+#   • optional chaining (`expr?.field`) — safe navigation that returns nihil on missing values
+#   • chained access combining dot, bracket, and optional access
+#
+# Common mistakes:
+#   • Accessing a field that does not exist on the receiver type — dot access requires a matching member on the genus.
+#
+# See also: ?., lista, tabula, genus
+# =============================================================================
 
 # membrum — dot, bracket, chained, and optional access
 #

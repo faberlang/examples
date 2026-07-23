@@ -7,7 +7,19 @@ summary = "Compiler-owned copia set-algebra methodi."
 syntax = "copia.unio | intersectio | differentia | symmetrica | subcopia | supercopia"
 related = ["copia", "intrinseca"]
 +++
-
+# =============================================================================
+# copia — Compiler-owned copia set-algebra methodi
+# =============================================================================
+#
+# What this teaches:
+#   • Compiler-owned copia set-algebra methodi.
+#   • Related keywords: copia, intrinseca
+#
+# Common mistakes:
+#   • Expecting set operations to modify in-place — `.unio()`, `.intersectio()`, `.differentia()` return new copia values; they do not mutate the receiver.
+#
+# See also: copia, intrinseca
+# =============================================================================
 
 # copia<T> set-algebra intrinsics
 #

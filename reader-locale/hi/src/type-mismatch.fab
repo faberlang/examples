@@ -1,3 +1,32 @@
+# =============================================================================
+# Hindi locale (Devanagari) — type mismatch error
+# =============================================================================
+#
+# What this example teaches:
+#   • Type error diagnostic — assigning text literal to संख्या (numerus) variable
+#   • Locale-aware error messages — diagnostics in Devanagari keyword set
+#
+# Syntaxes used:
+#   • आरंभ (incipit) — entry point (line 1)
+#   • स्थिर (fixum) — immutable binding (line 2)
+#   • संख्या (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • दिखाओ (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ∷ type ascription: value ∷ numerus for explicit type annotation — catches mismatches at compile time
+#
+# Anti-patterns (avoid these):
+#   • SEM010: type mismatch — Faber is statically typed; do not rely on runtime checks for type safety; use compile-time annotations
+#
+# Learning path:
+#   Before: Stage 1: fixum, varia, numerus, textus (type-annotated bindings)
+#   After:  Stage 3: genus, nihil, vacua/verum/falsum, lista (user-defined types and collections)
+#
+# Stage: locale-reader, Devanagari locale type-error fixture
+# Backend: stepper
+# =============================================================================
+
 आरंभ {
   स्थिर संख्या प्रकार_त्रुटि ← "त्रुटि"
   दिखाओ प्रकार_त्रुटि

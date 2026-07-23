@@ -1,4 +1,45 @@
-# Inventory commands for the automation example.
+# =============================================================================
+# inventory — automation inventory commands
+# =============================================================================
+#
+# What this example teaches:
+#   • @ imperium — Defining a CLI subcommand within a module
+#     (lines 11, 23, 34)
+#   • @ operandus — Annotating positional operands on commands
+#     (lines 24, 35)
+#   • functio with argumenta args — Command handler receiving parent CLI
+#     options through args (lines 14, 26, 37)
+#
+# Syntaxes used:
+#   • @ imperium — command annotation (lines 11, 23, 34)
+#   • @ descriptio — command description annotation (lines 12, 24, 35)
+#   • @ operandus — operand annotation (lines 24, 35)
+#   • functio — function definitions (throughout)
+#   • argumenta args — CLI option binding in function signature
+#   • probandum / proba / adfirma — test suite (lines 41–51)
+#   • nota — standard output
+#   • textus — string type
+#   • bivalens — boolean type
+#   • ≡ — equality comparison
+#
+# Alternate approaches (not shown):
+#   • @ imperium subcommand vs route() dispatch — @ imperium used
+#     here for typed subcommands; route() dispatch when commands
+#     share a flat namespace
+#
+# Anti-patterns (avoid these):
+#   • Hardcoding fixture data in commands — prefer resource
+#     files or context injection
+#   • @ imperium on non-function — @ imperium may only annotate
+#     a functio declaration
+#
+# Learning path:
+#   Before: coreutils CLI patterns
+#   After:  vivilite
+#
+# Stage: imperium list/show/check with probandum tests, fixture stubs
+# Backend: both (stepper + Rust)
+# =============================================================================
 
 functio sample_record_line() → textus {
     redde "sample-automation  PAUSED  codex  RRULE:FREQ=HOURLY;INTERVAL=1;BYMINUTE=0"

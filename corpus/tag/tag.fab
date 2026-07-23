@@ -8,6 +8,22 @@ syntax = "tag <string>"
 related = ["solum", "temporis"]
 +++
 
+# =============================================================================
+# tag — Attaches a test tag string.
+# =============================================================================
+#
+# What this teaches:
+#   • Test tagging — using `tag` to attach metadata strings to `proba` blocks
+#   • Test filtering — tags enable selective test execution by category
+#
+# Common mistakes:
+#   • attaching duplicate tags or using tag on a non-probandum block
+#
+# See also: solum, temporis
+# =============================================================================
+
+
+
 # tag — test tag modifier
 #
 # GRAMMAR:

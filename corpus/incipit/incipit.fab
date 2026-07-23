@@ -8,7 +8,19 @@ syntax = "incipit <block>"
 aliases = ["main", "entry"]
 related = ["functio", "importa"]
 +++
-
+# =============================================================================
+# incipit — Declares the synchronous program entry point
+# =============================================================================
+#
+# What this teaches:
+#   • Declares the synchronous program entry point.
+#   • Related keywords: functio, importa
+#
+# Common mistakes:
+#   • Attaching `@ cli` to a non-`incipit` declaration — `@ cli` may only annotate an `incipit` entry point (SEM009).
+#
+# See also: functio, importa
+# =============================================================================
 
 # incipit — basic program entry point
 #

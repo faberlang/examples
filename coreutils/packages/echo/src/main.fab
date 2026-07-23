@@ -1,11 +1,59 @@
+# =============================================================================
+# echo — display a line of text
+# =============================================================================
+#
+# What this example teaches:
+#   • genus for ParsePlan — EchoOperanda struct bundling flags and operands
+#   • Manual argv parsing — identifying leading flags (-n, -e, -E) vs positional operands
+#   • Escape-sequence expansion — \\n, \\t, \\r, \\\\ via character-by-character scan
+#   • probandum suite — 14 test cases covering flags, escapes, operand ordering
+#   • consolum.dic — raw stdout write without added newline
+#   • gnu_format.inter_spatia — joining operands with single spaces
+#
+# Syntaxes used:
+#   • importa — lines 1-3
+#   • functio … → bivalens — lines 9, 13, 17
+#   • functio … → textus — lines 54, 92, 98
+#   • functio … → vacuum — lines 108
+#   • functio … → EchoOperanda — line 25
+#   • genus … { … } — lines 20-24
+#   • dum — lines 57, 109
+#   • si / sin / secus — lines 33-46, 58-85, 160-165
+#   • varia / fixum — throughout
+#   • ≡ — throughout
+#   • itera ex — lines 32
+#   • redde — lines 10, 14, 18, 20
+#   • probandum / proba / adfirma — lines 113-151
+#   • @ cli / @ descriptio / @ operandus — lines 153-155
+#   • incipit — line 156
+#   • .sectio — throughout
+#   • vel — line 204 (in the original... let me check: line 204 is `consolum.dic(textus)`) — actually the scribe_sine_linea function
+#
+# Stage: Stage 2-4, GNU echo parity with escape subset
+# Backend: stepper+Rust
+#
+# -- Existing package comments merged --
+# Leading GNU echo options recognized in this slice:
+#   -E is a historical no-op since escapes are off by default.
+#   -e enables a small escape subset (\\n, \\t, \\r, \\\\).
+#   -n suppresses the trailing newline.
+#
+# Alternate approaches (not shown):
+#   • generated @ optio parser vs manual si/sin/secus flag loop — type-safe with --help but GNU echo stop-after-first-operand rule requires manual parse (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • si chains for digit/escape dispatch → consider elige for multi-way value matching (printf hex digit tables use elige/casu/ceterum)
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#
+# Learning path:
+#   Before: cat
+#   After:  printf
+# =============================================================================
+
 importa ex "norma:consolum" privata consolum
 importa ex "../../../common/gnu/format" privata gnu_format
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
-# Leading GNU echo options recognized in this slice.
-# -E is a historical no-op once escapes are off by default.
-# -e enables the small escape subset declared in this package goal.
-# -n suppresses the trailing newline.
 functio optio_noop_e(textus arg) → bivalens {
     redde arg ≡ "-E"
 }

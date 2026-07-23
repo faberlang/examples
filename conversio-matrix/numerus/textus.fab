@@ -1,5 +1,38 @@
-# Conversio matrix fixture: numerus ↦ textus.
-# Phase-1 model: rust ✓ (to_string); wasm-text ✓.
+# =============================================================================
+# numerus ↦ textus — format integer as text
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ textus — format an integer value into its text representation
+#   • Safe, lossless — both backends support this via to_string
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 42 ∷ textus — compile-time ascription when the value is already a text
+#     constant (no runtime conversion); use ∷ for literals, ↦ for variables
+#   • 42 ↦ textus ⇥ "0" — inline recovery with a fallback string (never fails
+#     here, but the pattern applies to fallible conversions)
+#
+# Anti-patterns (avoid these):
+#   • 42 ∷ textus on a non-literal — ∷ is static only; dynamic values need ↦
+#   • numerus ∷ textus — confusion between static ascription and conversion;
+#     ∷ preserves bit pattern, ↦ formats the value
+#
+# Pitfalls:
+#   • Always succeeds — no precision loss, no runtime errors
+#   • Large integers (>15 digits) may produce imprecise text representations
+#     due to floating-point formatting in some backends
+#
+# Learning path:
+#   Before: see numerus/ and textus/ exempla (Stage 3 types)
+#   After:  see printf/src/main.fab (formatting with § interpolation)
+#
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ textus
 }

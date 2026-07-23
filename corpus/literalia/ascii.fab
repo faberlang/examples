@@ -9,6 +9,19 @@ aliases = ["'...'"]
 related = ["textus", "string"]
 +++
 
+# =============================================================================
+# ascii — Single-quoted ASCII machine-text literals.
+# =============================================================================
+#
+# What this teaches:
+#   • single-quoted ASCII literals `'...'` — compact syntax for machine-facing strings like route paths
+#
+# Common mistakes:
+#   • Including non-ASCII characters in ascii literals — ascii literals are ASCII-only; use "..." for Unicode textus.
+#
+# See also: textus, string
+# =============================================================================
+
 # literalia/ascii — '...' literals
 #
 # EXPECTED OUTPUT:

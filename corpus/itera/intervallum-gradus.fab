@@ -9,6 +9,20 @@ aliases = ["iterate"]
 related = ["ex", "de", "ab"]
 +++
 
+# =============================================================================
+# itera — Starts a for-each iteration statement.
+# =============================================================================
+#
+# What this teaches:
+#   • range iteration with a step value using `per` — controls stride between elements
+#   • descending ranges with negative step values
+#   • exclusive (`‥`) vs inclusive (`…`) range bounds with step
+#
+# Common mistakes:
+#   • Using a step value that never reaches the end bound — ensure the step direction matches the range direction.
+#
+# See also: ex, de, ab
+# =============================================================================
 
 # itera ab — ranges with step using per
 #

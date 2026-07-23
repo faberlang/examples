@@ -1,6 +1,35 @@
-# Conversio matrix fixture: fractus ↦ numerus.
-# Expect: typechecks clean (dedicated Rust `as i64` truncation arm).
+# =============================================================================
+# fractus ↦ numerus — truncate fraction to integer
+# =============================================================================
+#
+# What this example teaches:
+#   • fractus ↦ numerus — truncate fractional value to integer (as i64)
+#   • Lossy conversion — fractional part is discarded
+#   • Dedicated Rust arm — typechecks clean
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 10
+#   • incipit (entry point) — line 9
+#
+# Alternate approaches (not shown):
+#   • 3.14 ∷ numerus<i32> — static ascription of float bits as integer; use ↦ for truncation
+#   • fractus<f32> ∷ fractus<f64> — widening ascription is valid; narrowing needs ↦
 
+# Anti-patterns (avoid these):
+#   • numerus ∷ fractus — the reverse needs ↦ (integer→float widening), not ∷
+#   • 3.14 ↦ numerus expecting rounding — ↦ truncates toward zero, not rounds
+
+# Pitfalls:
+#   • Truncation toward zero — -3.14 → -3, not -4
+#   • Lossy — fractional part is silently discarded
+
+# Learning path:
+#   Before: see fractus/ and numerus/ exempla (Stage 3–5 types)
+#   After:  see seq/src/main.fab (numeric range generation with integer steps)
+
+# Stage: Phase-1 model, dedicated arm
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← 3.14 ↦ numerus
 }

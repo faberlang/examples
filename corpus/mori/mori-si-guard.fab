@@ -7,6 +7,22 @@ summary = "Conditional fatal abort with si guard."
 syntax = "mori <expression> si <condition>"
 related = ["iace", "ergo", "si"]
 +++
+
+# =============================================================================
+# mori — Conditional fatal abort with si guard.
+# =============================================================================
+#
+# What this teaches:
+#   • fatal abort with `mori` — unconditional and conditional (`si` guard) forms
+#   • invariant enforcement — using `mori` with guards to validate function preconditions
+#   • the `si` guard is parser sugar for `si cond { mori "msg" }`
+#
+# Common mistakes:
+#   • Using mori for recoverable errors — use iace with a si guard and ⇥ for recoverable failure paths instead.
+#
+# See also: iace, ergo, si
+# =============================================================================
+
 # mori with optional si guard
 #
 # mori <nuntius> [si <condicio>]

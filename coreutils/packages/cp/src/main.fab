@@ -1,3 +1,36 @@
+# =============================================================================
+# cp — copy files and directories
+# =============================================================================
+#
+# What this example teaches:
+#   • solum.exscribe — file copy via the stdlib filesystem API
+#   • Minimal functio — a single guard condition before delegating to solum
+#   • incipit with @ operandus — wiring raw path operands to logic
+#   • probandum — test with empty operand list to confirm no crash
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → vacuum — line 3
+#   • si — line 5
+#   • .accipe — lines 7, 8
+#   • @ cli / @ descriptio / @ operandus — lines 10-12
+#   • incipit — line 13
+#
+# Alternate approaches (not shown):
+#   • recursive directory copy via solum recursion vs simple file-only exscribe — full tree support deferred
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: mkdir, rm
+#   After:  head, cat
+#
+# Stage: Stage 2-4, simple file copy parity
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "norma:solum" privata solum
 
 functio copia_simplex(lista<textus> paths) → vacuum {

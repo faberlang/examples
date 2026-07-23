@@ -7,6 +7,20 @@ summary = "Dense syntax tour: genus, closures, ranges, and optional chaining."
 syntax = "integratio — multi-feature happy path"
 related = ["genus", "clausa", "?.", "itera"]
 +++
+# =============================================================================
+# integratio — Dense syntax tour: genus, closures, ranges, and optional chaining
+# =============================================================================
+#
+# What this teaches:
+#   • Dense syntax tour: genus, closures, ranges, and optional chaining.
+#   • Related keywords: genus, clausa, ?., itera
+#
+# Common mistakes:
+#   • Using optional chaining (`?.`) on a non-nullable value — `?.` is only valid on `T ∪ nihil` types; use `.` for non-nullable values.
+#
+# See also: genus, clausa, ?., itera
+# =============================================================================
+
 # integratio — dense syntax tour (genus, closures, ranges, optional chaining)
 #
 # genus G { field sponte; field = default; functio … }

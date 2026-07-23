@@ -8,6 +8,19 @@ syntax = "ex <expression> <fixum|varia> <field> [, ...] [ceteri <ident>]"
 related = ["de", "ut", "ceteri"]
 +++
 
+# =============================================================================
+# ex — Extracts fields from a value into local bindings.
+# =============================================================================
+#
+# What this teaches:
+#   • value iteration (`itera ex`) over lista elements — the primary workhorse for iterating over collections
+#   • transforming values inside the loop body (e.g., doubling each element)
+#
+# Common mistakes:
+#   • Using ex (value iteration) when de (key/index iteration) is needed — ex iterates values, de iterates keys or indices.
+#
+# See also: de, ut, ceteri
+# =============================================================================
 
 # itera ex — for-in value iteration over listas
 #

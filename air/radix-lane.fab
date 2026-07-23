@@ -9,6 +9,24 @@ aliases = ["@ radix", "lane", "air"]
 related = ["functio", "mir", "air"]
 +++
 
+# =============================================================================
+# @ radix lane — compiler routing metadata for HIR/MIR/AIR dispatch
+# =============================================================================
+#
+# What this teaches:
+#   • @ radix lane annotation — sets the compiler routing strategy for a function
+#   • Three lane values — "air" (AIR pipeline), "mir" (MIR-direct),
+#     "hir-direct" (default Rust corpus path, shown here)
+#   • GRAMMAR section — documents the annotation syntax:
+#     `annotation :← '@' 'radix' 'lane' string`
+#
+# Common mistakes:
+#   • Assuming @ radix lane is a runtime directive — it is compile-time metadata for the compiler pipeline; the lane ("air" / "mir" / "hir-direct") is selected at build time, not at runtime
+#     metadata for the compiler pipeline
+#
+# See also: functio, mir, air
+# =============================================================================
+
 # @ radix lane — compiler routing metadata
 #
 # `@ radix lane "air"` is the AIR entry hook for MIR-backed targets. The default

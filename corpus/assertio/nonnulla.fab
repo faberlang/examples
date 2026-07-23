@@ -9,6 +9,24 @@ related = ["!.", "nonnulla"]
 +++
 
 
+# =============================================================================
+# !. — Non-null assertion before member, index, or call access.
+# =============================================================================
+#
+# What this teaches:
+#   • Non-null assertion operator — `expr!.member` asserts the value is not
+#     `nihil` before accessing a field or method
+#   • Index access with assertion — `expr![index]` combines non-null assertion
+#     with element access on arrays
+#   • Safe unwrap pattern — useful when logic guarantees a value is present
+#     despite an optional type
+#
+# Common mistakes:
+#   • using `!.` asserted access when the value might actually be `nihil`, causing a runtime panic instead of handling the absent case
+#
+# See also: !., nonnulla
+# =============================================================================
+
 # assertio — non-null assertion with !.
 #
 # <expr>!.<member>

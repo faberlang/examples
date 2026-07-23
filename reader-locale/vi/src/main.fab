@@ -1,3 +1,36 @@
+# =============================================================================
+# Vietnamese locale — greeting with Vietnamese keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Faber keywords using Vietnamese script
+#     (hàm=functio, hằng=fixum, trả=redde, bắtđầu=incipit, in=nota,
+#      vănbản=textus, số=numerus)
+#   • String interpolation with § template operator
+#
+# Syntaxes used:
+#   • hàm (functio) — function definition (line 1)
+#   • hằng (fixum) — immutable binding (lines 2, 7)
+#   • ← — value binding (line 2)
+#   • § — template interpolation (line 2)
+#   • trả (redde) — return value (line 3)
+#   • bắtđầu (incipit) — entry point (line 6)
+#   • in (nota) — print to stdout (line 8)
+#
+# Alternate approaches (not shown):
+#   • Latin keywords with Vietnamese identifiers — functio with Vietnamese variable names (the "twins" pattern)
+#
+# Anti-patterns (avoid these):
+#   • Mixing locale keyword sets within one file — pick one keyword set per file (all Vietnamese or all Latin, never both)
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → functio → redde (function + entry-point pattern)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Vietnamese keyword set demonstrated
+# Backend: stepper, reader-locale
+# =============================================================================
+
 hàm chào(vănbản tên) → vănbản {
   hằng vănbản lời_chào ← "Xin chào, §!"(tên)
   trả lời_chào

@@ -7,7 +7,19 @@ summary = "Async futura and cursor cede in one program."
 syntax = "integratio — multi-feature happy path"
 related = ["futura", "cursor", "cede", "incipiet"]
 +++
-
+# =============================================================================
+# integratio — Async futura and cursor cede in one program
+# =============================================================================
+#
+# What this teaches:
+#   • Async futura and cursor cede in one program.
+#   • Related keywords: futura, cursor, cede, incipiet
+#
+# Common mistakes:
+#   • Using `cede` without `@ futura` on the enclosing function — `cede` awaits a promissum and requires the async context of `incipiet` or `@ futura`.
+#
+# See also: futura, cursor, cede, incipiet
+# =============================================================================
 
 # integratio — async futura and cursor cede in one program
 #

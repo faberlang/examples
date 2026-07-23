@@ -8,6 +8,20 @@ syntax = "<numerus> + <numerus>"
 related = ["+", "numerus"]
 +++
 
+# =============================================================================
+# numerus — Checked numerus arithmetic traps instead of wrapping on overflow.
+# =============================================================================
+#
+# What this teaches:
+#   • Overflow safety — `numerus` (i64) traps on arithmetic overflow rather than wrapping.
+#   • Policy distinction — Bare numerus follows checked semantics, unlike Rust's release-mode wrapping.
+#
+# Common mistakes:
+#   • Assuming numerus wraps on overflow like modular word types.
+#
+# See also: +, numerus
+# =============================================================================
+
 # numerus-overflow — checked scalar arithmetic failure
 #
 # POLICY:

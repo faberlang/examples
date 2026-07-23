@@ -8,6 +8,23 @@ syntax = "<structured-statement> cape <name> <block>"
 aliases = ["catch"]
 related = ["fac", "iace", "⇥"]
 +++
+
+# =============================================================================
+# cape — Starts a catch block.
+# =============================================================================
+#
+# What this teaches:
+#   • Error recovery — `fac { … } cape err { … }` attempts a block and catches
+#     errors with a named handler
+#   • Guarded execution — code inside the `fac` block can `iace` errors that
+#     are intercepted by the `cape` handler
+#
+# Common mistakes:
+#   • attaching `cape` to a bare `{ }` block — `cape` only attaches to `fac` blocks and structured statements; use `fac { ... } cape err { ... }`
+#
+# See also: fac, iace, ⇥
+# =============================================================================
+
 # cape — catch handler on fac
 #
 # GRAMMAR:

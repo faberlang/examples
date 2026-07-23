@@ -8,6 +8,19 @@ syntax = "metior"
 related = ["temporis", "prima", "ultima"]
 +++
 
+# =============================================================================
+# metior — Marks a test for metered or measured execution.
+# =============================================================================
+#
+# What this teaches:
+#   • lista access and query intrinsics — `primus()`, `ultimus()`, `accipe()`, `longitudo()`
+#   • membership checks — `vacua()` and `continet()`
+#
+# Common mistakes:
+#   • Calling primus() or ultimus() on an empty lista — these methods require at least one element.
+#
+# See also: temporis, prima, ultima
+# =============================================================================
 
 # lista<T> access and query intrinsics
 #

@@ -1,4 +1,42 @@
-# Runner commands for the automation example.
+# =============================================================================
+# runner — automation runner commands
+# =============================================================================
+#
+# What this example teaches:
+#   • @ imperium — Minimal subcommand definition with description
+#     and operand (lines 4–5)
+#   • functio with argumenta args — Command handler accessing parent
+#     CLI options (line 7)
+#
+# Syntaxes used:
+#   • @ imperium — command annotation (line 4)
+#   • @ descriptio — command description (line 5)
+#   • @ operandus — operand definition (line 6)
+#   • functio — function definition
+#   • argumenta args — option binding
+#   • nota — standard output
+#   • textus — string type
+#   • bivalens — boolean type
+#   • § — string interpolation
+#
+# Alternate approaches (not shown):
+#   • @ imperium subcommand vs route() dispatch — @ imperium used
+#     here for typed dry-run command; route() when CLI dispatch is
+#     dynamic
+#
+# Anti-patterns (avoid these):
+#   • Placing execution logic in dry-run — a dry-run should
+#     never have side effects
+#   • Duplicate CLI flags — each short and long flag must be
+#     unique within the CLI surface
+#
+# Learning path:
+#   Before: coreutils CLI patterns
+#   After:  vivilite
+#
+# Stage: dry-run planning command only, no agent execution yet
+# Backend: both (stepper + Rust)
+# =============================================================================
 
 @ imperium "dry-run"
 @ descriptio "Render the execution plan without launching an agent"

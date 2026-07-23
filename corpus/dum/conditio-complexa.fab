@@ -8,6 +8,20 @@ syntax = "dum <condition> <block>"
 related = ["dum", "et", "aut"]
 +++
 
+# =============================================================================
+# dum — While loops with compound et/aut conditions.
+# =============================================================================
+#
+# What this teaches:
+#   • Compound conditions — `dum <cond1> et <cond2>` loops until both are falsum; `dum <cond1> aut <cond2>` loops while at least one is true.
+#   • Loop control via flag — a mutable `bivalens` flag can break the `et` condition on the next iteration.
+#
+# Common mistakes:
+#   • Confusing `et` and `aut` semantics — `et` requires both to be true (stops when either is false), `aut` requires at least one to be true (stops when both are false).
+#
+# See also: dum, et, aut
+# =============================================================================
+
 
 # dum — compound conditions (et / aut)
 #

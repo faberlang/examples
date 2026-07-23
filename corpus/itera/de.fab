@@ -8,6 +8,19 @@ syntax = "de <expression>"
 related = ["ex", "in"]
 +++
 
+# =============================================================================
+# de — Introduces borrowed iteration or borrowed parameters.
+# =============================================================================
+#
+# What this teaches:
+#   • borrowed iteration (`itera de`) over tabula keys and lista indices — iterates without consuming the collection
+#   • accessing values by key or index within a borrowed loop
+#
+# Common mistakes:
+#   • Using de (key/index iteration) when ex (value iteration) is needed, or vice versa — de iterates keys/indices, ex iterates values.
+#
+# See also: ex, in
+# =============================================================================
 
 # itera de — for-in key and index iteration
 #

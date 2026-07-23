@@ -9,6 +9,22 @@ aliases = ["then"]
 related = ["si", "secus"]
 +++
 
+# =============================================================================
+# sic — Starts the true branch of a one-line ternary conditional expression.
+# =============================================================================
+#
+# What this teaches:
+#   • Ternary expressions — `<cond> sic <true-expr> secus <false-expr>` is a
+#     compact expression-level conditional
+#   • Unlike `si ergo`, `sic` is an expression that produces a value, not a
+#     statement
+#
+# Common mistakes:
+#   • Using `sic` without a `secus` branch — the ternary expression requires both true and false arms.
+#
+# See also: si, secus
+# =============================================================================
+
 # sic — ternary conditional
 #
 # GRAMMAR:

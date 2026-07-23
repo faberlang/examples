@@ -1,3 +1,41 @@
+# =============================================================================
+# in-functione — error handling in functions with fac/cape/iace
+# =============================================================================
+#
+# What this example teaches:
+#   • fac/cape error handling — try/catch pattern within function bodies
+#   • iace — throw/raise an error value (lines 10, 24, 41)
+#   • Multiple error patterns — division by zero guard, validation, resource
+#     cleanup, return from handler
+#   • Resource cleanup pattern — code after the fac/cape block runs regardless
+#     of whether an error occurred (lines 47-48)
+#
+# Syntaxes used:
+#   • functio — function definition (lines 6, 18, 33, 54)
+#   • fac — try block (lines 7, 19, 35, 56)
+#   • cape — catch block with error binding (lines 13, 26, 43, 59)
+#   • iace — throw expression (lines 10, 24, 41)
+#   • si — conditional (lines 8, 22, 39)
+#   • redde — return (lines 11, 15, 27, 29, 57, 61)
+#   • nota — print (lines 14, 28, 38, 45-46, 47)
+#   • varia — mutable binding (line 34)
+#
+# Alternate approaches (not shown):
+#   • Using ⇥ effect type for declarative error contracts — → T ⇥ textus on the function signature propagates errors without local fac/cape
+#   • Error type propagation without fac/cape — declare ⇥ on enclosing function to auto-propagate errors (like Rust ?)
+#
+# Anti-patterns (avoid these):
+#   • Empty catch blocks that silently swallow errors — cape err { } hides failures; always handle or propagate the captured error
+#   • Using iace for control flow rather than exceptional conditions — iace is for errors; use redde for normal return paths, si/elige for branching
+#
+# Learning path:
+#   Before: Stage 2: fac/cape, iace → Stage 9: importa (error handling in modular programs)
+#   After:  Stage 11: ⇥ effect type annotations (propagating error contracts)
+#
+# Stage: fixture boundary, error handling, fac/cape/iace patterns
+# Backend: stepper
+# =============================================================================
+
 # Error handling in functions
 #
 # Functions can use fac-cape to handle errors internally

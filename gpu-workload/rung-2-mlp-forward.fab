@@ -6,6 +6,23 @@ summary = "Two-layer MLP forward workload floor probe."
 related = ["tensor", "matmul", "mlp", "nucleum"]
 +++
 
+# =============================================================================
+# rung-2-mlp-forward — two-layer MLP forward workload probe
+# =============================================================================
+#
+# What this teaches:
+#   • Multi-layer perceptron forward — two sequential matmul stages on device
+#   • @ nucleum kernel — shape-typed tf32[2,2] tensors through matmul
+#   • Tensor pipeline — building input, weight, and bias tensors from flat lists
+#     via seed.strue(), then launching the device kernel
+#
+# Common mistakes:
+#   • Assuming elementwise activation (ReLU) between layers is statically shape-preserving with current type rules — today's type rules do not preserve enough static shape through elementwise tensors to feed the next matmul
+#     shape-preserving with current type rules
+#
+# See also: tensor, matmul, mlp, nucleum
+# =============================================================================
+
 # GPU workload rung 2 — two-layer MLP forward pass
 #
 # Uses the currently legal tensor surface: two batched matmul stages. Bias and

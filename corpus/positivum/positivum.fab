@@ -9,6 +9,20 @@ syntax = "<expression> > 0"
 related = ["negativum", "≡"]
 +++
 
+# =============================================================================
+# positivum — Retired prefix predicate; use value > 0.
+# =============================================================================
+#
+# What this teaches:
+#   • Retired syntax — This prefix predicate predates the modern infix `value > 0` pattern.
+#   • Migration awareness — Understand how to translate old `positivum value` to `value > 0`.
+#
+# Common mistakes:
+#   • Writing `positivum value` — the prefix predicate is retired; use `value > 0` instead.
+#
+# See also: negativum, ≡
+# =============================================================================
+
 # positivum — retired prefix predicate
 #
 # GRAMMAR:

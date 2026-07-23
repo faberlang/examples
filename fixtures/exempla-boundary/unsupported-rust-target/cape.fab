@@ -1,3 +1,32 @@
+# =============================================================================
+# cape — catch block syntax for fac error handling
+# =============================================================================
+#
+# What this example teaches:
+#   • cape — catch block syntax: `fac { body } cape <binding> { handler }`
+#   • Error handling — capturing and responding to errors within cape blocks
+#
+# Syntaxes used:
+#   • incipit — entry point (line 5)
+#   • fac — try block (lines 7, 15)
+#   • cape — catch block with error binding (lines 10, 19)
+#   • fixum — immutable binding (lines 8, 16)
+#   • nota — print (lines 9, 11, 17, 20, 21)
+#
+# Alternate approaches (not shown):
+#   • Using ⇥ effect type for functional error handling without blocks — declare → T ⇥ textus on the function signature to propagate errors without fac/cape at every call site
+#
+# Anti-patterns (avoid these):
+#   • Binding the error but never using it in the handler — cape err { } with an empty body silently swallows errors; always handle or log the captured error value
+#
+# Learning path:
+#   Before: Stage 2: fac/cape (basic error handling blocks)
+#   After:  Stage 11: ⇥ effect type annotations (propagating error contracts without blocks)
+#
+# Stage: fixture boundary, unsupported-rust-target, cape block syntax
+# Backend: stepper
+# =============================================================================
+
 # Fac blocks with error handling (cape)
 #
 # fac { <body> } cape <error> { <handler> }

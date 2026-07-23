@@ -8,6 +8,24 @@ syntax = "sin <condition> <block>"
 aliases = ["else if"]
 related = ["si", "secus"]
 +++
+
+# =============================================================================
+# sin — Adds an else-if branch after a previous si branch.
+# =============================================================================
+#
+# What this teaches:
+#   • Else-if chains — `sin <condition> { body }` adds intermediate conditional
+#     branches between `si` and `secus`
+#   • First match wins: evaluation stops at the first `si` or `sin` whose
+#     condition is `verum`
+#
+# Common mistakes:
+#   • TODO: forgetting that `sin` blocks are skipped once a preceding branch
+#     matches
+#
+# See also: si, secus
+# =============================================================================
+
 # si-sin-secus (poetic if-else-if chain)
 #
 # si <cond> { }

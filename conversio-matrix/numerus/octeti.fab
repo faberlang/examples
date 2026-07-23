@@ -1,6 +1,34 @@
-# Conversio matrix fixture: numerus ↦ octeti.
-# Expect: semantically rejected (numeric_to_octeti_unspecified).
+# =============================================================================
+# numerus ↦ octeti — numeric-to-byte conversion (semantically rejected)
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ octeti — this conversion is semantically rejected
+#   • Type system prevents ambiguous byte reinterpretation of integers
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 10
+#   • incipit (entry point) — line 9
+#
+# Alternate approaches (not shown):
+#   • 42 ↦ textus ↦ octeti — convert via textus for the decimal byte representation
+#   • chorda.pange(42) — use chorda methods for explicit byte encoding
 
+# Anti-patterns (avoid these):
+#   • 42 ∷ octeti — static ascription of integer bytes is not valid; byte reinterpretation is denied
+#   • Assuming little-endian or big-endian layout — no conversion means no byte order
+
+# Pitfalls:
+#   • Semantically rejected — type system prevents ambiguous byte reinterpretation
+#   • No conversion exists for numerus→octeti; use chorda or explicit byte layout
+
+# Learning path:
+#   Before: see numerus/ and octeti/ exempla (Stage 3–5 types)
+#   After:  see cksum/src/main.fab (explicit byte manipulation via chorda)
+
+# Stage: Phase-1 model, semantically rejected
+# Backend: ✕ (numeric_to_octeti_unspecified)
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ octeti
 }

@@ -1,3 +1,29 @@
+# =============================================================================
+# Vietnamese locale — undefined variable error
+# =============================================================================
+#
+# What this example teaches:
+#   • Undefined-variable diagnostic — referencing a name not in scope
+#   • Locale-aware diagnostics — Vietnamese keyword set for error messages
+#
+# Syntaxes used:
+#   • bắtđầu (incipit) — entry point (line 1)
+#   • in (nota) — print to stdout (line 2)
+#
+# Alternate approaches (not shown):
+#   • Declaring variables before use: hằng vănbản tên ← "giá trị" — always declare with hằng (fixum) or biến (varia) before referencing
+#
+# Anti-patterns (avoid these):
+#   • SEM001: unknown identifier — diagnostics are locale-agnostic underneath the keyword translation layer; typos in any script produce the same "did you mean?" hints
+#
+# Learning path:
+#   Before: Stage 1: incipit, nota (entry-point block and bare output)
+#   After:  Stage 1: fixum, varia, si, redde, functio (correct declarations with bindings)
+#
+# Stage: locale-reader, Vietnamese locale undefined-variable fixture
+# Backend: stepper
+# =============================================================================
+
 bắtđầu {
   in chưa_khai_báo
 }

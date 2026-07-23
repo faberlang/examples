@@ -9,6 +9,19 @@ aliases = ["iterate"]
 related = ["ex", "de", "ab"]
 +++
 
+# =============================================================================
+# itera — Starts a for-each iteration statement.
+# =============================================================================
+#
+# What this teaches:
+#   • accumulator patterns inside functions — using `itera ex` to compute sums, maxima, and counts
+#   • combining iteration with conditional logic (`si`) inside the loop body
+#
+# Common mistakes:
+#   • Using the wrong iteration keyword — ex for values, de for indices/keys, ab for ranges; mixing them up produces unexpected results.
+#
+# See also: ex, de, ab
+# =============================================================================
 
 # itera ex — accumulator pattern inside functio
 #

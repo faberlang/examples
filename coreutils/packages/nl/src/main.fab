@@ -1,8 +1,57 @@
+# =============================================================================
+# nl — GNU coreutils nl: number lines of files
+# =============================================================================
+#
+# What this example teaches:
+#   • `lege` (built-in stdin) with nullable `∪` type — stdin I/O with
+#     line-at-a-time reading and EOF detection
+#   • `functio` composition — pure helpers for numbering logic separated from
+#     the `incipit` entry point that drives stdin
+#   • `probandum`/`proba`/`adfirma` — inline tests that exercise pure helpers
+#     without stdin dependency
+#   • `itera` (for-each over `lista<textus>`) — line-by-line output after
+#     transformation
+#   • `@ cli`/`@ optio`/`@ descriptio` — CLI annotation surface for option
+#     parsing (`-b`, `-v`, `-i`, `-w`, `-n`)
+#
+# Syntaxes used:
+#   • `lege` — stdin read (lines 74, 83)
+#   • `∪` — nullable union type `textus ∪ nihil` (line 74)
+#   • `nihil` — null/EOF sentinel (line 75)
+#   • `vel` — fallback operator (lines 83, 128)
+#   • `≡` — equality comparison (lines 4, 14, 42, etc.)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (lines 19, 42, 44, etc.)
+#   • `dum` — while loop (lines 73, 80, 84)
+#   • `itera` — for-each over list (lines 60, 127)
+#   • `probandum`/`proba`/`adfirma` — test blocks (lines 85-114)
+#   • `@ cli` / `@ optio` / `@ descriptio` — CLI declarations (lines 116-123)
+#   • `incipit` — entry point (line 124)
+#   • `functio` — function definition (passim)
+#   • `fixum` / `varia` — immutable/mutable bindings (passim)
+#   • `textus`, `numerus`, `bivalens`, `lista<...>` — type annotations (passim)
+#   • `redde` — return (passim)
+#   • `vacua` — empty list literal (line 58)
+#   • `""` — string literal with interpolation `§` (lines 38, 49, 67, etc.)
+#   • `.appende()` — list append method (passim)
+#   • `.longitudo()` — string/list length method (passim)
+#
+# Alternate approaches (not shown):
+#   • File-operand mode — how nl opens multiple files instead of stdin
+#   • Combined short options (`-ba`) once the CLI parser supports them
+#
+# Anti-patterns (avoid these):
+#   • Mixing stdin I/O with pure test helpers — keep `lege` calls in
+#     a thin wrapper so proba can test numbering logic directly
+#
+# Learning path:
+#   Before: cat, head
+#   After:  fold
+#
+# Stage: Stage 4, stdin-only line numbering, deferred file operands/headers
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
-# This Stage 4 coreutils slice is stdin-only and line-oriented.
-# File operands, headers/footers, custom separators, and combined short options
-# such as GNU `-ba` are deferred until the CLI surface can model them honestly.
 functio numerare_omnesne(textus stilus_corporis) → bivalens {
     redde stilus_corporis ≡ "a"
 }

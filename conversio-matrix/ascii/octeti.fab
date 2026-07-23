@@ -1,5 +1,33 @@
-# Conversio matrix fixture: ascii ↦ octeti.
-# Phase-1 model: rust ✓ (ASCII encode); wasm-text ✓.
+# =============================================================================
+# ascii ↦ octeti — encode ASCII literal into byte sequence
+# =============================================================================
+#
+# What this example teaches:
+#   • ascii ↦ octeti — encode an ASCII literal as raw bytes
+#   • Dedicated ASCII encode arm — both backends support this conversion
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 'hi' ∷ textus — ascription preserves value shape but changes type (no encoding); use ∷ when you need textus semantics, ↦ when you need bytes
+
+# Anti-patterns (avoid these):
+#   • 'hi' ∷ octeti — static ascription cannot encode; use ↦
+#   • textus ↦ octeti — valid alternative but changes source semantics
+
+# Pitfalls:
+#   • ascii literals are fixed tokens — no § interpolation or unicode
+#   • Each ascii character becomes one byte; non-ASCII cannot exist in ascii
+
+# Learning path:
+#   Before: see textus/ and octeti/ exempla (Stage 3 types)
+#   After:  see cksum/src/main.fab (gnu_bytes.octeti_textus for byte ops)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← 'hi' ↦ octeti
 }

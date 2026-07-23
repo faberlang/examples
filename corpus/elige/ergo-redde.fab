@@ -8,6 +8,20 @@ syntax = "casu <value> ergo redde <expression>"
 related = ["elige", "ergo", "redde"]
 +++
 
+# =============================================================================
+# elige — Compact casu and ceterum branches with ergo redde.
+# =============================================================================
+#
+# What this teaches:
+#   • Compact returns — `casu <value> ergo redde <expr>` as a concise branch form inside elige.
+#   • Mixed branch styles — some branches use `ergo redde` for one-liners, others use a block body for side effects plus return.
+#
+# Common mistakes:
+#   • Using `ergo redde` when the branch needs multiple statements — use a block body `{ ... redde ... }` instead.
+#
+# See also: elige, ergo, redde
+# =============================================================================
+
 
 # elige — ergo redde compact returns
 #

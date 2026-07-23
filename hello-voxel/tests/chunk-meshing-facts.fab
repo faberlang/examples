@@ -1,7 +1,36 @@
-# HV-05B focused facts: face counts, indices, winding, colors, X/Z boundaries.
+# =========================================================================
+# chunk-meshing-facts — focused facts for HV-05B: face culling, winding, colors, seam boundaries
+# =========================================================================
 #
-# Run (from package root):
-#   faber run --compile tests/chunk-meshing-facts.fab
+# What this example teaches:
+#   • `mesh_chunk` + `face_count` — empty yields 0, isolated solid yields 6 exterior faces
+#   • Adjacent solids hide shared faces — two solids produce 10 faces (12 - 2)
+#   • `face_is_visible` — air/OOB neighbors emit a face; solid neighbor hides it
+#   • X/Z chunk seam — solids across boundaries correctly cull shared faces
+#   • `chunk_mesh_face_winding_matches` — each face's first-triangle winding matches face-code normal
+#   • `face_code_color` — six directions (codes 1-6) get distinct per-vertex colors
+#
+# Syntaxes used:
+#   • `incipit`, `adfirma` — test structure
+#   • `importa ex`, `functio` — helpers
+#   • `si` — conditionals
+#   • `∪ nihil`, `est nihil` / `non est nihil`
+#   • `vel` — default value operator
+#   • `bivalens`, `verum`/`falsum`
+#
+# Alternate approaches (not shown):
+#   • greedy meshing test — verify that coplanar face merging preserves winding
+#
+# Anti-patterns (avoid these):
+#   • trusting face_count alone — validate payload lengths match via `chunk_mesh_matches_face_count`
+#
+# Learning path:
+#   Before: src/meshing.fab (HV-05B)
+#   After:  four-chunk-render-facts.fab (next test in progression)
+#
+# Stage: HV-05B (face culling, chunk meshing, seam boundaries)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "../src/voxel" privata voxel
 importa ex "../src/meshing" privata meshing

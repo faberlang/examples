@@ -1,5 +1,34 @@
-# Conversio matrix fixture: textus ↦ json.
-# Phase-1 model: rust ✓ (Json::parse); wasm-text — (json primitive not representable).
+# =============================================================================
+# textus ↦ json — parse text as JSON value
+# =============================================================================
+#
+# What this example teaches:
+#   • textus ↦ json — parse a JSON-formatted text string into a json value
+#   • Fallible — runtime parse error if text is not valid JSON
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • fac { textus ↦ json } cape err { ... } — scoped error handling for malformed JSON
+#   • "{}" ∷ json — static ascription when the text is a compile-time JSON literal
+
+# Anti-patterns (avoid these):
+#   • '{}' ↦ json — single quotes are ascii, not textus; use "{}" for textus JSON parsing
+#   • ∷ used where ↦ is needed — ascription cannot parse JSON text
+
+# Pitfalls:
+#   • Invalid JSON syntax throws at runtime — wrap in fac/cape for user input
+#   • Valid JSON always succeeds; trailing commas, comments, or single quotes are rejected
+
+# Learning path:
+#   Before: see textus/ exempla (Stage 3) and json/ exempla (Stage 6)
+#   After:  see vivilite/src/main.fab (JSON serialization with @ json annotation)
+
+# Stage: Phase-1 model, Rust only (json primitive not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← "{}" ↦ json
 }

@@ -6,6 +6,19 @@ summary = "bf16 remains deferred; f16 is the only half-width marker today."
 syntax = "f16"
 related = ["fractus"]
 +++
+# =============================================================================
+# f16 — bf16 remains deferred; f16 is the only half-width marker today
+# =============================================================================
+#
+# What this teaches:
+#   • bf16 remains deferred; f16 is the only half-width marker today.
+#   • Related keywords: fractus
+#
+# Common mistakes:
+#   • Confusing `f16` with `bf16` — only `f16` is accepted as a half-width marker today; `bf16` remains deferred.
+#
+# See also: fractus
+# =============================================================================
 
 # f16 — bf16 is deliberately not accepted yet
 #

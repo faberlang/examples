@@ -7,7 +7,19 @@ summary = "Entry point that calls module-level functio declarations."
 syntax = "incipit { <callee>(<args>) }"
 related = ["incipit", "functio"]
 +++
-
+# =============================================================================
+# incipit — Entry point that calls module-level functio declarations
+# =============================================================================
+#
+# What this teaches:
+#   • Entry point that calls module-level functio declarations.
+#   • Related keywords: incipit, functio
+#
+# Common mistakes:
+#   • Defining a function after `incipit` — all function declarations must precede the entry point.
+#
+# See also: incipit, functio
+# =============================================================================
 
 # incipit — entry point calling module-level functio
 #

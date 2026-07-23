@@ -1,3 +1,61 @@
+# =============================================================================
+# printf — GNU coreutils printf: format and print data
+# =============================================================================
+#
+# What this example teaches:
+#   • Full printf format-string parsing — width, precision, dynamic width (`*`),
+#     and conversion specifiers (`%s`, `%d`, `%x`, `%o`, `%f`, `%e`, `%b`)
+#   • String-to-number conversion with `↦` and fallback via `⇥` — parsing
+#     integer and float text operands safely
+#   • `elige`/`casu`/`ceterum` — pattern matching used for hex digit tables
+#     and dispatch over format specifier characters
+#   • Manual floating-point rounding — rounding, carry propagation, and
+#     scientific-notation exponent formatting in pure text
+#   • `probandum` covering many format specifiers — inline tests for string,
+#     integer, octal, hex, float, and exponent output
+#
+# Syntaxes used:
+#   • `lege` (not used — this slice is operand-driven, not stdin-driven)
+#   • `↦` — type conversion (`textus` → `numerus`, lines 93, 102, etc.)
+#   • `⇥` — type conversion fallback (lines 93, 102, etc.)
+#   • `≡` / `≠` — equality / inequality (passim)
+#   • `elige`/`casu`/`ceterum` — pattern match (lines 209-219, 319-426)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (passim)
+#   • `itera` — for-each over list (lines 857, 862, 869, etc.)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 916-998)
+#   • `@ cli` / `@ descriptio` — CLI declarations (not shown, would be at end)
+#   • `incipit` — entry point (not shown)
+#   • `functio` — function definitions (passim)
+#   • `fixum` / `varia` — bindings (passim)
+#   • `textus`, `numerus`, `bivalens`, `lista<...>`, `vacuum` — types (passim)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.sectio()` — string slice (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#   • `aut` / `et` — logical OR / AND (passim)
+#   • `non` — logical NOT (passim)
+#   • `vel` — fallback (lines 93, 102, etc.)
+#   • `"§"()` — string interpolation (lines 177, 186, 195, 222, etc.)
+#   • `« »` — alternative string literal delimiter (lines 213, 227)
+#   • `∧` / `⇒` — bitwise AND, right shift (lines 469, 489)
+#   • ✗ `probandum` stub: "malum" warnings, error diagnostic format
+#
+# Alternate approaches (not shown):
+#   • Defer format parsing to a runtime library instead of implementing
+#     it manually in Faber source — shows the explicit approach for learning
+#
+# Anti-patterns (avoid these):
+#   • Deeply nested `si`/`secus` chains for format dispatch — prefer
+#     `elige` or a lookup table when the number of cases grows
+#
+# Learning path:
+#   Before: echo, conversio operators
+#   After:  (terminal — most complex coreutils package)
+#
+# Stage: Stage 2-4, stdin/file parity, stepper+Rust
+# Backend: stepper+Rust
+# =============================================================================
 importa ex "norma:consolum" privata consolum
 importa ex "norma:processus" privata processus
 
@@ -297,7 +355,7 @@ functio argumentum_float_textus(lista<textus> args, numerus index) → textus {
 }
 
 functio nuntia_malum_numericum(textus raw) → vacuum {
-    consolum.mone("/usr/bin/printf: ‘§’: expected a numeric value"(raw))
+    consolum.mone("/usr/bin/printf: '§': expected a numeric value"(raw))
 }
 
 functio nuntia_si_malum_integer(lista<textus> args, numerus index) → bivalens {
@@ -995,14 +1053,5 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%.2e\n", "99.99"]) ≡ "1.00e+02\n"
         adfirma printf_textus(["%.0e\n", "9.6"]) ≡ "1e+01\n"
         adfirma printf_textus(["%.2E\n", "0.01256"]) ≡ "1.26E-02\n"
-    }
-}
-
-@ cli "printf"
-@ descriptio "GNU coreutils printf parity exemplum"
-@ operandus ceteri textus operands
-incipit argumenta args {
-    si exsequere_printf(args.operands) {
-        processus.exi(1)
     }
 }

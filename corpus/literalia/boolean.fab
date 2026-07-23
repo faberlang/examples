@@ -8,6 +8,21 @@ syntax = "verum | falsum"
 related = ["falsum", "bivalens", "verum"]
 +++
 
+# =============================================================================
+# verum — Boolean literals verum and falsum with bivalens bindings.
+# =============================================================================
+#
+# What this teaches:
+#   • boolean literals `verum` and `falsum` — the two truth values in Faber
+#   • the `bivalens` type annotation for boolean variables
+#   • logical composition with `et` and `non`
+#
+# Common mistakes:
+#   • Forgetting that verum and falsum are boolean literals, not variables — they are keywords, not declared names.
+#
+# See also: falsum, bivalens, verum
+# =============================================================================
+
 # literalia/boolean — verum and falsum literals
 #
 # GRAMMAR:

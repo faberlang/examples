@@ -1,3 +1,56 @@
+# =============================================================================
+# split — GNU coreutils split: split a file into pieces
+# =============================================================================
+#
+# What this example teaches:
+#   • `solum.scribe()` — standard library call for writing content to a file
+#     (the output side of file I/O)
+#   • Alphabetic suffix generation — `suffix_alpha` converts an integer index
+#     into a two-letter suffix (`aa`, `ab`, …, `ba`), showing `%` modulo and
+#     `/` division for base-26 conversion
+#   • `lege` stdin with line collection — reading all input into `lista<textus>`
+#     before chunking, separating I/O from logic
+#   • `dum` loop with line-count boundaries — chunking the line list into
+#     fixed-size segments for file output
+#   • Default operand value — `prefixus_defectus` provides `"x"` when no
+#     prefix operand is given
+#
+# Syntaxes used:
+#   • `lege` — stdin read (line 7)
+#   • `∪` — nullable union type (line 7)
+#   • `nihil` — EOF sentinel (line 8)
+#   • `vel` — fallback (lines 8, 31, 57, 60)
+#   • `≡` — equality (passim)
+#   • `%` — modulo (line 24)
+#   • `/` — division (line 25)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (lines 6, 26, 29-30, etc.)
+#   • `itera` — for-each over list (lines 12, 103)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 89-94)
+#   • `@ cli` / `@ optio` / `@ operandus` — CLI declarations (lines 96-99)
+#   • `incipit` — entry point (line 100)
+#   • `functio` — function definitions (passim)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#   • `.sectio()` — string slice (lines 16, 43)
+#   • `solum.scribe()` — file write
+#
+# Alternate approaches (not shown):
+#   • Byte-level splitting instead of line-level
+#   • Numeric suffixes (`-d`) instead of alphabetic
+#
+# Anti-patterns (avoid these):
+#   • No testing for actual file output — proba only covers suffix/chunk
+#     helpers; full integration would need temp directories
+#
+# Learning path:
+#   Before: tee
+#   After:  (terminal)
+#
+# Stage: Stage 3-4, stdin line-splitting to files via solum
+# Backend: stepper
+# =============================================================================
 importa ex "norma:solum" privata solum
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

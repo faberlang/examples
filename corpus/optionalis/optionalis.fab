@@ -9,6 +9,20 @@ related = ["?.", "sponte", "vel"]
 +++
 
 
+# =============================================================================
+# ?. — Optional chaining for nested voluntary field access.
+# =============================================================================
+#
+# What this teaches:
+#   • Optional chaining — `?.` safely accesses nested voluntary (nullable) fields without runtime failure.
+#   • Default fallback — Combine `?.` with `vel` to provide defaults when a path is absent.
+#
+# Common mistakes:
+#   • Using a wildcard _ pattern on a nullable scrutinee — the catchall silently absorbs nihil; add an explicit casu nihil arm (WARN011).
+#
+# See also: ?., sponte, vel
+# =============================================================================
+
 # ?. — optional chaining for voluntary fields
 #
 # Safely access nested voluntary fields without failing when a path is absent.

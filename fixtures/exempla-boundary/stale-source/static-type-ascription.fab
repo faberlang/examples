@@ -1,3 +1,42 @@
+# =============================================================================
+# static-type-ascription — type casting with ∷ (verte/conversion) operator
+# =============================================================================
+#
+# What this example teaches:
+#   • ∷ (verte) type ascription — explicit type conversion: `value ∷ type`
+#   • Numeric conversions — numerus → textus, textus → numerus (lines 18-19, 24-25)
+#   • Boolean conversion — numerus → bivalens (lines 29-30)
+#   • Nullable conversion — value ∷ numerus ∪ nihil (line 34-35)
+#   • Array conversion — lista<numerus> → lista<textus> (lines 39-40)
+#   • Member access after cast — parenthesized cast for chaining (lines 50-51)
+#
+# Syntaxes used:
+#   • functio — function definition (lines 5, 9, 13)
+#   • → — return type (lines 5, 9, 13)
+#   • incipit — entry point (line 17)
+#   • fixum — immutable binding (lines 18-19, 24-25, etc.)
+#   • ∷ — type ascription / conversion (lines 19, 25, 30, 35, 40, 49)
+#   • ∪ — union type (line 35)
+#   • nota — print (lines 20, 26, 31, etc.)
+#   • valor — dynamic/any type (lines 9, 43)
+#   • .length — member access on cast result (line 51)
+#   • () — parenthesized expression for cast chaining (line 51)
+#
+# Alternate approaches (not shown):
+#   • ↦ regex conversion for text → regex type conversion — "\\d+" ↦ regex is the canonical path; ∷ is for static type ascription, not runtime conversion
+#
+# Anti-patterns (avoid these):
+#   • Unsafe casts between unrelated types without intermediate conversion — ∷ is a static cast; use ↦ with ⇥ recovery for runtime values that may fail
+#   • Chained casts that lose type information — each ∷ step should preserve the semantic intent; avoid data ∷ textus ∷ numerus chains that discard type safety
+#
+# Learning path:
+#   Before: Stage 4: ↦ conversio operator → Stage 5: coreutils (cksum, printf with type conversion)
+#   After:  Stage 11: conversio/* suite (full conversio target reference)
+#
+# Stage: fixture boundary, type ascription, ∷ operator reference
+# Backend: stepper
+# =============================================================================
+
 # Static type ascription with ∷ (verte)
 
 functio getData() → lista<numerus> {

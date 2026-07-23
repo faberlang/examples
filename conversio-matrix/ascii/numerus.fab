@@ -1,5 +1,35 @@
-# Conversio matrix fixture: ascii ↦ numerus.
-# Phase-1 model: rust ◐ (fallback parse via Deref<Target=str>, compiles); wasm-text —.
+# =============================================================================
+# ascii ↦ numerus — convert ASCII literal to its numeric value
+# =============================================================================
+#
+# What this example teaches:
+#   • ascii ↦ numerus — parse ASCII digits into a numerus value
+#   • Fallback via Deref<Target=str> — compiles but no dedicated conversion arm
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • '42' ∷ textus ↦ numerus — convert via textus intermediary when the ascii
+#     lane is unavailable (wasm-text cannot represent ascii)
+#   • numerus ↦ ascii — the reverse direction encodes a number as ASCII
+#
+# Anti-patterns (avoid these):
+#   • '42' ∷ numerus — static ascription (∷) cannot parse a string; use ↦
+#   • '42' ↦ numerus vel 0 — use ⇥ for conversio recovery, not vel
+#
+# Pitfalls:
+#   • Non-digit characters throw a runtime parse error; wrap in fac/cape
+#   • Leading/trailing whitespace not trimmed — " 42 " is not a valid integer
+#
+# Learning path:
+#   Before: see numerus/ and textus/ exempla (Stage 3 types)
+#   After:  see tail/src/main.fab (↦ numerus ⇥ 10 with fallback)
+#
+# Stage: Phase-1 model sketch, ASCII → numerus via Deref fallback
+# Backend: Rust ◐, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← '42' ↦ numerus
 }

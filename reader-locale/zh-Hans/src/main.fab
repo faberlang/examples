@@ -1,3 +1,36 @@
+# =============================================================================
+# Simplified Chinese locale — greeting with Chinese keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Faber keywords using Simplified Chinese script
+#     (函数=functio, 常量=fixum, 返回=redde, 入口=incipit, 显示=nota,
+#      文本=textus, 整数=numerus)
+#   • String interpolation with § template operator
+#
+# Syntaxes used:
+#   • 函数 (functio) — function definition (line 1)
+#   • 常量 (fixum) — immutable binding (lines 2, 7)
+#   • ← — value binding (line 2)
+#   • § — template interpolation (line 2)
+#   • 返回 (redde) — return value (line 3)
+#   • 入口 (incipit) — entry point (line 6)
+#   • 显示 (nota) — print to stdout (line 8)
+#
+# Alternate approaches (not shown):
+#   • Traditional Chinese keyword set for Taiwan/Hong Kong locales — see zh-Hant/src/main.fab for 函式, 常數, 傳回, etc.
+#
+# Anti-patterns (avoid these):
+#   • Mixing Simplified and Traditional Chinese keywords — pick one script variant per file; 函数 (Simplified) vs 函式 (Traditional) are distinct locale sets
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → functio → redde (function + entry-point pattern)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Simplified Chinese keyword set demonstrated
+# Backend: stepper, reader-locale
+# =============================================================================
+
 函数 问候(文本 名字) → 文本 {
   常量 文本 问候语 ← "你好，§!"(名字)
   返回 问候语

@@ -1,6 +1,35 @@
-# Conversio matrix fixture: sparsa ↦ tensor.
-# Setup: empty sparsa; measure sparsa ↦ tensor (densata).
-# Phase-1 model: rust ✓ (densata); wasm-text —.
+# =============================================================================
+# sparsa ↦ tensor — densify a sparse tensor into a dense tensor
+# =============================================================================
+#
+# What this example teaches:
+#   • sparsa ↦ tensor — convert a sparse tensor into its dense representation
+#   • vacua literal — sparse tensors have a dedicated empty constructor
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 12
+#   • incipit (entry point) — line 10
+#   • fixum (immutable binding) — lines 11, 12
+#   • vacua (empty value literal) — line 11
+#
+# Alternate approaches (not shown):
+#   • sparsa ∷ tensor — static ascription when the dense layout is already known
+
+# Anti-patterns (avoid these):
+#   • vacua ↦ tensor expecting non-empty — empty sparse tensors densify to zero-filled tensors
+#   • ∷ used where ↦ is needed — ascription cannot densify a sparse layout
+
+# Pitfalls:
+#   • Densification is eager — the full dense tensor is allocated
+#   • Large sparse tensors with high density may allocate significant memory
+
+# Learning path:
+#   Before: see sparsa/ and tensor/ exempla (Stage 6 types)
+#   After:  see hello-voxel/src/voxel.fab (tensor usage in 3D world data)
+
+# Stage: Phase-1 model, Rust only (tensor not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum sparsa<fractus<f32>, [2, 3]> s ← vacua
     fixum _ r ← s ↦ tensor<fractus<f32>, [2, 3]>

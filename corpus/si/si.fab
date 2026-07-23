@@ -8,6 +8,23 @@ syntax = "si <condition> <block>"
 aliases = ["if"]
 related = ["sin", "secus", "ergo"]
 +++
+
+# =============================================================================
+# si — Starts a conditional branch that runs when its condition is true.
+# =============================================================================
+#
+# What this teaches:
+#   • Basic conditional execution — `si <condition> { body }` runs the body
+#     only when the condition evaluates to `verum`
+#   • Multiple independent `si` blocks can be chained; each evaluates its own
+#     condition independently
+#
+# Common mistakes:
+#   • Using a non-`bivalens` expression as the `si` condition (SEM011), or using `∴` instead of `ergo` for a single-statement body.
+#
+# See also: sin, secus, ergo
+# =============================================================================
+
 # Basic si (if) conditionals
 #
 # si <condition> { <body> }   -- truthy branch

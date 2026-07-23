@@ -6,6 +6,22 @@ summary = "Minimal exemplar: rank-1 f32 placement execution — copy-in → kern
 related = ["tensor", "placement", "gpu", "spine"]
 +++
 
+# =============================================================================
+# tensor — Minimal exemplar: rank-1 f32 placement execution — copy-in → kernel → readback.
+# =============================================================================
+#
+# What this teaches:
+#   • Placement pipeline — copy-in, sync, kernel dispatch, readback through the placement contract
+#   • Device kernel — `@ nucleum` annotated functions run on GPU via WGSL codegen
+#
+# Common mistakes:
+#   • assuming placement execution works before the spine GPU path (G-P-08 + G-SPINE-02) is fully implemented
+#
+# See also: tensor, placement, gpu, spine
+# =============================================================================
+
+
+
 # D-SPINE-02 S4 — placement-execution-v1
 # Minimal exemplar proof: rank-1 f32 Materialized tensor.
 # All placement operations go through the placement contract.

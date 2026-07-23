@@ -1,3 +1,38 @@
+# =============================================================================
+# tempta — fac/cape error handling with iace (throw)
+# =============================================================================
+#
+# What this example teaches:
+#   • fac/cape/iace — core error handling pattern: try { body } catch err { handler }
+#   • Local recovery — errors caught within the same scope
+#   • Cleanup after handled error — code after fac/cape always runs
+#   • Successful boundaries — fac block without iace skips the cape block
+#   • Nested fac blocks — inner try/catch with outer catch for layered handling
+#
+# Syntaxes used:
+#   • incipit — entry point (line 7)
+#   • fac — try block (lines 9, 19, 29, 37)
+#   • cape — catch block with error binding (lines 15, 25, 32, 48)
+#   • iace — throw expression (lines 11, 21, 40)
+#   • nota — print (lines 10, 16, 20, 26, 30, 31, 33, 38, 41, 46, 49, 50)
+#   • fixum — immutable binding (line 12)
+#
+# Alternate approaches (not shown):
+#   • Using ⇥ effect type for declarative error contracts — declare → T ⇥ textus to propagate errors without local fac/cape
+#   • Error propagation without local catch — declare ⇥ on the enclosing function to auto-propagate errors upward
+#
+# Anti-patterns (avoid these):
+#   • Empty catch blocks that silently swallow errors — cape err { } hides failures; always handle or propagate the captured error
+#   • Deeply nested fac/cape that could be flattened — extract error-handling logic into separate functions with ⇥ contracts to reduce nesting
+#
+# Learning path:
+#   Before: Stage 2: fac/cape (basic error handling blocks)
+#   After:  Stage 11: ⇥ effect type annotations (propagating error contracts without blocks)
+#
+# Stage: fixture boundary, fac/cape/iace error handling reference
+# Backend: stepper
+# =============================================================================
+
 # Basic fac-cape with iace (throw)
 #
 # fac { <body> }

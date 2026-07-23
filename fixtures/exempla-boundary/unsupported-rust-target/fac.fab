@@ -1,3 +1,40 @@
+# =============================================================================
+# fac — explicit scoping with optional do-while and error handling
+# =============================================================================
+#
+# What this example teaches:
+#   • fac — scope block for explicit variable scoping
+#   • Do-while loop — `fac { body } dum <condition>` repeats until false
+#   • Combined pattern — fac + cape + dum for retry-with-error-handling loops
+#
+# Syntaxes used:
+#   • incipit — entry point (line 7)
+#   • fac — scope block (lines 9, 14, 21, 29, 35, 45)
+#   • dum — do-while condition (lines 32, 52)
+#   • cape — catch block (lines 39, 49)
+#   • fixum — immutable binding (lines 10, 15, 22)
+#   • varia — mutable binding (lines 28, 42)
+#   • si — conditional (line 47)
+#   • iace — throw (line 48)
+#   • nota — print (lines 11, 17, 24-26, 30, 37, 40, 46, 50)
+#   • ← — assignment (lines 28, 43)
+#   • § — template interpolation (lines 31, 50)
+#   • .nuntius — error message accessor (line 40)
+#
+# Alternate approaches (not shown):
+#   • Using dum loop without fac scope for simple iteration — standalone dum { body } is simpler when scope isolation is not needed
+#
+# Anti-patterns (avoid these):
+#   • Using fac purely for scoping when block-scoped fixum/varia suffice — a plain { } block already isolates variables; fac adds overhead and is only needed for do-while or error handling
+#
+# Learning path:
+#   Before: Stage 2: fac, dum (scope blocks and do-while loops)
+#   After:  Stage 2: fac/cape, iace → Stage 11: ⇥ effect type annotations
+#
+# Stage: fixture boundary, unsupported-rust-target, fac block syntax
+# Backend: stepper
+# =============================================================================
+
 # Fac statement - explicit scoping with optional do-while and error handling
 #
 # fac { <body> }                              - basic scope block

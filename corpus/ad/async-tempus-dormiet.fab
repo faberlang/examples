@@ -8,6 +8,22 @@ syntax = "tempus.expectet(ms) | cede tempus.dormiet(ms)"
 related = ["ad", "tempus", "futura", "sermo"]
 +++
 
+# =============================================================================
+# async tempus dormiet — @ futura tempus.dormiet and sync tempus.expectet share
+# the tempus:dormiet route.
+# =============================================================================
+#
+# What this teaches:
+#   • Timer proof pair — `expectet` (sync) and `dormiet` (async) use the same
+#     `tempus:dormiet` route; caller posture selects the materializer
+#   • Async entry — `incipiet { … }` is the async program entry point
+#
+# Common mistakes:
+#   • confusing ad route syntax — `cede` requires an `incipiet` or `@ futura` async context; it suspends only in async execution contexts
+#
+# See also: ad, tempus, futura, sermo
+# =============================================================================
+
 # Timer proof pair for async `ad` materialization.
 #
 # `expectet` is the synchronous wrapper and `dormiet` is the `@ futura` wrapper.

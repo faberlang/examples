@@ -9,6 +9,20 @@ aliases = ["type parameters", "magnitudo"]
 related = ["typus", "functio"]
 +++
 
+# =============================================================================
+# generics — Angle-bracket generic parameters on functions and declarations.
+# =============================================================================
+#
+# What this teaches:
+#   • Type parameters — Functions and types can accept angle-bracket generic parameters like `<T>`.
+#   • Magnitudo parameters — Compile-time integer parameters use the `magnitudo` keyword.
+#
+# Common mistakes:
+#   • Forgetting that `magnitudo` declares a compile-time integer generic parameter — regular types use bare `<T>` syntax.
+#
+# See also: typus, functio
+# =============================================================================
+
 # generics — angle-bracket parameters (replaces removed prae typus)
 #
 # GRAMMAR:

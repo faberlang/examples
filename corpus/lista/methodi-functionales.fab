@@ -7,6 +7,21 @@ summary = "Returns the sum of numeric list elements."
 syntax = "<lista>.summa()"
 related = ["prima", "ultima", "lista"]
 +++
+
+# =============================================================================
+# summa — Returns the sum of numeric list elements.
+# =============================================================================
+#
+# What this teaches:
+#   • higher-order intrinsics for lists — `filtrata` (filter), `mappata` (map), `reducta` (fold)
+#   • closure syntax with `∴` — inline anonymous functions for collection operations
+#
+# Common mistakes:
+#   • Omitting the initial accumulator value in reducta — reducta requires an explicit seed argument.
+#
+# See also: prima, ultima, lista
+# =============================================================================
+
 # lista<T> higher-order intrinsics
 #
 # res.filtrata(T x ∴ <pred>)                        -- filter

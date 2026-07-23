@@ -1,11 +1,40 @@
-# Hello Voxel — HV-05B: visible-face chunk mesher.
+# =========================================================================
+# meshing — visible-face chunk mesher (HV-05B) + resource lifecycle (HV-07A)
+# =========================================================================
 #
-# Locked contract (goal 05 / delivery HV-05B):
-#   - Blocks are authoritative; meshes are derived only.
-#   - Emit a face only when the adjacent cell is air or outside the world.
-#   - Each face: four vertices, six u32 indices, outward winding.
-#   - Vertex colors come from Triga face_code_color (six directions).
-#   - No greedy meshing. GPU/render integration is HV-05C (main.fab).
+# What this example teaches:
+#   • `ChunkMesh` + visible-face culling — emit a quad only when the neighbor is air/OOB
+#   • `Triga` geometry integration — `face_code_colored_quad_mesh_append`, winding checks
+#   • `ChunkResourceTable` + generation lifecycle — create/replace/remove transitions
+#   • `DirtyRemeshResult` — drain dirty marks, remesh each changed chunk, produce transitions
+#   • `lista<f32>/<u32>` list helpers — `f32_list_equal`, `u32_list_equal` for payload comparison
+#   • Payload equality detection — same face_count but different positions/colors → gen advances
+#
+# Syntaxes used:
+#   • `genus`, `functio`, `importa` — declarations throughout
+#   • `dum` — nested loops over chunk-local cells and face codes
+#   • `si`/`secus` — visibility tests, lifecycle conditionals
+#   • `∪` union types (`numerus ∪ nihil`, `ChunkMesh ∪ nihil`)
+#   • `est nihil` / `non est nihil` — null safety
+#   • `↦` — type conversion (`numerus ↦ f32`)
+#   • `lista<...>`, `.appende()`, `.longitudo()` — list operations
+#   • `bivalens`, `verum`/`falsum`
+#
+# Alternate approaches (not shown):
+#   • greedy meshing — merges coplanar faces into fewer quads/vertices
+#   • GPU-driven culling — skip invisible faces on device instead of CPU
+#
+# Anti-patterns (avoid these):
+#   • mutating mesh state from world reads — blocks are authoritative, meshes derived
+#   • assuming face_count alone detects change — payload comparison is required
+#
+# Learning path:
+#   Before: HV-05A (voxel.fab)
+#   After:  chunk-meshing-facts.fab
+#
+# Stage: HV-05B (face culling, per-chunk meshing), HV-07A (resource table, generations)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga

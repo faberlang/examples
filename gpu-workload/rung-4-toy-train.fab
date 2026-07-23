@@ -6,6 +6,23 @@ summary = "Toy training-loop workload floor probe for placement and iterated lau
 related = ["training", "placement", "tensor", "nucleum"]
 +++
 
+# =============================================================================
+# rung-4-toy-train — toy training-loop workload floor probe
+# =============================================================================
+#
+# What this teaches:
+#   • Iterated GPU launch — calling the same @nucleum kernel multiple times
+#     with updated weight state to simulate SGD training
+#   • Manual weight update — weight = weight - rate * err * x (SGD step)
+#   • State mutation pattern — varia f32 weight updated across kernel calls
+#     with separate ad 'cuda:launch' boundaries for each step
+#
+# Common mistakes:
+#   • Forgetting that each ad 'cuda:launch' incurs device sync overhead — iterated launches serialize GPU work; batch kernel calls and minimize launch count for performance
+#
+# See also: training, placement, tensor, nucleum
+# =============================================================================
+
 # GPU workload rung 4 — toy training loop
 #
 # Static placement syntax is intentionally not invented here. The loop uses

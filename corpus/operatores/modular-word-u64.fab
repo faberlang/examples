@@ -8,6 +8,20 @@ syntax = "modulus<u64>"
 related = ["numerus", "¬", "⇐", "⇒"]
 +++
 
+# =============================================================================
+# modulus<u64> — Unsigned 64-bit modular-word arithmetic and bit-pattern edges.
+# =============================================================================
+#
+# What this teaches:
+#   • Modular word contract — `modulus<u64>` wraps on overflow; demonstrates max + 1, zero - 1.
+#   • Carrier-mix equality — Conversions and arithmetic results compare by value across carriers.
+#
+# Common mistakes:
+#   • Assuming 64-bit modular words trap on overflow like checked numerus types.
+#
+# See also: numerus, ¬, ⇐, ⇒
+# =============================================================================
+
 # operatores/modular-word-u64 — modulus<u64> edge vectors
 #
 # MODULAR WORD CONTRACT:

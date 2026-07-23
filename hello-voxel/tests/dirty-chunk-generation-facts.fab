@@ -1,8 +1,43 @@
-# HV-07A focused facts: affected sets, dirty drain, dedupe, no-op, generations.
+# =========================================================================
+# dirty-chunk-generation-facts — focused facts for HV-07A: dirty sets, affected chunks, generations
+# =========================================================================
 #
-# Run (from package root):
-#   faber run --compile tests/dirty-chunk-generation-facts.fab
-#   # or: tests/run-hv07a.sh
+# What this example teaches:
+#   • Logical chunk ids — `logical_chunk_id` maps (cx,cz) → stable 0-3 index
+#   • Interior edit → only owning chunk — Y never adds a neighbor (no vertical layer)
+#   • Local edge edit → owning + adjacent in-world chunk (X or Z)
+#   • Corner edits → both axis neighbors (never the diagonal alone)
+#   • Same-frame dedupe — repeated `dirty_mark` collapses to unique sorted indices
+#   • No-op `world_set_dirty` — same block id → `changed = falsum`, no dirtiness
+#   • Generation lifecycle — create (gen 0) → replace (gen +1 on content change) → remove (gen stable)
+#   • Equal-`face_count` content change — advances generation (payload comparison, not count)
+#   • Boundary edit — only owning + adjacent chunk remeshed; other generations stable
+#
+# Syntaxes used:
+#   • `incipit`, `adfirma` — test structure
+#   • `functio` — `set_solid`/`set_air` helpers
+#   • `dum` — loops
+#   • `si` — conditionals
+#   • `∪ nihil`, `est nihil` / `non est nihil`
+#   • `vel` — default value
+#   • `bivalens`, `verum`/`falsum`
+#   • `≡` — equality
+#   • `.longitudo()`, `.appende()` — list operations
+#
+# Alternate approaches (not shown):
+#   • dirty bitmap per chunk — fixed-size integer bitfields instead of a `lista<bivalens>`
+#
+# Anti-patterns (avoid these):
+#   • missing edge-case edit → only owning chunk dirties, breaking seam faces
+#   • incrementing generation on identical mesh payload — wasteful host re-upload
+#
+# Learning path:
+#   Before: src/voxel.fab (HV-07A) + src/meshing.fab (HV-07A)
+#   After:  terminal test file in hello-voxel progression
+#
+# Stage: HV-07A (dirty sets, affected chunks, resource generation lifecycle)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "../src/voxel" privata voxel
 importa ex "../src/meshing" privata meshing

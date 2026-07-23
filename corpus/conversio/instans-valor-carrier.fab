@@ -8,6 +8,20 @@ syntax = "valor ↦ instans | instans<ms> [⇥ fallback]"
 related = ["↦", "⇥", "valor"]
 +++
 
+# =============================================================================
+# instans — Valor datetime carriers to instans through runtime extraction.
+# =============================================================================
+#
+# What this teaches:
+#   • Datetime conversion from valor — how `valor ↦ instans` extracts RFC3339 datetime values from dynamic valor carriers.
+#   • Precision parameterization — `instans<ms>` targets millisecond precision on extraction.
+#
+# Common mistakes:
+#   • Assuming all text values in valor are valid RFC3339 strings — invalid carriers require `⇥` recovery.
+#
+# See also: ↦, ⇥, valor
+# =============================================================================
+
 
 # conversio — valor datetime carrier to instans
 #

@@ -8,6 +8,20 @@ syntax = "<expression>?.<name> | <expression>?[<expression>] | <expression>?(<ar
 related = ["?.", "?[", "?(", "vel", "sponte"]
 +++
 
+# =============================================================================
+# ?. — Null-safe member, index, and call access.
+# =============================================================================
+#
+# What this teaches:
+#   • Optional chaining — `?.` accesses fields only when the receiver is present, returning `nihil` otherwise.
+#   • Index and call safety — `?[ ]` for safe index access, `?( )` for safe call on optional values.
+#
+# Common mistakes:
+#   • Chaining too deeply — each ?. that hits nihil short-circuits, making debugging harder.
+#
+# See also: ?., ?[, ?(, vel, sponte
+# =============================================================================
+
 # operatores/optional-chain — ?. ?[ ?(
 #
 # GRAMMAR:

@@ -10,6 +10,24 @@ related = ["futura", "cursor"]
 +++
 
 
+# =============================================================================
+# cede — Awaits a promise or yields a value depending on context.
+# =============================================================================
+#
+# What this teaches:
+#   • Async await — `cede <expression>` suspends execution until a `@ futura`
+#     function resolves
+#   • Async entry point — `incipiet { … }` is the async program entry that
+#     enables `cede` usage
+#   • Proof pair pattern — `cede` and `futura` work together for async
+#     function calls
+#
+# Common mistakes:
+#   • using `cede` outside an `incipiet` or `@ futura` function context — `cede` suspends only in async execution contexts
+#
+# See also: futura, cursor
+# =============================================================================
+
 # cede — await a @ futura function inside incipiet
 #
 # @ futura functio …   — declares an async-capable callee

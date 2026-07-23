@@ -1,6 +1,36 @@
-# Conversio matrix fixture: valor ↦ numerus.
-# Setup: box a numerus into valor; measure valor ↦ numerus (scalar extraction).
-# Phase-1 model: rust ✓ (FromValor); wasm-text —.
+# =============================================================================
+# valor ↦ numerus — extract integer from dynamic valor
+# =============================================================================
+#
+# What this example teaches:
+#   • valor ↦ numerus — extract a numeric value from a valor box
+#   • Two-step setup: numerus → valor (box), then valor → numerus (extract)
+#   • Fallible — runtime type mismatch if valor does not contain a number
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — lines 12, 13
+#   • incipit (entry point) — line 10
+#   • fixum (immutable binding) — lines 11, 12
+#
+# Alternate approaches (not shown):
+#   • valor ∷ numerus — static ascription cannot extract from a dynamic box; use ↦
+#   • fac { valor ↦ numerus } cape err { ... } — scoped error handling for type mismatch
+
+# Anti-patterns (avoid these):
+#   • valor ∷ numerus — static ascription of a dynamic value is not supported; use ↦ T
+#   • Assuming the valor contains a numerus — runtime type mismatch throws if it contains textus
+
+# Pitfalls:
+#   • Runtime type mismatch throws — the valor must actually contain a numeric value
+#   • wasm-text cannot represent valor; this path is Rust-only
+
+# Learning path:
+#   Before: see valor/ and numerus/ exempla (Stage 6 types)
+#   After:  see vivilite/src/main.fab (valor extraction from SQLite row data)
+
+# Stage: Phase-1 model, Rust only (valor not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum valor v ← 42 ↦ valor
     fixum _ r ← v ↦ numerus

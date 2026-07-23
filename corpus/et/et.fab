@@ -9,6 +9,20 @@ aliases = ["and"]
 related = ["aut", "non"]
 +++
 
+# =============================================================================
+# et — Combines boolean expressions with logical and.
+# =============================================================================
+#
+# What this teaches:
+#   • Logical AND — `<bivalens> et <bivalens>` combines two boolean operands with short-circuit evaluation.
+#   • Short-circuit behavior — if the left operand is falsum, the right operand is not evaluated.
+#
+# Common mistakes:
+#   • Confusing `et` with `aut` — `et` requires both operands to be bivalens (truthy); `aut` requires at least one operand to be truthy.
+#
+# See also: aut, non
+# =============================================================================
+
 
 # et — logical AND on bivalent operands (short-circuit)
 #

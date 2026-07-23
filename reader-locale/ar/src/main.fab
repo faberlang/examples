@@ -1,3 +1,35 @@
+# =============================================================================
+# Arabic locale — greeting with Arabic keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Faber keywords using Arabic script (دالة=فunctio,
+#     ثابت=fixum, أعد=redde, بداية=incipit, اعرض=nota, نص=textus)
+#   • String interpolation with § template operator
+#
+# Syntaxes used:
+#   • دالة (functio) — function definition (line 1)
+#   • ثابت (fixum) — immutable binding (line 2)
+#   • ← (assignment) — value binding (line 2)
+#   • أعد (redde) — return value (line 3)
+#   • بداية (incipit) — entry point (line 6)
+#   • اعرض (nota) — print to stdout (line 7)
+#   • § — template interpolation (line 2)
+#
+# Alternate approaches (not shown):
+#   • Latin keywords with locale identifiers — functio with Arabic variable names; when only identifiers should be localized, not keywords
+#
+# Anti-patterns (avoid these):
+#   • Mixing locale keyword sets within one file — pick one keyword set per file (all Arabic or all Latin, never both)
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → functio → redde (function + entry-point pattern)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Arabic keyword set demonstrated, basic function + entry point
+# Backend: stepper, reader-locale
+# =============================================================================
+
 دالة تحية(نص اسم) → نص {
   ثابت نص رسالة ← "مرحبا، §!"(اسم)
   أعد رسالة

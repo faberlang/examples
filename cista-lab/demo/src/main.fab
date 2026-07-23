@@ -1,3 +1,35 @@
+# =============================================================================
+# cista-lab demo — consuming a locked cista package
+# =============================================================================
+#
+# What this example teaches:
+#   • Cista package consumption — importing from a locked package via
+#     `importa ex "package:module"` syntax resolved through faber.lock
+#   • privata import — bringing a module into scope with private visibility
+#   • Cross-package call — calling mathesis.quadratum() from the mathesis package
+#
+# Syntaxes used:
+#   • importa ex — package import with colon separator (line 1)
+#   • incipit — entry point (line 3)
+#   • fixum — immutable binding (line 4)
+#   • mathesis.quadratum — cross-package function call (line 4)
+#   • nota — print to stdout (line 5)
+#
+# Alternate approaches (not shown):
+#   • publica import for re-exporting package types — importa ex ... publica name makes the symbol visible to consumers of this package
+#   • Direct path import without faber.lock resolution — always use faber.lock-resolved package:module paths; direct file paths bypass version resolution
+#
+# Anti-patterns (avoid these):
+#   • Hardcoded package paths instead of locked version resolution — faber.lock maps "mathesis:mathesis" to a versioned package; hardcoded paths bypass the lock and break reproducible builds
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica (package imports with module resolution)
+#   After:  Stage 5: coreutils (importing from stdlib in real CLI applications)
+#
+# Stage: cista-lab, basic package consumer, single function call
+# Backend: stepper
+# =============================================================================
+
 # Demo consumer: uses locked mathesis package interfaces from faber.lock.
 
 importa ex "mathesis:mathesis" privata mathesis

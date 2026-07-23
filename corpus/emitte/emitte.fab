@@ -8,6 +8,20 @@ syntax = "emitte <expression>"
 related = ["ad", "meus", "tuus", "sermo"]
 +++
 
+# =============================================================================
+# emitte — Retired statement-level frame emit; use expression ad with sermo directional views.
+# =============================================================================
+#
+# What this teaches:
+#   • Retired syntax — `emitte` is a retired statement-level keyword, preserved as a reserved lexer token to provide targeted diagnostics.
+#   • Replacement — use expression `ad` with `sermo` directional views (`s.meus<T>().da(value)` or `s.tuus<T>().accipe()`) instead.
+#
+# Common mistakes:
+#   • Writing new code with `emitte` — retired; use expression `ad` with `sermo` directional views (`s.meus<T>().da(value)` or `s.tuus<T>().accipe()`) instead.
+#
+# See also: ad, meus, tuus, sermo
+# =============================================================================
+
 # emitte — retired statement-level frame emit
 #
 # `emitte` is still a reserved lexer keyword so the parser can reject old stream

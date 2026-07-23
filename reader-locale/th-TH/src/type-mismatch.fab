@@ -1,3 +1,32 @@
+# =============================================================================
+# Thai locale — type mismatch error with Thai keywords
+# =============================================================================
+#
+# What this example teaches:
+#   • Type error diagnostic — assigning text to จำนวน (numerus) variable
+#   • Locale-aware error messages — diagnostics in Thai keyword set
+#
+# Syntaxes used:
+#   • เริ่ม (incipit) — entry point (line 1)
+#   • คงที่ (fixum) — immutable binding (line 2)
+#   • จำนวน (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • แสดง (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ∷ type ascription: value ∷ numerus for explicit type annotation
+#
+# Anti-patterns (avoid these):
+#   • SEM011: si condition must be bivalens — Faber requires explicit boolean conditions; no truthy/falsy coercion; use ∷ for explicit type ascription
+#
+# Learning path:
+#   Before: Stage 1: fixum, varia (immutable and mutable bindings with type inference)
+#   After:  Stage 2: dum, elige, fac/cape → Stage 3: genus, nihil, vacua/verum/falsum, lista, tabula
+#
+# Stage: locale-reader, Thai locale type-error fixture
+# Backend: stepper
+# =============================================================================
+
 เริ่ม {
   คงที่ จำนวน bad ← "ไม่ใช่จำนวน"
   แสดง bad

@@ -1,8 +1,35 @@
-# HV-05C: four-chunk render integration facts (CPU / package ownership).
-# Proves non-empty resource/draw counts, face totals, and no residual cube.
+# =========================================================================
+# four-chunk-render-facts — focused facts for HV-05C: four-chunk render integration (CPU/ownership)
+# =========================================================================
 #
-# Run (from package root):
-#   faber run --compile tests/four-chunk-render-facts.fab
+# What this example teaches:
+#   • `fixture_world` → `mesh_chunk` per chunk — all four chunks are non-empty for the fixture
+#   • `chunk_mesh_matches_face_count` — structural validation of every chunk's mesh payload
+#   • Non-empty chunk invariants — `non_empty ≡ chunk_count()`, `total_indices ≡ total_faces * 6`
+#   • No residual cube — the fixture world emits more than one cube's worth of geometry
+#   • Resource-pair and draw counts follow non-empty chunks (not total chunk count)
+#
+# Syntaxes used:
+#   • `incipit`, `adfirma` — test structure
+#   • `dum` — nested loops over chunk X/Z
+#   • `importa ex` — local and Triga imports
+#   • `∪ nihil`, `est nihil`
+#   • `vel` — default value operator
+#   • `bivalens`
+#
+# Alternate approaches (not shown):
+#   • test that each chunk's mesh bounding box covers its expected world region
+#
+# Anti-patterns (avoid these):
+#   • assuming all chunks have the same face count — each fixture feature varies per chunk
+#
+# Learning path:
+#   Before: src/main.fab (HV-05C)
+#   After:  application-motion-facts.fab (next test in progression)
+#
+# Stage: HV-05C (four-chunk render integration, resource/draw counts)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "../src/voxel" privata voxel
 importa ex "../src/meshing" privata meshing

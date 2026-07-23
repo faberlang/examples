@@ -10,6 +10,25 @@ related = ["et", "vel", "⊻"]
 +++
 
 
+# =============================================================================
+# aut — Combines boolean expressions with logical or.
+# =============================================================================
+#
+# What this teaches:
+#   • Complete binary operator tour — arithmetic (`+ − * / %`), comparison
+#     (`≡ ≠ < >`), logic (`et aut`), nullish coalescing (`vel`), ternary
+#     (`sic/secus`), and bitwise (`∧ ∨ ⊻ ⇐ ⇒`)
+#   • Assignment patterns — explicit assignment (`←`) and postfix increment
+#     (`⊕ ⊖` statements)
+#   • `sit` sugar — compact inference syntax alongside explicit `fixum _`
+#     type inference
+#
+# Common mistakes:
+#   • confusing `≡` (equality comparison) with `=` (structural field init) or `←` (assignment) — each operator has a distinct role
+#
+# See also: et, vel, ⊻
+# =============================================================================
+
 # binarius — binary operators and explicit assignment
 #
 # Covers arithmetic (+ − * / %), comparison (≡ ≠ < >), logic (et aut),

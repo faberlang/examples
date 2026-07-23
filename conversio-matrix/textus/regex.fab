@@ -1,5 +1,33 @@
-# Conversio matrix fixture: textus ↦ regex.
-# Phase-1 model: rust ✓ (dedicated carrier construction); wasm-text ✓.
+# =============================================================================
+# textus ↦ regex — compile text pattern into regex carrier
+# =============================================================================
+#
+# What this example teaches:
+#   • textus ↦ regex — compile a text string literal into a regex carrier type
+#   • Dedicated carrier construction — both backends support this directly
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • '\d+' ↦ regex — use ascii source when the pattern is a fixed machine token
+
+# Anti-patterns (avoid these):
+#   • numerus ↦ regex — regex requires textus or ascii source; convert to text first
+#   • ∷ regex — static ascription cannot compile a pattern; use ↦
+
+# Pitfalls:
+#   • Invalid regex syntax throws at runtime — wrap in fac/cape for user-supplied patterns
+#   • The compiled regex is a carrier type; use regex API methods for matching
+
+# Learning path:
+#   Before: see textus/ and regex/ exempla (Stage 4 types)
+#   After:  see grep/src/main.fab (substring matching; regex deferred to future stage)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← "\d+" ↦ regex
 }

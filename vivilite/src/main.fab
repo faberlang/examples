@@ -1,4 +1,66 @@
-# ViviLite file-backed local mailspace exemplum.
+# =============================================================================
+# vivilite — file-backed local mailspace exemplum
+# =============================================================================
+#
+# What this example teaches:
+#   • @ cli / @ optio / @ versio — Full CLI application with typed options,
+#     defaults, operand capture, and --help generation (lines 727–740)
+#   • @ json / @ json { nomen="..." } — Genus JSON serialization markers
+#     with custom field name remapping (lines 31–99)
+#   • ⇥ (effect types) — Declaring SQLite I/O effects on function
+#     signatures (lines 343, 413, 463)
+#   • fac / cape — Try/catch error handling wrapping fallible operations
+#     (lines 495–499, 529–534, 597–599, etc.)
+#   • probandum / proba / adfirma — Inline test blocks with assertions
+#     and tagged suites (lines 682–722)
+#   • iace — Explicit error throwing from effect-bearing ⇥ contexts
+#     (lines 358, 374, 419, 549)
+#
+# Syntaxes used:
+#   • importa — module imports (lines 3–4)
+#   • genus — struct/record definitions (lines 6–99)
+#   • functio — function definitions (throughout)
+#   • fixum / varia — immutable / mutable variable declarations
+#   • incipit — program entry point (line 740)
+#   • si / sin / secus / ergo — conditionals and if-elif-else chains
+#   • dum — while loops (lines 109, 145, 475)
+#   • itera — for-each iteration (lines 153, 191, 204, 237, 250, etc.)
+#   • redde — return value
+#   • cat — string concatenation function
+#   • § — string interpolation prefix
+#   • «…» — raw string literals (lines 458, 717)
+#   • ↦ — type conversion operator (throughout)
+#   • ≡ — equality comparison
+#   • ≠ — inequality comparison
+#   • aut / et — logical OR / AND
+#   • vel — coalescing / or-else operator
+#   • vacua — empty list literal
+#   • lista<…> / tabula<…> — generic collection types
+#   • textus / numerus / bivalens / octeti / valor — primitive types
+#   • solum:* — filesystem operations (crea, scribe, carpe, exstat, appone)
+#   • sqlite:* — database operations (quaere, exsequi, exsequi_batch, sha256_hex)
+#   • nota / mone — standard output / error output
+#   • @ privata — visibility annotation (lines 2–4, 24)
+#
+# Alternate approaches (not shown):
+#   • TSV vs SQLite backend — both shown; use TSV for zero-dependency
+#     persistence, SQLite for complex queries and multi-table relations
+#   • Generated @ optio vs manual parsing — generated used here; manual
+#     si/sin loops when GNU-specific semantics are needed
+#
+# Anti-patterns (avoid these):
+#   • Mixing file-backed and SQLite backends by branching on
+#     solum.exstat() in route — prefer a single backend abstraction
+#   • iace without ⇥ on enclosing function — all iace must be in
+#     a ⇥-declared context or inside fac/cape
+#
+# Learning path:
+#   Before: Stages 1–9 (all keywords, operators, coreutils, testing)
+#   After:  hello-voxel or production apps
+#
+# Stage: G8 DB5, file-backed + SQLite reverse oracle, TSV identities/mail/work
+# Backend: both (stepper via incipit CLI, Rust via compiler backend)
+# =============================================================================
 
 importa ex "norma:solum" privata solum
 importa ex "sqlite:sqlite" privata sqlite
@@ -391,6 +453,8 @@ functio vivi_address(de textus identity, de textus mailspace) → textus {
     redde "§@§.local"(identity, mailspace)
 }
 
+# Canonical UTF-8 EML with \r\n line endings, so SHA-256 content-addressing is
+# stable regardless of platform newline conventions.
 functio compose_vivi_message(de textus mailspace, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus {
     varia textus normalized_body ← body ↦ textus
     si body.longitudo() ≡ 0 aut body.sectio(body.longitudo() - 1, body.longitudo()) ≠ "\n" {
@@ -409,6 +473,10 @@ functio compose_vivi_message(de textus mailspace, de textus kind, de textus from
     redde cat(eml, normalized_body)
 }
 
+# Write a message into regular Vivi's mail.sqlite (write reverse oracle).
+# Dual INSERT: one row into the recipient's role (tasks/needs/wants/inbox)
+# and one into the sender's 'sent' folder, linked by content-id.
+# ON CONFLICT DO UPDATE makes resends idempotent — same content hash reuses the row.
 functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, de textus to, de textus subject, de textus body) → textus ⇥ textus {
     fixum lista<textus> names ← vivi_config_names(s)
     fixum textus mailspace ← names.accipe(0) vel ""
@@ -429,11 +497,17 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
     fixum textus blob_path ← "§/.vivi/§"(s.root, blob_relpath)
     fixum bivalens blob_existed ← solum.exstat(blob_path)
     varia lista<valor> statements ← vacua
+    # Store raw EML content by SHA-256 hash; idempotent — skip if already written.
     statements.appende(sqlite_statement("INSERT INTO blobs (content_id, blob_relpath, byte_size, rfc_message_id, parsed_at) VALUES (?1, ?2, ?3, NULL, datetime('now')) ON CONFLICT(content_id) DO NOTHING", [content_id ↦ valor, blob_relpath ↦ valor, byte_size ↦ valor]))
+    # Store sender / recipient / subject metadata keyed by content hash.
     statements.appende(sqlite_statement("INSERT INTO message_metadata (content_id, date, from_addr, to_addr, cc_addr, bcc_addr, subject, normalized_message_id) VALUES (?1, datetime('now'), ?2, ?3, '', '', ?4, NULL) ON CONFLICT(content_id) DO UPDATE SET from_addr = excluded.from_addr, to_addr = excluded.to_addr, subject = excluded.subject", [content_id ↦ valor, vivi_address(from, mailspace) ↦ valor, vivi_address(to, mailspace) ↦ valor, subject ↦ valor]))
+    # Deliver to recipient's inbox (or task/need/want role).
     statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = excluded.local_role, updated_at = excluded.updated_at, deleted_at = NULL", [message_id ↦ valor, to ↦ valor, content_id ↦ valor, role ↦ valor]))
+    # Store sender's own sent copy (already read, in 'sent' folder).
     statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, 'sent', 1, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = 'sent', read_state = 1, updated_at = excluded.updated_at, deleted_at = NULL", [sent_message_id ↦ valor, from ↦ valor, content_id ↦ valor]))
+    # Record the send event in the sender's mailspace event log.
     statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'sent_copy_created', ?2, ?2, ?3, ?4, NULL, 'sent', ?2, ?2, ?5, NULL)", [command ↦ valor, from ↦ valor, sent_message_id ↦ valor, content_id ↦ valor, subject ↦ valor]))
+    # Record the delivery event in the recipient's mailspace event log.
     statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", [command ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, role ↦ valor, subject ↦ valor]))
     sqlite.exsequi_batch("§/.vivi/mail.sqlite"(s.root), statements)
     si blob_existed ≠ verum {
@@ -513,6 +587,8 @@ functio sqlite_items(de textus database, de textus who, de textus role) → list
     redde items
 }
 
+# Read-only reverse oracle: queries regular Vivi's SQLite mail database to
+# produce the same BoardJson shape as the file-backed `board_json`.
 functio sqlite_board_json(de Store s, de textus who) → textus ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum numerus tasks ← sqlite_count(database, who, "tasks")
@@ -570,6 +646,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     fixum textus subject ← arg(args, "--subject", "(no subject)")
     fixum textus body ← arg(args, "--body", "")
     fixum textus note ← arg(args, "--note", "")
+    # -- mailspace commands --
     si top ≡ "mailspace" et subcmd ≡ "init" {
         ensure_store(store(s.root))
         nota "initialized §"(s.dir)
@@ -582,12 +659,14 @@ functio route(de lista<textus> args, de Store s) → vacuum {
             print_status(s, has(args, "--json"))
         }
     }
+    # -- identity commands --
     sin (top ≡ "mailspace" et subcmd ≡ "identity") et op ≡ "add" {
         identity_add(s, arg(args, "--name", who), arg(args, "--address", "§@local"(who)))
     }
     sin (top ≡ "mailspace" et subcmd ≡ "identity") et op ≡ "list" {
         identity_list(s)
     }
+    # -- mail commands --
     sin top ≡ "mail" et subcmd ≡ "send" {
         si solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
             fac {
@@ -608,6 +687,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
     sin top ≡ "mail" et subcmd ≡ "show" {
         mail_show(s, op)
     }
+    # -- task/need/want commands --
     sin (((top ≡ "task" aut top ≡ "need") aut top ≡ "want") et subcmd ≡ "send") et solum.exstat("§/.vivi/mail.sqlite"(s.root)) {
         fac {
             fixum textus handle ← sqlite_send(s, top, "§s"(top), from, to, subject, body)
@@ -672,6 +752,7 @@ functio route(de lista<textus> args, de Store s) → vacuum {
             nota "promoted §"(op)
         }
     }
+    # -- board command --
     sin top ≡ "board" {
         print_board(s, who)
     }

@@ -8,6 +8,20 @@ syntax = "<lista> ↦ <tensor-type-with-literal-Figura>"
 related = ["↦", "lista", "tensor", "Figura"]
 +++
 
+# =============================================================================
+# ↦ — Literal-shaped lista to tensor conversio.
+# =============================================================================
+#
+# What this teaches:
+#   • Flat-to-shaped conversion — a flat `lista` converts into a shaped `tensor` when the target type witnesses a literal Figura (e.g., `tf32[2, 2]`).
+#   • Shared lowering path — this conversion goes through the same `structa`/`tensor_from_flat` path as explicit tensor construction.
+#
+# Common mistakes:
+#   • Providing a flat lista whose length does not match the target tensor's element count — the shape must be a multiple of the flat data size.
+#
+# See also: ↦, lista, tensor, Figura
+# =============================================================================
+
 
 # conversio — literal-shaped lista to tensor
 #

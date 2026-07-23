@@ -6,6 +6,25 @@ summary = "Stage 2 end-to-end exemplum: multiplica with generated backward compa
 related = ["air lane", "backward", "generated gradient"]
 +++
 
+# =============================================================================
+# multiplica — generated backward companion for AIR-lane gradient computation
+# =============================================================================
+#
+# What this teaches:
+#   • `@ radix backward` annotation — instructs the compiler to generate a
+#     gradient (backward) companion function with the specified name
+#   • AIR autodiff pipeline — end-to-end exemplum showing how AIR-lane functions
+#     produce per-element gradient formulas d_lhs = upstream * rhs and
+#     d_rhs = upstream * lhs
+#   • TF32 tensor operations — addita, subtrahe, multiplica on tf32[2,2] values
+#
+# Common mistakes:
+#   • Forgetting that the backward function name must match what the consuming pipeline expects — here `@ radix backward "multiplica_backward"` generates a companion function named "multiplica_backward"; the consuming autograd pipeline references it by this exact name
+#     consuming pipeline expects (here "multiplica_backward")
+#
+# See also: air lane, backward, generated gradient
+# =============================================================================
+
 # multiplica — generated backward exemplum
 #
 # This AIR-lane function is annotated for backward generation. The compiler

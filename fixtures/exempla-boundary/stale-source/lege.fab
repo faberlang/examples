@@ -1,2 +1,25 @@
-# TODO
+# =============================================================================
+# lege — read/I/O fixture stub
+# =============================================================================
+#
+# What this example teaches:
+#   • lege — read/I/O operations; the built-in keyword for reading from stdin, returning textus ∪ nihil
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#
+# Alternate approaches (not shown):
+#   • solum.lege for file reading via kernel import — importa ex "faber:solum" privata solum; solum.lege<textus>(path) for typed file contents
+#
+# Anti-patterns (avoid these):
+#   • Assuming file reads always succeed without error handling — lege returns textus ∪ nihil; always check for nihil before using the result, or use solum.carpe with ⇥ effect type
+#
+# Learning path:
+#   Before: Stage 6: cat (stdin read via lege → textus ∪ nihil)
+#   After:  Stage 7: coreutils algorithms (head, tail, wc — streaming I/O patterns)
+#
+# Stage: fixture boundary, lege fixture stub
+# Backend: stepper
+# =============================================================================
+
 incipit {}

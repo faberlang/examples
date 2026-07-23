@@ -1,5 +1,34 @@
-# Conversio matrix fixture: lista ↦ copia.
-# Phase-1 model: rust ✓ (collect HashSet); wasm-text ✓.
+# =============================================================================
+# lista ↦ copia — convert list to set (deduplicate)
+# =============================================================================
+#
+# What this example teaches:
+#   • lista ↦ copia — collect list elements into a set, discarding duplicates
+#   • Lossy — duplicate ordering information is dropped
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • lista ∷ copia — static ascription does not deduplicate; use ↦
+#   • [1,2,3] ↦ copia<numerus> ⇥ vacua — inline recovery with empty set on failure
+
+# Anti-patterns (avoid these):
+#   • [1,1,2] ↦ copia<numerus> then iterating expecting 3 elements — duplicates are dropped
+#   • ∷ used where ↦ is needed — ascription does no deduplication
+
+# Pitfalls:
+#   • Duplicate elements are silently discarded — verify count after conversion
+#   • Element order is not guaranteed in the resulting set
+
+# Learning path:
+#   Before: see lista/ exempla (Stage 3) and copia/ exempla (Stage 6)
+#   After:  see sort/src/main.fab (ordering and unique filters)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← [1, 2, 3] ↦ copia<numerus>
 }

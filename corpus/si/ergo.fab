@@ -8,6 +8,24 @@ syntax = "<head> ergo <statement>"
 aliases = ["ergo", "therefore"]
 related = ["si", "dum", "clausura", "redde", "tacet", "ergo"]
 +++
+
+# =============================================================================
+# ergo — Introduces a compact statement consequent.
+# =============================================================================
+#
+# What this teaches:
+#   • Inline conditionals — `ergo` replaces a single-statement block body on
+#     `si` and `secus` branches
+#   • `si <cond> ergo <stmt> secus ergo <stmt>` forms a two-way one-liner
+#     without braces
+#
+# Common mistakes:
+#   • TODO: chaining multiple statements after `ergo` (it accepts only one
+#     statement)
+#
+# See also: si, dum, clausura, redde, tacet
+# =============================================================================
+
 # One-liner conditionals with ergo
 #
 # si <condition> ergo <statement>                              -- single consequent

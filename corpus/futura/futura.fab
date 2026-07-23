@@ -7,7 +7,19 @@ summary = "Marks a function as asynchronous."
 syntax = "@ futura"
 related = ["cursor", "cede"]
 +++
-
+# =============================================================================
+# futura — Marks a function as asynchronous
+# =============================================================================
+#
+# What this teaches:
+#   • Marks a function as asynchronous.
+#   • Related keywords: cursor, cede
+#
+# Common mistakes:
+#   • Calling `cede` without `@ futura` on the enclosing function — `cede` awaits a promissum and requires the function to be async.
+#
+# See also: cursor, cede
+# =============================================================================
 
 # @ futura — async function annotation
 #

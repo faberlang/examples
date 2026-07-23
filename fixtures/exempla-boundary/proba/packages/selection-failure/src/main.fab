@@ -1,3 +1,31 @@
+# =============================================================================
+# selection-failure — mixed passing and failing tests for selection boundary
+# =============================================================================
+#
+# What this example teaches:
+#   • Mixed test outcomes — one passing proba and one broken proba (refers to
+#     missing_value) to validate test selection and failure reporting
+#
+# Syntaxes used:
+#   • proba — test declaration (lines 1, 5)
+#   • adfirma — assertion (line 2)
+#   • fixum — immutable binding (line 6)
+#   • incipit — entry point (line 8)
+#
+# Alternate approaches (not shown):
+#   • Expected-failure annotations for known-broken tests — use omitte "reason" or futurum "reason" to mark tests that reference undefined variables or are intentional failures
+#
+# Anti-patterns (avoid these):
+#   • Tests referencing undefined variables as a normal pattern — SEM001 is a compile error; broken tests that reference missing values should be marked with omitte or futurum
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma (basic test assertions)
+#   After:  Stage 10: proba/packages/failing + proba/modificatores (intentional failure and modifier patterns)
+#
+# Stage: fixture boundary, proba selection-failure package
+# Backend: stepper
+# =============================================================================
+
 proba "selected case" {
     adfirma verum
 }

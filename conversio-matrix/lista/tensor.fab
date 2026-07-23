@@ -1,5 +1,35 @@
-# Conversio matrix fixture: lista ↦ tensor.
-# Phase-1 model: rust ✓ (Tensor::structa); wasm-text — (tensor not representable).
+# =============================================================================
+# lista ↦ tensor — convert list to fixed-size tensor
+# =============================================================================
+#
+# What this example teaches:
+#   • lista ↦ tensor — convert a dynamic list into a fixed-shape tensor
+#   • Static size annotation — [3] constrains the tensor dimension
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#   • tensor<numerus, [3]> (tensor type with static shape) — line 9
+#
+# Alternate approaches (not shown):
+#   • structa(lista, [3]) — named constructor when shape is dynamic or needs validation
+#   • tensor<numerus, _> — inferred shape when the list length determines the dimension
+
+# Anti-patterns (avoid these):
+#   • lista ∷ tensor — static ascription cannot create tensor layout; use ↦ or structa
+#   • [1,2] ↦ tensor<numerus, [3]> — shape mismatch throws at runtime
+
+# Pitfalls:
+#   • List length must match the declared tensor shape exactly — mismatch throws
+#   • Nested lists are not flattened — use a flat lista; flatten nested values first
+
+# Learning path:
+#   Before: see lista/ and tensor/ exempla (Stage 3–6 types)
+#   After:  see hello-voxel/src/voxel.fab (tensor usage in world data)
+
+# Stage: Phase-1 model, Rust only (tensor not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← [1, 2, 3] ↦ tensor<numerus, [3]>
 }

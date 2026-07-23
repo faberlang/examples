@@ -1,3 +1,33 @@
+# =============================================================================
+# aleator-uuid — random UUID generation via kernel import
+# =============================================================================
+#
+# What this example teaches:
+#   • Kernel import — importing the `faber:aleator` module for random number generation
+#   • Module function call — `aleator.semina()` to seed, `aleator.uuid()` to generate
+#   • Minimal script pattern — import, seed, call, print
+#
+# Syntaxes used:
+#   • importa ex — kernel module import (line 1)
+#   • incipit — entry point (line 3)
+#   • aleator.semina — seed the RNG (line 4)
+#   • aleator.uuid — generate UUID string (line 5)
+#   • nota — print to stdout (line 5)
+#
+# Alternate approaches (not shown):
+#   • Using `faber:*` glob import for all kernel modules at once — see glob-import.fab for the manifest import pattern
+#
+# Anti-patterns (avoid these):
+#   • Generating UUIDs without seeding the RNG — unseeded aleator.uuid() produces deterministic output from a zero seed; always call aleator.semina() first
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica (module imports and visibility)
+#   After:  Stage 5: coreutils foundations (true, false, pwd, yes — importing from stdlib)
+#
+# Stage: basic script-kernel, single-module import, random UUID generation
+# Backend: stepper
+# =============================================================================
+
 importa ex "faber:aleator" privata aleator
 
 incipit {

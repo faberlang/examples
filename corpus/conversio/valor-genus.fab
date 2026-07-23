@@ -8,6 +8,20 @@ syntax = "<valor-expression> ↦ <genus-type> [⇥ <recovery>]"
 related = ["↦", "⇥"]
 +++
 
+# =============================================================================
+# valor — valor ↦ genus extraction with missing-field defaults and mandatory-field failure via ⇥ recovery.
+# =============================================================================
+#
+# What this teaches:
+#   • JSON-to-struct deserialization — `valor ↦ genus` deserializes JSON objects into typed genus records.
+#   • Field policies — missing `sponte` fields zero-initialize; missing mandatory fields fail at runtime (recoverable via `⇥`); extra JSON keys are ignored.
+#
+# Common mistakes:
+#   • Omitting a mandatory field from the JSON and expecting a default value — only `sponte` or default-valued fields are optional; missing mandatory fields fail at runtime.
+#
+# See also: ↦, ⇥
+# =============================================================================
+
 # conversio — valor to genus extraction
 #
 # WHY: `valor ↦ genus` deserializes JSON objects into typed records. Missing

@@ -5,6 +5,22 @@ category = "gpu"
 summary = "vector elementwise arithmetic lowers for GPU text emit"
 +++
 
+# =============================================================================
+# vector — vector elementwise arithmetic lowers for GPU text emit.
+# =============================================================================
+#
+# What this teaches:
+#   • Elementwise operations — `addita`, `subtrahe`, `multiplica`, `divida` per-element
+#   • GPU kernel composition — chaining elementwise ops in `@ nucleum` functions
+#
+# Common mistakes:
+#   • mixing vector and tensor arithmetic methods in the same expression — vector arithmetic uses GPU register intrinsics
+#
+# See also: vector, gpu, nucleum
+# =============================================================================
+
+
+
 @ nucleum
 functio addita(fractus<f32> x) → fractus<f32> {
     fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]

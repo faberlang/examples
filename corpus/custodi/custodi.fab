@@ -8,6 +8,22 @@ syntax = "custodi <block>"
 aliases = ["guard"]
 related = ["si", "ergo", "redde"]
 +++
+
+# =============================================================================
+# custodi — Groups early-exit guard checks before the main body of a function.
+# =============================================================================
+#
+# What this teaches:
+#   • Guard blocks — `custodi { si <conditio> { <exitus> } }` groups early-exit checks before a function's main logic.
+#   • Separation of concerns — guard blocks keep preconditions clearly separated from the main body.
+#   • Multiple guards — multiple `si` conditions in one custodi block, each with its own exit path.
+#
+# Common mistakes:
+#   • Using `custodi` outside a function — guard blocks are only valid inside functio bodies.
+#
+# See also: si, ergo, redde
+# =============================================================================
+
 # custodi — guard blocks for early exit
 #
 # custodi { si <conditio> { <exitus> } }

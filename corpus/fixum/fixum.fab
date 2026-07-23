@@ -8,6 +8,20 @@ syntax = "fixum <type|_> <pattern> [← <expression>]"
 aliases = ["const", "immutable"]
 related = ["varia", "sit", "←"]
 +++
+# =============================================================================
+# fixum — Declares an immutable binding
+# =============================================================================
+#
+# What this teaches:
+#   • Declares an immutable binding.
+#   • Related keywords: varia, sit, ←
+#
+# Common mistakes:
+#   • Reassigning a `fixum` binding after initialization — `fixum` is immutable; use `varia` for mutable bindings (SEM020) or defer init with a single later assignment.
+#
+# See also: varia, sit, ←
+# =============================================================================
+
 # fixum — immutable bindings
 #
 # Immediate init:

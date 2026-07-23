@@ -1,5 +1,33 @@
-# Conversio matrix fixture: bivalens ↦ numerus.
-# Phase-1 model: rust ✓ (bool as i64); wasm-text ✓.
+# =============================================================================
+# bivalens ↦ numerus — convert boolean to integer
+# =============================================================================
+#
+# What this example teaches:
+#   • bivalens ↦ numerus — verum becomes 1, falsum becomes 0
+#   • Safe integer cast from bool — both backends support this
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • verum ∷ numerus — static ascription when the integer value is known; ∷ for compile-time, ↦ for runtime
+
+# Anti-patterns (avoid these):
+#   • numerus ∷ bivalens — the reverse direction is runtime conversion, not static; use ↦
+#   • → bivalens without ↦ — returning a raw boolean from logic; no conversion needed
+
+# Pitfalls:
+#   • Always succeeds — verum → 1, falsum → 0, no runtime error
+#   • No overflow or precision loss — the result is always 0 or 1
+
+# Learning path:
+#   Before: see bivalens/ and numerus/ exempla (Stage 3 types)
+#   After:  see wc/src/main.fab (conditional counting with bivalens dispatch)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← verum ↦ numerus
 }

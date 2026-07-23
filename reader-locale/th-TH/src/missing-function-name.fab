@@ -1,1 +1,26 @@
+# =============================================================================
+# Thai locale — missing function name error
+# =============================================================================
+#
+# What this example teaches:
+#   • Parse error diagnostic — function keyword without a name identifier
+#   • Locale-aware diagnostics — error emitted using Thai keyword set
+#
+# Syntaxes used:
+#   • ฟังก์ชัน (functio) — function keyword applied without name (line 1)
+#
+# Alternate approaches (not shown):
+#   • Always providing a name: ฟังก์ชัน name() { … } — every function declaration requires a name identifier
+#
+# Anti-patterns (avoid these):
+#   • PARSE001: missing required identifier — functio without a name is a parse error; all declarations require an identifier after the keyword
+#
+# Learning path:
+#   Before: Stage 1: functio, incipit (function keyword declaration basics)
+#   After:  Stage 1: fixum, varia, si, redde (functions with bodies, bindings, and control flow)
+#
+# Stage: locale-reader, Thai locale parse-error fixture
+# Backend: stepper
+# =============================================================================
+
 ฟังก์ชัน() {}

@@ -9,6 +9,20 @@ aliases = ["convert", "conversio"]
 related = ["∷", "⇥"]
 +++
 
+# =============================================================================
+# ↦ — Converts a value with explicit runtime parsing or coercion semantics.
+# =============================================================================
+#
+# What this teaches:
+#   • Core conversion — the `↦` operator converts between types with explicit parsing (textus→numerus) and coercion (numerus→textus).
+#   • Recovery with `⇥` — the `⇥` operator supplies a fallback value when conversion fails at runtime.
+#   • Chaining — `↦` composes left-to-right for roundtrip conversions.
+#
+# Common mistakes:
+#   • Confusing `∷` (compile-time type ascription) with `↦` (runtime conversion) and using `vel` instead of `⇥` for conversio recovery.
+#
+# See also: ∷, ⇥
+# =============================================================================
 
 # conversio — type conversion operator (↦)
 #

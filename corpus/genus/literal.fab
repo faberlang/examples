@@ -7,7 +7,19 @@ summary = "Genus literal instantiation with field overrides."
 syntax = "<Genus> { <field> = <expr>, … }"
 related = ["genus", "valor"]
 +++
-
+# =============================================================================
+# genus — Genus literal instantiation with field overrides
+# =============================================================================
+#
+# What this teaches:
+#   • Genus literal instantiation with field overrides.
+#   • Related keywords: genus, valor
+#
+# Common mistakes:
+#   • Omitting a mandatory field without a genus default — all required fields must be provided in the `Type { field = expr }` constructor.
+#
+# See also: genus, valor
+# =============================================================================
 
 # Genus literal instantiation
 #

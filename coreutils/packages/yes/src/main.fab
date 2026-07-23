@@ -1,3 +1,40 @@
+# =============================================================================
+# yes — GNU coreutils yes: output a string repeatedly until killed
+# =============================================================================
+#
+# What this example teaches:
+#   • `dum verum` infinite loop — the canonical pattern for a utility that
+#     runs forever (or until the pipe/harness terminates it)
+#   • Operand default — `yes_linea` returns `"y"` when no operands are given,
+#     showing the simplest default-value pattern
+#   • `probandum` for infinite-loop utilities — testing only the operand
+#     selection logic, not the loop itself
+#
+# Syntaxes used:
+#   • `lege` — not used (no stdin)
+#   • `si`/`secus`/`ergo` — conditionals (lines 7-8)
+#   • `dum verum` — infinite loop (line 25)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 10-17)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI annotations (lines 19-21)
+#   • `incipit` — entry point (line 22)
+#   • `.longitudo()` — list length (line 7)
+#   • `functio` — function (line 6)
+#   • `textus`, `lista<...>`, `vacuum` — types
+#
+# Alternate approaches (not shown):
+#   • None — this is the minimal infinite-output pattern
+#
+# Anti-patterns (avoid these):
+#   • Not terminable in isolation — relies on pipe/harness capping
+#     stdout
+#
+# Learning path:
+#   Before: pwd
+#   After:  cat, echo
+#
+# Stage: Stage 3, trivial infinite-output operand
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 # GNU yes repeats one line forever; parity fixtures cap stdout line count in the

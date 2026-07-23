@@ -10,6 +10,20 @@ related = ["rumpe", "dum"]
 +++
 
 
+# =============================================================================
+# perge — Continues with the next loop iteration.
+# =============================================================================
+#
+# What this teaches:
+#   • Loop control — `perge` skips the rest of the current iteration and proceeds to the next.
+#   • Nested loops — In nested loops, `perge` applies to the innermost loop.
+#
+# Common mistakes:
+#   • Using `perge` outside a loop — `perge` is only valid inside `dum` or `itera` (SEM031).
+#
+# See also: rumpe, dum
+# =============================================================================
+
 # Continue (perge) in loops
 #
 # perge   -- skip to next iteration of innermost loop

@@ -1,9 +1,43 @@
-# HV-06B focused facts: voxel DDA (axis, diagonal, empty, boundary, range 6)
-# and edit semantics (remove, place, player-box overlap reject).
+# =========================================================================
+# application-dda-edit-facts — focused facts for HV-06B: voxel DDA + edit semantics
+# =========================================================================
 #
-# Run (from package root):
-#   faber run --compile tests/application-dda-edit-facts.fab
-#   # or: tests/run-hv06b.sh
+# What this example teaches:
+#   • `voxel_dda` — Amanatides–Woo traversal: axis-aligned (+X, -Z), diagonal (1,1,1)
+#   • Empty world miss — no solid in range returns `nihil`
+#   • Range-6 boundary — cell entered at t=6.0 is a hit; t=6.5 is a miss
+#   • Zero-length direction — returns `nihil` (guard before traversal)
+#   • `remove_hit` — primary action sets the hit cell to air; re-cast then misses
+#   • `place_at_preceding` — secondary action writes solid id 1 at the preceding empty cell
+#   • `placement_intersects_player` — AABB overlap guard rejects place on player cell
+#   • `select_voxel` — camera-path selection hitting fixture wall and pillar
+#   • `try_remove`/`try_place` — end-to-end camera → selection → edit pipeline
+#
+# Syntaxes used:
+#   • `incipit`, `adfirma` — test structure
+#   • `functio` — helper factories (`world_with_solid`, `player_at`, `camera_look`)
+#   • `si` — conditionals
+#   • `∪ nihil`, `est nihil` / `non est nihil`
+#   • `vel` — default value operator
+#   • `↦` — type conversion
+#   • `bivalens`, `verum`/`falsum`
+#   • `.absolutum()` — absolute value
+#   • `≡` — equality comparison
+#
+# Alternate approaches (not shown):
+#   • sphere-based selection — ray-sphere intersection when block is non-cube
+#
+# Anti-patterns (avoid these):
+#   • DDA without max_distance guard — infinite loops on uniform empty space
+#   • placing without AABB check — player can clip into newly placed blocks
+#
+# Learning path:
+#   Before: src/application.fab (HV-06B)
+#   After:  dirty-chunk-generation-facts.fab (next test in progression)
+#
+# Stage: HV-06B (DDA, edit semantics, selection outline)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "../src/voxel" privata voxel
 importa ex "../src/application" privata application

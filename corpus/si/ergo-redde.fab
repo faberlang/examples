@@ -8,6 +8,23 @@ syntax = "<head> ergo <statement>"
 aliases = ["ergo", "therefore"]
 related = ["si", "dum", "clausura", "redde", "tacet", "ergo"]
 +++
+
+# =============================================================================
+# ergo — Introduces a compact statement consequent.
+# =============================================================================
+#
+# What this teaches:
+#   • Guard clauses — `si <cond> ergo redde <expr>` provides a compact
+#     one-liner for early returns
+#   • `sin` and `secus` also accept `ergo` for chained guard expressions
+#   • Demonstrates guard-return patterns, optional returns, and linear search
+#
+# Common mistakes:
+#   • TODO: using `ergo` with a block instead of a single statement
+#
+# See also: si, dum, clausura, redde, tacet
+# =============================================================================
+
 # Si with ergo redde syntax
 #
 # si <conditio> ergo redde <expressio>     -- guard return

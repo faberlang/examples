@@ -8,6 +8,22 @@ syntax = "redde <expression>"
 aliases = ["return"]
 related = ["→", "⇥", "ergo", "iace", "tacet"]
 +++
+
+# =============================================================================
+# redde — Returns a value from a function.
+# =============================================================================
+#
+# What this teaches:
+#   • Function return — `redde <expression>` returns a value from a `functio`,
+#     and bare `redde` returns `vacuum`
+#   • Early returns with `si <cond> ergo redde <expr>` for guard clauses
+#
+# Common mistakes:
+#   • Using `redde` outside a function body — `redde` is only valid inside `functio` declarations (SEM032).
+#
+# See also: →, ⇥, ergo, iace, tacet
+# =============================================================================
+
 # redde statements (function return)
 #
 # redde <expression>   -- return a value

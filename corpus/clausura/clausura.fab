@@ -8,6 +8,24 @@ syntax = "<type> <name> [→ <type>] [⇥ <error-type>] ∴ <expression|fac-bloc
 aliases = []
 related = ["∴", "functio", "fac", "cape", "cede"]
 +++
+
+# =============================================================================
+# clausura — Declares or explains an inline closure expression; compact ∴
+# syntax is preferred for new code.
+# =============================================================================
+#
+# What this teaches:
+#   • Closure basics — `∴` (therefore) introduces a closure body after the
+#     parameter list
+#   • Compact syntax — the `∴` form is preferred over block-delimited closures
+#     for simple expressions
+#
+# Common mistakes:
+#   • confusing `∴` (clausura joint for compact closures) with `ergo` (single-statement body joint for `si`, `dum`, `casu`) — they are not interchangeable
+#
+# See also: ∴, functio, fac, cape, cede
+# =============================================================================
+
 # clausura — closure bodies with ∴ and ⇥
 #
 # GRAMMAR:

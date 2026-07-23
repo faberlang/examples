@@ -7,7 +7,19 @@ summary = "Compiler-owned textus query methodi."
 syntax = "s.longitudo | continet | initium | finis"
 related = ["textus", "intrinseca"]
 +++
-
+# =============================================================================
+# textus — Compiler-owned textus query methodi
+# =============================================================================
+#
+# What this teaches:
+#   • Compiler-owned textus query methodi.
+#   • Related keywords: textus, intrinseca
+#
+# Common mistakes:
+#   • Using `textus` query methods on non-text types — `.continet()`, `.initium()`, `.finis()` are textus-only compiler intrinsics.
+#
+# See also: textus, intrinseca
+# =============================================================================
 
 # textus query intrinsics
 #

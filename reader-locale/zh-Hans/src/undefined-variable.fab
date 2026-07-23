@@ -1,3 +1,29 @@
+# =============================================================================
+# Simplified Chinese locale — undefined variable error
+# =============================================================================
+#
+# What this example teaches:
+#   • Undefined-variable diagnostic — referencing a name not in scope
+#   • Locale-aware diagnostics — Simplified Chinese keyword set
+#
+# Syntaxes used:
+#   • 入口 (incipit) — entry point (line 1)
+#   • 显示 (nota) — print (line 2)
+#
+# Alternate approaches (not shown):
+#   • Declaring variables before use: 常量 文本 名称 ← "值" — always declare with 常量 (fixum) or 变量 (varia) before referencing
+#
+# Anti-patterns (avoid these):
+#   • SEM001: unknown identifier — diagnostics are locale-agnostic; typos in any script produce the same "did you mean X?" hints regardless of locale
+#
+# Learning path:
+#   Before: Stage 1: incipit, nota (entry-point block and bare output)
+#   After:  Stage 1: fixum, varia, si, redde, functio (correct declarations with bindings)
+#
+# Stage: locale-reader, Simplified Chinese undefined-variable fixture
+# Backend: stepper
+# =============================================================================
+
 入口 {
   显示 未声明
 }

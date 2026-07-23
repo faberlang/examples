@@ -8,6 +8,20 @@ syntax = "iace <expression>"
 aliases = ["throw"]
 related = ["⇥", "cape", "mori", "redde"]
 +++
+# =============================================================================
+# iace — Throws a recoverable error
+# =============================================================================
+#
+# What this teaches:
+#   • Throws a recoverable error.
+#   • Related keywords: ⇥, cape, mori, redde
+#
+# Common mistakes:
+#   • Using `iace` without a `⇥` on the enclosing function or a `fac { ... } cape err { ... }` wrapper — `iace` requires an error-handling context (SEM010).
+#
+# See also: ⇥, cape, mori, redde
+# =============================================================================
+
 # iace — recoverable throw and cape handler
 #
 # iace <value>

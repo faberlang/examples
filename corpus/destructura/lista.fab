@@ -8,6 +8,22 @@ syntax = "ex <expression> <fixum|varia> <field> [, ...] [ceteri <ident>]"
 related = ["de", "ut", "ceteri"]
 +++
 
+# =============================================================================
+# ex — Extracts fields from a value into local bindings.
+# =============================================================================
+#
+# What this teaches:
+#   • Lista destructuring — `fixum [a, b, c] ← lista` extracts elements from a lista into individual bindings.
+#   • Rest patterns — `fixum [caput, ceteri cauda] ← lista` captures remaining elements.
+#   • Mutable destructuring — `varia [x, y] ← lista` for mutable bindings.
+#   • Skip and nested patterns — underscore `_` skips elements; nested listas destructure recursively.
+#
+# Common mistakes:
+#   • Destructuring fewer or more elements than the lista contains without handling bounds — pattern must match or the destructuring will fail.
+#
+# See also: de, ut, ceteri
+# =============================================================================
+
 
 # destructura — lista destructuring patterns
 #

@@ -8,7 +8,19 @@ syntax = "numerus"
 aliases = ["integer", "int"]
 related = ["fractus", "↦"]
 +++
-
+# =============================================================================
+# numerus — Primitive integer number type
+# =============================================================================
+#
+# What this teaches:
+#   • Primitive integer number type.
+#   • Related keywords: fractus, ↦
+#
+# Common mistakes:
+#   • Using `numerus` comparison methods on non-numeric types — `.absolutum()`, `.signum()`, `.minimus()`, `.maximus()` are numerus-only intrinsics.
+#
+# See also: fractus, ↦
+# =============================================================================
 
 # numerus comparison and ordering intrinsics
 #

@@ -8,6 +8,21 @@ syntax = "<head> ergo <statement>"
 aliases = ["ergo", "therefore"]
 related = ["si", "redde", "clausura", "ergo"]
 +++
+
+# =============================================================================
+# ergo — Compact consequent after si/dum heads via ergo, with ∴ reserved for closure bodies.
+# =============================================================================
+#
+# What this teaches:
+#   • Compact consequents — `ergo` follows `si`, `sin`, `secus`, or `dum` heads with a single consequent statement.
+#   • Guard-return pattern — `si <cond> ergo redde <value>` is a concise guard clause.
+#
+# Common mistakes:
+#   • Using -> instead of → for function return types — Faber uses the Unicode arrow.
+#
+# See also: si, redde, clausura, ergo
+# =============================================================================
+
 # operatores/control — ergo therefore consequent
 #
 # GRAMMAR:

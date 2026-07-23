@@ -8,6 +8,20 @@ syntax = "modulus<u16>"
 related = ["numerus", "¬", "⇐", "⇒"]
 +++
 
+# =============================================================================
+# modulus<u16> — Unsigned 16-bit modular-word arithmetic and bit-pattern edges.
+# =============================================================================
+#
+# What this teaches:
+#   • Modular word contract — `modulus<u16>` wraps on overflow for add, sub, mul, neg, and shifts.
+#   • Edge cases — Max + 1, zero - 1, and shifts beyond bit width demonstrate wrapping behavior.
+#
+# Common mistakes:
+#   • Assuming modular words trap on overflow like checked numerus does.
+#
+# See also: numerus, ¬, ⇐, ⇒
+# =============================================================================
+
 # operatores/modular-word-u16 — modulus<u16> edge vectors
 #
 # MODULAR WORD CONTRACT:

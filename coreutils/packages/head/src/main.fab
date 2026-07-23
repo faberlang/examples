@@ -1,3 +1,47 @@
+# =============================================================================
+# head — output the first part of files
+# =============================================================================
+#
+# What this example teaches:
+#   • Negative line support — capita_linearum handles negative N (print all but last N)
+#   • fac … dum verum — do-while loop for reading all lines into a buffer
+#   • Partial stdin read — lege_caput_positivum stops reading when prefix is complete
+#   • Conditional buffering — only buffers all lines when count is negative
+#   • Pure selection logic — testable without stdin via inline proba
+#   • @ optio with numerus — generated CLI for -n with default 10
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → lista<textus> — lines 5, 28, 40, 55
+#   • functio … → vacuum — line 55
+#   • dum — lines 14-19, 31-33, 44-48, 61-62
+#   • si / secus — lines 10-11, 15, 29-30, 45, 56-57
+#   • varia / fixum — throughout
+#   • ≡ / > / < — lines 10, 14, 56
+#   • itera ex — line 87 (in incipit)
+#   • redde — lines 6, 11, 13, 19, 29, 33, 48, 56, 57
+#   • fac … dum verum — lines 30-33
+#   • probandum / proba / adfirma — lines 60-75
+#   • @ cli / @ descriptio / @ optio — lines 78-80
+#   • incipit — line 81
+#   • ∪ nihil — lines 31, 46
+#   • vel — lines 18, 32, 47
+#
+# Alternate approaches (not shown):
+#   • @ optio with default (vel) vs manual defaults — generated CLI provides vel fallback for -n (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • si condition must be bivalens — Faber requires explicit boolean conditions, no truthy/falsy coercion
+#   • lege returns textus ∪ nihil — always check est nihil before use, vel for default fallback
+#
+# Learning path:
+#   Before: cat
+#   After:  tail
+#
+# Stage: Stage 2-4, stdin-only head with positive and negative line counts
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 # Pure selection logic stays testable without stdin so inline proba can cover

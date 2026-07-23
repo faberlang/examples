@@ -7,6 +7,20 @@ summary = "Destructuring, sparge, and lista methodi in one program."
 syntax = "integratio — multi-feature happy path"
 related = ["ex", "sparge", "lista"]
 +++
+# =============================================================================
+# integratio — Destructuring, sparge, and lista methodi in one program
+# =============================================================================
+#
+# What this teaches:
+#   • Destructuring, sparge, and lista methodi in one program.
+#   • Related keywords: ex, sparge, lista
+#
+# Common mistakes:
+#   • Using `sparge` on a non-collection expression — `sparge` expands a lista/tabula/tensor into an outer collection literal.
+#
+# See also: ex, sparge, lista
+# =============================================================================
+
 # integratio — destructuring, sparge, and lista methodi together
 #
 # fixum [a, b, c] ← lista

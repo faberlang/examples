@@ -7,6 +7,20 @@ summary = "Conditional throw with si guard."
 syntax = "iace <expression> si <condition>"
 related = ["cape", "mori", "si", "⇥"]
 +++
+# =============================================================================
+# iace — Conditional throw with si guard
+# =============================================================================
+#
+# What this teaches:
+#   • Conditional throw with si guard.
+#   • Related keywords: cape, mori, si, ⇥
+#
+# Common mistakes:
+#   • Using `iace si` without a `⇥` on the enclosing function or a `fac/cape` wrapper — the guard sugar expands to `si cond { iace val }`, which still needs an error context.
+#
+# See also: cape, mori, si, ⇥
+# =============================================================================
+
 # iace with optional si guard
 #
 # iace <value> [si <condicio>]

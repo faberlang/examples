@@ -1,5 +1,33 @@
-# Conversio matrix fixture: octeti ↦ textus.
-# Phase-1 model: rust ✓ (UTF-8 decode); wasm-text ✓.
+# =============================================================================
+# octeti ↦ textus — decode UTF-8 bytes to text
+# =============================================================================
+#
+# What this example teaches:
+#   • octeti ↦ textus — decode a byte sequence as UTF-8 text
+#   • Safe when bytes are valid UTF-8 — both backends support this
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • |68 69| ∷ textus — static ascription when bytes are known-valid UTF-8 at compile time
+
+# Anti-patterns (avoid these):
+#   • |FF| ↦ textus — invalid UTF-8 bytes throw at runtime
+#   • Assuming ASCII output — valid UTF-8 includes multi-byte sequences; check byte values
+
+# Pitfalls:
+#   • Invalid UTF-8 byte sequences throw at runtime — verify input bytes
+#   • Valid UTF-8 always succeeds; all ASCII bytes are valid UTF-8
+
+# Learning path:
+#   Before: see octeti/ and textus/ exempla (Stage 3–5 types)
+#   After:  see cksum/src/main.fab (gnu_bytes.octeti_textus conversion)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← |68 69| ↦ textus
 }

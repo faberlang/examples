@@ -7,7 +7,19 @@ summary = "Receiver operator methods emit glyphs; imperativus mutates varia."
 syntax = "x.addita(y) | acc.adde(y)"
 related = ["numerus", "fractus", "mathesis"]
 +++
-
+# =============================================================================
+# numeric-operator-methods — Receiver operator methods emit glyphs; imperativus mutates varia
+# =============================================================================
+#
+# What this teaches:
+#   • Receiver operator methods emit glyphs; imperativus mutates varia.
+#   • Related keywords: numerus, fractus, mathesis
+#
+# Common mistakes:
+#   • Calling operator methods like `.adde()` on a `fixum` binding — imperative mutation methods require `varia`.
+#
+# See also: numerus, fractus, mathesis
+# =============================================================================
 
 # intrinseca/numeric-operator-methods — receiver operator ledger smoke
 #

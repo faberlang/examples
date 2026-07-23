@@ -8,6 +8,22 @@ syntax = "<valor-expression> ↦ numerus | fractus | bivalens | textus | ascii |
 related = ["↦", "⇥", "instans", "textus"]
 +++
 
+# =============================================================================
+# valor — Scalar valor ↦ T extraction via FromValor (variant match, fractus widen, textus|instans wire).
+# =============================================================================
+#
+# What this teaches:
+#   • Scalar extraction — `valor ↦ T` extracts typed values from dynamic JSON carriers using variant matching.
+#   • Widening — `valor ↦ fractus` widens `Numerus` variants losslessly.
+#   • Wire text — `valor ↦ textus` accepts both `Textus` and `Instans` wire strings.
+#   • Recovery — `⇥` provides a fallback on variant mismatch.
+#
+# Common mistakes:
+#   • Assuming `valor ↦ textus` works for non-text valor variants — only Textus and Instans wire strings are accepted; other variants fail without `⇥` recovery.
+#
+# See also: ↦, ⇥, instans, textus
+# =============================================================================
+
 # conversio — scalar valor extraction
 #
 # WHY: `valor ↦ T` is the default runtime extraction for dynamic JSON carriers.

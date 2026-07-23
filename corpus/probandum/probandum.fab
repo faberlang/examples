@@ -9,6 +9,20 @@ aliases = ["describe", "suite"]
 related = ["proba", "adfirma"]
 +++
 
+# =============================================================================
+# probandum — Groups related test cases into a named suite.
+# =============================================================================
+#
+# What this teaches:
+#   • Test suite grouping — `probandum` organizes related `proba` test cases
+#     under a descriptive name
+#   • Suites can be nested to create hierarchical test organization
+#
+# Common mistakes:
+#   • Placing `proba` outside a `probandum` suite, or forgetting a `tag` modifier on the test case.
+#
+# See also: proba, adfirma
+# =============================================================================
 
 # probandum / proba — declaration-only test suites
 #

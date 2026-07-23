@@ -1,3 +1,49 @@
+# =============================================================================
+# join — join lines of two files on a common field
+# =============================================================================
+#
+# What this example teaches:
+#   • Sorted-line join algorithm — two-pointer merge over sorted left/right lines
+#   • Compare-textus via sort — handmade comparison function using lista.ordina
+#   • Field decomposition — campi_lineae splits on space, clavis_campi extracts key by index
+#   • stdin fallback — "-" operand reads from lege instead of solum.carpe
+#   • genus for options — JoinOptiones with field1 and field2 selectors
+#   • forma_join_linea — concat left fields + right tail fields
+#
+# Syntaxes used:
+#   • importa — lines 1-2
+#   • functio … → … — lines 8, 18, 27, 33, 39, 45, 54, 63, 77
+#   • genus … { … } — lines 4-7
+#   • dum — lines 21, 31, 50, 59, 82
+#   • si / sin / secus — lines 10, 22, 30, 40-41, 55, 63-64, 86-99
+#   • varia / fixum — throughout
+#   • ≡ / > / < — lines 10, 22, 56, 86-87
+#   • itera ex — lines 67-68, 73
+#   • redde — lines 10, 14, 22, 31, 34, 37, 43, 52, 56, 61
+#   • probandum / proba / adfirma — lines 104-110
+#   • @ cli / @ descriptio / @ operandus — lines 112-114
+#   • incipit — line 115
+#   • ∪ nihil — lines 21, 30
+#   • vel — throughout
+#   • .divide — line 40
+#   • .ordina — line 13
+#   • vacua — throughout
+#
+# Alternate approaches (not shown):
+#   • @ optio for -1/-2 field selectors vs hardcoded field1=field2=1 — generated option parser deferred (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: cut
+#   After:  comm
+#
+# Stage: Stage 2-4, file/stdin parity sorted join
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "norma:solum" privata solum
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

@@ -1,3 +1,34 @@
+# =============================================================================
+# selectors — test selector syntax: name, tag, and suite-based selection
+# =============================================================================
+#
+# What this example teaches:
+#   • Test name selection — `proba "name match"` can be selected by name pattern
+#   • Tag-based selection — `proba "tag match" tag "smoke"` groups tests by tags
+#   • Nested suites — probandum with inner proba and inner probandum for
+#     hierarchical test organization and combined selection
+#
+# Syntaxes used:
+#   • proba — test case (lines 1, 5, 12, 16)
+#   • probandum — test suite (lines 9, 14)
+#   • tag — test tag annotation (lines 5, 16)
+#   • adfirma — assertion (lines 2, 6, 13, 17)
+#   • incipit — entry point (line 20)
+#
+# Alternate approaches (not shown):
+#   • Tag inheritance from parent suites to nested cases — tags on probandum are not automatically inherited by inner proba; apply tags at the appropriate level
+#
+# Anti-patterns (avoid these):
+#   • Over-tagging tests with too many tags — excessive tags create maintenance burden and dilutes selection precision; use one or two focused tags per test
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma (basic test assertions)
+#   After:  Stage 10: proba/packages/* (CI integration and test runner flags)
+#
+# Stage: fixture boundary, proba selectors, tag + suite selection
+# Backend: stepper
+# =============================================================================
+
 proba "name match" {
     adfirma verum
 }

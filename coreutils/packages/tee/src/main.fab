@@ -1,14 +1,52 @@
+# =============================================================================
+# tee — GNU coreutils tee: read from stdin and write to stdout and files
+# =============================================================================
+#
+# What this example teaches:
+#   • No-file-subset pattern — `no_file_subsetne` checks operand count to limit
+#     the slice to stdin-only passthrough without implementing file I/O
+#   • `vacuum` return type for side-effect procedures — `tee_stdin` loops on
+#     stdin and writes to stdout without returning a value
+#   • `lege` stdin with `∪`/`nihil` — infinite read loop broken by EOF
+#   • Pure probe helpers — `no_file_subsetne`, `append_noopne`, and
+#     `tee_lineam` are testable without actual I/O
+#   • `@ optio` with `bivalens` flag — `-a` accepted as a no-op when there
+#     are no file operands
+#
+# Syntaxes used:
+#   • `lege` — stdin read (lines 30, 32)
+#   • `∪` — nullable union type (line 30)
+#   • `nihil` — EOF sentinel (line 31)
+#   • `vel` — fallback (line 36)
+#   • `≡` — equality (lines 14, 20, 39)
+#   • `si`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loop (lines 29, 32)
+#   • `itera` not used (single-line passthrough)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 39-52)
+#   • `@ cli` / `@ optio` / `@ descriptio` / `@ operandus` — CLI declarations
+#     (lines 54-58)
+#   • `incipit` — entry point (line 59)
+#   • `functio` — function (passim)
+#   • `bivalens`, `textus`, `lista<...>`, `vacuum` — types
+#   • `.longitudo()` — list length (lines 14, 39)
+#
+# Alternate approaches (not shown):
+#   • File-output tee — writing to multiple named files in addition to
+#     stdout
+#   • `-i` ignore-interrupts mode
+#
+# Anti-patterns (avoid these):
+#   • Stub no-op for `-a` when files do not exist — the slice explicitly
+#     limits its scope rather than pretending support
+#
+# Learning path:
+#   Before: cat
+#   After:  split
+#
+# Stage: Stage 4, stdin-only passthrough, file-operand tee deferred
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps tee in the stdin-only stepper lane.
-# This slice implements GNU `tee` passthrough for declared fixtures with no file
-# operands: each nullable `lege` stdin line is emitted once to stdout through the
-# harness newline writer.
-# `-a` is accepted only as a no-op for the no-file subset because there are no
-# output files to append to in this slice.
-# File operands, append behavior with files, ignore-interrupts, diagnostics,
-# help/version, byte-exact missing-final-newline behavior, and multibyte
-# semantics are unsupported GNU surfaces.
 
 functio no_file_subsetne(lista<textus> operands) → bivalens {
     redde operands.longitudo() ≡ 0

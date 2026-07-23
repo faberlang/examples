@@ -1,3 +1,36 @@
+# =============================================================================
+# auxilia — utility module for import testing
+# =============================================================================
+#
+# What this example teaches:
+#   • Module structure — a utility module with functio, fixum constant, and genus
+#   • Cross-module import target — designed to be imported by other files
+#   • String interpolation — "Hello, §!"(name) template operator
+#
+# Syntaxes used:
+#   • functio — function definition (line 4)
+#   • textus — string type (line 4)
+#   • → — return type (line 4)
+#   • redde — return (line 5)
+#   • § — template interpolation (line 5)
+#   • fixum — immutable constant (line 8)
+#   • genus — struct definition (lines 11-14)
+#   • numerus — number type (lines 12-13)
+#
+# Alternate approaches (not shown):
+#   • publica vs privata export visibility for module symbols — @ publica on a genus marks export intent; @ privata marks file-private intent (both are decorative per WARN012)
+#
+# Anti-patterns (avoid these):
+#   • Circular imports between utility modules — Faber rejects circular dependencies; design acyclic module graphs with shared leaf modules
+#
+# Learning path:
+#   Before: Stage 9: importa, functio, fixum, genus (module structure basics)
+#   After:  Stage 9: importa/importa.fab (import consumer patterns)
+#
+# Stage: fixture boundary, import target utility module
+# Backend: stepper
+# =============================================================================
+
 # Example utility module for local import testing
 
 # A simple greeting function (needs allocator for string formatting)

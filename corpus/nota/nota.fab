@@ -9,6 +9,20 @@ related = ["vide", "mone"]
 +++
 
 
+# =============================================================================
+# scribe — Writes a value to standard output.
+# =============================================================================
+#
+# What this teaches:
+#   • Standard output — `scribe` sends values to stdout, the primary output channel.
+#   • Expression evaluation — Any expression can be passed, including variables and literals.
+#
+# Common mistakes:
+#   • Confusing scribe (stdout without trailing newline) with nota (diagnostic output with trailing newline).
+#
+# See also: vide, mone
+# =============================================================================
+
 # nota — diagnostic output statements
 #
 # nota literal-textus

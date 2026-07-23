@@ -8,6 +8,24 @@ syntax = "si <condition> <block>"
 aliases = ["if"]
 related = ["sin", "secus", "ergo"]
 +++
+
+# =============================================================================
+# si — Starts a conditional branch that runs when its condition is true.
+# =============================================================================
+#
+# What this teaches:
+#   • Nested conditionals — `si` blocks can contain further `si`/`secus`
+#     branches for multi-level decision trees
+#   • Demonstrates a login + permission gate: outer `si` checks authentication,
+#     inner `si` checks authorization
+#
+# Common mistakes:
+#   • TODO: deeply nesting conditionals instead of using `sin` chains or
+#     guard returns
+#
+# See also: sin, secus, ergo
+# =============================================================================
+
 # Nested si (if) conditionals
 #
 # si <cond> { <body> }                    -- inner branch inside outer arm

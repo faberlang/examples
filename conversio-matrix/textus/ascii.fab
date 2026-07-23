@@ -1,7 +1,35 @@
-# Conversio matrix fixture: textus ↦ ascii.
-# Expect: typechecks clean (dedicated Rust try_from arm); wasm-text cannot
-# represent `ascii`, so the MIR column should measure `—` (not emitted).
+# =============================================================================
+# textus ↦ ascii — convert text to ASCII (lossy)
+# =============================================================================
+#
+# What this example teaches:
+#   • textus ↦ ascii — try to represent text as ASCII bytes
+#   • Lossy — non-ASCII characters are rejected at the type level
+#   • Dedicated Rust try_from arm — typechecks clean
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 11
+#   • incipit (entry point) — line 10
+#
+# Alternate approaches (not shown):
+#   • "hello" ∷ ascii — static ascription when text is known-ASCII at compile time
+#   • "café" ↦ ascii ⇥ 'n/a' — inline recovery with default ascii on failure
 
+# Anti-patterns (avoid these):
+#   • "café" ↦ ascii without checking — non-ASCII characters throw at runtime
+#   • ∷ used where ↦ is needed — ascription cannot validate or strip non-ASCII
+
+# Pitfalls:
+#   • Non-ASCII characters (e.g., é, ñ, ü) throw a runtime error — validate first
+#   • Empty textus ('') converts to empty ascii (valid, no error)
+
+# Learning path:
+#   Before: see textus/ and ascii/ exempla (Stage 3–4 types)
+#   After:  see cksum/src/main.fab (ASCII conversion in byte utilities)
+
+# Stage: Phase-1 model, Rust only (wasm-text cannot represent ascii)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← "hello" ↦ ascii
 }

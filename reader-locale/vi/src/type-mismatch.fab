@@ -1,3 +1,32 @@
+# =============================================================================
+# Vietnamese locale — type mismatch error
+# =============================================================================
+#
+# What this example teaches:
+#   • Type error diagnostic — assigning text literal to số (numerus) variable
+#   • Locale-aware error messages — diagnostics in Vietnamese keyword set
+#
+# Syntaxes used:
+#   • bắtđầu (incipit) — entry point (line 1)
+#   • hằng (fixum) — immutable binding (line 2)
+#   • số (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • in (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ∷ type ascription: value ∷ số for explicit type annotation — catches mismatches at compile time
+#
+# Anti-patterns (avoid these):
+#   • SEM010: type mismatch — Faber is statically typed and never performs silent coercion between types
+#
+# Learning path:
+#   Before: Stage 1: fixum, varia, numerus, textus (type-annotated bindings)
+#   After:  Stage 3: genus, nihil, vacua/verum/falsum, lista (user-defined types and collections)
+#
+# Stage: locale-reader, Vietnamese locale type-error fixture
+# Backend: stepper
+# =============================================================================
+
 bắtđầu {
   hằng số lỗi_kiểu ← "lỗi"
   in lỗi_kiểu

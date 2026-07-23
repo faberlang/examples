@@ -8,6 +8,22 @@ syntax = "tensor.forma | accipe | ponde | reple | crea | strue | sectio | materi
 related = ["tensor", "lista", "magnitudo"]
 +++
 
+# =============================================================================
+# tensor — Tensor v1 intrinsic catalog: forma, accipe, ponde, reple, crea, strue, sectio, materialize, planata.
+# =============================================================================
+#
+# What this teaches:
+#   • Intrinsic catalog — tensor v1 methods for reshaping, access, mutation, slicing, and materialization
+#   • Shape manipulation — `magnitudines()`, `forma()`, `sectio()` for shape query and transformation
+#
+# Common mistakes:
+#   • calling methods that aren't available on the current tensor placement — host and device have different intrinsic surfaces
+#
+# See also: tensor, lista, magnitudo
+# =============================================================================
+
+
+
 
 # tensor — v1 intrinsic catalog (forma, accipe, ponde, reple, crea, sectio, materialize, structa, planata)
 #

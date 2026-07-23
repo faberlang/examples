@@ -1,15 +1,52 @@
+# =============================================================================
+# paste — GNU coreutils paste: merge lines of files
+# =============================================================================
+#
+# What this example teaches:
+#   • `modus_stdin` pattern — a boolean function that checks operand count to
+#     decide stdin-only vs file-operand modes
+#   • `itera` over a list — collecting and joining lines with delimiter cycling
+#   • `%` modulo operator — cycling through a multi-character delimiter sequence
+#   • `vacuum` return type — procedures that produce side effects only
+#     (stdout writes) with no useful return value
+#   • `legere` stdin loop with `∪`/`nihil` — reading all input until EOF
+#
+# Syntaxes used:
+#   • `lege` — stdin read (lines 47, 62)
+#   • `∪` — nullable union type `textus ∪ nihil` (lines 47, 62)
+#   • `nihil` — EOF sentinel (lines 48, 63)
+#   • `vel` — fallback operator (lines 49, 67, 114)
+#   • `≡` — equality (lines 24, 30, 33, etc.)
+#   • `%` — modulo (line 24)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loop (lines 46, 61)
+#   • `itera` — for-each over list (lines 34, 75)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 78-104)
+#   • `@ cli` / `@ optio` / `@ operandus` — CLI declarations (lines 106-110)
+#   • `incipit` — entry point (line 111)
+#   • `genus` — struct/record type (not used in this file)
+#   • `functio` — function (passim)
+#   • `fixum` / `varia` — bindings (passim)
+#   • `textus`, `numerus`, `bivalens`, `lista<...>`, `vacuum` — types (passim)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.sectio()` — string slice (line 25)
+#
+# Alternate approaches (not shown):
+#   • Parallel-file mode — reading from multiple named files column-wise
+#   • Delimiter escapes (`\n`, `\0`) for non-ASCII separators
+#
+# Anti-patterns (avoid these):
+#   • Type-level boolean for named modes instead of string comparison
+#
+# Learning path:
+#   Before: cut
+#   After:  comm
+#
+# Stage: Stage 4, stdin-only serial mode and default passthrough
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps paste in the stdin-only stepper lane.
-# Default mode treats stdin as the only stream and passes each nullable `lege`
-# line through unchanged with the harness newline writer.
-# Serial mode implements only `-s`: all stdin lines are collected and emitted as
-# one line joined by the active delimiter sequence.
-# The delimiter subset implements `-s -d DELIMS` as ASCII scalar cycling between
-# stdin records. Empty DELIMS means no separator; absent DELIMS falls back to tab.
-# Multiple files or streams, delimiter escapes, `-z`, diagnostics,
-# help/version, byte-exact missing-final-newline behavior, and
-# multibyte/display semantics are unsupported GNU surfaces.
 
 functio tabulator() → textus {
     redde "	"

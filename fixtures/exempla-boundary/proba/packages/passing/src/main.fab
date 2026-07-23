@@ -1,3 +1,34 @@
+# =============================================================================
+# passing — test package with passing cases
+# =============================================================================
+#
+# What this example teaches:
+#   • Passing test package — all proba assertions hold
+#   • nocapture demonstration — `nota` output visible with --nocapture flag
+#   • Multiple test patterns — arithmetic assertion, text equality, entry point
+#
+# Syntaxes used:
+#   • proba — test declaration (lines 1, 6)
+#   • adfirma — assertion (lines 2, 8)
+#   • nota — print (lines 3, 11)
+#   • fixum — immutable binding (lines 7)
+#   • incipit — entry point (line 11)
+#   • ≡ — equality (lines 2, 8)
+#
+# Alternate approaches (not shown):
+#   • Test helper functions for common assertion patterns — extract shared setup/assertion logic into functio helpers imported from a shared module
+#
+# Anti-patterns (avoid these):
+#   • Using nota in tests that must run silently in CI — nota output is only visible with --nocapture; prefer pure assertions for CI environments
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma (basic test assertions)
+#   After:  Stage 10: proba/packages/* (CI integration, test runner flags)
+#
+# Stage: fixture boundary, proba passing test package
+# Backend: stepper
+# =============================================================================
+
 proba "arithmetic passes" {
     adfirma 1 + 1 ≡ 2
     nota "nocapture-demo: this line appears only with --nocapture"

@@ -1,3 +1,30 @@
+# =============================================================================
+# Arabic locale — undefined variable error with Arabic keywords
+# =============================================================================
+#
+# What this example teaches:
+#   • Undefined-variable diagnostic — referencing a name not in scope
+#   • Locale-aware diagnostics — name-not-found error emitted using locale keyword set
+#
+# Syntaxes used:
+#   • بداية (incipit) — entry point (line 1)
+#   • اعرض (nota) — print to stdout (line 2)
+#   • غير_معرف — Arabic identifier meaning "undefined" (line 2)
+#
+# Alternate approaches (not shown):
+#   • Variable declaration before use: ثابت نص اسم ← "قيمة" — always declare bindings with fixum or varia before referencing
+#
+# Anti-patterns (avoid these):
+#   • SEM001: unknown identifier — typos in Arabic script produce the same "did you mean X?" diagnostics; diagnostics are locale-agnostic underneath the keyword translation layer
+#
+# Learning path:
+#   Before: Stage 1: incipit, nota (entry-point block and bare output)
+#   After:  Stage 1: fixum, varia, si, redde, functio (correct declarations with bindings)
+#
+# Stage: locale-reader, Arabic locale undefined-variable fixture, compile-time diagnostic
+# Backend: stepper
+# =============================================================================
+
 بداية {
   اعرض غير_معرف
 }

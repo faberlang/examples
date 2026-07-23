@@ -1,7 +1,35 @@
-# Conversio matrix fixture: regex ↦ textus.
-# Setup: construct a regex carrier (regex has no literal form); then measure
-# regex ↦ textus.
-# Phase-1 model: rust ◐ (fallback format! via Display; compiles); wasm-text ✓.
+# =============================================================================
+# regex ↦ textus — format regex carrier as its pattern text
+# =============================================================================
+#
+# What this example teaches:
+#   • regex ↦ textus — extract the source pattern from a regex carrier
+#   • Two-step setup: textus → regex (compile), then regex → textus (display)
+#   • Rust fallback via Display — compiles but no dedicated arm
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — lines 12, 13
+#   • incipit (entry point) — line 10
+#   • fixum (immutable binding) — lines 12, 13
+#
+# Alternate approaches (not shown):
+#   • regex ∷ textus — static ascription would not extract the pattern; use ↦ for the source text
+
+# Anti-patterns (avoid these):
+#   • Assuming the regex matches a specific text — ↦ textus returns the pattern, not a match result
+#   • ∷ used where ↦ is needed — ascription cannot format a regex carrier
+
+# Pitfalls:
+#   • Always succeeds — returns the original pattern string used for compilation
+#   • The returned text is the regex pattern, not a match against any input
+
+# Learning path:
+#   Before: see regex/ and textus/ exempla (Stage 4–6 types)
+#   After:  see grep/src/main.fab (regex compilation patterns, though grep uses substring matching)
+
+# Stage: Phase-1 model, Rust fallback, wasm-text native
+# Backend: Rust ◐, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ carrier ← "\d+" ↦ regex
     fixum _ r ← carrier ↦ textus

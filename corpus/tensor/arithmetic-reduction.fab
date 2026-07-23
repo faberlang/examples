@@ -8,6 +8,22 @@ syntax = "tensor.summa() | tensor.media()"
 related = ["tensor", "fractus", "lista"]
 +++
 
+# =============================================================================
+# tensor — Tensor reduction methods for summa and media.
+# =============================================================================
+#
+# What this teaches:
+#   • Sum reduction — `summa()` folds all elements using the element type
+#   • Mean reduction — `media()` returns a fractus result to avoid integer division
+#
+# Common mistakes:
+#   • integer overflow with summa() on large integer tensors — widen with ↦ to fractus first
+#
+# See also: tensor, fractus, lista
+# =============================================================================
+
+
+
 # tensor reductions — summa (element-type fold) and media (float mean)
 #
 # WHY: summa reduces to the element type (integer overflow is author

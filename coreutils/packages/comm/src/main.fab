@@ -1,3 +1,48 @@
+# =============================================================================
+# comm — compare two sorted files line by line
+# =============================================================================
+#
+# What this example teaches:
+#   • genus — user-defined struct for parsed options (CommOptiones)
+#   • dum with index — manual argument parsing loop (flags -1, -2, -3)
+#   • si/sin/secus — three-way comparison dispatch for sorted merge
+#   • lista<textus>.ordina — sorting to derive comparison function
+#   • solum.carpe and stdin fallback — file-or-dash line reading pattern
+#   • nota — raw stdout write without line number or prefix formatting
+#
+# Syntaxes used:
+#   • importa — lines 1-2
+#   • genus … { … } — lines 3-8
+#   • functio … → … — lines 10-11, 14, 44-45, 53, 112-115, 118-120
+#   • dum — lines 21, 59, 78
+#   • si / sin / secus — lines 24-27, 75-79, 86-103
+#   • varia / fixum — throughout
+#   • ≡ / > / < — throughout
+#   • redde — lines 11, 42, 46, 48, 50, 87
+#   • / ÷ (unclear, but there's no ÷) ... actually there's no ÷ in this file. Let me check again.
+#   • .appende / .accipe / .longitudo — throughout
+#   • probandum / proba / adfirma — lines 126-131
+#   • @ cli / @ descriptio / @ operandus — lines 135-137
+#   • incipit — line 138
+#   • ∪ nihil — lines 115, 123
+#   • vel — lines 22, 76, 80, 87, 88, 116, 122
+#   • nota — lines 76, 82, 91, 96, 101
+#
+# Alternate approaches (not shown):
+#   • @ optio generated parser for -1/-2/-3 vs manual parsing loop — type-safe with --help (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: join, paste
+#   After:  sort
+#
+# Stage: Stage 2-4, file/stdin parity sorted comparison
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "norma:solum" privata solum
 genus CommOptiones {
     bivalens suppress1

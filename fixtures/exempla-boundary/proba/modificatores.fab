@@ -1,3 +1,36 @@
+# =============================================================================
+# modificatores — test modifiers: omitte (skip) and futurum (todo)
+# =============================================================================
+#
+# What this example teaches:
+#   • omitte — skip modifier: `proba "name" omitte "reason" { body }`
+#   • futurum — todo modifier: `proba "name" futurum "reason" { body }`
+#   • Skipped tests — marked with omitte and a descriptive reason (no body runs)
+#   • Future tests — marked with futurum and implementation note (body may be stub)
+#
+# Syntaxes used:
+#   • proba — test declaration (lines 8, 13, 17, 24, 28, 32, 36, 41, 47)
+#   • omitte — skip modifier (lines 8, 24, 28, 41)
+#   • futurum — todo modifier (lines 13, 32, 36, 47)
+#   • adfirma — assertion (lines 9, 18, 25, 29, 42-43, 44)
+#   • fixum — immutable binding (lines 43, 49)
+#   • varia — mutable binding (line 49)
+#
+# Alternate approaches (not shown):
+#   • Conditional test inclusion via tags/selectors — use `faber test --tag smoke` to filter by tag instead of source-level modification
+#
+# Anti-patterns (avoid these):
+#   • Using omitte as a default instead of fixing broken tests — omitte documents a known blocking issue; it should not be a permanent state
+#   • Leaving futurum tests indefinitely without implementing them — futurum marks planned work; track these in issue trackers and schedule implementation
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma (basic test declaration)
+#   After:  Stage 10: proba/packages/* (test organization, selection, and CI integration)
+#
+# Stage: fixture boundary, proba modifiers, skip/todo patterns
+# Backend: stepper
+# =============================================================================
+
 # Test modifiers: omitte (skip) and futurum (todo)
 #
 # proba "name" omitte "reason" { body }

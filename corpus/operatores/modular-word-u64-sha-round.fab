@@ -8,6 +8,20 @@ syntax = "modulus<u64>"
 related = ["numerus", "⇐", "⇒", "∧", "∨", "⊻", "¬"]
 +++
 
+# =============================================================================
+# modulus<u64> — One native SHA-512 compression round using modulus<u64>.
+# =============================================================================
+#
+# What this teaches:
+#   • 64-bit modular arithmetic — Demonstrates `modulus<u64>` in a real SHA-512 compression round.
+#   • Bitwise operations on 64-bit words — Combines shifts, xor, and, and not for cryptographic primitives.
+#
+# Common mistakes:
+#   • Forgetting that shift counts must be modulo the word size (64).
+#
+# See also: numerus, ⇐, ⇒, ∧, ∨, ⊻, ¬
+# =============================================================================
+
 # A small proof of the 64-bit word contract: one textbook SHA-512 round for
 # the first padded word of "abc". This is not the full digest implementation.
 

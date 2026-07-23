@@ -1,2 +1,25 @@
-# TODO
+# =============================================================================
+# figendum — test fixture stub
+# =============================================================================
+#
+# What this example teaches:
+#   • figendum — test fixture declarations that provide reusable test state, dependencies, and configuration
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#
+# Alternate approaches (not shown):
+#   • Sharing fixtures across test suites via importa — define fixture functions in a shared module and importa ex into each test package
+#
+# Anti-patterns (avoid these):
+#   • Mutable shared state across tests without proper isolation — tests may run in any order; shared mutable state creates flaky, order-dependent tests
+#
+# Learning path:
+#   Before: Stage 10: probandum, proba (test structure)
+#   After:  Stage 10: proba/packages/suite (fixtures with importa for cross-suite sharing)
+#
+# Stage: fixture boundary, proba fixture stub
+# Backend: stepper
+# =============================================================================
+
 incipit {}

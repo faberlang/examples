@@ -1,3 +1,37 @@
+# =============================================================================
+# Traditional Chinese locale — greeting with Chinese keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Faber keywords using Traditional Chinese script
+#     (函式=functio, 常數=fixum, 傳回=redde, 入口=incipit, 顯示=nota,
+#      文字=textus, 整數=numerus, 如果=si, 否則=secus)
+#   • Conditional logic with if/else control flow
+#
+# Syntaxes used:
+#   • 函式 (functio) — function definition (line 1)
+#   • 常數 (fixum) — immutable binding (lines 2, 10)
+#   • ← — value binding (line 2)
+#   • 傳回 (redde) — return value (lines 5, 8)
+#   • 如果 (si) — conditional (line 4)
+#   • 否則 (secus) — else (line 7)
+#   • 入口 (incipit) — entry point (line 10)
+#   • 顯示 (nota) — print (line 11)
+#
+# Alternate approaches (not shown):
+#   • Simplified Chinese keyword set for mainland China locales — see zh-Hans/src/main.fab for 函数, 常量, 返回, etc.
+#
+# Anti-patterns (avoid these):
+#   • Mixing Simplified and Traditional Chinese keywords in the same file — pick one script variant per file; 函式/常數/傳回 (Traditional) vs 函数/常量/返回 (Simplified) are distinct locale sets
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → functio → redde → si → secus (function + conditional pattern)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Traditional Chinese keyword set demonstrated
+# Backend: stepper, reader-locale
+# =============================================================================
+
 函式 問候(文字 名字) → 文字 {
   常數 文字 問候語 ← "你好，§!"(名字)
   如果 真 {

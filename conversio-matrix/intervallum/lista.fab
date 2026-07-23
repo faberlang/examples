@@ -1,6 +1,36 @@
-# Conversio matrix fixture: intervallum ↦ lista.
-# Setup: intervallum from a range literal; measure intervallum ↦ lista (materialize).
-# Phase-1 model: rust ✓ (materialize); wasm-text — (intervallum not representable).
+# =============================================================================
+# intervallum ↦ lista — materialize a range into a list
+# =============================================================================
+#
+# What this example teaches:
+#   • intervallum ↦ lista — materialize a numeric range as a concrete list
+#   • Two-step setup: range literal → intervallum, then intervallum → lista
+#   • Lossless but eager — all elements are computed immediately
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 11
+#   • incipit (entry point) — line 9
+#   • fixum (immutable binding) — lines 10, 11
+#
+# Alternate approaches (not shown):
+#   • itera ab 0‥100 — lazy iteration without materializing; prefer for large ranges
+#   • 0‥100 ∷ intervallum<numerus> — ascription when the range is already typed
+
+# Anti-patterns (avoid these):
+#   • lista ∷ intervallum — the reverse direction is not meaningful; use itera ab instead
+#   • 0‥1_000_000_000 ↦ lista — eager materialization of huge ranges exhausts memory
+
+# Pitfalls:
+#   • Eager — all elements are computed immediately; large ranges are memory-heavy
+#   • Descending ranges (10‥0) produce empty lists; use … (inclusive) or descending step
+
+# Learning path:
+#   Before: see intervallum/ and lista/ exempla (Stage 4–6 types)
+#   After:  see seq/src/main.fab (numeric range generation with dum loops)
+
+# Stage: Phase-1 model, Rust only (intervallum not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum intervallum<numerus> range ← 0‥100
     fixum _ r ← range ↦ lista<numerus>

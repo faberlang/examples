@@ -7,7 +7,19 @@ summary = "Declares the asynchronous program entry point."
 syntax = "incipiet <block>"
 related = ["incipit", "cede"]
 +++
-
+# =============================================================================
+# incipiet — Declares the asynchronous program entry point
+# =============================================================================
+#
+# What this teaches:
+#   • Declares the asynchronous program entry point.
+#   • Related keywords: incipit, cede
+#
+# Common mistakes:
+#   • Calling a `@ futura` function without `cede` — async functions return a promissum; use `cede` to await the result inside an `incipiet`.
+#
+# See also: incipit, cede
+# =============================================================================
 
 # incipiet — async program entry point
 #

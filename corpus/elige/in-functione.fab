@@ -8,6 +8,20 @@ syntax = "elige <expression> { casu … redde … }"
 related = ["elige", "redde", "functio"]
 +++
 
+# =============================================================================
+# elige — Early returns from elige inside functions.
+# =============================================================================
+#
+# What this teaches:
+#   • Early returns inside elige — `casu <value> { redde ... }` allows returning from the enclosing function from within an elige branch.
+#   • Fallthrough — unmatched values fall through to a trailing `redde` after the elige block.
+#
+# Common mistakes:
+#   • Forgetting a trailing `redde` after the elige block for unmatched cases — control flow continues after elige if no branch matches.
+#
+# See also: elige, redde, functio
+# =============================================================================
+
 
 # elige — early returns in functions
 #

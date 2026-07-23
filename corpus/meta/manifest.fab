@@ -7,8 +7,21 @@ summary = "faber.toml package metadata for build, run, and test."
 syntax = "faber.toml"
 aliases = ["faber.toml", "package manifest"]
 related = ["targets", "cli", "incipit", "proba"]
-meta = true
 +++
+
+# =============================================================================
+# manifest — faber.toml package metadata for build, run, and test.
+# =============================================================================
+#
+# What this teaches:
+#   • the package manifest file `faber.toml` — configures build, run, and test for a Faber package
+#   • key manifest sections: `[package]`, `[paths]`, `[build]`
+#
+# Common mistakes:
+#   • Omitting the required [package], [paths], or [build] sections — a valid faber.toml must include all three.
+#
+# See also: targets, cli, incipit, proba
+# =============================================================================
 
 # meta/manifest — package manifest (META)
 #

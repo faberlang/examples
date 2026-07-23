@@ -9,6 +9,21 @@ aliases = ["protected"]
 related = ["publica", "privata"]
 +++
 
+# =============================================================================
+# protecta — Reserved visibility annotation rejected by semantic analysis.
+# =============================================================================
+#
+# What this teaches:
+#   • Reserved keyword — `@ protecta` is syntactically valid but semantically
+#     rejected; it has no active visibility meaning
+#   • This demonstrates how Faber reserves syntax for future use without
+#     committing to semantics
+#
+# Common mistakes:
+#   • Expecting `@ protecta` to provide access control — it is reserved and rejected at compile time (SEM018).
+#
+# See also: publica, privata
+# =============================================================================
 
 # @ protecta is reserved visibility syntax
 #

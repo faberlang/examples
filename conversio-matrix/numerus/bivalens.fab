@@ -1,5 +1,33 @@
-# Conversio matrix fixture: numerus ↦ bivalens.
-# Phase-1 model: rust ✓ (truthiness); wasm-text ✓.
+# =============================================================================
+# numerus ↦ bivalens — convert integer to boolean via truthiness
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ bivalens — non-zero values become verum
+#   • Lossy conversion — numeric magnitude is discarded
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 42 ∷ bivalens — static ascription would not convert; use ↦ for truthiness
+
+# Anti-patterns (avoid these):
+#   • si 42 { ... } — Faber requires explicit bivalens; no truthy coercion of numerus
+#   • numerus ↦ textus ↦ bivalens — unnecessary two-step; convert directly
+
+# Pitfalls:
+#   • 0 becomes falsum; all other values become verum
+#   • Lossy — the magnitude is discarded; only zero/non-zero matters
+
+# Learning path:
+#   Before: see numerus/ and bivalens/ exempla (Stage 3 types)
+#   After:  see wc/src/main.fab (boolean dispatch for counting modes)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ bivalens
 }

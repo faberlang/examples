@@ -1,6 +1,36 @@
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps cut in the stdin-only stepper lane.
+# =============================================================================
+# cut — remove sections from each line of input
+# =============================================================================
+#
+# What this example teaches:
+#   • discinde — custom split function for single-char delimiters (no stdlib split yet)
+#   • ↦ numerus ⇥ — fallible string-to-number conversion with default
+#   • elige-style field selection — selectum_specne tests singles and ranges (1, 1-3, 2-)
+#   • bivalens complementum — inverting the selected set in input order
+#   • solum_finitas flag — suppressing delimiter-less records (-s/--only-delimited)
+#   • Large probandum suite — 7 test cases exercising selection edge cases
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → … — lines 13, 38, 47, 55, 63, 72, 85, 96, 105, 113, 120, 128, 154
+#   • dum — lines 23, 42, 56, 156
+#   • si / sin / secus — throughout
+#   • varia / fixum — throughout
+#   • ≡ / ≠ / > / < — throughout
+#   • itera ex — lines 88, 101, 137
+#   • redde — throughout
+#   • ↦ numerus ⇥ (conversion) — lines 68, 75, 80
+#   • probandum / proba / adfirma — lines 164-186
+#   • @ cli / @ descriptio / @ optio — lines 190-194
+#   • incipit — line 195
+#   • ∪ nihil — lines 155, 158
+#   • vel (default fallback) — throughout
+#   • vacua — lines 14, 133
+#   • falsum / verum — throughout
+#
+# Stage: Stage 4, stdin-only field mode with GNU -d/-f/-s/--complement parity
+# Backend: stepper
+#
 # This slice implements field mode only: GNU `cut -f LIST` with the default
 # tab delimiter and `cut -d DELIM -f LIST` for one-scalar ASCII delimiter
 # strings. Field lists are limited to positive numeric selectors and ranges
@@ -9,6 +39,20 @@ importa ex "../../../common/gnu/stdio" privata gnu_stdio
 # field subset in input order. Byte mode, character mode, file operands, output
 # delimiter rewriting, zero-terminated mode, diagnostics, help/version, and
 # multibyte/display semantics are deferred.
+#
+# Alternate approaches (not shown):
+#   • generated @ optio parser for -d/-f vs manual field list parsing — @ optio normalizes before GNU-specific list handling (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: echo
+#   After:  join, paste
+# =============================================================================
+
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 functio discinde(textus s, textus separator) → lista<textus> {
     varia lista<textus> partes ← vacua

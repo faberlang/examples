@@ -7,6 +7,19 @@ summary = "Marks a mutable borrowed parameter."
 syntax = "in <type> <name>"
 related = ["de", "ex"]
 +++
+# =============================================================================
+# in — Marks a mutable borrowed parameter
+# =============================================================================
+#
+# What this teaches:
+#   • Marks a mutable borrowed parameter.
+#   • Related keywords: de, ex
+#
+# Common mistakes:
+#   • Mode mismatch — passing a `de` (read-only) value to an `in` position, or using `in` to mutate a parameter declared as `de` (SEM057).
+#
+# See also: de, ex
+# =============================================================================
 
 # in — value parameter passing mode
 #

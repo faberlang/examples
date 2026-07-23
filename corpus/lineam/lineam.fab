@@ -8,6 +8,19 @@ syntax = "lege lineam"
 related = ["lege"]
 +++
 
+# =============================================================================
+# lineam — Reads one line of input.
+# =============================================================================
+#
+# What this teaches:
+#   • line-oriented input mode — `lege lineam` reads a single line from stdin
+#
+# Common mistakes:
+#   • Confusing lineam (reads one line without trailing newline) with nota (writes diagnostic output with newline).
+#
+# See also: lege
+# =============================================================================
+
 # lineam — line-oriented lege read
 #
 # GRAMMAR:

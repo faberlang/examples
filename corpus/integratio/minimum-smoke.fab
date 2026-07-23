@@ -7,7 +7,19 @@ summary = "Minimal multi-feature happy path across functio, fixum, si, and nota.
 syntax = "integratio — multi-feature happy path"
 related = ["functio", "fixum", "si", "nota"]
 +++
-
+# =============================================================================
+# integratio — Minimal multi-feature happy path across functio, fixum, si, and nota
+# =============================================================================
+#
+# What this teaches:
+#   • Minimal multi-feature happy path across functio, fixum, si, and nota.
+#   • Related keywords: functio, fixum, si, nota
+#
+# Common mistakes:
+#   • Writing code outside `incipit` that produces side effects — top-level code runs at module load; prefer `incipit` for program entry.
+#
+# See also: functio, fixum, si, nota
+# =============================================================================
 
 # integratio — minimal multi-feature happy path
 #

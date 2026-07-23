@@ -10,7 +10,19 @@ aliases = ["annotation"]
 related = ["nondum", "cli", "futura"]
 +++
 
-
+# =============================================================================
+# @ — Introduces an annotation for the following declaration or statement.
+# =============================================================================
+#
+# What this teaches:
+#   • Annotation syntax — `@ <name>` introduces an annotation applied to the following declaration or statement.
+#   • Metadata annotations — annotations like `@ nondum`, `@ cli`, `@ futura` attach metadata to declarations.
+#
+# Common mistakes:
+#   • Applying an annotation to the wrong declaration target — annotations apply to the immediately following declaration only.
+#
+# See also: nondum, cli, futura
+# =============================================================================
 
 # directiva — +++ TOML frontmatter smoke
 #

@@ -9,6 +9,22 @@ aliases = ["map", "dictionary"]
 related = ["lista", "copia", "∷", "itera"]
 +++
 
+# =============================================================================
+# tabula — Generic key/value map type.
+# =============================================================================
+#
+# What this teaches:
+#   • Map declaration — `tabula<K,V>` with bracket syntax for keyed access
+#   • Map literals — empty map via `vacua`, then populating with index assignment
+#
+# Common mistakes:
+#   • using bracket syntax with a key type that doesn't match the tabula declaration, or inserting duplicate keys
+#
+# See also: lista, copia, ∷, itera
+# =============================================================================
+
+
+
 
 # tabula<K,V> declaration, vacua, and keyed lookup
 #

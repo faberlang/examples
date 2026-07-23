@@ -8,6 +8,21 @@ syntax = "mori <expression>"
 aliases = ["panic"]
 related = ["iace", "ergo"]
 +++
+
+# =============================================================================
+# mori — Raises a fatal error or panic.
+# =============================================================================
+#
+# What this teaches:
+#   • fatal unrecoverable abort with `mori` — halts execution with an error message
+#   • invariant checking — using `mori` for divisor and bounds checks
+#
+# Common mistakes:
+#   • Using mori for recoverable errors — use iace with ⇥ for recoverable failure paths instead.
+#
+# See also: iace, ergo
+# =============================================================================
+
 # mori — fatal unrecoverable abort
 #
 # mori <nuntius>

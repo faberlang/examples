@@ -1,19 +1,43 @@
-# Hello Voxel — HV-06A/B: camera, input, collision, voxel DDA, and edit semantics.
+# =========================================================================
+# application — first-person camera, input, collision, voxel DDA, and edit semantics (HV-06A/B)
+# =========================================================================
 #
-# Locked contract (goal 06 / delivery HV-06A + HV-06B):
-#   - Yaw around +Y; pitch clamped to ±89°; mouse deltas only under pointer lock.
-#   - WASD physical codes; frame time in seconds; fixed speed; horizontal forward/right.
-#   - Focus loss clears movement keys immediately.
-#   - Player AABB 0.6 wide × 1.8 high; resolve X then Y then Z against opaque blocks.
-#   - Gravity + grounded walking; no jump.
-#   - Spawn is a fixed empty location in the Goal 05 fixture world.
-#   - Unusually large frame deltas clamp to max_delta_seconds() (0.05 s).
-#   - Selection: voxel DDA from camera eye, max distance 6 blocks.
-#   - DDA returns hit solid cell + preceding empty cell (placement face).
-#   - Primary edit removes hit solid via world_set(air); secondary places solid id 1
-#     at preceding unless the cell intersects the player AABB.
+# What this example teaches:
+#   • `Camera`/`InputState`/`Player`/`Application` — game-loop state machine pattern
+#   • Axis-ordered collision (X → Y → Z) — resolve against opaque blocks with gravity/grounding
+#   • Amanatides–Woo DDA — voxel traversal for hit selection at ≤6 blocks
+#   • `si`/`secus` chained for t_max comparison — three-axis DDA step selection
+#   • Immutable state updates — every function returns a new struct; no mutation
+#   • `VoxelHit` `∪ nihil` — nullable hit result with preceding-cell placement face
+#   • Edit semantics — `remove_hit`/`place_at_preceding` with player-AABB intersection guard
 #
-# Browser wiring is HV-06C (main.fab controllers + selection outline).
+# Syntaxes used:
+#   • `genus`, `functio`, `importa` — throughout
+#   • `si`/`secus` — chained for three-way DDA step, conditionals throughout
+#   • `dum` — nested loops for AABB cell sampling
+#   • `∪` union types (`numerus ∪ nihil`, `VoxelHit ∪ nihil`)
+#   • `↦` type conversion (`numerus ↦ f32`, line 460, 490, etc.)
+#   • `fixum` + `varia` — immutable and mutable bindings
+#   • `bivalens`, `verum`/`falsum`
+#   • `de` — reference parameter annotation
+#   • `redde` — return expression
+#   • `.absolutum()`, `.pavimentum()` — f32 methods
+#
+# Alternate approaches (not shown):
+#   • continuous collision detection (CCD) — sweeps AABB instead of discrete steps
+#   • triga matrix math — triga.matrix4_perspectiva / conspectus vs manual vector algebra
+#
+# Anti-patterns (avoid these):
+#   • unordered collision axes — X→Y→Z order is a contract; changing it breaks edge cases
+#   • editing without dirtiness — after HV-07A every world mutation must mark affected chunks
+#
+# Learning path:
+#   Before: HV-05C (main.fab)
+#   After:  application-motion-facts.fab (HV-06A), application-dda-edit-facts.fab (HV-06B)
+#
+# Stage: HV-06A (physics, camera, input), HV-06B (DDA, edit semantics, selection outline)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga

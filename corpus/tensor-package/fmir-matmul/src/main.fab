@@ -8,6 +8,22 @@ syntax = "faber run --target fmir-text|fmir|fmir-bin <package>"
 related = ["tensor", "matmul", "fmir"]
 +++
 
+# =============================================================================
+# tensor package — Rank-2 tensor matmul package proof through FMIR package targets.
+# =============================================================================
+#
+# What this teaches:
+#   • FMIR package targets — running tensor operations through `fmir-text`, `fmir`, and `fmir-bin`
+#   • Rank-2 matmul — verifying 2×3 · 3×4 matrix multiplication produces a 2×4 result
+#
+# Common mistakes:
+#   • providing flat list data whose element count doesn't match the declared tensor shape dimensions
+#
+# See also: tensor, matmul, fmir
+# =============================================================================
+
+
+
 # tensor package — FMIR package lane rank-2 matmul proof
 #
 # EXPECTED stdout:

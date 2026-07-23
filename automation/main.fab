@@ -1,7 +1,45 @@
-# Automation CLI skeleton.
+# =============================================================================
+# automation — automation CLI skeleton
+# =============================================================================
 #
+# What this example teaches:
+#   • importa with alias — Importing modules under named aliases
+#     (ut inventoryModule, ut runnerModule) (lines 5–6)
+#   • @ imperia — Registering external command modules from imported
+#     modules at the CLI root (lines 11–12)
+#   • @ cli with @ optio on root — Building a CLI tree with typed
+#     option inheritance and subcommand dispatch (lines 8–15)
+#
+# Syntaxes used:
+#   • importa — module import (lines 5–6)
+#   • ut — import alias keyword
+#   • @ cli — CLI application annotation (line 8)
+#   • @ versio — version annotation (line 9)
+#   • @ descriptio — description annotation (line 10)
+#   • @ optio — option definition (lines 11–12)
+#   • @ imperia — command module import (lines 13–14)
+#   • incipit — program entry point (line 15)
+#
+# Alternate approaches (not shown):
+#   • @ imperia multi-command vs single-file package — @ imperia
+#     used here for modular commands; single-file when the CLI is
+#     under ~500 lines with no shared logic
+#
+# Anti-patterns (avoid these):
+#   • Circular imports via @ imperia — commands should import
+#     from leaf modules, not from the root
+#   • @ cli on non-incipit — @ cli may only annotate an incipit
+#     entry point, not a functio
+#
+# Learning path:
+#   Before: coreutils CLI patterns
+#   After:  vivilite
+#
+# Stage: CLI skeleton, imperia module wiring from inventory and runner
+# Backend: both (stepper + Rust)
 # Build: cargo run -p faber -- build examples/automation
-# Run: cargo run -p faber -- run examples/automation -- inventory list
+# Run:   cargo run -p faber -- run examples/automation -- inventory list
+# =============================================================================
 
 importa ex "./commands/inventory" privata * ut inventoryModule
 importa ex "./commands/runner" privata * ut runnerModule

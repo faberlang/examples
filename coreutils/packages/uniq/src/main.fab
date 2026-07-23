@@ -1,3 +1,57 @@
+# =============================================================================
+# uniq — GNU coreutils uniq: report or omit repeated lines
+# =============================================================================
+#
+# What this example teaches:
+#   • `genus` for group records — `GrexUniq` stores a line and its count,
+#     demonstrating a structured return type from grouping logic
+#   • Adjacent-group comparison — `greges_uniqui` walks sorted lines and
+#     compares each to the current group's key, showing the standard uniq
+#     algorithm
+#   • Multi-flag output modes — `lineae_uniquae` dispatches count (`-c`),
+#     duplicate-only (`-d`), and unique-only (`-u`) modes via boolean flags
+#   • Key composition — `clavis_uniqui` applies skip characters (`-s`), check
+#     width (`-w`), and ignore-case (`-i`) to form the comparison key while
+#     preserving the first input line's spelling for output
+#   • Pure proba coverage — all grouping and output logic is pure, testing
+#     every flag combination without stdin
+#
+# Syntaxes used:
+#   • `genus` — struct type (lines 4-7)
+#   • `lege` — stdin read (lines 20, 23)
+#   • `∪` — nullable union type (line 20)
+#   • `nihil` — EOF sentinel (line 21)
+#   • `vel` — fallback (lines 24, 59, 67)
+#   • `≡` — equality (passim)
+#   • `.minuscula()` — string lowercasing method (line 47)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (lines 19, 23, 37, 39, etc.)
+#   • `itera` — for-each over list (lines 91, 170)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 113-158)
+#   • `@ cli` / `@ optio` / `@ descriptio` — CLI declarations (lines 160-168)
+#   • `incipit` — entry point (line 169)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.sectio()` — string slice (lines 36, 37, 40-42, etc.)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#   • `#` — inline comments documenting Stage 4 scope (lines 9-15, 118-120, etc.)
+#
+# Alternate approaches (not shown):
+#   • `-f` field-skip mode — skipping N whitespace-delimited fields
+#     instead of characters
+#   • `-D` all-repeated-lines mode, `--group` mode
+#
+# Anti-patterns (avoid these):
+#   • `"§"(n)` for number formatting — could use a dedicated format
+#     function with padding spec
+#
+# Learning path:
+#   Before: tail, sort
+#   After:  (terminal)
+#
+# Stage: Stage 4, stdin-only adjacent-line deduplication with -c/-d/-u/-i/-s/-w
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 genus GrexUniq {
@@ -5,14 +59,6 @@ genus GrexUniq {
     numerus copia
 }
 
-# Stage 4 keeps uniq in the stdin-only stepper lane.
-# `-i` compares adjacent groups with textus.minuscula(), which is sufficient for
-# declared ASCII fixtures while preserving the first input line spelling. `-s`
-# and `-w` affect only the comparison key, so output still preserves the first
-# full input line in each group. File operands, field skipping,
-# locale-sensitive case folding, all-repeated/all-unique variants, and
-# diagnostics are deferred until later slices can model those GNU surfaces
-# honestly.
 functio lege_omnes_lineas() → lista<textus> {
     varia lista<textus> lineae ← vacua
 

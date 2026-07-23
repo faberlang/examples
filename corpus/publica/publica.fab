@@ -9,6 +9,20 @@ aliases = ["public"]
 related = ["privata", "importa"]
 +++
 
+# =============================================================================
+# publica — Marks an import as re-exported from the current module.
+# =============================================================================
+#
+# What this teaches:
+#   • Module export visibility — `@ publica` re-exports a declaration from the
+#     current module, making it accessible to external consumers
+#   • The opposite of `@ privata`; controls the public API surface of a module
+#
+# Common mistakes:
+#   • Expecting `@ publica` to enforce access control — visibility annotations are decorative only (WARN012).
+#
+# See also: privata, importa
+# =============================================================================
 
 # @ publica marks a declaration as public metadata
 #

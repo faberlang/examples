@@ -8,6 +8,22 @@ syntax = "-<expr> | non <expr> | <expr> > 0 | <expr> est nihil"
 related = ["non", "est", "non est"]
 +++
 
+# =============================================================================
+# unarius — Unary negation, logical not, sign comparisons, and optional presence tests.
+# =============================================================================
+#
+# What this teaches:
+#   • Unary operators — negation (`-`), logical not (`non`), and sign comparisons
+#   • Null checks — `est nihil` and `non est nihil` for optional presence testing
+#
+# Common mistakes:
+#   • confusing non (logical not, prefix) with - (numeric negation) or ¬ (the Unicode not sign)
+#
+# See also: non, est, non est
+# =============================================================================
+
+
+
 
 # unarius — negation, logical not, sign comparisons, and optional presence
 #

@@ -8,7 +8,19 @@ syntax = "copia<T>"
 aliases = ["set"]
 related = ["lista", "tabula", "inter"]
 +++
-
+# =============================================================================
+# copia — Generic set collection type
+# =============================================================================
+#
+# What this teaches:
+#   • Generic set collection type.
+#   • Related keywords: lista, tabula, inter
+#
+# Common mistakes:
+#   • Using `copia<T>` without an explicit type — `vacua` requires an explicit type annotation like `copia<numerus>` (SEM014).
+#
+# See also: lista, tabula, inter
+# =============================================================================
 
 # copia<T> basic intrinsics
 #

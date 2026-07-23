@@ -8,6 +8,20 @@ syntax = "@ cursor"
 related = ["futura", "cede"]
 +++
 
+# =============================================================================
+# cursor — Marks a function as a generator.
+# =============================================================================
+#
+# What this teaches:
+#   • Generator annotation — `@ cursor` marks a function as a generator that yields values using `cede`.
+#   • Async iteration — cursor functions produce values on demand, enabling streaming iteration patterns.
+#
+# Common mistakes:
+#   • Using `cede` outside a cursor function context — `cede` is only valid inside `@ cursor` or `@ futura` functions.
+#
+# See also: futura, cede
+# =============================================================================
+
 # cursor — async iteration annotation
 #
 # GRAMMAR:

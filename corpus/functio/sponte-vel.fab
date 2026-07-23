@@ -8,7 +8,19 @@ syntax = "functio <name>(<params>) [modifiers] [→ <type>] [⇥ <error-type>] <
 aliases = ["function"]
 related = ["→", "⇥", "redde", "sponte", "ceteri", "prae", "curata", "futura", "cursor"]
 +++
-
+# =============================================================================
+# functio — Declares a named function or method
+# =============================================================================
+#
+# What this teaches:
+#   • Declares a named function or method.
+#   • Related keywords: →, ⇥, redde, sponte, ceteri, prae, curata, futura, cursor
+#
+# Common mistakes:
+#   • Forgetting that `sponte` parameters produce `T ∪ nihil` — accessing a `sponte` value without checking `est nihil` first may fail.
+#
+# See also: →, ⇥, redde, sponte, ceteri, prae, curata, futura, cursor
+# =============================================================================
 
 # Parameters with sponte and vel
 #

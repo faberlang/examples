@@ -1,10 +1,54 @@
-# WEB5 browser application fixture.
+# =============================================================================
+# browser-app — WEB5 browser application fixture
+# =============================================================================
 #
-# Eleven WebController functions proving click, input, submit, frame, resize,
-# keyboard, pointer, focus, pointer-lock, and typed failure behavior from
-# Faber-compiled ESM. The gate: a DOM harness observes mounts and mutations
-# from built ESM
-# (dist/faber-esm/faber-browser.js).
+# What this example teaches:
+#   • @ WebController { selector="..." } — Annotating functions as DOM
+#     controllers that mount on a CSS selector (lines 23, 49, 61, 81, etc.)
+#   • dom.on* event binding with ∴ — Registering typed DOM event callbacks
+#     (click, input, submit, frame, resize, keyboard, pointer, focus,
+#     pointer-lock) (throughout)
+#   • dom.Scope / dom.Element / dom.require / dom.all — DOM query and
+#     element access within controller scopes (throughout)
+#   • functio returning dom.Subscription — Return-type-driven lifecycle
+#     disposal for frame, resize, keyboard, pointer, focus, and
+#     pointer-lock subscriptions (lines 81, 101, 121, 141, 155, 191, 209)
+#
+# Syntaxes used:
+#   • importa — module imports (lines 7–8)
+#   • functio — function definitions (throughout)
+#   • @ WebController { selector = "..." } — controller annotation (lines 21, 47, 59, etc.)
+#   • ∴ — callback binding arrow in event handler registration (throughout)
+#   • → — return type arrow
+#   • fixum / varia — immutable / mutable variable declarations
+#   • si / secus — conditionals
+#   • itera — for-each iteration (line 38)
+#   • redde — return value
+#   • nota — standard output (for debug tracing)
+#   • dom.* — DOM API functions (require, all, on, on_input, on_submit, etc.)
+#   • lista<…> — generic list type
+#   • textus / bivalens / vacuum — primitive types
+#
+# Alternate approaches (not shown):
+#   • @ WebController vs manual DOM — @ WebController used here for
+#     declarative lifecycle; manual DOM when controllers need explicit
+#     mount/unmount hooks
+#   • ∴ closures vs named functio handlers — ∴ closures used here for
+#     inline event wiring; named functio when handlers are reused
+#
+# Anti-patterns (avoid these):
+#   • Ignoring the returned dom.Subscription — leaked listeners
+#     cause stale callbacks after the controller element is removed
+#   • Closures capturing stale scope — closure-bound variables
+#     in event handlers must not reference mutable outer state
+#
+# Learning path:
+#   Before: Stages 1–4 + hello-voxel HV-05
+#   After:  hello-voxel HV-06C
+#
+# Stage: WEB5 fixture, 11 controllers proving all typed callback patterns
+# Backend: Rust (ESM compilation target)
+# =============================================================================
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom

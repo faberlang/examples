@@ -1,3 +1,31 @@
+# =============================================================================
+# failing — intentionally failing test fixture
+# =============================================================================
+#
+# What this example teaches:
+#   • Intentional test failure — proba with assertion that will fail:
+#     `adfirma 1 + 1 ≡ 3`
+#   • Boundary test — validates that the test framework correctly reports failures
+#
+# Syntaxes used:
+#   • proba — test declaration (line 1)
+#   • adfirma — assertion (line 2)
+#   • incipit — entry point (line 4)
+#
+# Alternate approaches (not shown):
+#   • Expected-failure annotation for known-broken tests — mark intentionally failing tests with omitte "reason" or futurum "reason" to distinguish from regressions
+#
+# Anti-patterns (avoid these):
+#   • Intentionally failing tests in non-test code paths — adfirma in production code is deprecated (WARN006); use mori for invariant violations or move to proba blocks
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma (basic test assertions)
+#   After:  Stage 10: proba/modificatores.fab (omit and futuro modifiers for known failures)
+#
+# Stage: fixture boundary, proba failing test package
+# Backend: stepper
+# =============================================================================
+
 proba "intentional failure" {
     adfirma 1 + 1 ≡ 3
 }

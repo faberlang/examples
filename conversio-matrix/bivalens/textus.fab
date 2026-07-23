@@ -1,5 +1,33 @@
-# Conversio matrix fixture: bivalens ↦ textus.
-# Phase-1 model: rust ◐ (fallback format!); wasm-text ✓ (bivalens+textus representable).
+# =============================================================================
+# bivalens ↦ textus — convert boolean to textus
+# =============================================================================
+#
+# What this example teaches:
+#   • bivalens ↦ textus — verum becomes "verum", falsum becomes "falsum"
+#   • Rust uses fallback format! — no dedicated arm yet
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • verum ∷ textus — static ascription would only change type, not produce the word 'verum'; use ↦ for the display string
+
+# Anti-patterns (avoid these):
+#   • Assuming the text 'true'/'false' — Faber produces Latin 'verum'/'falsum'
+#   • vel 'default' — vel operates on T ∪ nihil, not on conversio results
+
+# Pitfalls:
+#   • Always succeeds — verum → 'verum', falsum → 'falsum'
+#   • These are Latin keywords, not English; do not expect 'true'/'false'
+
+# Learning path:
+#   Before: see bivalens/ and textus/ exempla (Stage 3 types)
+#   After:  see echo/src/main.fab (textus output patterns)
+
+# Stage: Phase-1 model, Rust fallback, wasm-text native
+# Backend: Rust ◐, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← verum ↦ textus
 }

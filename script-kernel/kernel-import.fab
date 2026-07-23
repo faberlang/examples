@@ -1,3 +1,31 @@
+# =============================================================================
+# kernel-import — individual kernel module imports
+# =============================================================================
+#
+# What this example teaches:
+#   • Individual kernel imports — importing specific `faber:*` modules by name
+#     rather than using the glob pattern
+#   • Module separation — four distinct kernel modules: solum (file I/O),
+#     json (JSON parsing), processus (process/command execution), aleator (RNG)
+#
+# Syntaxes used:
+#   • importa ex — kernel module import (lines 1-4)
+#   • incipit — empty entry point (line 6)
+#
+# Alternate approaches (not shown):
+#   • Using `faber:*` glob import for convenience vs explicit imports for clarity — see glob-import.fab; explicit per-module imports document dependencies precisely
+#
+# Anti-patterns (avoid these):
+#   • Glob-importing when only one or two modules are needed — `faber:*` expands the full kernel manifest; prefer explicit single-module imports for small scripts
+#
+# Learning path:
+#   Before: Stage 9: importa (basic module import from relative and stdlib paths)
+#   After:  Stage 5: coreutils foundations (true, false, pwd — importing from stdlib)
+#
+# Stage: basic script-kernel, multi-module imports, no operations
+# Backend: stepper
+# =============================================================================
+
 importa ex "faber:solum" privata solum
 importa ex "faber:json" privata json
 importa ex "faber:processus" privata processus

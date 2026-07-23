@@ -1,9 +1,40 @@
-# HV-06A focused facts: pitch clamp, frame-time motion, X→Y→Z collision,
-# gravity/ground, focus clear.
+# =========================================================================
+# application-motion-facts — focused facts for HV-06A: pitch clamp, frame-time motion, collision, focus clear
+# =========================================================================
 #
-# Run (from package root):
-#   faber run --compile tests/application-motion-facts.fab
-#   # or: tests/run-hv06a.sh
+# What this example teaches:
+#   • Pitch clamp at ±89° — verified via `clamp_pitch` and `apply_yaw_pitch` extremes
+#   • Mouse delta gating — deltas accumulate only under pointer lock; consumed each frame
+#   • `planar_displacement` — WASD at yaw 0 moves -Z by `speed × dt`; yaw 90 moves +X
+#   • Focus loss clears all movement keys — verified with all 4 WASD keys held
+#   • Gravity + grounding — airborne player accelerates downward, eventually lands on y=0
+#   • X → Y → Z axis-ordered collision — wall, pillar, and L-shaped solid resolution tests
+#   • `resolve_x`/`resolve_y`/`resolve_z` — isolated axis resolution with player-half-width
+#
+# Syntaxes used:
+#   • `incipit`, `adfirma` — test structure
+#   • `functio` — helper factories (`player_at`, `camera_yaw`, `input_with_key_w`)
+#   • `dum` — iterative drop-to-ground loop (200-frame max)
+#   • `si` — conditionals
+#   • `∪ nihil`, `est nihil` / `non est nihil`
+#   • `vel` — default value
+#   • `bivalens`, `verum`/`falsum`
+#   • `.absolutum()` — absolute value
+#   • `≡` — equality comparison
+#
+# Alternate approaches (not shown):
+#   • jump arc test — integrate upward velocity + gravity ceiling collision
+#
+# Anti-patterns (avoid these):
+#   • unordered collision axes — X→Y→Z order is a locked contract for edge-case correctness
+#
+# Learning path:
+#   Before: src/application.fab (HV-06A)
+#   After:  application-dda-edit-facts.fab (next test in progression)
+#
+# Stage: HV-06A (physics, camera, input, collision)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "../src/voxel" privata voxel
 importa ex "../src/application" privata application

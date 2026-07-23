@@ -8,6 +8,22 @@ syntax = "temporis <number>"
 related = ["metior", "repete"]
 +++
 
+# =============================================================================
+# temporis — Sets a timeout-like duration for a test modifier.
+# =============================================================================
+#
+# What this teaches:
+#   • Test timeout — `temporis` sets a duration constraint on `proba` execution
+#   • Test modifiers — combining timing with other test annotations
+#
+# Common mistakes:
+#   • confusing temporis (test timeout modifier) with tempus (time type)
+#
+# See also: metior, repete
+# =============================================================================
+
+
+
 # temporis — timed test modifier
 #
 # GRAMMAR:

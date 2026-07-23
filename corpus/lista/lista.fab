@@ -9,6 +9,20 @@ aliases = ["array", "list"]
 related = ["tabula", "copia", "∷", "itera"]
 +++
 
+# =============================================================================
+# lista — Generic ordered collection type.
+# =============================================================================
+#
+# What this teaches:
+#   • lista literal syntax — `[elem, ...]` with typed empty collections using `vacua`
+#   • the `sparge` operator — splicing one list into another literal
+#   • basic access: `longitudo()` and indexed reads via `[n]`
+#
+# Common mistakes:
+#   • Using vacua without an explicit type annotation — vacua requires a declared collection type like lista<T>.
+#
+# See also: tabula, copia, ∷, itera
+# =============================================================================
 
 # lista<T> literals, vacua, and sparge (long-form types — default Faber readability).
 # Numeric/tensor modules may use lf32/lu32 sugar; see docs/design/numeric-type-sugar.md.

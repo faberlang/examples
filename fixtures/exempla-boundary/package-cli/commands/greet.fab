@@ -1,3 +1,44 @@
+# =============================================================================
+# greet — CLI subcommand module for greeting commands
+# =============================================================================
+#
+# What this example teaches:
+#   • CLI subcommand module — commands mounted under "greet" namespace
+#     with hello and goodbye sub-subcommands
+#   • @ imperium / @ alias — subcommand declaration with shorthand aliases
+#   • @ operandus — positional argument with description
+#   • @ optio — option with long flag, type, and description
+#   • si/secus — conditional logic in subcommand handler
+#
+# Syntaxes used:
+#   • @ imperium — subcommand declaration (lines 6, 14)
+#   • @ alias — subcommand alias (lines 7, 15)
+#   • @ descriptio — description annotation (lines 8, 16)
+#   • @ operandus — positional argument (lines 9, 19)
+#   • @ optio — option definition (line 17)
+#   • functio — function definition (lines 10, 20)
+#   • argumenta args — CLI arguments binding (lines 10, 20)
+#   • → vacuum — void return type (lines 10, 20)
+#   • nota — print (lines 11, 12, 24, 27)
+#   • args.verbose / args.formal — CLI option access (lines 11, 22)
+#   • args.name — CLI positional argument access (lines 12, 24, 27)
+#   • si / secus — conditionals (lines 22-28)
+#   • § — template interpolation (lines 12, 24, 27)
+#
+# Alternate approaches (not shown):
+#   • Inline commands in main.fab instead of separate module — inline @ imperium on functio declarations in main.fab
+#
+# Anti-patterns (avoid these):
+#   • Overlapping alias names across subcommands — each @ alias must be unique within its CLI surface; duplicate alias causes SEM009
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica → Stage 10: probandum/proba (modular CLI packages with tests)
+#   After:  Stage 11: advanced language features (meta/*, directiva/*, conversio/*)
+#
+# Stage: fixture boundary, CLI subcommand module
+# Backend: stepper
+# =============================================================================
+
 # Greet Commands Module
 #
 # Mounted at "greet" by main.fab.

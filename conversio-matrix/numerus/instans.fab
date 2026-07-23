@@ -1,5 +1,33 @@
-# Conversio matrix fixture: numerus ↦ instans.
-# Phase-1 model: rust ◐ (fallback, won't compile); wasm-text —.
+# =============================================================================
+# numerus ↦ instans — model interpretation of integer as timestamp
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ instans — interpret an integer as a timestamp value
+#   • Rust fallback — currently won't compile; no dedicated arm
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • textus ↦ instans — parse an RFC 3339 string instead of interpreting raw numerus
+
+# Anti-patterns (avoid these):
+#   • 42 ↦ instans expecting a meaningful timestamp — numerus→instans is a raw interpretation
+#   • ∷ instans — static ascription cannot interpret a number as a timestamp
+
+# Pitfalls:
+#   • Not yet operational — Rust fallback won't compile; no dedicated arm
+#   • The interpretation of integer→timestamp is backend-dependent
+
+# Learning path:
+#   Before: see numerus/ exempla (Stage 3) and instans/ exempla (Stage 6)
+#   After:  see vivilite/src/main.fab (timestamp handling patterns)
+
+# Stage: Phase-1 model, not yet operational
+# Backend: Rust ◐, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ instans
 }

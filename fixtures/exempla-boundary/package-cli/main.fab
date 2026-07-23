@@ -1,3 +1,41 @@
+# =============================================================================
+# CLI main — CLI framework entry point with subcommands
+# =============================================================================
+#
+# What this example teaches:
+#   • CLI entry point — @ cli + @ optio + @ imperia for top-level application
+#   • Submodule delegation — @ imperia "greet" ex greetModule imports commands
+#     from a separate module and mounts them under the "greet" subcommand
+#   • incipit argumenta — entry point that receives CLI argument struct
+#
+# Syntaxes used:
+#   • importa ex — module import (line 4)
+#   • privata * ut — wildcard module import (line 4)
+#   • @ cli — CLI application declaration (line 6)
+#   • @ versio — version string (line 7)
+#   • @ descriptio — description (line 8)
+#   • @ optio — global option with ubique flag (line 9)
+#   • @ imperia — mount subcommand module (line 10)
+#   • incipit argumenta — entry with args (line 11)
+#   • @ imperium — inline subcommand (line 13)
+#   • functio — function (line 14)
+#   • nota — print (line 16)
+#
+# Alternate approaches (not shown):
+#   • All commands inline instead of separated into modules — inline @ imperium on functio declarations directly in main.fab
+#   • Using @ optio ubique for per-command override of global options — @ optio ubique makes the option available in all subcommands
+#
+# Anti-patterns (avoid these):
+#   • Deeply nested subcommand hierarchies without clear user guidance — prefer shallow command trees; SEM009 duplicate_* diagnostics guard against tangled subcommand structures
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica → Stage 10: probandum/proba (CLI framework with testable commands)
+#   After:  Stage 11: advanced language features (meta/*, directiva/*)
+#
+# Stage: fixture boundary, CLI framework, module-mounted subcommands
+# Backend: stepper
+# =============================================================================
+
 # CLI Framework Example
 #
 # Demonstrates @ cli, @ imperium, @ optio, and @ imperia.

@@ -7,6 +7,21 @@ summary = "Three recovery postures for fallible conversio: inline ⇥, ⇥ propa
 syntax = "<expression> ↦ <type> | functio … → T ⇥ E | fac { … } cape err { … }"
 related = ["↦", "⇥", "fac", "cape", "iace"]
 +++
+
+# =============================================================================
+# conversio-fallibilis — Three recovery postures for fallible conversio: inline ⇥, ⇥ propagation, and fac/cape.
+# =============================================================================
+#
+# What this teaches:
+#   • Recovery postures — three strategies for handling conversion failure: inline `⇥` fallback, `⇥` propagation to callers, and `fac { … } cape err { … }` error absorption.
+#   • Type signatures — how `→ T ⇥ textus` propagates conversion error as a typed channel.
+#
+# Common mistakes:
+#   • Mixing propagation and inline recovery — bare `↦` without `⇥` inside a `→ T ⇥ textus` function still propagates errors rather than handling them locally.
+#
+# See also: ↦, ⇥, fac, cape, iace
+# =============================================================================
+
 # conversio fallibilis — inline ⇥, propagation, and fac/cape recovery
 #
 # Posture 1: `expr ↦ T ⇥ recovery` handles failure at the site.

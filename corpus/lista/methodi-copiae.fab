@@ -9,6 +9,19 @@ aliases = ["array", "list"]
 related = ["tabula", "copia", "∷", "itera"]
 +++
 
+# =============================================================================
+# lista — Generic ordered collection type.
+# =============================================================================
+#
+# What this teaches:
+#   • copy, slice, and reordering intrinsics — `addita()`, `sectio()`, `prima()`, `ultima()`
+#   • ordering operations — `inversa()`, `ordinata()`
+#
+# Common mistakes:
+#   • Forgetting that sectio(lo, hi) uses an exclusive hi bound — the returned slice may be shorter than expected.
+#
+# See also: tabula, copia, ∷, itera
+# =============================================================================
 
 # lista<T> copy, slice, and ordering intrinsics
 #

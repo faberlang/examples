@@ -7,6 +7,23 @@ summary = "Braced canonical @ futura unit marker."
 syntax = "@ futura { }"
 related = ["futura", "annotation-sugar"]
 +++
+
+# =============================================================================
+# futura — Braced canonical @ futura unit marker.
+# =============================================================================
+#
+# What this teaches:
+#   • Braced annotation syntax — `@ futura { }` marks a function as async
+#     using the brace-delimited annotation form
+#   • Minimal async declaration — an empty braced body is valid for annotation
+#     sugar demonstration
+#
+# Common mistakes:
+#   • forgetting that an `@ futura` function must be called from an `incipiet` block or another async context; sync callers cannot suspend
+#
+# See also: futura, annotation-sugar
+# =============================================================================
+
 @ futura { }
 functio f() → vacuum {
     redde

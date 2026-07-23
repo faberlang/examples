@@ -1,3 +1,32 @@
+# =============================================================================
+# processus-exsequi — executing shell commands via kernel import
+# =============================================================================
+#
+# What this example teaches:
+#   • Kernel module usage — `faber:processus` for shell command execution
+#   • Command execution — `processus.exsequi()` runs a shell command and
+#     captures its output
+#
+# Syntaxes used:
+#   • importa ex — kernel module import (line 1)
+#   • incipit — entry point (line 3)
+#   • processus.exsequi — execute shell command (line 4)
+#   • nota — print to stdout (line 4)
+#
+# Alternate approaches (not shown):
+#   • Using solum.lege for file-based IPC instead of command execution — solum.carpe() reads from files without shell invocation for safer data exchange
+#
+# Anti-patterns (avoid these):
+#   • Executing unsanitized user input as shell commands — processus.exsequi() passes its argument to a shell; never pass untrusted input without validation
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica (kernel module imports)
+#   After:  Stage 5: coreutils foundations (true, false, pwd — process execution patterns)
+#
+# Stage: basic script-kernel, process execution, shell command invocation
+# Backend: stepper
+# =============================================================================
+
 importa ex "faber:processus" privata processus
 
 incipit {

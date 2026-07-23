@@ -8,6 +8,19 @@ syntax = "lege [lineam]"
 related = ["lineam", "scribe"]
 +++
 
+# =============================================================================
+# lege — Reads input from the active input stream.
+# =============================================================================
+#
+# What this teaches:
+#   • stdin input with `lege` — reads one line from the active input stream
+#   • the `↦ regex` conversion — compiling a textus pattern into a regex value
+#
+# Common mistakes:
+#   • Not checking est nihil before using the value — lege may return nihil at end of input.
+#
+# See also: lineam, scribe
+# =============================================================================
 
 # lege and regex conversio — I/O read and compiled pattern expressions
 #

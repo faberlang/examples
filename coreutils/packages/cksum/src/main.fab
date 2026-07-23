@@ -1,3 +1,45 @@
+# =============================================================================
+# cksum — compute POSIX CRC32 checksum and byte count
+# =============================================================================
+#
+# What this example teaches:
+#   • lista<numerus> — mutable byte list for incremental payload construction
+#   • lege with dum verum — read-all-lines idiom into a flat byte vector
+#   • External functio call — delegating CRC computation to gnu_bytes
+#   • Text interpolation "§ §" — formatting output with computed values
+#   • probandum — testing empty-payload edge case (POSIX zero-length CRC)
+#
+# Syntaxes used:
+#   • importa — lines 1-2
+#   • functio … → lista<numerus> — line 4
+#   • functio … → textus — line 21
+#   • dum verum — lines 8, 14
+#   • varia / fixum — throughout
+#   • vacua / .appende — lines 5, 12, 14
+#   • lege / est nihil — lines 9-10
+#   • itera ex — lines 11, 14
+#   • si / ergo — line 9
+#   • redde — lines 9, 24
+#   • probandum / proba / adfirma — lines 26-29
+#   • ≡ — lines 28
+#   • @ cli / @ descriptio / @ operandus — lines 31-33
+#   • incipit — line 34
+#
+# Alternate approaches (not shown):
+#   • streaming per-file checksum via lege vs read-all buffer — reduces memory for large files
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: cat
+#   After:  od, printf
+#
+# Stage: Stage 2-4, stdin-only checksum, stepper+Rust
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "../../../common/gnu/bytes" privata gnu_bytes
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

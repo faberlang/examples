@@ -7,6 +7,19 @@ summary = "Primitive types bivalens, vacuum, and ignotum."
 syntax = "bivalens | vacuum | ignotum"
 related = ["verum", "falsum", "functio", "∷", "vacuum"]
 +++
+# =============================================================================
+# bivalens — Primitive types bivalens, vacuum, and ignotum
+# =============================================================================
+#
+# What this teaches:
+#   • Primitive types bivalens, vacuum, and ignotum.
+#   • Related keywords: verum, falsum, functio, ∷, vacuum
+#
+# Common mistakes:
+#   • Using `ignotum` where a concrete type is expected — `ignotum` is the dynamic dispatch type; use `est` checks or match before extracting.
+#
+# See also: verum, falsum, functio, ∷, vacuum
+# =============================================================================
 
 # intrinseca/primitiva — bivalens, vacuum, ignotum
 #

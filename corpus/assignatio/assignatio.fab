@@ -10,6 +10,24 @@ related = ["=", "fixum", "varia", "⊕", "⊖"]
 +++
 
 
+# =============================================================================
+# ← — Assigns a value to a binding, field, or assignable expression.
+# =============================================================================
+#
+# What this teaches:
+#   • Explicit assignment — `place ← expression` rebinds a mutable variable
+#     to a new value
+#   • Compound operations — arithmetic expressions like `x ← x + 5` replace
+#     removed compound assignment glyphs
+#   • Postfix increment — `⊕` and `⊖` provide unit increment/decrement as
+#     standalone statements
+#
+# Common mistakes:
+#   • using `=` instead of `←` for assignment — `=` is structural field initialization in records, `←` is value assignment
+#
+# See also: =, fixum, varia, ⊕, ⊖
+# =============================================================================
+
 # assignatio — simple explicit assignment
 #
 # <place> ← <expression>

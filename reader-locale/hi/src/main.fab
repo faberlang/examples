@@ -1,3 +1,35 @@
+# =============================================================================
+# Hindi locale (Devanagari) — greeting with Hindi keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Faber keywords using Devanagari script
+#     (फलन=functio, स्थिर=fixum, लौटाओ=redde, आरंभ=incipit, दिखाओ=nota, पाठ=textus)
+#   • String interpolation with § template operator
+#
+# Syntaxes used:
+#   • फलन (functio) — function definition (line 1)
+#   • स्थिर (fixum) — immutable binding (line 2)
+#   • ← — value binding (line 2)
+#   • § — template interpolation (line 2)
+#   • लौटाओ (redde) — return value (line 3)
+#   • आरंभ (incipit) — entry point (line 6)
+#   • दिखाओ (nota) — print to stdout (line 7)
+#
+# Alternate approaches (not shown):
+#   • Latin keywords with Devanagari identifiers — functio with Hindi variable names (the "twins" pattern)
+#
+# Anti-patterns (avoid these):
+#   • Mixing locale keyword sets within one file — pick one keyword set per file (all Devanagari or all Latin, never both)
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → functio → redde (function + entry-point pattern)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Devanagari keyword set demonstrated, basic function + entry point
+# Backend: stepper, reader-locale
+# =============================================================================
+
 फलन अभिवादन(पाठ नाम) → पाठ {
   स्थिर पाठ संदेश ← "नमस्ते, §!"(नाम)
   लौटाओ संदेश

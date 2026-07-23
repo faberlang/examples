@@ -1,3 +1,59 @@
+# =============================================================================
+# seq — GNU coreutils seq: print a sequence of numbers
+# =============================================================================
+#
+# What this example teaches:
+#   • `genus` (struct type) — defining `SeqOptiones` with named fields to
+#     group the parsed CLI state (operands, width_flag, separator)
+#   • Local option parsing — `seq_parse` walks raw operand strings with
+#     `si`/`sin`/`secus` because the framework parser cannot handle negative
+#     integers as operands
+#   • `numerus` ranges with `dum` — generating arithmetic sequences with
+#     positive or negative increments
+#   • `↦` type conversion (`textus` → `numerus`) with `⇥` fallback — parsing
+#     integer operands
+#   • Equal-width padding — computing `latitudo_maxima` across generated lines
+#     and `aequa_latitudine` for zero-padded output
+#   • `-s SEP` custom separator — joining rendered integers with `seq_iunge`
+#
+# Syntaxes used:
+#   • `genus` — struct type (lines 4-8)
+#   • `lege` — not used (operand-driven)
+#   • `∪` — nullable union type `textus ∪ nihil` (lines 7, 140, etc.)
+#   • `↦` — type conversion (lines 41, 43, 45, 47, 49, 51, etc.)
+#   • `⇥` — conversion fallback (lines 41, 43, 45, 47, 49, 51, etc.)
+#   • `≡` — equality (passim)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loop (lines 18, 20, 25, 27, etc.)
+#   • `itera` — for-each over list (lines 56, 67, 92, 118)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 161-203)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI declarations (lines 206-210)
+#   • `incipit` — entry point (line 211)
+#   • `functio` — function (passim)
+#   • `fixum` / `varia` — bindings (passim)
+#   • `textus`, `numerus`, `bivalens`, `lista<...>` — types (passim)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#   • `.sectio()` — string slice (lines 107, 109)
+#   • `vel` — fallback (lines 139, 141, 149, etc.)
+#   • `sponte vel` — default parameter value (line 34)
+#   • `nihil` — null value (lines 140, etc.)
+#
+# Alternate approaches (not shown):
+#   • Floating-point range support with decimal precision
+#
+# Anti-patterns (avoid these):
+#   • Hand-rolled flag parsing — a framework extension for
+#     negative-integer operands would remove the `seq_parse` workaround
+#
+# Learning path:
+#   Before: dum, si
+#   After:  od, printf
+#
+# Stage: Stage 3, operand-parsing with local flag parser
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 genus SeqOptiones {

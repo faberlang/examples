@@ -1,10 +1,54 @@
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps fold in the stdin-only stepper lane.
+# =============================================================================
+# fold — wrap each input line to fit a specified width
+# =============================================================================
+#
+# What this example teaches:
+#   • Scalar-counted line wrapping — plica_lineam slices by character count
+#   • Space-aware break mode — spatium_fractus finds last space within width
+#   • Conditional assignment — spatiis sic … secus … for ternary-like dispatch
+#   • Default-width fallback — latitudo_activa maps non-positive to 80
+#   • @ optio with bivalens and numerus — generated CLI for -w and -s
+#   • probandum — 9 tests covering wraps, defaults, empty input, space mode
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → numerus — line 9
+#   • functio … → lista<textus> — lines 16, 38, 54
+#   • functio … → vacuum — lines 89
+#   • dum — lines 25-30, 41-50, 60-81, 90
+#   • si / secus — lines 10, 22-23, 28-29, 44-47, 63-64, 70-80, 94-95
+#   • varia / fixum — throughout
+#   • ≡ / > / < — lines 10, 21, 29, 43, 65-66, 110-130
+#   • itera ex — lines 97
+#   • redde — lines 10, 13, 24, 30, 50, 59, 70, 75, 79
+#   • probandum / proba / adfirma — lines 104-131
+#   • @ cli / @ descriptio / @ optio — lines 134-137
+#   • incipit — line 138
+#   • ∪ nihil — lines 89, 92
+#   • vel — line 93
+#   • sic … secus (ternary) — line 95
+#
+# Stage: Stage 4, stdin-only line folding with ASCII scalar counting
+# Backend: stepper
+#
 # The supported `-s` subset is line-oriented ASCII stdin: break at the last
 # literal space before/at the scalar width when possible, preserving that space
 # on the emitted line. File operands, byte-exact column accounting, tabs,
 # backspaces, diagnostics, help/version, and `-b` are deferred.
+#
+# Alternate approaches (not shown):
+#   • byte-exact column tracking vs scalar-counted line wrapping — needed for tabs, backspaces, CJK width (alternates doc §Numerical Code Patterns)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: cat
+#   After:  cksum
+# =============================================================================
+
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 functio latitudo_activa(numerus petitus) → numerus {
     si petitus > 0 ergo redde petitus

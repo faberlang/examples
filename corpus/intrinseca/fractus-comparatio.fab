@@ -8,7 +8,19 @@ syntax = "fractus"
 aliases = ["float"]
 related = ["numerus", "↦"]
 +++
-
+# =============================================================================
+# fractus — Primitive floating-point number type
+# =============================================================================
+#
+# What this teaches:
+#   • Primitive floating-point number type.
+#   • Related keywords: numerus, ↦
+#
+# Common mistakes:
+#   • Using `≡` for direct floating-point equality — float equality is unreliable due to precision; use `.approximata()` for tolerance-based comparison.
+#
+# See also: numerus, ↦
+# =============================================================================
 
 # fractus comparison and ordering intrinsics
 #

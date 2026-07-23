@@ -1,3 +1,63 @@
+# =============================================================================
+# bytes — ASCII byte helpers and POSIX/GNU cksum CRC-32
+# =============================================================================
+#
+# What this example teaches:
+#   • functio — Partitioning conversion logic across multiple helper functions
+#   • elige/casu/ceterum — Match expression mapping every ASCII character to its
+#     numeric byte value
+#   • fixum — Pre-computing lookup tables as immutable constants for performance
+#   • dum — Loop-driven table construction and streaming CRC computation
+#   • Bitwise operators (⇐ ⇒ ⊻ ∧ ¬) — Shift, XOR, AND, NOT for low-level
+#     checksum arithmetic
+#   • si/sin/secus — Conditional branches within bit-twiddling logic
+#
+# Syntaxes used:
+#   • functio — function definitions (lines 62, 71, 123, 133, 155)
+#   • varia — mutable variable binding (lines 63, 72, 124, 134, 137, 157)
+#   • numerus — integer type (passim)
+#   • textus — string type (passim)
+#   • lista<numerus> — list of integers (lines 124, 133)
+#   • dum — while loop (lines 64, 74, 126, 136, 139, 160, 167)
+#   • si/sin/secus — if/else if/else conditionals (lines 65, 75, 141)
+#   • elige/casu/ceterum — match/switch statement (lines 82-119)
+#   • ≡ — equality comparison (lines 65, 73, 75, 77)
+#   • ≠ — inequality test (line 141)
+#   • ⇐ — left bit shift / assignment (lines 137, 143, 163, 171)
+#   • ⇒ — right bit shift (lines 162, 169, 172)
+#   • ⊻ — XOR (lines 142, 162, 163, 170, 171)
+#   • ∧ — bitwise AND / mask (lines 141-143, 163, 170-172)
+#   • ¬ — bitwise NOT (line 173)
+#   • vel — logical OR / fallback (lines 161, 163, 170, 171)
+#   • redde — function return (lines 68, 130, 152, 173)
+#   • fixum — immutable binding (lines 156, 161, 162, 170)
+#   • vacua — empty list literal (lines 124, 134)
+#   • .accipe(index) — list element access with default (lines 161, 163, 170, 171)
+#   • .sectio(start, end) — string slice (lines 65, 128)
+#   • .appende(element) — list push (lines 127, 149)
+#   • .longitudo() — length method (lines 64, 74, 126, 136, 160, 166)
+#
+# Alternate approaches (not shown):
+#   • Pre-built CRC-32 fixum lista<numerus> literal — avoids recomputing the
+#     256-entry table per crc32_octeti call
+#   • elige/casu/ceterum vs si/sin/secus — value dispatch on known constants;
+#     printf explictly recommends elige over nested si chains for digit tables
+#     (see alternates: elige vs si for digit tables)
+#
+# Anti-patterns (avoid these):
+#   • sectio(i, i + 1) inside a dum loop — O(n²) per character; prefer chorda
+#     methods or built-in byte conversion when available
+#   • Massive manual elige/casu switch for ASCII — verbose and fragile; a fixum
+#     lookup table indexed by character would be cleaner for large char sets
+#
+# Learning path:
+#   Before: elige, dum, functio (Stage 2), bitwise operators ⇐ ⇒ ⊻ ∧ ¬ (Stage 4)
+#   After:  cksum (Stage 7: algorithmic coreutils — first consumer of bytes.fab)
+#
+# Stage: Stage 2+ shared coreutils helpers
+# Backend: both
+# =============================================================================
+
 # ASCII byte helpers and POSIX/GNU cksum CRC-32 for Tier A stdin fixtures.
 
 functio index_in(textus haystack, textus needle) → numerus {
@@ -9,6 +69,9 @@ functio index_in(textus haystack, textus needle) → numerus {
     redde -1
 }
 
+# Manual ASCII code-point lookup. The compiler's octeti conversion is not
+# yet wired for the GNU byte parity lane, so this explicit mapping is the
+# current contract for Tier A stdin fixtures.
 functio octet_ascius(textus c) → numerus {
     varia numerus idx ← index_in("0123456789", c)
     si idx ≥ 0 ergo redde 48 + idx
@@ -70,6 +133,10 @@ functio octeti_textus(textus s) → lista<numerus> {
     redde bytes
 }
 
+# CRC-32 checksum via the POSIX cksum table-driven algorithm.
+# Builds a 256-entry lookup table from polynomial 0xEDB88320 (decimal 79764919).
+# Each table entry is the CRC of a single byte, pre-computed for O(1) per-byte
+# division instead of O(8) bit-by-bit operations.
 functio crc32_tabula() → lista<numerus> {
     varia lista<numerus> tabula ← vacua
     varia numerus i ← 0
@@ -78,8 +145,8 @@ functio crc32_tabula() → lista<numerus> {
         varia numerus t ← i ⇐ 24
         varia numerus j ← 0
         dum j < 8 {
-            si (t ∧ 2147483648) ≠ 0 {
-                t ← ((t ⇐ 1) ⊻ 79764919) ∧ 4294967295
+            si (t ∧ 2147483648) ≠ 0 {  # MSB test (0x80000000)
+                t ← ((t ⇐ 1) ⊻ 79764919) ∧ 4294967295  # CRC-32 polynomial 0xEDB88320; u32 bitmask 0xFFFFFFFF
             } secus {
                 t ← (t ⇐ 1) ∧ 4294967295
             }
@@ -92,6 +159,10 @@ functio crc32_tabula() → lista<numerus> {
     redde tabula
 }
 
+# Compute POSIX cksum CRC-32 over a byte list.
+# Processes each byte through the lookup table, then mixes the input length
+# into the checksum (POSIX requirement). The final ¬crc (bitwise NOT) is the
+# POSIX cksum variant — standard CRC-32 omits this step.
 functio crc32_octeti(lista<numerus> bytes) → numerus {
     fixum lista<numerus> tabula ← crc32_tabula()
     varia numerus crc ← 0

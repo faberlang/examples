@@ -8,6 +8,22 @@ syntax = "<expression> ↦ <numeric-or-bivalens-type>"
 related = ["↦", "numerus", "fractus", "bivalens"]
 +++
 
+# =============================================================================
+# ↦ — Scalar numeric and bivalens primitive conversio.
+# =============================================================================
+#
+# What this teaches:
+#   • Numeric truncation — `fractus ↦ numerus` truncates toward zero (Rust `as` default).
+#   • Truthiness from numbers — `fractus ↦ bivalens` and `numerus ↦ bivalens` use non-zero truthiness.
+#   • Bool-to-number — `bivalens ↦ numerus` yields 0/1; `bivalens ↦ fractus` yields 0.0/1.0.
+#   • Byte reinterpretation boundary — numerus/fractus/bivalens ↔ octeti is rejected at typecheck (use chorda instead).
+#
+# Common mistakes:
+#   • Expecting `fractus ↦ numerus` to round rather than truncate — it truncates toward zero like Rust `as`.
+#
+# See also: ↦, numerus, fractus, bivalens
+# =============================================================================
+
 
 # conversio — numeric and bivalens primitive conversions
 #

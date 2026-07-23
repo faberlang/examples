@@ -8,6 +8,22 @@ syntax = "tensor.addita(other)"
 related = ["tensor", "typus", "conversio"]
 +++
 
+# =============================================================================
+# tensor — Tensor arithmetic rejects non-numeric elements and mixed numeric widths.
+# =============================================================================
+#
+# What this teaches:
+#   • Type guard — elementwise arithmetic rejects non-numeric element types at compile time
+#   • Width safety — mixed-width operations (e.g. i32 + i64) require explicit `↦` conversion
+#
+# Common mistakes:
+#   • expecting silent numeric widening between numerus<i32> and numerus<i64> — use explicit ↦ conversion instead
+#
+# See also: tensor, typus, conversio
+# =============================================================================
+
+
+
 # tensor arithmetic reject cases — expected compile failure
 #
 # WHY: documents the typecheck contract for elementwise tensor arithmetic.

@@ -9,6 +9,22 @@ aliases = ["default"]
 related = ["elige", "discerne"]
 +++
 
+# =============================================================================
+# ceterum — Starts the default branch of an elige or discerne statement.
+# =============================================================================
+#
+# What this teaches:
+#   • Default arm — `ceterum <block>` is the catch-all branch in an `elige`
+#     or `discerne` match expression
+#   • Fallback handling — when no `casu` pattern matches, execution falls
+#     through to the `ceterum` block
+#
+# Common mistakes:
+#   • using `ceterum` with `discerne omnia` — `omnia` forbids catchall arms and requires listing every variant explicitly (SEM044)
+#
+# See also: elige, discerne
+# =============================================================================
+
 # ceterum — default elige arm
 #
 # GRAMMAR:

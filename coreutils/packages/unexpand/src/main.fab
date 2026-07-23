@@ -1,9 +1,60 @@
+# =============================================================================
+# unexpand — GNU coreutils unexpand: convert spaces to tabs
+# =============================================================================
+#
+# What this example teaches:
+#   • `genus` with named fields for compound state — both `Tabulatio` (tab stop
+#     configuration with up to 8 absolute stops) and `UnexpandOptiones`
+#     (convertit_plene + Tabulatio)
+#   • Local option parsing — `unexpand_parse` walks raw operands for `-a`,
+#     `-t`, and `--tabs=` because the framework cannot handle the comma-delimited
+#     tab-stop syntax
+#   • Pure space-to-tab conversion — `comprime_spatia_cum` computes tab stop
+#     boundaries and replaces space runs with tab characters, testable without
+#     I/O
+#   • Finite vs periodic tab stops — comma-separated absolute stops (finite
+#     mode) vs a single interval (periodic mode)
+#   • `lege` stdin loop — line-by-line transform, emitting each through
+#     `gnu_stdio.scribe_linea`
+#
+# Syntaxes used:
+#   • `genus` — struct types (lines 7-18, 22-25)
+#   • `lege` — stdin read (line 196)
+#   • `∪` — nullable union type (line 196)
+#   • `nihil` — EOF sentinel (line 197)
+#   • `vel` — fallback (lines 31, 72, 100, 211, 214, etc.)
+#   • `↦` — type conversion (lines 71, 100, 109)
+#   • `⇥` — conversion fallback (line 109)
+#   • `≡` — equality (passim)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (passim)
+#   • `itera` — for-each over list (not used in this file)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 236-266)
+#   • `@ cli` / `@ optio` / `@ descriptio` / `@ operandus` — CLI declarations
+#     (lines 268-272)
+#   • `incipit` — entry point (line 273)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.sectio()` — string slice (lines 41, 44, 66, 68, etc.)
+#   • `.appende()` not used
+#   • `sponte vel` — default function parameter (line 100 is not this; function
+#     params do not use default in unexpand)
+#
+# Alternate approaches (not shown):
+#   • `--first-only` (`-f`) to skip leading blank lines
+#   • Backspace/display-column-aware tabbing with `tabs`
+#
+# Anti-patterns (avoid these):
+#   • Fixed 8-field tab stop struct — a dynamic list would be more
+#     scalable for many custom stops
+#
+# Learning path:
+#   Before: cut, od
+#   After:  (terminal)
+#
+# Stage: Stage 4, stdin-only ASCII space-to-tab conversion
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps unexpand in the stdin-only stepper lane.
-# This slice converts ASCII space runs with scalar-position counting only.
-# File operands, GNU edge-case tab stop modes, backspace/display-column
-# semantics, diagnostics, and help/version are deferred.
 
 genus Tabulatio {
     bivalens finita

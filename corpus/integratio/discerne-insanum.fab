@@ -6,6 +6,19 @@ summary = "Multi-feature smoke: discretio, finge, discerne omnia, and per-field 
 syntax = "discerne omnia <subject> <block>"
 related = ["discretio", "finge", "ut", "casu"]
 +++
+# =============================================================================
+# discerne — Multi-feature smoke: discretio, finge, discerne omnia, and per-field ut aliases
+# =============================================================================
+#
+# What this teaches:
+#   • Multi-feature smoke: discretio, finge, discerne omnia, and per-field ut aliases.
+#   • Related keywords: discretio, finge, ut, casu
+#
+# Common mistakes:
+#   • Using `discerne omnia` with a catchall arm — `omnia` forbids `ceterum`; list every variant explicitly or remove `omnia` (SEM044).
+#
+# See also: discretio, finge, ut, casu
+# =============================================================================
 
 # integratio — discretio, finge, discerne omnia, and payload destructuring
 #

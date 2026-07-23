@@ -1,3 +1,40 @@
+# =============================================================================
+# exitus — recoverable error contract with ⇥ (effect type)
+# =============================================================================
+#
+# What this example teaches:
+#   • ⇥ (effect type) — function signature annotation for recoverable errors:
+#     `→ numerus ⇥ textus` means returns numerus or fails with textus
+#   • ergo — then/hence keyword for concise conditional-throw: `si ... ergo iace ...`
+#   • Error propagation — divide() declares ⇥, safe_divide() handles it with
+#     fac/cape and mone (warning)
+#
+# Syntaxes used:
+#   • functio — function definition (lines 3, 8)
+#   • → — return type (line 3)
+#   • ⇥ — effect type / recoverable error contract (line 3)
+#   • si — conditional (line 4)
+#   • ergo — then/hence (line 4)
+#   • iace — throw (line 4)
+#   • redde — return (lines 5, 11)
+#   • fac — try block (line 9)
+#   • cape — catch block (line 12)
+#   • mone — warning/notification (line 13)
+#
+# Alternate approaches (not shown):
+#   • Using fac/cape at every call site vs propagating ⇥ to callers — declare ⇥ on the enclosing function to auto-propagate errors to the caller (like Rust ?)
+#
+# Anti-patterns (avoid these):
+#   • Declaring ⇥ on every function — only functions that can fail need ⇥; pure functions that always succeed should not declare an alternate-exit type
+#
+# Learning path:
+#   Before: Stage 2: si, ergo, redde, iace → Stage 3: nihil (guard clause patterns)
+#   After:  Stage 11: ⇥ effect type annotations (typed error contracts for composable functions)
+#
+# Stage: fixture boundary, unsupported-rust-target, ⇥ effect type
+# Backend: stepper
+# =============================================================================
+
 # Recoverable alternate-exit contract with ⇥.
 
 functio divide(numerus a, numerus b) → numerus ⇥ textus {

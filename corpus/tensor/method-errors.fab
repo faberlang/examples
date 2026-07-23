@@ -8,6 +8,22 @@ syntax = "tensor.strue(flat, shape)"
 related = ["tensor", "structa"]
 +++
 
+# =============================================================================
+# tensor — Tensor method hard-error policy for structa count mismatch.
+# =============================================================================
+#
+# What this teaches:
+#   • Runtime validation — `strue` rejects flat lists whose element count doesn't match the shape
+#   • Error policy — tensor methods hard-error on invalid input rather than silently truncating
+#
+# Common mistakes:
+#   • providing a flat list whose length is not the product of all dimension sizes when calling strue
+#
+# See also: tensor, structa
+# =============================================================================
+
+
+
 
 # tensor — hard-error method policy
 #

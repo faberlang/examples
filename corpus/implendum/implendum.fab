@@ -8,7 +8,19 @@ syntax = "implendum <name> [<type-params>] <block>"
 aliases = ["interface"]
 related = ["genus", "implet"]
 +++
-
+# =============================================================================
+# implendum — Declares a behavioral contract with method signatures
+# =============================================================================
+#
+# What this teaches:
+#   • Declares a behavioral contract with method signatures.
+#   • Related keywords: genus, implet
+#
+# Common mistakes:
+#   • Declaring a `genus implet Implendum` without implementing all required methods — every method signature in the implendum must have a body in the genus.
+#
+# See also: genus, implet
+# =============================================================================
 
 # implendum definition and implementation
 #

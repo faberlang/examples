@@ -1,5 +1,34 @@
-# Conversio matrix fixture: textus ↦ fractus.
-# Phase-1 model: rust ✓ (parse); wasm-text ✓.
+# =============================================================================
+# textus ↦ fractus — parse text as fractional number
+# =============================================================================
+#
+# What this example teaches:
+#   • textus ↦ fractus — parse a text string into a fractional value
+#   • Fallible — runtime parse error if text is not a valid number
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • "3.14" ↦ fractus ⇥ 0.0 — inline recovery with a fallback float on parse failure
+#   • fac { "bad" ↦ fractus } cape err { ... } — scoped error handling for multi-step ops
+
+# Anti-patterns (avoid these):
+#   • "3.14" ↦ fractus vel 0.0 — use ⇥ for conversio recovery, not vel (vel is for T ∪ nihil)
+#   • ∷ fractus — static ascription cannot parse a string; use ↦
+
+# Pitfalls:
+#   • Non-numeric text throws at runtime — wrap in fac/cape or use ⇥ recovery
+#   • Hex floats ('0x1.0p3') and special values ('NaN', 'Inf') may vary by backend
+
+# Learning path:
+#   Before: see textus/ and fractus/ exempla (Stage 3 types)
+#   After:  see printf/src/main.fab (float parsing and formatting with %f, %e)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← "3.14" ↦ fractus
 }

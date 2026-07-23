@@ -1,16 +1,46 @@
-# Hello Voxel — HV-06C/HV-07C: first-person interaction + incremental chunk resources.
+# =========================================================================
+# main — first-person interaction controller + incremental chunk resource lifecycle (HV-06C/HV-07C)
+# =========================================================================
 #
-# Package owns the authoritative world, camera/player state, selection outline
-# (Triga box_wire_*), dirty drain remesh, and per-chunk resource generations.
-# Host only uploads package payloads and submits multi-draw — no host world mutation.
+# What this example teaches:
+#   • `@ WebController` — DOM controller declaration with `dom.Scope`/`dom.Subscription`
+#   • `dom.on_frame` — per-frame game loop with delta time, physics step, and dirty remesh
+#   • `dom.on_keyboard`/`dom.on_pointer`/`dom.on_focus`/`dom.on_pointer_lock` — event wiring
+#   • `WorldChunkBatch` — ownership totals for concatenated positions/colors/indices
+#   • `emit_*` functions — encoding Faber state as DOM `data-*` attributes for the host
+#   • `dirty drain → remesh → host replace queue` — incremental per-frame chunk lifecycle
+#   • Pointer-lock inspectable degraded state — denial is written to attrs, never hangs
 #
-# Contract:
-#   - WASD + pointer-lock look + primary/secondary edit change Faber state.
-#   - Focus loss clears movement keys immediately.
-#   - Pointer-lock denial is an explicit inspectable degraded state (never hang).
-#   - Edits mark the locked affected chunk set; dirty drain remeshes once per frame.
-#   - Admitted graphics path is per-chunk multi-draw (HV-07B host APIs).
-#   - Concatenated positions/colors/indices remain package ownership totals only.
+# Syntaxes used:
+#   • `@ WebController { selector = "..." }` — controller annotation
+#   • `dom.*` — DOM event APIs: `on_frame`, `on_keyboard`, `on_pointer`, `on_focus`, `on_resize`
+#   • `dom.attr_set` / `dom.text_set` — attribute and text output
+#   • `dom.Scope`, `dom.Subscription`, `dom.Element` — DOM types
+#   • `vacua` — empty list literal
+#   • `∴ fac { ... }` — lambda/closure syntax for event handlers
+#   • `functio`, `genus`, `importa` — throughout
+#   • `si`/`secus` — conditionals
+#   • `dum` — loops over chunks, indices, transitions
+#   • `∪ nihil` — nullable types
+#   • `lista<...>`, `.appende()`, `.longitudo()`
+#   • `↦` — type conversion (numerus ↦ textus, f32 ↦ textus)
+#   • `"§,§"` — string interpolation syntax
+#
+# Alternate approaches (not shown):
+#   • @ WebController — declarative DOM binding vs manual DOM manipulation
+#   • ∴ closures — compact lambda handlers vs named functio for event wiring
+#
+# Anti-patterns (avoid these):
+#   • host-side world mutation — the host only uploads payloads; world state is package-owned
+#   • blocking on pointer-lock denial — denial is an inspectable attr, not a hang
+#
+# Learning path:
+#   Before: HV-05A (voxel.fab) + HV-05B (meshing.fab)
+#   After:  four-chunk-render-facts.fab
+#
+# Stage: HV-06C (browser controllers, selection outline, edit wiring), HV-07C (chunk resources, host queue)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom

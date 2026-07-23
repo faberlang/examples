@@ -1,3 +1,41 @@
+# =============================================================================
+# format — Shared GNU-style text formatting helpers for coreutils packages
+# =============================================================================
+#
+# What this example teaches:
+#   • functio — Helper function that joins a list of words into a space-separated
+#     string
+#   • dum — Index-based iteration through a list
+#   • si/ergo — Guard clause for empty-list early return
+#
+# Syntaxes used:
+#   • functio — function definition (line 40)
+#   • lista<textus> — generic list parameter (line 40)
+#   • si ... ergo — conditional with early return (line 41)
+#   • dum — while loop (line 44)
+#   • varia — mutable variable binding (line 42)
+#   • ≡ — equality comparison (line 41)
+#   • redde — function return (lines 41, 48)
+#   • .longitudo() — length method (lines 41, 44)
+#
+# Alternate approaches (not shown):
+#   • itera ex verba fixum verbum { ... } — for-each iteration over lista values;
+#     removes manual index bookkeeping (see alternates: itera ex vs itera de)
+#   • Built-in lista.coniunge(" ") — replaces the entire function with a single stdlib call
+#
+# Anti-patterns (avoid these):
+#   • Leading/trailing space from naive concatenation — the verba[0]-first-then-join
+#     approach avoids extra spaces but is fragile; § interpolation or built-in join
+#     would be safer for edge cases like single-element lists
+#
+# Learning path:
+#   Before: functio, lista, dum, si, varia (Stage 1–2: corpus keywords)
+#   After:  echo (Stage 6: stdio processing — first consumer of inter_spatia)
+#
+# Stage: Stage 2+ shared coreutils helpers
+# Backend: both
+# =============================================================================
+
 # Shared GNU-style text formatting helpers for coreutils packages.
 
 functio inter_spatia(lista<textus> verba) → textus {

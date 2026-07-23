@@ -9,6 +9,19 @@ aliases = ["iterate"]
 related = ["ex", "de", "ab"]
 +++
 
+# =============================================================================
+# itera — Starts a for-each iteration statement.
+# =============================================================================
+#
+# What this teaches:
+#   • for-each iteration using cursor functions — consumes values yielded via `cede` from a `@cursor` function
+#   • sync and futura cursor modes — `@cursor` and `@futura @cursor` function signatures
+#
+# Common mistakes:
+#   • Forgetting that cursor functions must be marked @ cursor and use cede to yield values — itera ex only works with cursor-annotated functions.
+#
+# See also: ex, de, ab
+# =============================================================================
 
 # itera ex — cursor function return iteration
 #

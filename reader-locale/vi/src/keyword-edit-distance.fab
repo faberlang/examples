@@ -1,1 +1,27 @@
+# =============================================================================
+# Vietnamese locale — keyword edit-distance suggestion diagnostic
+# =============================================================================
+#
+# What this example teaches:
+#   • Keyword suggestion — `hamm` is close to `hàm` (functio) by edit distance;
+#     the reader should suggest the correct keyword
+#   • Locale-aware typo recovery — diagnostic hint using Vietnamese keyword set
+#
+# Syntaxes used:
+#   • hamm — intentional typo (should be hàm) (line 1)
+#
+# Alternate approaches (not shown):
+#   • Correct keyword spelling: hàm is the Vietnamese functio keyword; always verify locale keyword spelling for valid programs
+#
+# Anti-patterns (avoid these):
+#   • Do not rely on the reader to always suggest corrections — validate keyword spelling at authoring time; edit-distance suggestions are a best-effort diagnostic, not a guarantee
+#
+# Learning path:
+#   Before: Stage 1: functio (function keyword declaration)
+#   After:  Stage 1: fixum, varia, si, redde (functions with bindings and control flow)
+#
+# Stage: locale-reader, Vietnamese locale keyword-suggestion fixture
+# Backend: stepper
+# =============================================================================
+
 hamm chào() { }

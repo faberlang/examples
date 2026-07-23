@@ -1,3 +1,32 @@
+# =============================================================================
+# Vietnamese locale — semantic name suggestion diagnostic
+# =============================================================================
+#
+# What this example teaches:
+#   • Semantic name suggestion — `thong_diep` (ASCII transcription) vs declared
+#     `thông_điệp` (diacritics); reader should suggest the correct identifier
+#   • Locale-aware name resolution with character normalization
+#
+# Syntaxes used:
+#   • bắtđầu (incipit) — entry point (line 1)
+#   • hằng (fixum) — immutable binding (line 2)
+#   • ← — value binding (line 2)
+#   • in (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • Unicode normalization pass before identifier lookup: NFKC-normalize both the declared name and the reference to match thông_điệp across diacritic variants
+#
+# Anti-patterns (avoid these):
+#   • Identifiers with different normalization forms (e.g., thông_điệp vs thong_diep) do not match — always use the same composed/diacritic form for declaration and reference
+#
+# Learning path:
+#   Before: Stage 1: fixum, nota (immutable binding and output)
+#   After:  Stage 1: functio, redde (function declarations with identifiers)
+#
+# Stage: locale-reader, Vietnamese locale name-suggestion fixture
+# Backend: stepper
+# =============================================================================
+
 bắtđầu {
   hằng vănbản thông_điệp ← "xin chào"
   in thong_diep

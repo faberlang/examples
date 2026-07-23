@@ -9,6 +9,24 @@ aliases = ["air", "radix lane air"]
 related = ["radix lane", "mir", "tensor"]
 +++
 
+# =============================================================================
+# air lane — accepted AIR routing through MIR-backed targets
+# =============================================================================
+#
+# What this teaches:
+#   • @ radix lane "air" annotation — routes a function through the AIR
+#     (Abstract Intermediate Representation) transform pipeline
+#   • Compiler pipeline — HIR → AIR → MIR for MIR-backed targets like wasm-text
+#   • AIR purity policy — the function must be accepted by the AIR transform;
+#     not all Faber functions can pass through AIR
+#
+# Common mistakes:
+#   • Confusing AIR routing with a separate backend — AIR is a transform detour (HIR → AIR → MIR), not a target backend; the MIR-native backend ultimately consumes the lowered output
+#     detour, not a target backend
+#
+# See also: radix lane, mir, tensor
+# =============================================================================
+
 # air lane — accepted AIR routing through MIR-backed targets
 #
 # AIR is a transform detour, not a backend. This function is accepted by the

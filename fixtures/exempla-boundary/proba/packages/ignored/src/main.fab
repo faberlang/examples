@@ -1,3 +1,33 @@
+# =============================================================================
+# ignored — test package with mixed skip, future, and passing cases
+# =============================================================================
+#
+# What this example teaches:
+#   • Mixed test modifiers — omitte (skip), futurum (todo), and regular proba
+#     in the same package
+#   • Test framework behavior — skipped and future tests do not count as failures
+#
+# Syntaxes used:
+#   • proba — test declaration (lines 1, 5, 9)
+#   • omitte — skip modifier (line 1)
+#   • futurum — todo modifier (line 5)
+#   • adfirma — assertion (lines 2, 6, 10)
+#   • incipit — entry point (line 12)
+#
+# Alternate approaches (not shown):
+#   • Tag-based test selection for conditional includes — use `faber test --tag <tag>` instead of source-level omitte/un-omitte toggling
+#
+# Anti-patterns (avoid these):
+#   • Using omitte unconditionally instead of conditional compilation — omitte permanently skips a test; prefer tag-based selection or conditional compilation for environment-dependent skips
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma, omitte, futurum (test modifiers)
+#   After:  Stage 10: proba/packages/selectors (tag-based selection for CI)
+#
+# Stage: fixture boundary, proba ignored/mixed package
+# Backend: stepper
+# =============================================================================
+
 proba "skipped failing case" omitte "blocked by external service" {
     adfirma falsum
 }

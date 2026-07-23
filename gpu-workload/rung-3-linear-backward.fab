@@ -5,6 +5,25 @@ category = "gpu"
 summary = "Linear backward-pass workload floor probe for the AIR gate."
 related = ["air", "gradient", "tensor", "nucleum"]
 +++
+
+# =============================================================================
+# rung-3-linear-backward — backward pass / gradient workload probe
+# =============================================================================
+#
+# What this teaches:
+#   • AIR-lane gradient function — forward loss computation annotated as
+#     @ radix lane "air" for the autodiff pipeline
+#   • MSE-like loss — (prediction - target)^2 with scalar reverse-mode oracle
+#     d_weight = 2 * (x*weight - target) * x
+#   • @ nucleum wrapper — kernel entry that calls the AIR-lane function on device
+#
+# Common mistakes:
+#   • Assuming @ radix lane "air" alone generates gradients — the backward pass remains producer work until the autograd pipeline is complete; AIR-lane functions currently compute only the forward loss
+#     pass remains producer work until the autograd pipeline is complete
+#
+# See also: air, gradient, tensor, nucleum
+# =============================================================================
+
 # GPU workload rung 3 — backward pass / gradients
 #
 # AIR autodiff is the producer gate for this rung. This legal AIR-lane function

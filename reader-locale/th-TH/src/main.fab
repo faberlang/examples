@@ -1,3 +1,40 @@
+# =============================================================================
+# Thai locale — main application program with Thai keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Thai keyword set: ฟังก์ชัน, คงที่, แปร,
+#     คืน, เริ่ม, แสดง, ถ้า, ถ้าไม่ก็, มิฉะนั้น, ขณะ, วน, ข้าม, หยุด
+#   • Full program with loops, conditionals, early exit, and skip
+#
+# Syntaxes used:
+#   • ฟังก์ชัน (functio) — function definition (lines 1, 13, 19, 34)
+#   • คงที่ (fixum) — immutable binding (lines 2, 44-48)
+#   • แปร (varia) — mutable binding (lines 20, 35)
+#   • ← / § — assignment and template (lines 2, 22, 27, 36)
+#   • คืน (redde) — return (lines 4, 11, 14, 31, 40)
+#   • ถ้า / ถ้าไม่ก็ / มิฉะนั้น (si/sin/secus) — conditionals (lines 7, 9, 12)
+#   • ขณะ (dum) — while loop (line 36)
+#   • วน (itera) — for-each loop (line 21)
+#   • ข้าม (perge) — continue (line 23)
+#   • หยุด (rumpe) — break (line 28)
+#   • แสดง (nota) — print (lines 48-51)
+#   • เริ่ม (incipit) — entry point (line 43)
+#
+# Alternate approaches (not shown):
+#   • Latin keywords with Thai identifiers ("twins" mode) — see twins/main.la.fab
+#
+# Anti-patterns (avoid these):
+#   • Locale keyword sets should be consistent across files in one project — mixing Latin and Thai keywords in the same project creates unnecessary maintenance burden
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → varia → si → redde → functio (all basic block keywords)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Thai locale main program
+# Backend: stepper, reader-locale
+# =============================================================================
+
 ฟังก์ชัน ทักทาย(ข้อความ name) → ข้อความ {
   คงที่ ข้อความ greeting ← "สวัสดี, §!"(name)
   คืน greeting

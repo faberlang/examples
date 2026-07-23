@@ -1,5 +1,33 @@
-# Conversio matrix fixture: numerus ↦ ascii.
-# Phase-1 model: rust ◐ (fallback, no dedicated arm); wasm-text —.
+# =============================================================================
+# numerus ↦ ascii — convert integer to ASCII literal
+# =============================================================================
+#
+# What this example teaches:
+#   • numerus ↦ ascii — encode an integer as an ASCII character literal
+#   • Rust fallback — no dedicated conversion arm yet
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 42 ∷ textus ↦ ascii — convert via textus intermediary when the ascii lane is unavailable
+
+# Anti-patterns (avoid these):
+#   • 42 ∷ ascii — static ascription cannot encode; use ↦
+#   • 42 ↦ ascii expecting 'A' — ↦ formats as decimal digits, not a character code; use chorda methods
+
+# Pitfalls:
+#   • Values outside the ASCII range (0–127) may behave differently by backend
+#   • The output is the decimal text representation, not a single ASCII character
+
+# Learning path:
+#   Before: see numerus/ and ascii/ exempla (Stage 3–5 types)
+#   After:  see cksum/src/main.fab (gnu_bytes.octet_ascius for byte-to-ASCII lookup)
+
+# Stage: Phase-1 model, Rust fallback
+# Backend: Rust ◐, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← 42 ↦ ascii
 }

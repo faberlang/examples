@@ -8,6 +8,22 @@ syntax = "praeparabit <block>"
 related = ["praepara", "postparabit"]
 +++
 
+# =============================================================================
+# praeparabit — Registers an async before-each test hook.
+# =============================================================================
+#
+# What this teaches:
+#   • Async test setup — `praeparabit` registers an async block that runs before
+#     each test case, used when setup involves I/O or future-based operations
+#   • Async counterpart of `praepara`; paired with `postparabit` for async
+#     setup/teardown
+#
+# Common mistakes:
+#   • Confusing `praeparabit` (async setup) with `postparabit` (async teardown) — they run at opposite ends of each test.
+#
+# See also: praepara, postparabit
+# =============================================================================
+
 # praeparabit — async before-each hook
 #
 # GRAMMAR:

@@ -8,6 +8,20 @@ syntax = "<typed-expression> ↦ valor"
 related = ["↦", "valor", "octeti", "lista", "tabula", "genus", "tensor"]
 +++
 
+# =============================================================================
+# valor — T ↦ valor boxing for scalar, byte, collection, genus, and tensor carriers.
+# =============================================================================
+#
+# What this teaches:
+#   • Boxing into valor — `T ↦ valor` boxes any typed value (scalar, byte, collection, genus, tensor) into the canonical dynamic carrier.
+#   • Byte preservation — `octeti ↦ valor` composes as numeric byte values; it must not lossy-decode bytes as text.
+#
+# Common mistakes:
+#   • Expecting to extract a specific type from valor without a matching variant — valor requires the correct runtime variant or `⇥` recovery.
+#
+# See also: ↦, valor, octeti, lista, tabula, genus, tensor
+# =============================================================================
+
 # conversio — typed values to valor boxing
 #
 # WHY: `T ↦ valor` boxes typed values into the canonical dynamic carrier.

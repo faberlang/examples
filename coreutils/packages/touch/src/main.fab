@@ -1,3 +1,36 @@
+# =============================================================================
+# touch — GNU coreutils touch: change file timestamps or create files
+# =============================================================================
+#
+# What this example teaches:
+#   • `solum.tange()` — standard library call for creating/updating file
+#     timestamps, the simplest file-system side-effect utility
+#   • `itera` over `@ operandus ceteri` — processing each path operand in a
+#     loop with a single `solum` call
+#   • Minimal `incipit` — no options, one function call per operand
+#
+# Syntaxes used:
+#   • `importa` — module import (line 1)
+#   • `itera` — for-each over list (line 5)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI annotations (lines 8-11)
+#   • `incipit` — entry point (line 12)
+#   • `solum.tange()` — file touch
+#   • `vacuum` — unit return type
+#   • `textus`, `lista<...>` — type annotations
+#
+# Alternate approaches (not shown):
+#   • `-t` / `-d` custom timestamp, `-c` no-create, `-a`/`-m` access/modify
+#
+# Anti-patterns (avoid these):
+#   • No proba block — would need temp-file fixtures for testing
+#
+# Learning path:
+#   Before: yes
+#   After:  mkdir, rm, cp
+#
+# Stage: Stage 3, file-operand via solum
+# Backend: stepper
+# =============================================================================
 importa ex "norma:solum" privata solum
 
 functio tange_paths(lista<textus> paths) → vacuum {

@@ -8,7 +8,19 @@ syntax = "functio <name>(<params>) [modifiers] [→ <type>] [⇥ <error-type>] <
 aliases = ["function"]
 related = ["→", "⇥", "redde", "sponte", "ceteri", "prae", "curata", "futura", "cursor"]
 +++
-
+# =============================================================================
+# functio — Declares a named function or method
+# =============================================================================
+#
+# What this teaches:
+#   • Declares a named function or method.
+#   • Related keywords: →, ⇥, redde, sponte, ceteri, prae, curata, futura, cursor
+#
+# Common mistakes:
+#   • Using a value after it has been moved by `ex` — `ex` consumes ownership; accessing the value after a move is a use-after-move error (SEM050).
+#
+# See also: →, ⇥, redde, sponte, ceteri, prae, curata, futura, cursor
+# =============================================================================
 
 # Parameter borrow markers: de (shared), in (mutable), ex (consume)
 #

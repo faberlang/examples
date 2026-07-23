@@ -7,6 +7,20 @@ summary = "Failable call propagation: a ⇥-declaring function re-throws a calle
 syntax = "functio <name>(<params>) → <type> ⇥ <error-type> <block>"
 related = ["functio", "⇥", "iace", "↦", "fac", "cape"]
 +++
+# =============================================================================
+# functio — Failable call propagation: a ⇥-declaring function re-throws a callee error without fac/cape
+# =============================================================================
+#
+# What this teaches:
+#   • Failable call propagation: a ⇥-declaring function re-throws a callee error without fac/cape.
+#   • Related keywords: functio, ⇥, iace, ↦, fac, cape
+#
+# Common mistakes:
+#   • Wrapping every failable call in `fac/cape` — propagation functions with `⇥` auto-forward errors without a local handler.
+#
+# See also: functio, ⇥, iace, ↦, fac, cape
+# =============================================================================
+
 # functio propagans — failable call propagation through ⇥
 #
 # A failable function call (→ T ⇥ E) inside a ⇥-declaring function propagates

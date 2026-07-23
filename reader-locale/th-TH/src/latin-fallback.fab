@@ -1,3 +1,30 @@
+# =============================================================================
+# Thai locale — Latin keyword fallback with Thai identifiers
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale fallback — using Latin keywords (incipit, nota) inside a Thai-locale
+#     project directory, demonstrating that Latin keywords remain valid
+#   • Minimal entry point — one print statement
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#   • nota — print to stdout (line 2)
+#
+# Alternate approaches (not shown):
+#   • Full Thai keyword set: ฟังก์ชัน, คงที่, แปร, คืน, เริ่ม, แสดง, ถ้า, etc. for consistent locale experience
+#
+# Anti-patterns (avoid these):
+#   • Locale keyword sets are additive: Latin keywords remain valid in all locales; do not assume a locale directory restricts the keyword surface
+#
+# Learning path:
+#   Before: Stage 1: salve-munde, incipit, nota (bare module-scope output and entry-point block)
+#   After:  Stage 1: fixum, varia, si, redde, functio (binding, control flow, and function declarations)
+#
+# Stage: locale-reader, Thai locale fallback test, Latin keywords still accepted
+# Backend: stepper, reader-locale
+# =============================================================================
+
 incipit {
   nota "fallback"
 }

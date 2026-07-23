@@ -1,6 +1,35 @@
-# Conversio matrix fixture: tensor ↦ lista.
-# Setup: tensor from a flat lista; measure tensor ↦ lista (default flatten).
-# Phase-1 model: rust ✓ (.planata()); wasm-text —.
+# =============================================================================
+# tensor ↦ lista — flatten tensor into a list
+# =============================================================================
+#
+# What this example teaches:
+#   • tensor ↦ lista — flatten a tensor's elements into a flat list
+#   • Two-step setup: lista → tensor (seed), then tensor → lista (flatten)
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — lines 11, 12
+#   • incipit (entry point) — line 9
+#   • fixum (immutable binding) — lines 10, 11, 12
+#   • tensor<numerus, [3]> (tensor type with static shape) — lines 10
+#
+# Alternate approaches (not shown):
+#   • itera ex tensor — element-wise iteration without materializing; prefer for large tensors
+
+# Anti-patterns (avoid these):
+#   • tensor ∷ lista — static ascription cannot flatten; use ↦
+#   • tensor<f32, [2,3]> ↦ lista<f32> expecting row-major order — order is backend-dependent
+
+# Pitfalls:
+#   • Flattening loses shape information — the resulting list has no dimensional structure
+#   • Large tensors allocate a full flat list; verify memory budget
+
+# Learning path:
+#   Before: see tensor/ and lista/ exempla (Stage 6 types)
+#   After:  see hello-voxel/src/meshing.fab (tensor→list for mesh serialization)
+
+# Stage: Phase-1 model, Rust only (tensor not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum tensor<numerus, [3]> t ← [1, 2, 3] ↦ tensor<numerus, [3]>
     fixum _ r ← t ↦ lista<numerus>

@@ -8,6 +8,20 @@ syntax = "modulus<u32>"
 related = ["numerus", "¬", "⇐", "⇒"]
 +++
 
+# =============================================================================
+# modulus<u32> — Unsigned 32-bit modular-word arithmetic and bit-pattern edges.
+# =============================================================================
+#
+# What this teaches:
+#   • Modular word contract — `modulus<u32>` is an unsigned 32-bit word with wrapping arithmetic.
+#   • Edge cases — Max + 1, zero - 1, and 1 ⇐ 32 demonstrate wrapping at the 32-bit boundary.
+#
+# Common mistakes:
+#   • Assuming modular word division or remainder by zero returns a value instead of failing.
+#
+# See also: numerus, ¬, ⇐, ⇒
+# =============================================================================
+
 # operatores/modular-word — modulus<u32> edge vectors
 #
 # MODULAR WORD CONTRACT:

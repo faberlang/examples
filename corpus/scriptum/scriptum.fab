@@ -8,6 +8,22 @@ syntax = "\"<template>\"(<args>...)"
 related = ["lege", "lineam"]
 +++
 
+# =============================================================================
+# scriptum — Creates a formatted string with `§` placeholders.
+# =============================================================================
+#
+# What this teaches:
+#   • String template interpolation — `"template § and §"(arg1, arg2)` replaces
+#     `§` placeholders with positional arguments
+#   • Templates can contain any expression as an argument, not just variables
+#
+# Common mistakes:
+#   • Confusing `scriptum` (template desugaring into function calls) with bare `§` interpolation outside of the template syntax.
+#
+# See also: lege, lineam
+# =============================================================================
+
+
 
 # scriptum — string-template interpolation ("§" slots)
 #

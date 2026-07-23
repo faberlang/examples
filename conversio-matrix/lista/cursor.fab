@@ -1,5 +1,33 @@
-# Conversio matrix fixture: lista ↦ cursor.
-# Phase-1 model: rust ✓ (eager buffer wrap); wasm-text ✓.
+# =============================================================================
+# lista ↦ cursor — wrap list as a lazy cursor
+# =============================================================================
+#
+# What this example teaches:
+#   • lista ↦ cursor — wrap an existing list for cursor-based iteration
+#   • Eager buffer wrap — the underlying list is buffered in memory
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • itera ex lista — direct iteration without cursor wrapping; prefer for simple loops
+
+# Anti-patterns (avoid these):
+#   • Building a cursor from an empty list — empty cursors are valid but yield nothing
+#   • lista ∷ cursor — static ascription does not create a cursor; use ↦
+
+# Pitfalls:
+#   • The underlying list is shared — mutating the original list affects the cursor
+#   • Cursor wraps eagerly; large lists still occupy memory
+
+# Learning path:
+#   Before: see lista/ exempla (Stage 3) and cursor/ exempla (Stage 6)
+#   After:  see cat/src/main.fab (cursor-based patterns for file reading)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← [1, 2, 3] ↦ cursor<numerus>
 }

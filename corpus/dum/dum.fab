@@ -8,6 +8,22 @@ syntax = "dum <condition> <block|ergo statement>"
 aliases = ["while"]
 related = ["si", "ergo", "fac"]
 +++
+
+# =============================================================================
+# dum — Repeats a block while a condition remains true.
+# =============================================================================
+#
+# What this teaches:
+#   • While loop — `dum <condition> { <body> }` repeats a block as long as the condition is true.
+#   • Loop variable mutation — mutable `varia` bindings allow counter-based loop control.
+#   • Ascending and descending loops — counting up from 0 or down from N until the condition is falsum.
+#
+# Common mistakes:
+#   • Using `rumpe` or `perge` outside a loop — both are only valid inside `dum`, `itera`, `fac`, `meus`, or `tuus` blocks (SEM030, SEM031).
+#
+# See also: si, ergo, fac
+# =============================================================================
+
 # dum — while loop
 #
 # dum <condition> { <body> }

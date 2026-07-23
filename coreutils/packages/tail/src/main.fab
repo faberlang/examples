@@ -1,3 +1,56 @@
+# =============================================================================
+# tail — GNU coreutils tail: output the last part of files
+# =============================================================================
+#
+# What this example teaches:
+#   • `genus` for configuration — `TailOptiones` bundles parsed mode (line count,
+#     ab_initio flag) from the command line
+#   • Local option parsing — `tail_parse` walks raw operand strings (including
+#     `-n +N` start-line mode) because the framework normalizes away the `+`
+#     sign before the package sees it
+#   • `↦` with result fallback `⇥` — parsing numeric arguments with default
+#     fallback (line 89: `↦ numerus ⇥ 1`)
+#   • Pure selection helpers — `cauda_linearum` and `cauda_ab_linea` are pure
+#     functions exercising last-N and start-line slicing on `lista<textus>`
+#   • `fac`/`dum` post-check loop — idiomatic forever-loop pattern for
+#     stdin reading
+#
+# Syntaxes used:
+#   • `genus` — struct type (lines 4-8)
+#   • `lege` — stdin read (line 76)
+#   • `∪` — nullable union type (line 76)
+#   • `nihil` — EOF sentinel (line 77)
+#   • `vel` — fallback (lines 68, 77, 83, 89, 108, 144)
+#   • `≡` — equality (passim)
+#   • `↦` — type conversion (lines 89, 90)
+#   • `⇥` — conversion fallback (lines 89, 90)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (lines 35, 38, 47, 52, 56, etc.)
+#   • `fac`/`dum` — post-check loop (lines 75-80)
+#   • `itera` — for-each over list (lines 162)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 118-155)
+#   • `@ cli` / `@ descriptor` / `@ operandus` — CLI declarations (lines 157-159)
+#   • `incipit` — entry point (line 160)
+#   • `.longitudo()` — list/string length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#   • `.sectio()` — string slice (lines 89, 95, 107)
+#
+# Alternate approaches (not shown):
+#   • Byte-mode tail (`-c`) instead of line-mode
+#   • `-f` follow mode with file descriptor polling
+#
+# Anti-patterns (avoid these):
+#   • Hand-rolled flag parser for `-n +N` — a framework improvement
+#     would let `+N` survive as a numeric with a sign flag
+#
+# Learning path:
+#   Before: head
+#   After:  sort, uniq
+#
+# Stage: Stage 4, stdin-only line-mode tail
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 genus TailOptiones {
@@ -5,9 +58,6 @@ genus TailOptiones {
     bivalens ab_initio
 }
 
-# This Stage 4 coreutils slice is stdin-only and line-oriented.
-# File operands, byte counts, follow mode, diagnostics, and headers are
-# deferred until later slices can model them honestly.
 functio numerus_caudae(numerus petitus) → numerus {
     si petitus < 0 ergo redde 0
     redde petitus

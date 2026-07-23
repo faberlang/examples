@@ -1,3 +1,40 @@
+# =============================================================================
+# sqlite — SQLite FFI binding declarations
+# =============================================================================
+#
+# What this example teaches:
+#   • FFI function declarations — functio signatures with no body, representing
+#     external SQLite C API bindings
+#   • ⇥ (effect type) — recoverable error contract: functions return `⇥ textus`
+#     meaning they may fail with a textus error
+#   • ∪ (union type) — `valor ∪ nihil` for nullable return values (line 4)
+#   • Batch/transaction patterns — exsequi_batch for multi-statement execution,
+#     transactio for atomic multi-step commits
+#
+# Syntaxes used:
+#   • functio — FFI declaration (lines 1-6)
+#   • → — return type (lines 1-6)
+#   • ⇥ — recoverable error effect (lines 1-4)
+#   • ∪ — union type (line 4)
+#   • textus, valor, lista<valor>, octeti — parameter/return types
+#   • # — doc comment for transactio (line 5)
+#
+# Alternate approaches (not shown):
+#   • Using fac/cape for error handling on call sites — wrap FFI calls in fac { ... } cape err { ... } to handle recoverable errors
+#   • Typed parameter structs instead of lista<valor> — define a genus for parameters to gain compile-time type checking over dynamic lista<valor> bindings
+#
+# Anti-patterns (avoid these):
+#   • Ignoring the ⇥ error contract on call sites — unhandled ⇥ errors propagate upward and crash if never caught; always handle or propagate error contracts
+#   • Assuming lista<valor> parameters are type-checked at compile time — valor is a dynamic type; lista<valor> parameters are not type-checked by FFI signatures, only at runtime in the target binding
+#
+# Learning path:
+#   Before: Stage 3: genus, lista, nihil → Stage 11: ⇥ effect type annotations (FFI declarations with error contracts)
+#   After:  Stage 13: vivilite (full SQLite application with dual-backend architecture)
+#
+# Stage: sqlite, FFI binding declarations, error contracts via ⇥
+# Backend: stepper (declaration only)
+# =============================================================================
+
 functio exsequi(textus via, textus sql, lista<valor> params) → valor ⇥ textus
 functio exsequi_batch(textus via, lista<valor> statements) → lista<valor> ⇥ textus
 functio quaere(textus via, textus sql, lista<valor> params) → lista<valor> ⇥ textus

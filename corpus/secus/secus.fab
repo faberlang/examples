@@ -9,6 +9,22 @@ aliases = ["else", "otherwise"]
 related = ["si", "sin"]
 +++
 
+# =============================================================================
+# secus — Runs the fallback branch when preceding conditional branches do not
+# match.
+# =============================================================================
+#
+# What this teaches:
+#   • Conditional fallback — `secus` provides the else/otherwise branch that
+#     runs when no preceding `si` or `sin` condition matched
+#   • Always comes last in an if-else chain; takes a block body
+#
+# Common mistakes:
+#   • Writing `secus si` instead of the canonical `sin` for else-if branches — `secus` must always be final.
+#
+# See also: si, sin
+# =============================================================================
+
 # secus — final else branch
 #
 # GRAMMAR:

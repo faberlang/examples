@@ -1,3 +1,47 @@
+# =============================================================================
+# Thai locale twins — Latin keywords with Thai identifiers
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale "twins" mode — Latin keywords (functio, fixum, redde, etc.) with
+#     Thai-language identifiers and string content
+#   • Full program parity with Thai-keyword version (salve-munde.th-TH.fab)
+#   • Complete program: functions, loops, conditionals, early exit
+#
+# Syntaxes used:
+#   • functio — function definition (lines 1, 13, 19, 34)
+#   • fixum — immutable binding (lines 2, 44-48)
+#   • textus — string type (lines 1-2)
+#   • numerus — number type (lines 13, 19, 35, 45-46)
+#   • bivalens — boolean type (line 13)
+#   • lista<numerus> — list type (line 19)
+#   • ← — value binding (lines 2, 22, 27, 36)
+#   • § — template interpolation (line 2)
+#   • redde — return (lines 4, 11, 14, 31, 40)
+#   • si / sin / secus — conditionals (lines 7, 9, 12, 22, 24, 27)
+#   • dum — while loop (line 36)
+#   • itera ex — for-each loop (line 21)
+#   • perge — continue (line 23)
+#   • rumpe — break (line 28)
+#   • nota — print (lines 48-51)
+#   • verum / falsum — boolean literals (lines 8, 13)
+#   • incipit — entry point (line 43)
+#   • ≥ / > — comparisons (lines 7, 9, 25, 29, 37)
+#
+# Alternate approaches (not shown):
+#   • Full Thai keyword set: ฟังก์ชัน, คงที่, แปร, คืน, เริ่ม, แสดง, ถ้า, etc. — see salve-munde.th-TH.fab for native-language coding
+#
+# Anti-patterns (avoid these):
+#   • Mixing Latin and Thai keywords in the same file — pick one keyword set per file for consistency; "twins" mode uses Latin keywords only
+#
+# Learning path:
+#   Before: Stage 1: salve-munde → incipit → fixum → varia → si → redde → functio (all basic keywords in Latin)
+#   After:  Stage 2: dum, elige, fac/cape, itera → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Thai locale twins mode (Latin keywords + Thai identifiers)
+# Backend: stepper, reader-locale
+# =============================================================================
+
 functio ทักทาย(textus name) → textus {
     fixum textus greeting ← scriptum("สวัสดี, §!", name)
     redde greeting

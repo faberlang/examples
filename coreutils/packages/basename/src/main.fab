@@ -1,3 +1,46 @@
+# =============================================================================
+# basename — strip directory and suffix from pathnames
+# =============================================================================
+#
+# What this example teaches:
+#   • functio with → return type — pure functions for path decomposition
+#   • dum and itera loops — while and for-each over strings and lists
+#   • si/sin/secus/ergo — multi-branch conditionals
+#   • probandum/proba/adfirma — inline test framework without external runner
+#   • @ cli / @ optio / @ operandus — declarative CLI interface with generated parser
+#   • incipit — entry point wiring CLI args to pure logic
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → textus — lines 3, 14, 30, 41, 44, 70
+#   • si … ergo … — lines 5, 16-17, 32-34, 35, 47-49, 55-57, 63
+#   • dum — lines 7-8, 19-23
+#   • varia / fixum — throughout
+#   • ≡ (equality) — lines 5, 16, 17, 22, 32, 33, 34, 35, 47, 48, 55, 56, 57
+#   • itera ex — lines 50, 73
+#   • redde — lines 5, 10, 17, 24, 29, 33, 34, 35, 36, 42, 56, 57, 63, 66, 67, 75
+#   • secus — lines 51, 58
+#   • probandum / proba / adfirma — lines 78-113
+#   • @ cli / @ descriptio / @ optio / @ operandus — lines 118-122
+#   • incipit — line 123
+#   • ∪ nihil (union with nihil) — line 127
+#   • vel (default fallback) — lines 113, 128
+#
+# Alternate approaches (not shown):
+#   • custodi guard block vs ad-hoc si checks — groups preconditions for edge case coverage
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: echo
+#   After:  cut, expand
+#
+# Stage: Stage 2-4, GNU coreutils path decomposition parity
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 functio sine_slash_finali(textus via) → textus {

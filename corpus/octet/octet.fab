@@ -8,6 +8,20 @@ syntax = "octet"
 related = ["octeti", "numerus", "lista"]
 +++
 
+# =============================================================================
+# octet — octet is the byte scalar, a builtin spelling for numerus<u8>, the element type of octeti.
+# =============================================================================
+#
+# What this teaches:
+#   • Byte scalar type — `octet` is a byte-facing alias for `numerus<u8>`, the element type of byte buffers.
+#   • Interoperability — `octet` converts bidirectionally with `numerus<u8>` and pairs naturally with `octeti`.
+#
+# Common mistakes:
+#   • Confusing octet (scalar byte) with octeti (byte buffer) — octet is numerus<u8>, octeti is a lista<numerus<u8>> buffer.
+#
+# See also: octeti, numerus, lista
+# =============================================================================
+
 # octet - byte scalar (numerus<u8>)
 #
 # WHY: pairs with octeti (the buffer). octet is numerus<u8> under a byte-facing

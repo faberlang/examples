@@ -1,3 +1,54 @@
+# =============================================================================
+# grammatica-nova — comprehensive annotation grammar demonstration
+# =============================================================================
+#
+# What this example teaches:
+#   • Annotation keyword-dispatch grammar — @ <keyword> [args...] syntax for
+#     declaration metadata: @ publica, @ privata, @ futura, @ cli, @ optio,
+#     @ operandus, @ imperium, @ alias, @ nomen, @ verte, @ radix
+#   • CLI framework — @ cli + @ optio + @ operandus + @ imperium for building
+#     structured CLI applications with subcommands, options, and positional args
+#   • Named config blocks — @ nomen + fac {} for scoped configuration
+#   • Visibility annotations — @ publica / @ privata on genus declarations
+#   • Async annotation — @ futura for async functions
+#   • Cross-compilation — @ verte and @ radix for library bindings
+#
+# Syntaxes used:
+#   • importa ex — module imports with aliases and wildcards (lines 15-20)
+#   • @ publica / @ privata — visibility (lines 28-31)
+#   • @ futura — async declaration (line 36)
+#   • @ cli — CLI program declaration (line 48)
+#   • @ versio — version annotation (line 49)
+#   • @ descriptio — description annotation (lines 50, 74, 85)
+#   • @ optio — CLI option definition (lines 59-61)
+#   • @ operandus — CLI positional argument (lines 69-70)
+#   • @ imperium — CLI subcommand (lines 82, 89)
+#   • @ alias — subcommand alias (lines 83, 90)
+#   • @ nomen — named configuration block (lines 101, 107, 113)
+#   • @ indentum / @ tabulae / @ latitudo — formatter configuration
+#   • @ ordinatio / @ separaGroups — import ordering configuration
+#   • @ bracchiae / @ methodiSeparatio — code style configuration
+#   • @ verte — language binding annotation (lines 123-124)
+#   • @ radix — compiler routing annotation (line 122)
+#   • genus — struct definitions (lines 29, 31, 121)
+#   • functio — function definitions (lines 38, 87, 93)
+#   • incipit argumenta — entry point with CLI arguments (line 51)
+#   • fac — scope block (lines 102, 108, 114)
+#
+# Alternate approaches (not shown):
+#   • Manual CLI argument parsing without @ cli annotations — @ operandus and @ optio provide compile-time type safety over manual argumenta() inspection
+#
+# Anti-patterns (avoid these):
+#   • Over-annotating with metadata that duplicates type information — annotations should add declarative intent; do not repeat type details already expressed in the signature
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica → Stage 10: probandum/proba (annotations for CLI and testing)
+#   After:  Stage 11: meta/*, directiva/* (advanced annotation contracts)
+#
+# Stage: fixture boundary, annotation grammar reference, CLI framework demo
+# Backend: stepper
+# =============================================================================
+
 # New Annotation Grammar Example
 #
 # Demonstrates the unified keyword-dispatch grammar for annotations:

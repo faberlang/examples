@@ -7,7 +7,19 @@ summary = "Genus constructor hook that runs after field initialization."
 syntax = "genus <name> { … functio creo() { … } }"
 related = ["genus", "creo"]
 +++
-
+# =============================================================================
+# genus — Genus constructor hook that runs after field initialization
+# =============================================================================
+#
+# What this teaches:
+#   • Genus constructor hook that runs after field initialization.
+#   • Related keywords: genus, creo
+#
+# Common mistakes:
+#   • Using `ego` outside a genus method — `ego` is only valid inside genus methods including `creo` (SEM008).
+#
+# See also: genus, creo
+# =============================================================================
 
 # Genus with constructor hook (creo)
 #

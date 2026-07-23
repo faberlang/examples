@@ -8,6 +8,22 @@ syntax = "faber run --target fmir-bin examples/corpus/tensor-fragment/tiny-linea
 related = ["tensor", "matmul", "inference", "fragment"]
 +++
 
+# =============================================================================
+# tensor fragment — Tiny linear inference fragment: y = x·W + b.
+# =============================================================================
+#
+# What this teaches:
+#   • Linear inference pipeline — constructing tensors, computing matmul, adding bias
+#   • FMIR package path — proving matmul and bias-add compose through the package target
+#
+# Common mistakes:
+#   • mismatching matrix dimensions for the matmul inner product — [M×K] · [K×N] requires matching K
+#
+# See also: tensor, matmul, inference, fragment
+# =============================================================================
+
+
+
 # tensor fragment — rung 0: tiny linear (y = x·W + b)
 #
 # Shape: input [4×3] · weight [3×2] + bias [4×2] = output [4×2]

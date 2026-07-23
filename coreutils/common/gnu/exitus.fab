@@ -1,3 +1,36 @@
+# =============================================================================
+# exitus — GNU-style exit status constants for coreutils packages
+# =============================================================================
+#
+# What this example teaches:
+#   • fixum — Declaring named integer constants with compile-time fixed values
+#   • UPPERCASE naming convention — idiomatic constant naming pattern
+#
+# Syntaxes used:
+#   • fixum — immutable constant binding (lines 37-38)
+#   • numerus — integer type (lines 37-38)
+#   • ← — assignment of literal value (lines 37-38)
+#
+# Alternate approaches (not shown):
+#   • ordo Exitus { OK, FAIL } — enum groups exit codes under a named variant set;
+#     cleaner than raw integer constants (see alternates: ordo vs discretio vs raw constants)
+#   • discretio Exitus — tagged union for richer exit semantics, e.g. carrying an
+#     error message payload alongside the code
+#
+# Anti-patterns (avoid these):
+#   • Magic numbers 0/1 scattered in code — obscures semantic meaning; always
+#     prefer named fixum constants for process exit codes
+#   • varia for exit code constants — exit values should never be reassigned;
+#     fixum enforces single-source-of-truth (see anti-patterns: SEM020, WARN013)
+#
+# Learning path:
+#   Before: fixum, numerus (Stage 1–3: corpus keywords)
+#   After:  true, false (Stage 5: first coreutils using EXITUS_OK/FAIL)
+#
+# Stage: Stage 2+ shared coreutils helpers
+# Backend: both
+# =============================================================================
+
 # GNU-style exit status constants for coreutils packages.
 
 fixum numerus EXITUS_OK ← 0

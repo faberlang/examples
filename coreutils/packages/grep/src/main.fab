@@ -1,15 +1,60 @@
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps grep in the stdin-only stepper lane.
+# =============================================================================
+# grep — print lines that match patterns
+# =============================================================================
+#
+# What this example teaches:
+#   • genus for option bundle — GrepOptiones struct with flags and pattern lists
+#   • Manual argv parse — dum loop extracting -e, -i, -v, -c, -n from raw operands
+#   • OR pattern matching — exemplaria_activa merges -e patterns and positional arg
+#   • Case-insensitive comparison — .minuscula() on both sides
+#   • Invert, count-only, line-number modes — filtering and formatting variants
+#   • Multi-flag composition — -i -n -e repeated with -v tested together
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → … — lines 14, 24, 37, 93, 97, 103, 112, 117, 121, 146
+#   • genus … { … } — lines 14-22
+#   • dum — lines 46, 148
+#   • si / sin / secus — throughout
+#   • varia / fixum — throughout
+#   • ≡ / > / < — throughout
+#   • itera ex — lines 106, 127, 150, 153
+#   • redde — throughout
+#   • probandum / proba / adfirma — lines 160-195
+#   • @ cli / @ descriptio / @ operandus — lines 197-199
+#   • incipit — line 200
+#   • ∪ nihil — lines 107, 151
+#   • vel — throughout
+#   • vacua — throughout
+#   • tacet — line 83
+#   • non est — line 52
+#   • falsum / verum — throughout
+#
+# Stage: Stage 4, stdin-only literal substring matching with GNU -i/-v/-c/-n/-e parity
+# Backend: stepper
+#
 # This slice implements literal substring matching over newline-terminated ASCII
 # lines only. Regex parsing, file operands, binary input policy, context output,
 # color, recursive search, diagnostics, help/version, and locale-sensitive case
 # folding are deferred until later slices can model those GNU surfaces honestly.
 # `-i`, `-v`, `-c`, `-n`, positional PATTERN, and repeated `-e PATTERN` are
-# supported for declared fixtures. `-e` patterns win when supplied; extra
-# operands are not opened as files in this stdin-only slice. No-match exit
-# status 1 is deferred because this stepper entry currently emits output but
-# does not model dynamic process exit.
+# supported. `-e` patterns win when supplied; extra operands are not opened as
+# files in this stdin-only slice. No-match exit status 1 is deferred because
+# this stepper entry currently does not model dynamic process exit.
+#
+# Alternate approaches (not shown):
+#   • @ optio generated parser vs manual dum loop for repeated -e PATTERN — generated parser stores one value per flag, needs loop for multiple -e (alternates doc §@ optio/@ operandus)
+#
+# Anti-patterns (avoid these):
+#   • si condition must be bivalens — Faber requires explicit boolean conditions, no truthy/falsy coercion
+#   • lege returns textus ∪ nihil — always check est nihil before use, vel for default fallback
+#
+# Learning path:
+#   Before: wc, echo
+#   After:  sort, tr
+# =============================================================================
+
+importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 genus GrepOptiones {
     lista<textus> patterns

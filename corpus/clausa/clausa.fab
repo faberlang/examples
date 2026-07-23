@@ -8,6 +8,25 @@ syntax = "<params> ∴ <expression> | (<params>) → <type> ∴ <expression>"
 aliases = ["lambda", "closure"]
 related = ["∴", "functio", "numerus"]
 +++
+
+# =============================================================================
+# clausa — Closure and lambda expressions with inferred or annotated types.
+# =============================================================================
+#
+# What this teaches:
+#   • Closure syntax — `<params> ∴ <expression>` defines an inline anonymous
+#     function with inferred return type
+#   • Typed closures — `(params) → <type> ∴ <expression>` adds explicit
+#     return type annotation
+#   • Higher-order usage — closures can be stored in variables, passed to
+#     iterators, and used as predicates
+#
+# Common mistakes:
+#   • confusing `clausa` (closure expression) with `functio` (named function declaration), or omitting parentheses on multi-parameter typed closures
+#
+# See also: ∴, functio, numerus
+# =============================================================================
+
 # clausa — closure / lambda expressions
 #
 # <params> ∴ <expr>

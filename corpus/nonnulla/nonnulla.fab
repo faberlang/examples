@@ -9,6 +9,20 @@ syntax = "<expression> non est nihil"
 related = ["nihil", "est", "non est"]
 +++
 
+# =============================================================================
+# nonnulla — Retired prefix predicate; use value non est nihil.
+# =============================================================================
+#
+# What this teaches:
+#   • Retired syntax — This prefix predicate predates the modern `value non est nihil` pattern.
+#   • Legacy compatibility — Understand why old code uses `nonnulla` and how to migrate.
+#
+# Common mistakes:
+#   • Writing new code with the retired prefix predicate — use value non est nihil instead.
+#
+# See also: nihil, est, non est
+# =============================================================================
+
 # nonnulla — retired prefix predicate
 #
 # GRAMMAR:

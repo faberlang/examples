@@ -9,6 +9,20 @@ related = ["nota", "vide", "mone", "scribe"]
 +++
 
 
+# =============================================================================
+# nota — Diagnostic output severities: nota, vide, and mone.
+# =============================================================================
+#
+# What this teaches:
+#   • Diagnostic severity levels — `nota` for neutral info, `vide` for inspection, `mone` for warnings.
+#   • Multiple arguments — Each statement accepts comma-separated expressions.
+#
+# Common mistakes:
+#   • Confusing diagnostic output (nota/vide/mone) with scribe (stdout) — diagnostic statements go to diagnostic channels, not stdout.
+#
+# See also: nota, vide, mone, scribe
+# =============================================================================
+
 # nota, vide, mone — diagnostic severity levels
 #
 # nota <expr>[, <expr>…]

@@ -1,3 +1,33 @@
+# =============================================================================
+# Arabic locale — non-ASCII numerals (Arabic-Indic digits)
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale numeral parsing — Arabic-Indic digit ١ (U+0661) parsed as numerus 1
+#   • Error detection for non-ASCII number literals in contexts that reject them
+#
+# Syntaxes used:
+#   • بداية (incipit) — entry point (line 1)
+#   • ثابت (fixum) — immutable binding (line 2)
+#   • عدد (numerus) — number type annotation (line 2)
+#   • ← — value binding (line 2)
+#   • ١ — Arabic-Indic numeral one (line 2)
+#   • اعرض (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ASCII digits with locale keywords: 42 is always valid regardless of locale keyword or numeral set
+#
+# Anti-patterns (avoid these):
+#   • Arabic-Indic digits (١-٩) and other non-ASCII numerals are valid in number literals — do not assume ASCII digits are required in all locale configurations
+#
+# Learning path:
+#   Before: Stage 1: fixum, numerus (numeric binding basics with type annotation)
+#   After:  Stage 2: dum, elige, fac/cape (control flow with numeric comparisons)
+#
+# Stage: locale-reader, Arabic locale numeral edge case, demonstrates digit acceptance
+# Backend: stepper
+# =============================================================================
+
 بداية {
   ثابت عدد قيمة ← ١
   اعرض قيمة

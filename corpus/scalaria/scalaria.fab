@@ -8,6 +8,24 @@ syntax = "functio <name>(<scalar-params>) → <scalar-type> <block>"
 related = ["numerus", "fractus", "bivalens"]
 +++
 
+# =============================================================================
+# scalaria — Scalar operations on numerus, fractus, and bivalens in function
+# signatures.
+# =============================================================================
+#
+# What this teaches:
+#   • Primitive type operations — demonstrates `numerus` arithmetic, `fractus`
+#     division, `bivalens` comparison and boolean logic in function signatures
+#   • Function composition — shows how scalar types compose through parameters
+#     and return types
+#
+# Common mistakes:
+#   • Mixing `numerus` and `fractus` without explicit `↦` conversion — primitive families have distinct type widths (SEM008).
+#
+# See also: numerus, fractus, bivalens
+# =============================================================================
+
+
 
 # scalaria — scalar operations on primitive types
 #

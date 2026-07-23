@@ -1,6 +1,34 @@
-# Conversio matrix fixture: cursor ↦ lista.
-# Setup: cursor from a lista; measure cursor ↦ lista (eager materialize).
-# Phase-1 model: rust ✓; wasm-text ✓.
+# =============================================================================
+# cursor ↦ lista — materialize a cursor into a list
+# =============================================================================
+#
+# What this example teaches:
+#   • cursor ↦ lista — eagerly materialize all elements from a cursor
+#   • Two-step setup: lista → cursor (seed), then cursor → lista (collect)
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — lines 10, 11
+#   • incipit (entry point) — line 9
+#   • fixum (immutable binding) — lines 10, 11
+#
+# Alternate approaches (not shown):
+#   • itera ex cursor — lazy iteration without materializing; prefer when you only need one pass
+
+# Anti-patterns (avoid these):
+#   • itera ex cursor multiple times — cursors are single-pass; convert to lista for reuse
+#   • lista ∷ cursor — static ascription cannot create a cursor; use ↦
+
+# Pitfalls:
+#   • Cursor is consumed by conversion — cannot iterate after ↦ lista
+#   • Large cursors allocate full memory; prefer streaming iteration for big data
+
+# Learning path:
+#   Before: see cursor/ and lista/ exempla (Stage 6 types)
+#   After:  see cat/src/main.fab (cursor-based file iteration with itera ex)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum cursor<numerus> c ← [1, 2, 3] ↦ cursor<numerus>
     fixum _ r ← c ↦ lista<numerus>

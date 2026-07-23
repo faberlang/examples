@@ -1,3 +1,37 @@
+# =============================================================================
+# readlink — GNU coreutils readlink: print resolved symbolic links
+# =============================================================================
+#
+# What this example teaches:
+#   • `solum.sequere()` — standard library call for symbolic link resolution
+#   • Single-operand CLI — reading the first element of `@ operandus ceteri`
+#     with `.accipe(0)` for a scalar operand
+#   • `si` guard for non-empty operand lists before processing
+#
+# Syntaxes used:
+#   • `importa` — module import (lines 1-2)
+#   • `si`/`ergo` — conditional (line 7)
+#   • `.longitudo()` — list length (line 7)
+#   • `.accipe()` — indexed list access (line 8)
+#   • `vel` — fallback (line 8)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI annotations (lines 11-13)
+#   • `incipit` — entry point (line 14)
+#   • `solum.sequere()` — symlink resolution
+#   • `gnu_stdio.scribe_linea()` — stdout helper
+#
+# Alternate approaches (not shown):
+#   • `-f` canonicalize mode, `-e` existence check, `-m` missing components
+#
+# Anti-patterns (avoid these):
+#   • No proba block — test helpers should exist for the pure function
+#
+# Learning path:
+#   Before: yes
+#   After:  mkdir, rm, cp
+#
+# Stage: Stage 3, file-operand via solum
+# Backend: stepper
+# =============================================================================
 importa ex "norma:solum" privata solum
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

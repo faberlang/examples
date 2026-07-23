@@ -1,3 +1,32 @@
+# =============================================================================
+# Simplified Chinese locale — non-ASCII numerals (full-width digit)
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale numeral parsing — full-width digit １ (U+FF11) parsed as numerus 1
+#
+# Syntaxes used:
+#   • 入口 (incipit) — entry point (line 1)
+#   • 常量 (fixum) — immutable binding (line 2)
+#   • 整数 (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • １ — full-width digit one (line 2)
+#   • 显示 (nota) — print (line 3)
+#
+# Alternate approaches (not shown):
+#   • ASCII digits with locale keywords: 42 is always valid regardless of locale keyword set
+#
+# Anti-patterns (avoid these):
+#   • Full-width digits (U+FF10–U+FF19) are valid in number literals — do not assume only ASCII digits are accepted
+#
+# Learning path:
+#   Before: Stage 1: fixum, numerus (numeric binding basics)
+#   After:  Stage 2: dum, elige, fac/cape (control flow with numeric comparisons)
+#
+# Stage: locale-reader, Simplified Chinese numeral edge case
+# Backend: stepper
+# =============================================================================
+
 入口 {
   常量 整数 值 ← １
   显示 值

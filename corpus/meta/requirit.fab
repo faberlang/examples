@@ -8,6 +8,20 @@ syntax = "requirit <string>"
 related = ["solum_in", "fragilis", "probandum"]
 +++
 
+# =============================================================================
+# requirit — Requires a named test fixture or capability.
+# =============================================================================
+#
+# What this teaches:
+#   • the `requirit` modifier on tests — declares a required capability (e.g., `"net"` for network tests)
+#   • test-level capability gating — tests are skipped if the capability is unavailable
+#
+# Common mistakes:
+#   • Forgetting to provide the required capability string — requirit needs a named capability like "net" or "filesystem".
+#
+# See also: solum_in, fragilis, probandum
+# =============================================================================
+
 # meta/requirit — test capability requirement modifier
 #
 # GRAMMAR:

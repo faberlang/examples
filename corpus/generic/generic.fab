@@ -7,7 +7,19 @@ summary = "Generic functions with angle-bracket type and magnitudo parameters."
 syntax = "functio <name><T, magnitudo N>(<params>) → <type> <block>"
 related = ["functio", "genus", "magnitudo"]
 +++
-
+# =============================================================================
+# generic — Generic functions with angle-bracket type and magnitudo parameters
+# =============================================================================
+#
+# What this teaches:
+#   • Generic functions with angle-bracket type and magnitudo parameters.
+#   • Related keywords: functio, genus, magnitudo
+#
+# Common mistakes:
+#   • Type parameter not satisfying bounds — generic parameters must meet any constraints declared on the generic function or genus.
+#
+# See also: functio, genus, magnitudo
+# =============================================================================
 
 # Generic functions with angle-bracket type parameters
 #

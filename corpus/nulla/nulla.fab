@@ -9,6 +9,20 @@ syntax = "<expression> est nihil"
 related = ["nihil", "est", "non est"]
 +++
 
+# =============================================================================
+# nulla — Retired prefix predicate; use value est nihil.
+# =============================================================================
+#
+# What this teaches:
+#   • Retired syntax — This prefix predicate predates the modern `value est nihil` pattern.
+#   • Null checking — Understanding how null checks evolved from prefix to infix.
+#
+# Common mistakes:
+#   • Writing new code with the retired prefix predicate — use value est nihil instead.
+#
+# See also: nihil, est, non est
+# =============================================================================
+
 # nulla — retired prefix predicate
 #
 # GRAMMAR:

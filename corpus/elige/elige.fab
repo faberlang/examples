@@ -9,6 +9,20 @@ aliases = ["switch", "choose"]
 related = ["casu", "ceterum"]
 +++
 
+# =============================================================================
+# elige — Starts a value-based branch statement.
+# =============================================================================
+#
+# What this teaches:
+#   • Value-based branching — `elige <expr> { casu <value> { ... } }` dispatches on a value (switch/choose pattern).
+#   • Multiple types — `elige` works with textus, numerus, and other comparable types.
+#   • Multi-statement cases — each `casu` block can have multiple statements.
+#
+# Common mistakes:
+#   • Non-exhaustive `elige` without `ceterum` — unmatched values silently produce no output; use `ceterum` for a default branch or cover all possible values.
+#
+# See also: casu, ceterum
+# =============================================================================
 
 # elige — switch on a value
 #

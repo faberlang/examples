@@ -1,5 +1,34 @@
-# Conversio matrix fixture: textus ↦ instans.
-# Phase-1 model: rust ✓ (Instans::try_from_valor); wasm-text — (instans not representable).
+# =============================================================================
+# textus ↦ instans — parse RFC 3339 text as timestamp
+# =============================================================================
+#
+# What this example teaches:
+#   • textus ↦ instans — parse RFC 3339 datetime text into an instans value
+#   • Fallible — runtime parse error if text is not valid RFC 3339
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • fac { textus ↦ instans } cape err { ... } — scoped error handling for invalid datetime strings
+#   • "..." ↦ instans ⇥ nunc() — inline recovery with current time on parse failure
+
+# Anti-patterns (avoid these):
+#   • "yesterday" ↦ instans — natural-language dates are not parsed; only RFC 3339 format
+#   • ∷ instans — static ascription cannot parse a datetime string
+
+# Pitfalls:
+#   • Invalid RFC 3339 text throws at runtime — wrap in fac/cape
+#   • Only RFC 3339 format is accepted (e.g., 1979-05-27T07:32:00Z); no ISO 8601 variants
+
+# Learning path:
+#   Before: see textus/ exempla (Stage 3) and instans/ exempla (Stage 6)
+#   After:  see vivilite/src/main.fab (timestamp parsing for mailspace entries)
+
+# Stage: Phase-1 model, Rust only (instans not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← "1979-05-27T07:32:00Z" ↦ instans
 }

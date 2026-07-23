@@ -8,6 +8,22 @@ syntax = "<condition> sic <then-expr> secus <else-expr>"
 related = ["sic", "secus", "si"]
 +++
 
+# =============================================================================
+# sic — Ternary conditional expressions with sic and secus.
+# =============================================================================
+#
+# What this teaches:
+#   • Ternary expressions — `sic`/`secus` as Latin-inspired conditional syntax
+#   • Nesting — `sic`/`secus` chains read more clearly than nested if-else
+#
+# Common mistakes:
+#   • confusing ternarius (sic/secus ternary) with si/ergo (statement conditional) — ternarius is an expression, si is a statement
+#
+# See also: sic, secus, si
+# =============================================================================
+
+
+
 
 # sic — ternary conditional expressions (sic/secus)
 #

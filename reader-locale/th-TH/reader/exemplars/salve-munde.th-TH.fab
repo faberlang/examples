@@ -1,3 +1,51 @@
+# =============================================================================
+# Thai locale — comprehensive program with Thai keyword translation
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale keyword translation — Faber keywords using Thai script
+#     (ฟังก์ชัน=functio, คงที่=fixum, แปร=varia, คืน=redde, เริ่ม=incipit,
+#      แสดง=nota, ถ้า=si, ถ้าไม่ก็=sin, มิฉะนั้น=secus, ขณะ=dum, วน=itera,
+#      จาก=ex, ข้าม=perge, หยุด=rumpe, จริง=verum, เท็จ=falsum,
+#      ข้อความ=textus, จำนวน=numerus, ตรรกะ=bivalens, รายการ=lista)
+#   • Full program with loops, conditionals, early exit, and skip
+#
+# Syntaxes used:
+#   • ฟังก์ชัน (functio) — function definition (lines 1, 13, 19, 34)
+#   • คงที่ (fixum) — immutable binding (lines 2, 44-48)
+#   • แปร (varia) — mutable binding (lines 20, 35)
+#   • ← — value binding (lines 2, 22, 27, 36)
+#   • § — template interpolation (line 2)
+#   • คืน (redde) — return value (lines 4, 11, 14, 31, 40)
+#   • ถ้า (si) — conditional (lines 7, 22, 24, 27)
+#   • ถ้าไม่ก็ (sin) — else-if (line 9)
+#   • มิฉะนั้น (secus) — else (line 12)
+#   • ขณะ (dum) — while loop (line 36)
+#   • วน (itera) — for-each loop (line 21)
+#   • จาก (ex) — source keyword in loop (line 21)
+#   • ข้าม (perge) — continue/skip (line 23)
+#   • หยุด (rumpe) — break (line 28)
+#   • แสดง (nota) — print to stdout (lines 48-51)
+#   • ≥ (greater-or-equal) — comparison (lines 7, 9, 25, 29)
+#   • > (greater-than) — numeric comparison (line 37)
+#   • จริง (verum) — true (line 8)
+#   • เท็จ (falsum) — false (line 13)
+#   • เริ่ม (incipit) — entry point (line 43)
+#
+# Alternate approaches (not shown):
+#   • Latin keywords with Thai identifiers only — see twins/main.la.fab for the "twins" mode
+#
+# Anti-patterns (avoid these):
+#   • Inconsistent locale keyword sets across files in one project — pick a canonical keyword set per file; this file demonstrates full Thai keywords
+#
+# Learning path:
+#   Before: Stage 1: salve-munde (Latin), incipit (Latin) — the minimal program skeleton
+#   After:  Stage 1: fixum, varia, si, redde, functio → Stage 5: coreutils foundations (true, false, pwd, yes)
+#
+# Stage: locale-reader, Thai locale full-program demonstration
+# Backend: stepper, reader-locale
+# =============================================================================
+
 ฟังก์ชัน ทักทาย(ข้อความ name) → ข้อความ {
   คงที่ ข้อความ greeting ← "สวัสดี, §!"(name)
   คืน greeting

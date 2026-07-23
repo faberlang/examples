@@ -7,6 +7,23 @@ summary = "live outbound and inbound sermo directional views"
 related = ["ad", "sermo", "tuus", "scrinium", "cursor", "accipe"]
 +++
 
+# =============================================================================
+# meus — live outbound and inbound sermo directional views.
+# =============================================================================
+#
+# What this teaches:
+#   • Directional sermo views — `meus<T>` for outbound frames, `tuus<T>` for
+#     inbound frames on a sermo connection
+#   • Cursor iteration — `itera ex t.cursor()` consumes inbound frames
+#   • Accipe reception — `accipe()` pulls a single scrinium from the inbound
+#     queue
+#
+# Common mistakes:
+#   • confusing `meus` (outbound) and `tuus` (inbound) sermo directional views, or mixing accipe/cursor/exhauri without intentional ordered consumption
+#
+# See also: ad, sermo, tuus, scrinium, cursor, accipe
+# =============================================================================
+
 # Live `meus<T>` / `tuus<T>` directional views
 #
 # runtime:echo returns one inbound textus frame per conversation.

@@ -1,3 +1,32 @@
+# =============================================================================
+# Hindi locale (Devanagari) — non-ASCII numerals (Devanagari digits)
+# =============================================================================
+#
+# What this example teaches:
+#   • Locale numeral parsing — Devanagari digit १ (U+0967) parsed as numerus 1
+#
+# Syntaxes used:
+#   • आरंभ (incipit) — entry point (line 1)
+#   • स्थिर (fixum) — immutable binding (line 2)
+#   • संख्या (numerus) — number type annotation (line 2)
+#   • ← — value binding (line 2)
+#   • १ — Devanagari numeral one (line 2)
+#   • दिखाओ (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ASCII digits with locale keywords: 42 is always valid regardless of locale keyword set
+#
+# Anti-patterns (avoid these):
+#   • Non-ASCII digits (Devanagari १-९, Arabic-Indic ١-٩, full-width １-９) are valid in number literals — do not assume only ASCII digits are accepted
+#
+# Learning path:
+#   Before: Stage 1: fixum, numerus (numeric binding basics with type annotation)
+#   After:  Stage 2: dum, elige, fac/cape (control flow with numeric comparisons)
+#
+# Stage: locale-reader, Devanagari locale numeral edge case
+# Backend: stepper
+# =============================================================================
+
 आरंभ {
   स्थिर संख्या मान ← १
   दिखाओ मान

@@ -8,6 +8,20 @@ syntax = "<expression> ↦ <collection-type>"
 related = ["↦", "lista", "copia", "tabula", "tensor"]
 +++
 
+# =============================================================================
+# ↦ — Cross-collection conversio between lista, copia, tabula, tensor, and cursor.
+# =============================================================================
+#
+# What this teaches:
+#   • Collection bridging — how `↦` converts between collection types (lista, copia, tabula, tensor, cursor) with different structural semantics.
+#   • Edge cases — holdouts like `lista ↦ tabula` reject at typecheck rather than guessing.
+#
+# Common mistakes:
+#   • Assuming all collection-to-collection conversions are valid — holdouts like `lista ↦ tabula` reject at typecheck.
+#
+# See also: ↦, lista, copia, tabula, tensor
+# =============================================================================
+
 
 # conversio — cross-collection conversions
 #

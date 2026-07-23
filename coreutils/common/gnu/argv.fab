@@ -1,3 +1,39 @@
+# =============================================================================
+# argv — Operand list helpers for GNU-style CLI utilities
+# =============================================================================
+#
+# What this example teaches:
+#   • functio — Defining a reusable helper that joins CLI operand words
+#   • dum — Index-based iteration through a list
+#   • si/ergo — Guard clause for empty-list early return
+#
+# Syntaxes used:
+#   • functio — function definition (line 37)
+#   • lista<textus> — generic list of text type parameter (line 37)
+#   • si ... ergo — conditional with implicit return (line 38)
+#   • dum — while loop with manual index increment (line 41)
+#   • varia — mutable variable binding (lines 39-40)
+#   • ≡ — equality comparison (line 38)
+#   • redde — function return (lines 38, 45)
+#   • .longitudo() — list/text length method (lines 38, 41)
+#
+# Alternate approaches (not shown):
+#   • itera ex verba fixum verbum { ... } — for-each over lista values;
+#     eliminates manual index management (see alternates: itera ex vs itera de vs itera ab)
+#   • lista.coniunge(" ") — built-in join, replaces the entire function with a single stdlib call
+#
+# Anti-patterns (avoid these):
+#   • Direct + concatenation in a tight loop — creates intermediate strings;
+#     § interpolation or built-in join would avoid the O(n²) copy pattern
+#
+# Learning path:
+#   Before: functio, lista, dum, si (Stage 1–2: corpus keywords)
+#   After:  true, false (Stage 5: first coreutils packages importing argv)
+#
+# Stage: Stage 2+ shared coreutils helpers
+# Backend: both
+# =============================================================================
+
 # Operand list helpers for GNU-style CLI utilities.
 
 functio linea_operandorum(lista<textus> verba) → textus {

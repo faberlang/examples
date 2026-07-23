@@ -9,6 +9,22 @@ aliases = ["nullish coalescing"]
 related = ["nihil", "nonnihil"]
 +++
 
+# =============================================================================
+# vel — Provides a default when the left side is null.
+# =============================================================================
+#
+# What this teaches:
+#   • Nullish coalescing — `vel` supplies a fallback when the left operand is `nihil`
+#   • Chaining — multiple `vel` expressions fall through until the first non-`nihil` value
+#
+# Common mistakes:
+#   • confusing vel (nullish coalescing, checks nihil only) with aut (logical OR), or using vel for conversio recovery instead of ⇥
+#
+# See also: nihil, nonnihil
+# =============================================================================
+
+
+
 
 # vel — nullish coalescing (not logical OR)
 #

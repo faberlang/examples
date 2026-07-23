@@ -1,3 +1,32 @@
+# =============================================================================
+# Simplified Chinese locale — type mismatch error
+# =============================================================================
+#
+# What this example teaches:
+#   • Type error diagnostic — assigning text to 整数 (numerus) variable
+#   • Locale-aware error messages — diagnostics in Simplified Chinese
+#
+# Syntaxes used:
+#   • 入口 (incipit) — entry point (line 1)
+#   • 常量 (fixum) — immutable binding (line 2)
+#   • 整数 (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • 显示 (nota) — print (line 3)
+#
+# Alternate approaches (not shown):
+#   • ∷ type ascription: value ∷ 整数 for explicit type annotation — catches mismatches at compile time
+#
+# Anti-patterns (avoid these):
+#   • SEM010: type mismatch — Faber never performs silent text→number coercion; use ↦ conversio for explicit value conversion
+#
+# Learning path:
+#   Before: Stage 1: fixum, varia, numerus, textus (type-annotated bindings)
+#   After:  Stage 3: genus, nihil, vacua/verum/falsum, lista (user-defined types and collections)
+#
+# Stage: locale-reader, Simplified Chinese type-error fixture
+# Backend: stepper
+# =============================================================================
+
 入口 {
   常量 整数 类型错误 ← "错误"
   显示 类型错误

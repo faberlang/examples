@@ -9,6 +9,21 @@ aliases = ["private"]
 related = ["publica", "importa"]
 +++
 
+# =============================================================================
+# privata — Marks an import as local to the current module.
+# =============================================================================
+#
+# What this teaches:
+#   • Module-level visibility — `@ privata` restricts a declaration to the
+#     current module, preventing external access
+#   • Used as an annotation (`@ privata`) on function declarations to control
+#     the module boundary
+#
+# Common mistakes:
+#   • Expecting `@ privata` to enforce access control — visibility annotations are decorative only (WARN012).
+#
+# See also: publica, importa
+# =============================================================================
 
 # @ privata marks a declaration as private metadata
 #

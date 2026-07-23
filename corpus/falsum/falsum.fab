@@ -7,6 +7,19 @@ summary = "Represents the false boolean value and can prefix a falsity check."
 syntax = "falsum [<expression>]"
 related = ["verum", "nihil"]
 +++
+# =============================================================================
+# falsum — Represents the false boolean value and can prefix a falsity check
+# =============================================================================
+#
+# What this teaches:
+#   • Represents the false boolean value and can prefix a falsity check.
+#   • Related keywords: verum, nihil
+#
+# Common mistakes:
+#   • Confusing `falsum` with `nihil` — `falsum` is a bivalens literal (false); `nihil` is the null/absent sentinel.
+#
+# See also: verum, nihil
+# =============================================================================
 
 # falsum — false literal
 #

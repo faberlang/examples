@@ -8,6 +8,20 @@ syntax = "modulus<u8>"
 related = ["numerus", "¬", "⇐", "⇒"]
 +++
 
+# =============================================================================
+# modulus<u8> — Unsigned 8-bit modular-word arithmetic and bit-pattern edges.
+# =============================================================================
+#
+# What this teaches:
+#   • Modular word contract — `modulus<u8>` wraps on 8-bit overflow; edge cases wrap predictably.
+#   • Bit-pattern edges — Shifting 1 ⇐ 8 wraps to 0; negating 1 wraps to 255.
+#
+# Common mistakes:
+#   • Expecting division or remainder by zero to produce a value rather than fail.
+#
+# See also: numerus, ¬, ⇐, ⇒
+# =============================================================================
+
 # operatores/modular-word-u8 — modulus<u8> edge vectors
 #
 # MODULAR WORD CONTRACT:

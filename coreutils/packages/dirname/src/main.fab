@@ -1,3 +1,43 @@
+# =============================================================================
+# dirname — strip last component from file pathname
+# =============================================================================
+#
+# What this example teaches:
+#   • dum — scanning a string backwards to find the last slash separator
+#   • Trailing-slash normalization — repeated dum loops to collapse suffix slashes
+#   • Edge case coverage — root "/" returns "/", relative "file" returns "."
+#   • probandum suite — 10 test cases covering boundaries (root, relative, nested, trailing slashes)
+#   • itera ex args.paths — processing multiple path operands
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → textus — lines 3, 16
+#   • functio … → vacuum — line 41
+#   • si / ergo — lines 4, 18, 28, 32
+#   • dum — lines 6-8, 19-28
+#   • varia / fixum — throughout
+#   • ≡ / < / > — lines 4, 6, 18, 20, 34
+#   • redde — lines 4, 10, 18, 30, 31, 32, 33
+#   • .sectio / .longitudo — throughout
+#   • probandum / proba / adfirma — lines 41-76
+#   • @ cli / @ descriptio / @ operandus — lines 78-80
+#   • incipit — line 81
+#
+# Alternate approaches (not shown):
+#   • stdlib path.hostium function vs manual string scanning — future stdlib path module would replace dum loops (alternates doc §API Design Patterns)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: echo
+#   After:  cut, expand
+#
+# Stage: Tier A (Stage 2-4), simple non-empty paths with GNU slash normalization
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
 functio sine_slash_finali(textus via) → textus {

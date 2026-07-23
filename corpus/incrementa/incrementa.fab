@@ -8,7 +8,19 @@ syntax = "<place> ⊕"
 aliases = ["postfix increment", "increment statement"]
 related = ["⊖", "varia", "←", "numerus"]
 +++
-
+# =============================================================================
+# ⊕ — Postfix increment statement for a mutable numerus place
+# =============================================================================
+#
+# What this teaches:
+#   • Postfix increment statement for a mutable numerus place.
+#   • Related keywords: ⊖, varia, ←, numerus
+#
+# Common mistakes:
+#   • Using `⊕` / `⊖` inside an expression — postfix increment/decrement are statements only and cannot appear inside larger expressions.
+#
+# See also: ⊖, varia, ←, numerus
+# =============================================================================
 
 # incrementa — postfix increment and decrement statements
 #

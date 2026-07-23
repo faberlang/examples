@@ -8,6 +8,22 @@ syntax = "numerus<W> | fractus<W>"
 related = ["numerus", "fractus", "instans"]
 +++
 
+# =============================================================================
+# numerus — Sized numerus and fractus width annotations in type position.
+# =============================================================================
+#
+# What this teaches:
+#   • Width annotations — `numerus<i32>`, `numerus<u64>`, `fractus<f32>` carry explicit bit widths
+#   • Signedness — `i32` (signed) vs `u64` (unsigned) distinction in type position
+#
+# Common mistakes:
+#   • confusing sized family widths — fractus<f32> vs numerus<f32>, or modulus<i32> instead of modulus<u32>
+#
+# See also: numerus, fractus, instans
+# =============================================================================
+
+
+
 
 # sized numerus/fractus width annotations
 #

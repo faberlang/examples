@@ -1,3 +1,33 @@
+# =============================================================================
+# solum — focused/sole test execution modifier
+# =============================================================================
+#
+# What this example teaches:
+#   • solum modifier — `proba "name" solum { body }` marks a test as the
+#     only test to run, skipping all other tests in the package
+#   • Focused test execution — useful during development to run one test
+#     in isolation without removing or commenting out other tests
+#
+# Syntaxes used:
+#   • proba — test declaration (lines 1, 5)
+#   • solum — focused/sole modifier (line 1)
+#   • adfirma — assertion (lines 2, 6)
+#   • incipit — entry point (line 8)
+#
+# Alternate approaches (not shown):
+#   • CLI filter flag for selection without modifying source — use `faber test --filter <pattern>` to select tests at runtime instead of source-level solum modifiers
+#
+# Anti-patterns (avoid these):
+#   • Committing solum modifiers accidentally — solum skips all non-marked tests in CI; never commit solum to version control
+#
+# Learning path:
+#   Before: Stage 10: proba, adfirma, solum modifier (focused test execution)
+#   After:  Stage 10: proba/packages/selectors (tag-based selection for CI)
+#
+# Stage: fixture boundary, proba solum/focused modifier
+# Backend: stepper
+# =============================================================================
+
 proba "focused case" solum {
     adfirma verum
 }

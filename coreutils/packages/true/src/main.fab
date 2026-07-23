@@ -1,3 +1,38 @@
+# =============================================================================
+# true — GNU coreutils true: do nothing, successfully
+# =============================================================================
+#
+# What this example teaches:
+#   • `exitus N` — exit code annotation on `incipit` (`exitus 0`), showing how
+#     to set the process exit status at the entry point
+#   • `gnu_argv.linea_operandorum()` — utility that formats ignored operands
+#     (though true discards them by binding to `_`)
+#   • Minimal utility with proba — the simplest possible CLI that does nothing
+#     but still has test coverage for argument handling
+#
+# Syntaxes used:
+#   • `importa` — module import (line 1)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 3-12)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI annotations (lines 14-16)
+#   • `incipit argumenta args exitus 0` — entry with exit code (line 17)
+#   • `fixum textus _` — discarded binding for ignored operands
+#   • `lista<textus>` — list type
+#   • `«»` not used; uses standard string literals
+#
+# Alternate approaches (not shown):
+#   • None — this is the minimal successful-exit pattern
+#
+# Anti-patterns (avoid these):
+#   • Binding ignored operands is unnecessary but demonstrates the
+#     operand-access pattern for consistency with other utilities
+#
+# Learning path:
+#   Before: nothing
+#   After:  pwd, yes
+#
+# Stage: Stage 3, trivial operand parsing with exit code
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/argv" privata gnu_argv
 
 probandum "true operands" tag "coreutils" {

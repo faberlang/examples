@@ -8,6 +8,25 @@ syntax = "secus <block>"
 aliases = ["else", "otherwise"]
 related = ["si", "sin"]
 +++
+
+# =============================================================================
+# secus — Runs the fallback branch when preceding conditional branches do not
+# match.
+# =============================================================================
+#
+# What this teaches:
+#   • If-else branches — `si { } secus { }` provides two-way branching; exactly
+#     one arm executes
+#   • `sin` chains additional conditions before the final `secus` fallback;
+#     first match wins
+#
+# Common mistakes:
+#   • TODO: placing `secus` before a `sin` branch — `secus` must always be the
+#     final clause
+#
+# See also: si, sin
+# =============================================================================
+
 # si-secus (if-else) conditionals
 #
 # si <condition> { <body> }                                   -- two-way branch

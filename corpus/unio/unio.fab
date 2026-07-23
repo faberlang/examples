@@ -8,6 +8,22 @@ syntax = "typus <name> = <type> ∪ <type>"
 related = ["typus", "discerne", "discretio"]
 +++
 
+# =============================================================================
+# ∪ — Inline value unions and discerne on discretio variants.
+# =============================================================================
+#
+# What this teaches:
+#   • Inline unions — `∪` creates ad-hoc union types without a full `discretio` declaration
+#   • Tagged variants — `discretio` with `casu` pattern matching for structured payloads
+#
+# Common mistakes:
+#   • confusing unio (ad-hoc union typus A ∪ B) with ∪ used as a set operator — unio is a type-level construct
+#
+# See also: typus, discerne, discretio
+# =============================================================================
+
+
+
 
 # Inline value unions and discerne on discretio
 #

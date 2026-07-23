@@ -9,6 +9,22 @@ related = ["genus", "implendum"]
 +++
 
 
+# =============================================================================
+# abstractus — Marks a type or member as abstract.
+# =============================================================================
+#
+# What this teaches:
+#   • Abstract type declaration — `abstractus genus` defines a type that
+#     requires concrete subtypes to provide member implementations
+#   • Inheritance and override — concrete genera extend abstract ones and
+#     supply their own `functio` bodies
+#
+# Common mistakes:
+#   • forgetting to provide concrete `functio` implementations for abstract methods declared in `abstractus genus`
+#
+# See also: genus, implendum
+# =============================================================================
+
 # abstractus — abstract genus contract marker
 #
 # abstractus genus Nomen { … }

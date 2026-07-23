@@ -8,6 +8,21 @@ syntax = "<textus> ↦ regex"
 related = ["lege", "conversio", "scriptum"]
 +++
 
+# =============================================================================
+# regex — Compile textus patterns to regex via ↦ regex.
+# =============================================================================
+#
+# What this teaches:
+#   • converting textus strings to compiled regex with `↦ regex`
+#   • inline regex flags like `(?i)` for case-insensitive matching
+#   • combining `§` template application with regex conversion for dynamic patterns
+#
+# Common mistakes:
+#   • Forgetting that ↦ regex requires a textus or ascii source — numerus and other types must convert to textus first.
+#
+# See also: lege, conversio, scriptum
+# =============================================================================
+
 # literalia/regex — textus ↦ regex conversio
 #
 # GRAMMAR:

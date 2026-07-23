@@ -9,6 +9,22 @@ aliases = ["let", "mutable"]
 related = ["fixum", "←", "⊕"]
 +++
 
+# =============================================================================
+# varia — Declares a mutable binding.
+# =============================================================================
+#
+# What this teaches:
+#   • Mutable bindings — `varia` for values that can be reassigned after declaration
+#   • Immutable bindings — `fixum` and `sit` for values that cannot be reassigned
+#
+# Common mistakes:
+#   • declaring varia when the binding is never reassigned — use fixum instead (WARN013)
+#
+# See also: fixum, ←, ⊕
+# =============================================================================
+
+
+
 
 # Mutable and immutable variable declarations
 #

@@ -9,6 +9,19 @@ aliases = ["..."]
 related = ["lista"]
 +++
 
+# =============================================================================
+# sparge — Spreads an array or collection literal into its surrounding expression.
+# =============================================================================
+#
+# What this teaches:
+#   • Spread syntax — how to splice a collection into a list literal or function call
+#   • Collection composition — building larger expressions by expanding collections inline
+#
+# Common mistakes:
+#   • confusing sparge (splice) with appende, or using sparge on a non-collection expression
+#
+# See also: lista
+# =============================================================================
 
 # sparge — spread a collection into another collection or call
 #

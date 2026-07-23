@@ -6,6 +6,25 @@ summary = "On-device matmul workload floor probe with host-side reference."
 related = ["tensor", "matmul", "nucleum", "cuda"]
 +++
 
+# =============================================================================
+# rung-0-matmul — on-device matrix multiplication workload probe
+# =============================================================================
+#
+# What this teaches:
+#   • GPU workload floor probe — measures the device matmul path by pairing a
+#     @nucleum kernel with a CPU reference function and a CUDA launch boundary
+#   • @ nucleum annotation — marks the function as a device (GPU) entry point
+#   • Tensor construction — tf32[] seed → seed.strue() to build shaped tensors
+#     from flat f32 lists
+#   • ↦ vacuum — discarding the launch result by converting to vacuum
+#
+# Common mistakes:
+#   • Forgetting that @nucleum functions run on-device; host-side code cannot directly access their results without a CUDA launch boundary — the device result lives on the GPU until transferred back via ad 'cuda:launch'
+#     cannot directly access their results without a launch boundary
+#
+# See also: tensor, matmul, nucleum, cuda
+# =============================================================================
+
 # GPU workload rung 0 — on-device matmul, host-checked
 #
 # This is workload-shaped rather than op-coverage-shaped: host setup prepares

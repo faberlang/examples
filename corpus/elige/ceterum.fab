@@ -8,6 +8,20 @@ syntax = "elige <expression> { casu … ceterum { … } }"
 related = ["elige", "casu", "ceterum"]
 +++
 
+# =============================================================================
+# elige — Value branch with a default ceterum clause.
+# =============================================================================
+#
+# What this teaches:
+#   • Default branch — `ceterum { ... }` in an `elige` statement catches unmatched cases.
+#   • Practical examples — matching days, commands, and grade levels with a fallback for unrecognized values.
+#
+# Common mistakes:
+#   • Placing `ceterum` before specific `casu` clauses — `ceterum` must be the last branch in an `elige` statement.
+#
+# See also: elige, casu, ceterum
+# =============================================================================
+
 
 # elige — default branch with ceterum
 #

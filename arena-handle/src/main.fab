@@ -1,3 +1,57 @@
+# =============================================================================
+# arena-handle — generational arena-handle contract via pure value updates
+# =============================================================================
+#
+# What this example teaches:
+#   • Generational arena pattern — stable identity via (index, generation) handle
+#     pair; stale handles rejected on lookup via generation check
+#   • genus (struct) definitions — Manus, Loculus, Area, AreaCumManus, Nodus
+#   • Pure functional updates — no lista[i] mutation, all operations return new
+#     Area values to keep generated Rust sound
+#   • dum loop — explicit iteration over list indices (lines 42-46, 75-90)
+#   • si/sin/secus — conditional logic (lines 58, 60, 62, 78-89)
+#   • discerne/casu — pattern matching on enum variants (lines 117-133)
+#   • probandum/proba/adfirma — test framework with multi-case assertions
+#   • discretio — sum type (enum) with variant payloads (lines 93-96)
+#   • gingimus (finge) — enum variant construction with named fields (lines 113-116)
+#
+# Syntaxes used:
+#   • genus — struct definition (lines 8, 12, 18, 22)
+#   • discretio — enum/sum type (line 93)
+#   • functio — function definition (lines 28, 32, 36, 57, 70, 73)
+#   • fixum — immutable binding (lines 33, 43, etc.)
+#   • varia — mutable binding (lines 40, 41, etc.)
+#   • dum — while loop (lines 42, 75)
+#   • si/sin/secus — conditionals (lines 58, 60, 62, 78-89)
+#   • discerne/casu — match/pattern match (lines 117-133)
+#   • redde — return (lines 30, etc.)
+#   • finge — construct enum variant (lines 113-116)
+#   • adfirma — test assertion (lines 109-112, etc.)
+#   • proba — test case (lines 101, 134, 155)
+#   • probandum — test suite (line 100)
+#   • ≡ — equality comparison (lines 29, 61, etc.)
+#   • lista<T> — list type (lines 20, 93, 96)
+#   • textus, numerus, bivalens — primitive types
+#   • vacua — empty list literal
+#   • .longitudo() — list length method
+#   • .appende() — list append method
+#
+# Alternate approaches (not shown):
+#   • Mutable arena with unsafe interior for performance — a mutable lista<Loculus> with in-place updates avoids copying on every insert/take
+#   • Reusing free slots (via free list) instead of always appending — maintain a list of freed indices to recycle slots without growing the arena
+#
+# Anti-patterns (avoid these):
+#   • Using lista[i] assignment in generated Rust contexts — in-place list mutation breaks Rust's borrow-checker soundness; use pure value updates (return new Area) instead
+#   • Assuming stale handle reuse after removal without generation check — always verify generatio matches before using a handle; stale handles must be rejected on lookup
+#
+# Learning path:
+#   Before: Stage 3: genus, lista, nihil → Stage 3: discerne/casu (structs, collections, and pattern matching)
+#   After:  Stage 6: advanced applications (vivilite — real-world resource management)
+#
+# Stage: arena-handle, complete contract with tests, all language constructs demonstrated
+# Backend: Rust, stepper
+# =============================================================================
+
 # Reusable generational arena-handle contract (language surface).
 #
 # Semantics mirror faber-runtime::Arena / ArenaHandle (see arena.rs):

@@ -1,13 +1,59 @@
+# =============================================================================
+# sort — GNU coreutils sort: sort lines of text files
+# =============================================================================
+#
+# What this example teaches:
+#   • `lista.ordina()` — built-in list sort for default lexicographic ordering
+#   • `itera` combined with insertion sort — `inserta_ordinata` maintains a
+#     sorted list by inserting each new element at the correct position,
+#     demonstrating manual comparison when custom keys are needed
+#   • `.inverte()` — list reversal for `-r` (reverse) output
+#   • Fold-case comparison — `clavis_fold_ascii` maps uppercase to lowercase
+#     before comparison, and `primae_lineae_per_fold_key` selects one
+#     representative per folded key for `-f -u` combination
+#   • Pure test helpers — all sorting logic is in pure functions so `probandum`
+#     can cover every mode without stdin dependency
+#
+# Syntaxes used:
+#   • `lege` — stdin read (line 16)
+#   • `∪` — nullable union type `textus ∪ nihil` (line 16)
+#   • `nihil` — EOF sentinel (line 17)
+#   • `vel` — fallback (lines 18, 83, 89, 98, etc.)
+#   • `≡` — equality (passim)
+#   • `≠` — inequality (line 76)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loop (lines 15, 38, 48, etc.)
+#   • `itera` — for-each over list (lines 107, 128, 223)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 181-213)
+#   • `@ cli` / `@ optio` / `@ descriptio` — CLI declarations (lines 219-222)
+#   • `incipit` — entry point (line 223)
+#   • `.longitudo()` — string/list length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#   • `.sectio()` — string slice (lines 39, 42, 50)
+#   • `.ordina()` — list sort (lines 28, 63)
+#   • `.inverte()` — list reverse (line 175)
+#   • `aut` — logical OR (not used in this file; uses `et` / logical and)
+#   • `"§"()` not used in this file directly
+#   • ✗ `-k` key fields, `-n` numeric sort, `-M` month sort — deferred
+#   • Existing Stage 4 block comment prose (lines 3-9) merged above
+#
+# Alternate approaches (not shown):
+#   • `-k` key-field sort with structured key parsing
+#   • `-n` numeric sort using `↦ numerus`
+#
+# Anti-patterns (avoid these):
+#   • Hand-rolled insertion sort for fold-case — prefer a custom
+#     comparison callback for `lista.ordina()` when available
+#
+# Learning path:
+#   Before: tail, uniq
+#   After:  (terminal)
+#
+# Stage: Stage 4, stdin-only stepper, ASCII keyless sort with -f/-r/-u
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps sort in the stdin-only stepper lane.
-# This slice implements GNU sort's default keyless lexicographic ordering for
-# newline-terminated ASCII lines. `-f` compares ASCII fold-case keys, `-r`
-# reverses the active ordering, and `-u` removes duplicate active comparison
-# keys. Blank lines are data and sort with the rest of stdin. File operands,
-# key fields, numeric/month/version sorts, locale collation, stable/merge/check
-# modes, diagnostics, help, and version output are deferred until later slices
-# can model those GNU surfaces honestly.
 
 functio lege_omnes_lineas() → lista<textus> {
     varia lista<textus> lineae ← vacua

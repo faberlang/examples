@@ -1,8 +1,55 @@
+# =============================================================================
+# wc — GNU coreutils wc: print newline, word, and byte counts
+# =============================================================================
+#
+# What this example teaches:
+#   • Line-by-line stdin accumulation — reading with `lege`/`∪`/`nihil` and
+#     incrementing three counters (lines, words, bytes) in a single pass
+#   • Word counting by whitespace transition — `verba_lineae` tracks
+#     in/out-of-word state as it scans characters, the standard algorithm
+#   • Conditional output format — `forma_wc` selects GNU-style padded columns
+#     (all three selectors) or bare numbers (single selector)
+#   • `gnu_format.inter_spatia` — shared formatting utility for space-joined
+#     padded columns
+#   • `@ optio` with `bivalens` — three independent boolean flags (`-l`, `-w`,
+#     `-c`) controlling which counts to display
+#
+# Syntaxes used:
+#   • `lege` — stdin read (line 99)
+#   • `∪` — nullable union type (line 99)
+#   • `nihil` — EOF sentinel (line 100)
+#   • `vel` — fallback (lines 101, 171)
+#   • `≡` — equality (passim)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (lines 17, 26, 98)
+#   • `itera` — for-each over list (not used in this file)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 110-124)
+#   • `@ cli` / `@ optio` / `@ descriptio` — CLI declarations (lines 127-131)
+#   • `incipit` — entry point (line 132)
+#   • `.longitudo()` — string length (lines 19, 36)
+#   • `.sectio()` — string slice (lines 10, 19)
+#   • `+` — string/arithmetic concatenation
+#   • `#` — inline comments with Stage 4 scope notes (lines 3, 88, 115 etc.)
+#   • ✗ file operands, multibyte accounting — deferred
+#
+# Alternate approaches (not shown):
+#   • `-m` character count (multibyte-aware) instead of byte-only
+#   • File operand mode — counting from named files with totals
+#
+# Anti-patterns (avoid these):
+#   • Signed count formatting — GNUs wc output is right-padded;
+#     negative counts are not meaningful here
+#
+# Learning path:
+#   Before: cat, head
+#   After:  grep, sort
+#
+# Stage: Stage 4, stdin-only line/word/byte counting
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/format" privata gnu_format
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
-# Stage 4 keeps wc in the stdin-only stepper lane. File operands and multibyte
-# byte accounting belong to later coreutils slices.
 functio spatiumne(textus c) → bivalens {
     redde c ≡ " " aut c ≡ "\t"
 }

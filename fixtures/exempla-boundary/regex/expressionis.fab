@@ -1,3 +1,38 @@
+# =============================================================================
+# expressionis — regex pattern conversion via ↦ operator
+# =============================================================================
+#
+# What this example teaches:
+#   • ↦ (conversion) operator — converts a textus to regex via `"pattern" ↦ regex`
+#   • Inline regex flags — `(?i)` for case-insensitive, `(?im)` for multiline
+#   • Complex patterns — email pattern and filesystem path matching
+#
+# Syntaxes used:
+#   • incipit — entry point (line 6)
+#   • fixum — immutable binding (lines 8-17)
+#   • ↦ — conversion operator (lines 8-17)
+#   • regex — target type for conversion (lines 8-17)
+#   • \d+ — digit pattern (line 8)
+#   • \w+ — word character pattern (line 9)
+#   • (?i) — inline case-insensitive flag (line 11)
+#   • (?im) — inline case-insensitive + multiline flags (line 12)
+#   • [^@]+@[^@]+ — email regex pattern (line 14)
+#   • nota — print (lines 19-24)
+#
+# Alternate approaches (not shown):
+#   • Using `regex` crate directly via FFI instead of ↦ conversio — "\\d+" ↦ regex is the canonical Faber path; avoid FFI for regex compilation
+#
+# Anti-patterns (avoid these):
+#   • Complex regex patterns without comments explaining their logic — regex patterns like [^@]+@[^@]+ are opaque; document the intent with comments and test cases
+#
+# Learning path:
+#   Before: Stage 4: ↦ conversio operator → Stage 5: coreutils (cksum, printf with bitwise ops)
+#   After:  Stage 11: conversio/* suite (full conversio target reference)
+#
+# Stage: fixture boundary, regex conversion, inline flags
+# Backend: stepper
+# =============================================================================
+
 # Regex patterns via textus ↦ regex conversio
 # Inline flags such as (?i) live inside the pattern string.
 

@@ -8,6 +8,19 @@ syntax = "nihil [<expression>]"
 related = ["nonnihil", "nonnulla", "∪", "sponte"]
 +++
 
+# =============================================================================
+# nihil — Represents the null value and can prefix a null check.
+# =============================================================================
+#
+# What this teaches:
+#   • the `nihil` keyword — used for null/none values
+#
+# Common mistakes:
+#   • Using nihil without ∪ in the type position — nullable types must be declared as T ∪ nihil.
+#
+# See also: nonnihil, nonnulla, ∪, sponte
+# =============================================================================
+
 # nihil — null literal
 #
 # GRAMMAR:

@@ -1,3 +1,32 @@
+# =============================================================================
+# processus-argumenta — reading command-line arguments via kernel import
+# =============================================================================
+#
+# What this example teaches:
+#   • Kernel module usage — `faber:processus` for process-level information
+#   • CLI argument access — `processus.argumenta()` returns the script's
+#     command-line arguments as a data structure
+#
+# Syntaxes used:
+#   • importa ex — kernel module import (line 1)
+#   • incipit — entry point (line 3)
+#   • processus.argumenta — get CLI arguments (line 4)
+#   • nota — print to stdout (line 4)
+#
+# Alternate approaches (not shown):
+#   • Using @ operandus annotations for typed argument parsing — @ operandus textus name descriptio "..." provides compile-time type safety
+#
+# Anti-patterns (avoid these):
+#   • Treating argumenta() output as typed instead of dynamic — processus.argumenta() returns a dynamic valor; cast to the expected type with ∷ or handle the dynamic shape explicitly
+#
+# Learning path:
+#   Before: Stage 9: importa, privata/publica (kernel module imports)
+#   After:  Stage 5: coreutils foundations (true, false, pwd — CLI argument processing)
+#
+# Stage: basic script-kernel, process introspection, CLI argument access
+# Backend: stepper
+# =============================================================================
+
 importa ex "faber:processus" privata processus
 
 incipit {

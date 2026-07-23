@@ -7,7 +7,19 @@ summary = "Typed empty collection construction with vacua."
 syntax = "varia <collection-type> <name> ← vacua"
 related = ["vacua", "lista", "tabula", "copia"]
 +++
-
+# =============================================================================
+# vacua — Typed empty collection construction with vacua
+# =============================================================================
+#
+# What this teaches:
+#   • Typed empty collection construction with vacua.
+#   • Related keywords: vacua, lista, tabula, copia
+#
+# Common mistakes:
+#   • Using `vacua` without an explicit declared type — the compiler cannot infer the collection type from `vacua` alone; always annotate the type (SEM014).
+#
+# See also: vacua, lista, tabula, copia
+# =============================================================================
 
 # vacua — typed empty collection construction (forma innata)
 #

@@ -8,6 +8,20 @@ syntax = "@ descriptio <string>"
 related = ["versio"]
 +++
 
+# =============================================================================
+# descriptio — Attaches a description string to CLI metadata.
+# =============================================================================
+#
+# What this teaches:
+#   • CLI metadata — `@ descriptio <string>` attaches a human-readable description to a CLI command's metadata.
+#   • Annotation syntax — used together with `@ cli` to annotate entry points with metadata for CLI generation.
+#
+# Common mistakes:
+#   • Using descriptio without a corresponding @cli annotation — `@ descriptio` only has meaning when attached to a `@ cli` entry point.
+#
+# See also: versio
+# =============================================================================
+
 # descriptio — CLI description annotation
 #
 # GRAMMAR:

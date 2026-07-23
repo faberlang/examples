@@ -1,3 +1,29 @@
+# =============================================================================
+# Traditional Chinese locale — undefined variable error
+# =============================================================================
+#
+# What this example teaches:
+#   • Undefined-variable diagnostic — referencing a name not in scope
+#   • Locale-aware diagnostics — Traditional Chinese keyword set
+#
+# Syntaxes used:
+#   • 入口 (incipit) — entry point (line 1)
+#   • 顯示 (nota) — print (line 2)
+#
+# Alternate approaches (not shown):
+#   • Declaring variables before use: 常數 文字 名稱 ← "值" — always declare with 常數 (fixum) or 變數 (varia) before referencing
+#
+# Anti-patterns (avoid these):
+#   • SEM001: unknown identifier — diagnostics are locale-agnostic; typos in Traditional Chinese script produce the same "did you mean X?" hints
+#
+# Learning path:
+#   Before: Stage 1: incipit, nota (entry-point block and bare output)
+#   After:  Stage 1: fixum, varia, si, redde, functio (correct declarations with bindings)
+#
+# Stage: locale-reader, Traditional Chinese undefined-variable fixture
+# Backend: stepper
+# =============================================================================
+
 入口 {
   顯示 未宣告
 }

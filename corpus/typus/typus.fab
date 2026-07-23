@@ -9,6 +9,22 @@ aliases = ["type"]
 related = ["genus", "implendum", "objectum", "∪"]
 +++
 
+# =============================================================================
+# typus — Declares a type alias.
+# =============================================================================
+#
+# What this teaches:
+#   • Type aliases — `typus` for creating shorthand names for complex types
+#   • Generic aliases — aliases can wrap generic types like `lista<T>` and `tabula<K,V>`
+#
+# Common mistakes:
+#   • confusing typus (type alias) with genus (nominal type) — typus creates a transparent alias, not a new type
+#
+# See also: genus, implendum, objectum, ∪
+# =============================================================================
+
+
+
 
 # Type aliases
 #

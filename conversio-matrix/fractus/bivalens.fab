@@ -1,5 +1,33 @@
-# Conversio matrix fixture: fractus ↦ bivalens.
-# Phase-1 model: rust ✓ (non-zero truthiness); wasm-text ✓.
+# =============================================================================
+# fractus ↦ bivalens — convert fraction to boolean via truthiness
+# =============================================================================
+#
+# What this example teaches:
+#   • fractus ↦ bivalens — non-zero fractional values become verum
+#   • Lossy conversion — information discarded in the boolean truncation
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 3.14 ∷ bivalens — ascription would not convert; you'd get the float bits reinterpreted, not truthiness
+
+# Anti-patterns (avoid these):
+#   • si 3.14 { ... } — Faber requires explicit bivalens; no truthy coercion
+#   • fractus ↦ numerus ↦ bivalens — unnecessary intermediate; convert directly
+
+# Pitfalls:
+#   • 0.0 becomes falsum; -0.0 and NaN may have backend-specific behavior
+#   • Lossy — the magnitude is discarded; only zero/non-zero matters
+
+# Learning path:
+#   Before: see fractus/ and bivalens/ exempla (Stage 3–5 types)
+#   After:  see wc/src/main.fab (boolean dispatch for counting modes)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← 3.14 ↦ bivalens
 }

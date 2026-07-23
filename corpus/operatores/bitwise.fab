@@ -8,6 +8,20 @@ syntax = "<expression> ∧ <expression> | <expression> ⊻ <expression> | ¬ <ex
 related = ["∨", "⊻", "¬", "⇐", "⇒"]
 +++
 
+# =============================================================================
+# ∧ — Bitwise and, or, xor, not, and shifts on numerus operands.
+# =============================================================================
+#
+# What this teaches:
+#   • Bitwise operators — `∧` (and), `∨` (or), `⊻` (xor), `¬` (not), `⇐` (shift left), `⇒` (shift right).
+#   • Integer bit patterns — Visual demonstration of bitwise operations with binary literals.
+#
+# Common mistakes:
+#   • Confusing ∧ (bitwise and) with et (logical and) — they operate at different levels.
+#
+# See also: ∨, ⊻, ¬, ⇐, ⇒
+# =============================================================================
+
 # operatores/bitwise — ∧ ⊻ ¬ ⇐ ⇒
 #
 # GRAMMAR:

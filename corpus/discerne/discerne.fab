@@ -9,7 +9,20 @@ aliases = ["match"]
 related = ["discretio", "casu"]
 +++
 
-
+# =============================================================================
+# discerne — Starts an exhaustive pattern match over a value or values.
+# =============================================================================
+#
+# What this teaches:
+#   • Exhaustive pattern matching — `discerne <value> { casu ... }` matches against all variants of a discretio (tagged union).
+#   • Variant destructuring — `casu <Variant> fixum <field>, ...` destructures variant payload fields.
+#   • Unit variants — variant without payload fields match by name alone.
+#
+# Common mistakes:
+#   • Non-exhaustive match — omitting a variant from `discerne` without a `ceterum` catchall; every discretio variant must be covered (SEM040).
+#
+# See also: discretio, casu
+# =============================================================================
 
 # discerne — pattern matching on discretio values
 #

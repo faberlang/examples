@@ -6,7 +6,19 @@ canonical = true
 summary = "Interval algebra: intersection, union, and span count."
 related = ["inter", "union", "longitudo", "nihil"]
 +++
-
+# =============================================================================
+# intervallum — Interval algebra: intersection, union, and span count
+# =============================================================================
+#
+# What this teaches:
+#   • Interval algebra: intersection, union, and span count.
+#   • Related keywords: inter, union, longitudo, nihil
+#
+# Common mistakes:
+#   • Confusing `‥` (exclusive end) with `…` (inclusive end) — `0‥6` is [0,6), `0…6` is [0,6]; the wrong boundary operator changes the span.
+#
+# See also: inter, union, longitudo, nihil
+# =============================================================================
 
 # intervallum — range algebra (inter, union, longitudo)
 #

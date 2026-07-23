@@ -8,7 +8,19 @@ syntax = "textus"
 aliases = ["string"]
 related = ["string", "scriptum", "↦"]
 +++
-
+# =============================================================================
+# textus — Primitive string/text type
+# =============================================================================
+#
+# What this teaches:
+#   • Primitive string/text type.
+#   • Related keywords: string, scriptum, ↦
+#
+# Common mistakes:
+#   • Using `textus` transform methods on non-text types — `.sectio()`, `.maiuscula()`, `.minuscula()`, `.recide()`, `.divide()`, `.muta()` are textus-only compiler intrinsics.
+#
+# See also: string, scriptum, ↦
+# =============================================================================
 
 # textus slice and transform intrinsics
 #

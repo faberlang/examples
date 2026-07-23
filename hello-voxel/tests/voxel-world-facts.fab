@@ -1,8 +1,37 @@
-# HV-05A focused facts: indexing, bounds, get/set, fixture.
+# =========================================================================
+# voxel-world-facts — focused facts for HV-05A: indexing, bounds, get/set, fixture
+# =========================================================================
 #
-# Run (from package root):
-#   faber run --compile tests/voxel-world-facts.fab
-#   # or: faber script tests/voxel-world-facts.fab
+# What this example teaches:
+#   • `probandum`/`adfirma` — test assertions for world constants, indexing, bounds
+#   • `incipit` — entry point for standalone test execution
+#   • `world_to_address` / `address_to_world` — round-trip coordinate conversion
+#   • `fixture_world` — deterministic ground + cavity + wall + pillar + cross-boundary solids
+#   • Bounds-safe `world_get` — OOB returns `nihil` for every axis
+#   • `every_cell_addressable` + `empty_world_is_all_air` — full-coverage invariants
+#
+# Syntaxes used:
+#   • `incipit`, `adfirma` — test structure throughout
+#   • `importa`, `functio` — helper declarations
+#   • `si` — conditionals
+#   • `dum` — loops
+#   • `∪ nihil`, `est nihil` / `non est nihil` — null checks
+#   • `vel` — default value operator (`value vel 0`)
+#   • `bivalens`, `verum`/`falsum`
+#
+# Alternate approaches (not shown):
+#   • property-based tests — random coordinate generation to stress all 16,384 cells
+#
+# Anti-patterns (avoid these):
+#   • assuming local_index without validation — always go through `world_to_address`
+#
+# Learning path:
+#   Before: src/voxel.fab (HV-05A)
+#   After:  chunk-meshing-facts.fab (next test in progression)
+#
+# Stage: HV-05A (world model, indexing, fixture facts)
+# Backend: Rust (WebGPU native)
+# =========================================================================
 
 importa ex "../src/voxel" privata voxel
 

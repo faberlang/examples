@@ -1,3 +1,51 @@
+# =============================================================================
+# od — GNU coreutils od: dump files in octal and other formats
+# =============================================================================
+#
+# What this example teaches:
+#   • `functio` with `elige`/`casu`/`ceterum` — pattern matching for digit
+#     encoding (octal, hex digit dispatch)
+#   • Bitwise operators `∧` (AND), `⇒` (right shift), `⇐` (left shift), `∨` (OR)
+#     — raw byte manipulation for numeric conversion
+#   • `dum` while loop — iterative byte processing and padding generation
+#   • `probandum` with byte-level fixtures — testing binary output formatting
+#     without actual stdin
+#   • `@ optio` with `textus` type — string-valued CLI option (`-t` format)
+#
+# Syntaxes used:
+#   • `lege` — stdin read (line 8)
+#   • `∪` — nullable union (line 8)
+#   • `nihil` — EOF sentinel (line 9)
+#   • `vel` — fallback operator (lines 11, 96, 98, 112, 118, 129, 189)
+#   • `≡` — equality (lines 50, 57, 63-70, etc.)
+#   • `elige`/`casu`/`ceterum` — pattern match (lines 32-42, 59-78)
+#   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (lines 21, 48-50, 85-88, etc.)
+#   • `itera` — for-each over list (lines 11, 187)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 165-178)
+#   • `@ cli` / `@ optio` / `@ operandus` — CLI declarations (lines 180-184)
+#   • `incipit` — entry point (line 185)
+#   • `∨` / `∧` / `⇐` / `⇒` — bitwise OR, AND, left shift, right shift
+#   • ↦ — type conversion (not used directly here; uses `∪` for fallback)
+#   • `.longitudo()` — list/string length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (passim)
+#
+# Alternate approaches (not shown):
+#   • File-operand mode — reading from named files instead of stdin
+#   • Additional output formats (octal bytes, decimal, character)
+#
+# Anti-patterns (avoid these):
+#   • Manual zero-padding functions when the language could offer
+#     a format specifier — this slice shows the explicit approach
+#
+# Learning path:
+#   Before: cksum, bitwise operators
+#   After:  printf
+#
+# Stage: Stage 2-4, stdin/file parity, stepper+Rust
+# Backend: stepper+Rust
+# =============================================================================
 importa ex "../../../common/gnu/bytes" privata gnu_bytes
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

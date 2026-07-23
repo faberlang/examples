@@ -1,3 +1,33 @@
+# =============================================================================
+# Arabic locale — type mismatch error with Arabic keywords
+# =============================================================================
+#
+# What this example teaches:
+#   • Type error diagnostic — assigning text literal to numerus-typed variable
+#   • Locale-aware error messages — diagnostics emitted using Arabic keyword set
+#
+# Syntaxes used:
+#   • بداية (incipit) — entry point (line 1)
+#   • ثابت (fixum) — immutable binding (line 2)
+#   • عدد (numerus) — number type (line 2)
+#   • ← — value binding (line 2)
+#   • خطأ_نوع — Arabic identifier meaning "type error" (line 2)
+#   • اعرض (nota) — print to stdout (line 3)
+#
+# Alternate approaches (not shown):
+#   • ∷ type ascription: value ∷ عدد for explicit type annotation — catches mismatches at compile time
+#
+# Anti-patterns (avoid these):
+#   • SEM010: type mismatch — Faber is statically typed at compile time; do not rely on runtime checks for type safety
+#
+# Learning path:
+#   Before: Stage 1: fixum, varia, numerus, textus (type-annotated immutable and mutable bindings)
+#   After:  Stage 3: genus, nihil, vacua/verum/falsum, lista (user-defined types and collections)
+#
+# Stage: locale-reader, Arabic locale type-error fixture, compile-time diagnostic
+# Backend: stepper
+# =============================================================================
+
 بداية {
   ثابت عدد خطأ_نوع ← "خطأ"
   اعرض خطأ_نوع

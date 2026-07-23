@@ -8,6 +8,20 @@ syntax = "modulus<u32>"
 related = ["numerus", "⇐", "⇒", "∧", "∨", "⊻", "¬"]
 +++
 
+# =============================================================================
+# modulus<u32> — One native SHA-256 compression round using modulus<u32>.
+# =============================================================================
+#
+# What this teaches:
+#   • Modular arithmetic in practice — Demonstrates `modulus<u32>` used for a real cryptographic computation.
+#   • Bitwise operations on modular words — Combines `⇒`, `⇐`, `⊻`, `∧`, `∨`, `¬` in SHA-256 round logic.
+#
+# Common mistakes:
+#   • Applying regular arithmetic overflow rules instead of modular wrapping.
+#
+# See also: numerus, ⇐, ⇒, ∧, ∨, ⊻, ¬
+# =============================================================================
+
 # A small proof of the word contract: one textbook SHA-256 round for the
 # first padded word of "abc". This is not the full digest implementation.
 

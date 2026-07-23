@@ -1,6 +1,35 @@
-# Conversio matrix fixture: tensor ↦ tensor.
-# Setup: tensor from a flat lista; measure tensor ↦ tensor (same element).
-# Phase-1 model: rust ✓ (identity / convert_elements); wasm-text —.
+# =============================================================================
+# tensor ↦ tensor — identity conversion / element-wise transmutation
+# =============================================================================
+#
+# What this example teaches:
+#   • tensor ↦ tensor — identity conversion within the same element type
+#   • Convert elements — can also transmute between compatible element types
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 12
+#   • incipit (entry point) — line 9
+#   • fixum (immutable binding) — lines 10, 11, 12
+#
+# Alternate approaches (not shown):
+#   • t ∷ tensor<numerus, [3]> — static ascription when the element type already matches
+#   • structa(tensor, nova_figura) — named reshape when dimensions change
+
+# Anti-patterns (avoid these):
+#   • t ∷ tensor<f32, [3]> — ascription across element types is not valid; use ↦ for transmutation
+#   • tensor<f32, [2]> ↦ tensor<f32, [3]> — shape mismatch throws at runtime
+
+# Pitfalls:
+#   • Identity conversion within same element type — no-op, always succeeds
+#   • Cross-type transmutation may have backend-specific precision behavior
+
+# Learning path:
+#   Before: see tensor/ exempla (Stage 6 types)
+#   After:  see hello-voxel/src/voxel.fab (tensor identity and reshape patterns)
+
+# Stage: Phase-1 model, Rust only (tensor not in wasm-text)
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum tensor<numerus, [3]> t ← [1, 2, 3] ↦ tensor<numerus, [3]>
     fixum _ r ← t ↦ tensor<numerus, [3]>

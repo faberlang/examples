@@ -8,6 +8,20 @@ syntax = "tensor<T, F> ↦ sparsa<T, G> — rejected when F != G"
 related = ["sparsa", "tensor", "↦"]
 +++
 
+# =============================================================================
+# sparsa — Dense/sparse conversio rejects shape-changing representation conversion.
+# =============================================================================
+#
+# What this teaches:
+#   • Representation conversion rules — `tensor ↔ sparsa` requires matching shapes
+#   • Compile-time rejection — shape mismatches are caught at typecheck, not runtime
+#
+# Common mistakes:
+#   • attempting to change both representation and shape in a single ↦ conversion — reshape explicitly first
+#
+# See also: sparsa, tensor, ↦
+# =============================================================================
+
 
 # sparsa conversio reject case — expected compile failure
 #

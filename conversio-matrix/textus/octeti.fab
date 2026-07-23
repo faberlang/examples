@@ -1,5 +1,33 @@
-# Conversio matrix fixture: textus ↦ octeti.
-# Phase-1 model: rust ✓ (UTF-8 encode into_bytes); wasm-text ✓.
+# =============================================================================
+# textus ↦ octeti — encode text as UTF-8 bytes
+# =============================================================================
+#
+# What this example teaches:
+#   • textus ↦ octeti — encode a text string into its UTF-8 byte sequence
+#   • Safe, lossless — both backends support this via into_bytes
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • "hi" ∷ octeti — static ascription when the text is a compile-time byte literal (e.g., |68 69|)
+
+# Anti-patterns (avoid these):
+#   • "hi" ↦ octeti expecting 2 bytes then checking length 4 — UTF-8 multi-byte characters expand the result
+#   • ∷ used where ↦ is needed — ascription cannot encode; use ↦
+
+# Pitfalls:
+#   • Always succeeds — all textus is valid for UTF-8 encoding
+#   • Multi-byte UTF-8 characters produce multiple bytes per character; check length
+
+# Learning path:
+#   Before: see textus/ and octeti/ exempla (Stage 3–5 types)
+#   After:  see cksum/src/main.fab (textus→octeti for CRC computation)
+
+# Stage: Phase-1 model, both backends
+# Backend: Rust ✓, wasm-text ✓
+# =============================================================================
 incipit {
     fixum _ r ← "hi" ↦ octeti
 }

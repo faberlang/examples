@@ -9,6 +9,25 @@ related = ["adfirma", "functio"]
 +++
 
 
+# =============================================================================
+# adfirma — Asserts conditions inside function bodies.
+# =============================================================================
+#
+# What this teaches:
+#   • Precondition validation — using `adfirma` at the top of a function to
+#     enforce input constraints (e.g., divisor ≠ 0)
+#   • Postcondition validation — asserting results before returning to
+#     guarantee invariants
+#   • Function body assertions — adfirma works anywhere a statement appears,
+#     including inside function definitions
+#
+# Common mistakes:
+#   • using `adfirma` outside `proba` or `probandum` (WARN006), or relying on assertions for control flow rather than validation
+#
+# See also: adfirma, functio
+# =============================================================================
+
+
 # adfirma — assertions in functions
 #
 # adfirma <condition>

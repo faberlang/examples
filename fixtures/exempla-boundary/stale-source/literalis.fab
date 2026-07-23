@@ -1,3 +1,39 @@
+# =============================================================================
+# literalis — literal expressions: numbers, strings, booleans, null, templates
+# =============================================================================
+#
+# What this example teaches:
+#   • Numeric literals — integers (42), decimals (3.14), negatives (-100)
+#   • String literals — double-quoted ("hello") and block strings (« ... »)
+#   • Boolean literals — verum (true) and falsum (false)
+#   • Null literal — nihil
+#   • Template application — "Hello §"(name) formatting
+#
+# Syntaxes used:
+#   • incipit — entry point (line 5)
+#   • fixum — immutable binding (lines 7-10, 13-14, 17, 22-24)
+#   • ← — assignment (lines 7-10, 13-14, 17, 22-24)
+#   • « » — block string delimiters (line 14)
+#   • verum / falsum — boolean literals (lines 17, 18)
+#   • nihil — null literal (line 21)
+#   • § — template interpolation (line 23)
+#   • " — double-quoted string (line 13)
+#   • nota — print (lines 27-35)
+#
+# Alternate approaches (not shown):
+#   • Raw string literals without escape processing — «block "quotes"» guillemet strings include literal characters including quotes; no escaping needed
+#
+# Anti-patterns (avoid these):
+#   • Using nihil where a typed default value would be clearer — prefer fixum textus greeting ← "" over fixum textus ∪ nihil greeting ← nihil when the empty state has semantic meaning
+#
+# Learning path:
+#   Before: Stage 1: fixum, nota (immutable bindings and output)
+#   After:  Stage 4: § template application, conversio operators
+#
+# Stage: fixture boundary, literal expressions reference
+# Backend: stepper
+# =============================================================================
+
 # Literal expressions: numbers, strings, booleans, null, templates
 
 incipit {

@@ -9,6 +9,21 @@ aliases = ["else if"]
 related = ["si", "secus"]
 +++
 
+# =============================================================================
+# sin — Adds an else-if branch after a previous si branch.
+# =============================================================================
+#
+# What this teaches:
+#   • Standalone else-if — `sin` provides an intermediate conditional branch
+#     evaluated only when the preceding `si` condition was `falsum`
+#   • Chains: `si { } sin { } secus { }` for multi-way branching
+#
+# Common mistakes:
+#   • Writing `secus si` instead of the canonical `sin` for else-if branches.
+#
+# See also: si, secus
+# =============================================================================
+
 # sin — else-if branch
 #
 # GRAMMAR:

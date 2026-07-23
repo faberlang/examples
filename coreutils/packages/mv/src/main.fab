@@ -1,3 +1,37 @@
+# =============================================================================
+# mv — move (rename) files
+# =============================================================================
+#
+# What this example teaches:
+#   • solum.renomina — rename files via the stdlib filesystem API
+#   • Guarded functio — checks paths.longitudo() > 1 before calling
+#   • @ operandus ceteri — accepting positional path operands
+#   • Minimal package — one import, one helper, one incipit
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → vacuum — line 3
+#   • si — line 5
+#   • .accipe — lines 7, 8
+#   • vel — lines 7, 8
+#   • @ cli / @ descriptio / @ operandus — lines 10-12
+#   • incipit — line 13
+#
+# Alternate approaches (not shown):
+#   • directory target detection via solum.exstat vs simple two-arg rename — GNU mv moves into directory when last arg is a dir (alternates doc §API Design Patterns)
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: yes
+#   After:  mkdir, rm, cp
+#
+# Stage: Stage 2-4, simple file rename parity
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "norma:solum" privata solum
 
 functio move_simplex(lista<textus> paths) → vacuum {

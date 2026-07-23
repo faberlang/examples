@@ -1,6 +1,36 @@
-# Conversio matrix fixture: instans ↦ textus.
-# Setup: valor → instans; measure instans ↦ textus (RFC3339 formatting).
-# Phase-1 model: rust ✓ (to_rfc3339); wasm-text —.
+# =============================================================================
+# instans ↦ textus — format timestamp as RFC 3339 text
+# =============================================================================
+#
+# What this example teaches:
+#   • instans ↦ textus — format a timestamp value as RFC 3339 text
+#   • Three-step setup: valor → instans, then instans → textus
+#   • wasm-text does not represent instans — backend gap
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — lines 12, 13
+#   • incipit (entry point) — line 10
+#   • fixum (immutable binding) — lines 11, 12, 13
+#
+# Alternate approaches (not shown):
+#   • instans ∷ textus — static ascription would not format; use ↦ for RFC 3339 output
+#   • valor ↦ instans ↦ textus — chain conversions for valor-held timestamps
+
+# Anti-patterns (avoid these):
+#   • instans ∷ textus — ascription preserves the internal representation, not a display string
+#   • Assuming local timezone formatting — RFC 3339 output is always UTC ('Z' suffix)
+
+# Pitfalls:
+#   • Always succeeds for valid instans values — no runtime error
+#   • Output is RFC 3339 format (e.g. 1979-05-27T07:32:00Z); not localized
+
+# Learning path:
+#   Before: see instans/ and textus/ exempla (Stage 6 types)
+#   After:  see vivilite/src/main.fab (timestamp handling in SQLite)
+
+# Stage: Phase-1 model, Rust only
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum valor v ← "1979-05-27T07:32:00Z"
     fixum instans t ← v ↦ instans

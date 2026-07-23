@@ -1,16 +1,55 @@
+# =============================================================================
+# tr — GNU coreutils tr: translate or delete characters
+# =============================================================================
+#
+# What this example teaches:
+#   • String-set expansion — `expande_set` converts declared ASCII ranges
+#     (`a-z`, `A-Z`, `0-9`) into their full character lists, and
+#     `range_declaratumne` distinguishes them from literal text
+#   • Transliteration mapping — `translitera_lineam` maps characters from SET1
+#     to SET2 by positional index, with truncation support (`-t`)
+#   • Deletion and squeezing — `dele_lineam` removes characters in the set,
+#     `comprime_lineam` collapses consecutive repeats of set characters
+#   • `lege` stdin loop — line-by-line transform with `∪`/`nihil` EOF
+#   • Mode dispatch by `modus` string — `-d`, `-s`, `-t` vs plain transliterate
+#     selected by the first operand via `tr_lineam`
+#
+# Syntaxes used:
+#   • `lege` — stdin read (line 172)
+#   • `∪` — nullable union type (line 172)
+#   • `nihil` — EOF sentinel (line 173)
+#   • `vel` — fallback (lines 149, 152, 155, 159, 164)
+#   • `≡` — equality (passim)
+#   • `≥` / `<` — comparison (lines 74, 90, etc.)
+#   • `si`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (passim)
+#   • `itera` — for-each over list (not used directly in this file)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 181-199)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI declarations (lines 201-204)
+#   • `incipit` — entry point (line 205)
+#   • `functio` — function definitions (passim)
+#   • `fixum` / `varia` — bindings (passim)
+#   • `.longitudo()` — string length (passim)
+#   • `.sectio()` — string slice (passim)
+#   • `.appende()` not used (string concatenation via `+`)
+#   • ✗ character classes (`[:alpha:]`), equivalents, escaped forms — deferred
+#   • Existing Stage 4 block comment prose (lines 3-10) merged above
+#
+# Alternate approaches (not shown):
+#   • Complement sets (`SET1` with `^`) for inverse matching
+#   • Character classes (`[:lower:]`, `[:upper:]`) for locale-aware sets
+#
+# Anti-patterns (avoid these):
+#   • `-d` with no SET2 should require exactly one set operand
+#
+# Learning path:
+#   Before: cat (stdin)
+#   After:  (terminal)
+#
+# Stage: Stage 4, stdin-only ASCII transliterate/delete/squeeze via set expansion
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
-
-# Stage 4 keeps tr in the stdin-only stepper lane.
-# This slice implements a declared ASCII subset of GNU `tr`: transliteration
-# from SET1 to SET2, deletion with `-d SET1`, and repeat squeezing with
-# `-s SET1`. Input comes only from nullable `lege`; each stdin line is
-# transformed independently and emitted through the harness newline writer.
-# Set parsing is deliberately small: literal one-scalar text and the ASCII
-# ranges `a-z`, `A-Z`, and `0-9`. Transliteration supports GNU `-t` truncation
-# by ignoring the expanded SET1 tail that has no matching SET2 character.
-# Complement sets, character classes, escaped forms, zero-terminated records,
-# diagnostics, help/version, file inputs, and multibyte semantics are
-# unsupported GNU surfaces.
 
 functio range_fragment(textus range) → textus {
     si range ≡ "a-z" ergo redde "abcdefghijklmnopqrstuvwxyz"

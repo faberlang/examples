@@ -1,5 +1,33 @@
-# Conversio matrix fixture: ascii ↦ textus.
-# Phase-1 model: rust ✓ (to_textus); wasm-text — (ascii not representable).
+# =============================================================================
+# ascii ↦ textus — convert ASCII literal into textus
+# =============================================================================
+#
+# What this example teaches:
+#   • ascii ↦ textus — lossless conversion from ASCII literal to textus
+#   • wasm-text cannot represent ascii — backend limitation affects this path
+#
+# Syntaxes used:
+#   • ↦ (conversion operator) — line 9
+#   • incipit (entry point) — line 8
+#
+# Alternate approaches (not shown):
+#   • 'hi' ∷ textus — ascription when value is already semantically text (same bytes, different type); use ∷ for compile-time, ↦ for runtime
+
+# Anti-patterns (avoid these):
+#   • ∷ used where ↦ is needed — ascription is static, no runtime conversion
+#   • Assuming wasm-text support — ascii is not representable in wasm-text
+
+# Pitfalls:
+#   • Safe and lossless — all ASCII bytes are valid UTF-8
+#   • wasm-text backend cannot represent ascii at all; use textus directly
+
+# Learning path:
+#   Before: see textus/ exempla (Stage 3) and ascii/ exempla
+#   After:  see echo/src/main.fab (textus manipulation with § interpolation)
+
+# Stage: Phase-1 model, Rust only backend
+# Backend: Rust ✓, wasm-text —
+# =============================================================================
 incipit {
     fixum _ r ← 'hi' ↦ textus
 }

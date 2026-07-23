@@ -8,6 +8,20 @@ syntax = "@ nondum [target] [reason]"
 related = ["implendum", "@"]
 +++
 
+# =============================================================================
+# nondum — Marks an interface method as planned but unavailable for a target.
+# =============================================================================
+#
+# What this teaches:
+#   • the `@nondum` annotation — marks interface methods as planned but not yet implemented for a target backend
+#   • target-specific availability annotations with optional reason strings
+#
+# Common mistakes:
+#   • Calling a method marked @ nondum — the compiler rejects calls to nondum methods for the current target (SEM017).
+#
+# See also: implendum, @
+# =============================================================================
+
 # meta/nondum — planned-but-unavailable interface methods
 #
 # GRAMMAR:

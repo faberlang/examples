@@ -9,6 +9,21 @@ aliases = ["promise"]
 related = ["futura", "cede"]
 +++
 
+# =============================================================================
+# promissum — Promise-like result type associated with futura functions.
+# =============================================================================
+#
+# What this teaches:
+#   • Async return type — `promissum<T>` is the return-type wrapper for
+#     `@ futura` functions
+#   • When a `functio` is annotated `@ futura`, its declared return type is
+#     implicitly wrapped in `promissum<T>`
+#
+# Common mistakes:
+#   • Creating a `promissum<T>` but never `cede`-awaiting it — the promise goes unobserved.
+#
+# See also: futura, cede
+# =============================================================================
 
 # promissum<T> — async result type (paired with @ futura)
 #

@@ -7,7 +7,19 @@ summary = "Genus methods using ego for field access."
 syntax = "genus <name> { functio <method>(<params>) → <type> { … ego.<field> … } }"
 related = ["genus", "ego", "functio"]
 +++
-
+# =============================================================================
+# genus — Genus methods using ego for field access
+# =============================================================================
+#
+# What this teaches:
+#   • Genus methods using ego for field access.
+#   • Related keywords: genus, ego, functio
+#
+# Common mistakes:
+#   • Mutating `ego` fields on a `fixum` instance — methods that mutate state via `ego` require the instance to be bound with `varia`.
+#
+# See also: genus, ego, functio
+# =============================================================================
 
 # Genus with methods using ego
 #

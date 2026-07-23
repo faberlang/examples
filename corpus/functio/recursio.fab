@@ -8,7 +8,19 @@ syntax = "functio <name>(<params>) [modifiers] [→ <type>] [⇥ <error-type>] <
 aliases = ["function"]
 related = ["→", "⇥", "redde", "sponte", "ceteri", "prae", "curata", "futura", "cursor"]
 +++
-
+# =============================================================================
+# functio — Declares a named function or method
+# =============================================================================
+#
+# What this teaches:
+#   • Declares a named function or method.
+#   • Related keywords: →, ⇥, redde, sponte, ceteri, prae, curata, futura, cursor
+#
+# Common mistakes:
+#   • Omitting a base case — recursive functions without a terminating condition cause infinite recursion and stack overflow.
+#
+# See also: →, ⇥, redde, sponte, ceteri, prae, curata, futura, cursor
+# =============================================================================
 
 # Recursive functions
 #

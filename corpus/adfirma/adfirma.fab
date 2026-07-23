@@ -10,6 +10,24 @@ related = ["proba", "fac", "cape"]
 +++
 
 
+# =============================================================================
+# adfirma — Asserts that a condition is true at runtime.
+# =============================================================================
+#
+# What this teaches:
+#   • Runtime assertions — `adfirma <condition>` validates invariants during
+#     program execution
+#   • Custom messages — `adfirma <condition>, "message"` adds descriptive
+#     diagnostic text on failure
+#   • Testing category — adfirma is the primary assertion keyword for test
+#     and verification code
+#
+# Common mistakes:
+#   • using `adfirma` outside `proba` or `probandum` (WARN006); use `mori` for invariant violations in production code or move assertions into test blocks
+#
+# See also: proba, fac, cape
+# =============================================================================
+
 # adfirma — runtime assertions
 #
 # adfirma <condition>

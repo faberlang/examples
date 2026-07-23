@@ -1,3 +1,38 @@
+# =============================================================================
+# false — return an unsuccessful exit status
+# =============================================================================
+#
+# What this example teaches:
+#   • @ operandus ceteri textus ignored — accepting and discarding operands
+#   • incipit argumenta args exitus 1 — custom exit code (implicitly returns 1)
+#   • External functio call — gnu_argv.linea_operandorum formats for display
+#   • Minimal incipit body — operands formatted and bound to _ without side effect
+#
+# Syntaxes used:
+#   • importa — line 1
+#   • functio … → textus (external) — line 6, 11
+#   • fixum — lines 6, 11, 17
+#   • vacua — lines 6, 11
+#   • probandum / proba / adfirma — lines 3-12
+#   • ≡ — lines 7, 12
+#   • @ cli / @ descriptio / @ operandus — lines 14-16
+#   • incipit … exitus — line 17
+#
+# Alternate approaches (not shown):
+#   • exitus via @ cli vs explicit incipit argumenta args exitus N — the @ cli annotation sets the exit code declaratively
+#
+# Anti-patterns (avoid these):
+#   • # must start a line (no mid-line comments) — LEX007 rejects inline # after code
+#   • ≡ not == — Faber uses ≡ for structural equality, not ASCII ==
+#
+# Learning path:
+#   Before: nothing
+#   After:  pwd, yes
+#
+# Stage: Stage 2-4, exit-code-only GNU parity
+# Backend: stepper+Rust
+# =============================================================================
+
 importa ex "../../../common/gnu/argv" privata gnu_argv
 
 probandum "false operands" tag "coreutils" {

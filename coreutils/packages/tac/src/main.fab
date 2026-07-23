@@ -1,8 +1,51 @@
+# =============================================================================
+# tac — GNU coreutils tac: concatenate and print files in reverse
+# =============================================================================
+#
+# What this example teaches:
+#   • `dum` with reversed index — iterating backward through `lista<textus>`
+#     to produce reversed output
+#   • `fac`/`dum` compound loop — `fac { … } dum verum` as a post-check loop
+#     pattern for reading stdin until EOF
+#   • `modus_stdin` pattern — boolean check on operand count to restrict the
+#     slice to stdin-only mode
+#   • Pure reversal — `verte_lineas` is a pure function so proba covers edge
+#     cases (empty, one line, repeated lines) without stdin
+#
+# Syntaxes used:
+#   • `lege` — stdin read (line 25)
+#   • `∪` — nullable union type (line 25)
+#   • `nihil` — EOF sentinel (line 26)
+#   • `vel` — fallback (lines 14, 27, 54)
+#   • `≡` — equality (line 52)
+#   • `si`/`secus`/`ergo` — conditionals (passim)
+#   • `dum` — while loops (lines 12, 22-28)
+#   • `fac`/`dum` — post-check loop (lines 24-29)
+#   • `itera` — for-each over list (lines 59)
+#   • `probandum`/`proba`/`adfirma` — tests (lines 40-51)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI declarations (lines 53-55)
+#   • `incipit` — entry point (line 56)
+#   • `functio` — function definitions (passim)
+#   • `.longitudo()` — list length (passim)
+#   • `.appende()` — list append (passim)
+#   • `.accipe()` — indexed list access (lines 12, 14)
+#
+# Alternate approaches (not shown):
+#   • `lista.inverte()` — the built-in reverse method would be simpler
+#     but `verte_lineas` shows manual iteration
+#
+# Anti-patterns (avoid these):
+#   • None significant — this is a clean, minimal slice
+#
+# Learning path:
+#   Before: head, tail
+#   After:  (terminal)
+#
+# Stage: Stage 4, stdin-only line reversal
+# Backend: stepper
+# =============================================================================
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 
-# This Stage 4 coreutils slice is stdin-only and line-oriented.
-# File operands, separators, regex separators, before-mode, and diagnostics are
-# deferred until later slices can model GNU tac without pretending support.
 functio verte_lineas(lista<textus> lineae) → lista<textus> {
     varia lista<textus> reversae ← vacua
     varia numerus i ← lineae.longitudo()

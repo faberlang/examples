@@ -8,6 +8,22 @@ syntax = "<name>(<args>) | <expr>.<method>(<args>) | <name>(sparge <lista>)"
 related = ["functio", "sparge", "genus"]
 +++
 
+# =============================================================================
+# vocatio — Function, method, chained, and sparge spread call expressions.
+# =============================================================================
+#
+# What this teaches:
+#   • Call expressions — function calls, method calls, and chained fluent interface calls
+#   • Spread arguments — `sparge <lista>` expands a list into positional call arguments
+#
+# Common mistakes:
+#   • confusing vocatio (function-call expression) with functio declaration syntax — vocatio is the call site, not the definition
+#
+# See also: functio, sparge, genus
+# =============================================================================
+
+
+
 
 # vocatio — function and method call expressions
 #

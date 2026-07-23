@@ -8,6 +8,20 @@ syntax = "<textus-or-ascii> ↦ regex"
 related = ["↦", "regex", "textus", "ascii"]
 +++
 
+# =============================================================================
+# regex — Regex carrier construction from textus and ascii.
+# =============================================================================
+#
+# What this teaches:
+#   • Regex carrier creation — `textus ↦ regex` and `ascii ↦ regex` construct a regex pattern carrier from text inputs.
+#   • v1 behavior — v1 regex conversio does not validate pattern syntax; invalid-looking patterns are preserved identically.
+#
+# Common mistakes:
+#   • Assuming the compiler validates regex syntax at compile time — v1 constructs a carrier without engine validation.
+#
+# See also: ↦, regex, textus, ascii
+# =============================================================================
+
 
 # conversio — regex carrier construction
 #

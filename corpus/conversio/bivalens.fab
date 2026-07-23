@@ -8,6 +8,20 @@ syntax = "<expression> ↦ bivalens"
 related = ["↦", "bivalens"]
 +++
 
+# =============================================================================
+# ↦ — Truthiness conversion to bivalens.
+# =============================================================================
+#
+# What this teaches:
+#   • Truthiness conversion — converts any expression to bivalens via the ↦ operator, following non-zero, non-empty truthiness rules.
+#   • Syntax shape — `<expr> ↦ bivalens` with the full range of source types (numerus, textus, expressions).
+#
+# Common mistakes:
+#   • Confusing truthiness (`0 ↦ bivalens` = falsum) with an explicit comparison — `↦ bivalens` uses non-zero truthiness, not `≡ 0`.
+#
+# See also: ↦, bivalens
+# =============================================================================
+
 
 # conversio — truthiness conversion to bivalens
 #

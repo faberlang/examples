@@ -1,3 +1,44 @@
+# =============================================================================
+# validatio — input validation patterns with custodi (guard)
+# =============================================================================
+#
+# What this example teaches:
+#   • custodi — guard block for grouped precondition checks
+#   • Validation patterns — range checks, null/empty checks, age validation
+#   • Return-from-guard — `redde "error message"` exits the function early
+#   • Throw-in-guard — iace inside custodi for unrecoverable validation
+#
+# Syntaxes used:
+#   • functio — function definition (lines 6, 23, 47)
+#   • custodi — guard block for preconditions (lines 7, 24, 48)
+#   • si — conditional (lines 8, 10, 31, 35, 37, 39, 51)
+#   • redde — return (lines 9, 11, 32, 34, 36, 38, 40, 42, 52)
+#   • iace — throw (line 52)
+#   • aut — logical OR operator (lines 31, 33)
+#   • nihil — null value (lines 31, 33)
+#   • ≡ — equality (lines 31, 33)
+#   • < / > — comparison (lines 8, 10, 37, 39, 51)
+#   • secus — else (lines 13, 19)
+#   • incipit — entry point (line 56)
+#   • nota — print (lines 57-63)
+#   • § — template interpolation (line 42)
+#
+# Alternate approaches (not shown):
+#   • Using ⇥ effect type for validation errors instead of returning strings — declare → T ⇥ ValidationError for typed, composable error contracts
+#   • Type-level validation with constrained types instead of runtime checks — define genus PositiveNumber or similar for compile-time guarantees
+#
+# Anti-patterns (avoid these):
+#   • Validation scattered through function body instead of custodi block — custodi { ... } groups preconditions at the top; scattered si checks are harder to audit
+#   • Returning error strings instead of typed error values — textus error strings lose type information; use ⇥ with a genus error type for structured error handling
+#
+# Learning path:
+#   Before: Stage 2: si, redde → Stage 3: genus, nihil (conditional returns and type-level modeling)
+#   After:  Stage 11: ⇥ effect type annotations (typed error contracts)
+#
+# Stage: fixture boundary, unsupported-rust-target, custodi validation
+# Backend: stepper
+# =============================================================================
+
 # Input validation patterns with custodi
 #
 # Use custodi to group related precondition checks.

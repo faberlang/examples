@@ -1,2 +1,25 @@
-# TODO
+# =============================================================================
+# praepara — test setup fixture stub
+# =============================================================================
+#
+# What this example teaches:
+#   • praepara — test setup blocks that declare pre-test initialization logic, running before each test or before the suite
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#
+# Alternate approaches (not shown):
+#   • Module-level setup vs per-suite setup with probandum — praepara omnia inside probandum runs once per suite; module-level fixum bindings are visible to all tests
+#
+# Anti-patterns (avoid these):
+#   • Declaring setup that is never used by any test — unused praepara blocks create maintenance noise; ensure every setup block is consumed by at least one test in the suite
+#
+# Learning path:
+#   Before: Stage 10: probandum, proba, adfirma (test suite structure)
+#   After:  Stage 10: proba/packages/suite (nested suites with setup and teardown)
+#
+# Stage: fixture boundary, proba setup fixture, stub/minimal
+# Backend: stepper
+# =============================================================================
+
 incipit {}

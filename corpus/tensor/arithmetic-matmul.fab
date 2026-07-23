@@ -8,6 +8,22 @@ syntax = "tensor.matmul(other)"
 related = ["tensor", "fractus", "lista"]
 +++
 
+# =============================================================================
+# tensor — Tensor rank-2 matrix multiplication with static shape checking.
+# =============================================================================
+#
+# What this teaches:
+#   • Matrix multiplication — `matmul` as the linear-algebra cornerstone for tensor arithmetic
+#   • Shape checking — inner dimension must unify; element type stays strict-equal
+#
+# Common mistakes:
+#   • providing tensors with mismatched inner dimensions (matmul shape contract) or different numeric widths without explicit ↦ conversion
+#
+# See also: tensor, fractus, lista
+# =============================================================================
+
+
+
 # tensor rank-2 matrix multiply
 #
 # WHY: matmul is the linear-algebra cornerstone the tensor arithmetic family

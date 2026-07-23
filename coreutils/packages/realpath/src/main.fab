@@ -1,3 +1,35 @@
+# =============================================================================
+# realpath — GNU coreutils realpath: print the resolved file path
+# =============================================================================
+#
+# What this example teaches:
+#   • `solum.absolve()` — standard library call for absolute path resolution
+#   • `itera` over `@ operandus ceteri` — processing each path operand and
+#     outputting its canonical form
+#   • Trivial entry-point pattern with no options — shows the baseline for
+#     operand-driven utilities
+#
+# Syntaxes used:
+#   • `importa` — module import (lines 1-2)
+#   • `itera` — for-each over list (line 7)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI annotations (lines 10-12)
+#   • `incipit` — entry point (line 13)
+#   • `solum.absolve()` — path canonicalization
+#   • `gnu_stdio.scribe_linea()` — stdout helper
+#
+# Alternate approaches (not shown):
+#   • `-m` / `-s` / `-z` flags for missing components, symlinks, null
+#
+# Anti-patterns (avoid these):
+#   • No proba block — test helpers should cover path resolution cases
+#
+# Learning path:
+#   Before: yes
+#   After:  mkdir, rm, cp
+#
+# Stage: Stage 3, file-operand via solum
+# Backend: stepper
+# =============================================================================
 importa ex "norma:solum" privata solum
 importa ex "../../../common/gnu/stdio" privata gnu_stdio
 

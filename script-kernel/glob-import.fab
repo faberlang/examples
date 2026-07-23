@@ -9,6 +9,22 @@ aliases = ["faber:*"]
 related = ["importa", "incipit"]
 +++
 
+# =============================================================================
+# faber:* — script-kernel manifest glob import
+# =============================================================================
+#
+# What this teaches:
+#   • Glob import pattern — `faber:*` expands the entire kernel manifest at
+#     compile time, making all kernel modules accessible as `faber.<module>`
+#   • Multi-module usage — demonstrates aleator, solum, json, and processus
+#     from a single import prefix
+#
+# Common mistakes:
+#   • Forgetting that `faber:*` is a compile-time expansion, not a runtime aggregate value — you cannot iterate or reflect over the modules; they are expanded statically into `faber.<module>.<verb>` calls
+#
+# See also: importa, incipit
+# =============================================================================
+
 # faber:* — script-kernel manifest import
 #
 # This glob is inside the import path string. It expands the released binary's

@@ -1,2 +1,25 @@
-# TODO
+# =============================================================================
+# futurum — future/todo fixture stub
+# =============================================================================
+#
+# What this example teaches:
+#   • futurum — planned/future test declaration semantics; a marker for tests that are designed but not yet implemented
+#
+# Syntaxes used:
+#   • incipit — entry point (line 1)
+#
+# Alternate approaches (not shown):
+#   • Using the futurum modifier on specific proba statements instead — proba "name" futurum "reason" { body } marks a specific planned test
+#
+# Anti-patterns (avoid these):
+#   • Leaving entire files as stubs long-term without implementation — futurum is a signal to implement; track with issue numbers and deadlines
+#
+# Learning path:
+#   Before: Stage 10: proba, omitte (test and skip modifier)
+#   After:  Stage 10: proba/modificatores.fab (full futurum modifier documentation)
+#
+# Stage: fixture boundary, futurum fixture stub
+# Backend: stepper
+# =============================================================================
+
 incipit {}

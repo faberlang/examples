@@ -7,6 +7,19 @@ summary = "Marks a test as fragile."
 syntax = "fragilis <number>"
 related = ["requirit"]
 +++
+# =============================================================================
+# fragilis — Marks a test as fragile
+# =============================================================================
+#
+# What this teaches:
+#   • Marks a test as fragile.
+#   • Related keywords: requirit
+#
+# Common mistakes:
+#   • Marking a test as fragile without a reason — `fragilis <number>` requires a numeric identifier for the failure-tracking system.
+#
+# See also: requirit
+# =============================================================================
 
 # fragilis — allow-failure test modifier
 #

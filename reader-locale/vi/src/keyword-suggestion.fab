@@ -1,1 +1,26 @@
+# =============================================================================
+# Vietnamese locale — full-width keyword normalization suggestion
+# =============================================================================
+#
+# What this example teaches:
+#   • Unicode normalization — full-width characters ｈａｍ should be normalized
+#     to ASCII `ham` for keyword matching; the reader should suggest `hàm`
+#
+# Syntaxes used:
+#   • ｈａｍ — full-width Latin letters (should normalize to hàm) (line 1)
+#
+# Alternate approaches (not shown):
+#   • NFKC normalization before keyword lookup: full-width ｈａｍ (U+FF48 U+FF41 U+FF4D) normalizes to ASCII "ham" for keyword matching, not directly to hàm
+#
+# Anti-patterns (avoid these):
+#   • Accepting full-width characters without diagnostic — full-width Latin letters must be normalized to half-width for keyword matching; the reader should suggest the correct locale keyword
+#
+# Learning path:
+#   Before: Stage 1: functio (function keyword declaration)
+#   After:  Stage 1: fixum, varia, si, redde (functions with bindings and control flow)
+#
+# Stage: locale-reader, Vietnamese locale full-width normalization fixture
+# Backend: stepper
+# =============================================================================
+
 ｈａｍ chào() { }

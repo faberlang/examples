@@ -8,6 +8,22 @@ syntax = "tensor[index] | tensor[index] ← value"
 related = ["tensor", "accipe", "ponde", "lista"]
 +++
 
+# =============================================================================
+# tensor — Tensor bracket access lowers to accipe and ponde.
+# =============================================================================
+#
+# What this teaches:
+#   • Bracket sugar — `tensor[index]` and `tensor[index] ← value` as syntactic sugar
+#   • Nullable reads — bracket access keeps `∪ nihil` semantics, so use `vel` before arithmetic
+#
+# Common mistakes:
+#   • forgetting that bracket reads return T ∪ nihil and need vel before arithmetic
+#
+# See also: tensor, accipe, ponde, lista
+# =============================================================================
+
+
+
 
 # tensor — bracket access sugar for accipe / ponde
 #

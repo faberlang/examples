@@ -7,6 +7,19 @@ summary = "Marks a function as non-mutating."
 syntax = "functio <name>(...) immutata → <type>"
 related = ["curata", "iacit"]
 +++
+# =============================================================================
+# immutata — Marks a function as non-mutating
+# =============================================================================
+#
+# What this teaches:
+#   • Marks a function as non-mutating.
+#   • Related keywords: curata, iacit
+#
+# Common mistakes:
+#   • Mutating state inside an `immutata` function — `immutata` is a non-mutation contract; modifying `in` parameters or external state breaks the contract.
+#
+# See also: curata, iacit
+# =============================================================================
 
 # immutata — immutability contract on functio
 #

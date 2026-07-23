@@ -9,6 +9,20 @@ aliases = ["iterate"]
 related = ["ex", "de", "ab"]
 +++
 
+# =============================================================================
+# itera — Starts a for-each iteration statement.
+# =============================================================================
+#
+# What this teaches:
+#   • range expressions with exclusive (`‥`) and inclusive (`…`) bounds
+#   • the explicit `ante` keyword for readability in exclusive ranges
+#   • descending direction in range iteration
+#
+# Common mistakes:
+#   • Confusing ‥ (exclusive upper bound) with … (inclusive upper bound) — off-by-one errors are the most common range bug.
+#
+# See also: ex, de, ab
+# =============================================================================
 
 # itera ab — range expressions with exclusive and inclusive bounds
 #

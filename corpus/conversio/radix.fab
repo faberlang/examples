@@ -8,6 +8,20 @@ syntax = "<textus> ↦ numerus<W, Radix>"
 related = ["↦", "numerus", "textus"]
 +++
 
+# =============================================================================
+# ↦ — Radix-parameterized integer parsing from textus.
+# =============================================================================
+#
+# What this teaches:
+#   • Radix-aware parsing — `textus ↦ numerus<i32, Hex|Bin|Oct>` parses integers with an explicit radix parameter in the target type.
+#   • Syntax parameterization — the target type carries both the width (`i32`) and radix (`Hex`), showing how type parameters control conversion behavior.
+#
+# Common mistakes:
+#   • Omitting the radix parameter when parsing non-decimal text — use `numerus<i32, Hex>` for hex, `numerus<i32, Bin>` for binary, or `numerus<i32, Oct>` for octal.
+#
+# See also: ↦, numerus, textus
+# =============================================================================
+
 
 # conversio — radix-parameterized integer parsing
 #

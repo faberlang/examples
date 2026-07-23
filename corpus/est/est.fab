@@ -8,6 +8,23 @@ syntax = "<expression> est <expression>"
 related = ["non est"]
 +++
 
+# =============================================================================
+# est — Tests whether a value is or matches a type-like target.
+# =============================================================================
+#
+# What this teaches:
+#   • Type checking — `<expr> est <type>` tests a valor's runtime variant tag without extraction.
+#   • Null checking — `<expr> est nihil` checks for null values.
+#   • Boolean checks — `<expr> est verum` / `<expr> est falsum` for exact boolean comparison.
+#   • Negation — `<expr> non est <type>` negates the type check.
+#   • Chaining — `est` composes with `et` and parenthesized expressions.
+#
+# Common mistakes:
+#   • Using `est` for equality comparison — `est` checks variant tags and type-like targets, not structural equality; use `≡` for value comparison.
+#
+# See also: non est
+# =============================================================================
+
 
 # est — type, null, and boolean checks
 #

@@ -8,7 +8,19 @@ syntax = "genus <name> implet <interface-list> <block>"
 aliases = ["implements"]
 related = ["genus", "implendum"]
 +++
-
+# =============================================================================
+# implet — Declares that a type implements one or more implendum contracts
+# =============================================================================
+#
+# What this teaches:
+#   • Declares that a type implements one or more implendum contracts.
+#   • Related keywords: genus, implendum
+#
+# Common mistakes:
+#   • Declaring `genus implet Implendum` without implementing all required methods — every method signature in the implendum must have a body in the genus.
+#
+# See also: genus, implendum
+# =============================================================================
 
 # implet — genus implements a implendum (interface contract)
 #

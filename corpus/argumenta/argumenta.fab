@@ -8,6 +8,22 @@ syntax = "incipit argumenta <name> <block> | functio <name>() argumenta <name> <
 related = ["incipit", "cli", "imperium", "optio", "operandus"]
 +++
 
+# =============================================================================
+# argumenta — Binds command-line arguments for an entry point.
+# =============================================================================
+#
+# What this teaches:
+#   • CLI entry binding — `incipit argumenta <name>` declares a program entry
+#     that receives command-line arguments
+#   • Annotation-driven CLI — `@ cli`, `@ descriptio`, and `incipit argumenta`
+#     work together to define a structured CLI interface
+#
+# Common mistakes:
+#   • attaching `@ cli` to a `functio` instead of an `incipit` (SEM009), or forgetting to annotate with `@ cli` before `incipit argumenta`
+#
+# See also: incipit, cli, imperium, optio, operandus
+# =============================================================================
+
 # argumenta — CLI entry operand binding
 #
 # GRAMMAR:

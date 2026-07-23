@@ -8,6 +8,22 @@ syntax = "tacet"
 aliases = ["silent noop"]
 related = ["ergo", "redde"]
 +++
+
+# =============================================================================
+# tacet — Marks an explicit no-op statement.
+# =============================================================================
+#
+# What this teaches:
+#   • Explicit no-op — `tacet` as a deliberate empty statement, especially in control flow
+#   • Musical rest metaphor — `tacet` signals intentional absence of action
+#
+# Common mistakes:
+#   • using tacet where logic is expected, which hides missing code; tacet is also outside the v1 AIR pure subset
+#
+# See also: ergo, redde
+# =============================================================================
+
+
 # tacet — explicit no-op (musical rest)
 #
 # tacet                                    -- deliberate empty statement

@@ -7,7 +7,19 @@ summary = "Checks whether a value lies within a range."
 syntax = "<expression> intra <range>"
 related = ["inter"]
 +++
-
+# =============================================================================
+# intra — Checks whether a value lies within a range
+# =============================================================================
+#
+# What this teaches:
+#   • Checks whether a value lies within a range.
+#   • Related keywords: inter
+#
+# Common mistakes:
+#   • Confusing `intra` (range containment) with `inter` (collection membership) — `intra` checks numeric intervals; `inter` checks set membership.
+#
+# See also: inter
+# =============================================================================
 
 # intra — range containment (membership in a numeric interval)
 #
