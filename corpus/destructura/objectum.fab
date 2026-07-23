@@ -55,17 +55,17 @@ genus Plenus {
     textus munus
 }
 
-genus CivisNested {
+genus Sodalis {
     textus nomen
     bivalens probatus
 }
 
-genus DatumNested {
-    CivisNested civis
+genus Relatus {
+    Sodalis civis
 }
 
 genus Responsum {
-    DatumNested datum
+    Relatus datum
 }
 
 genus Vestis {
@@ -123,7 +123,7 @@ incipit {
 
     # --- Destructura ex nested path ---
 
-    fixum _ responsum ← Responsum { datum = DatumNested { civis = CivisNested { nomen = "Claudia", probatus = verum } } }
+    fixum _ responsum ← Responsum { datum = Relatus { civis = Sodalis { nomen = "Claudia", probatus = verum } } }
     ex responsum.datum.civis fixum nomen ut internum, probatus
 
     nota internum
