@@ -1,0 +1,26 @@
++++
+term = "redde"
+kind = "keyword"
+category = "scalar"
+canonical = true
+summary = "Function returning an integer literal via redde 42."
+syntax = "redde <integer-literal>"
+aliases = ["return"]
+related = ["vacuum", "functio"]
++++
+
+# scalar/return-integer — return integer literal
+#
+# GRAMMAR:
+#   returnStmt :← 'redde' expr
+#
+# Verifies that the Swift backend emits a function returning an
+# integer literal (SC-001: primitives, functions, return).
+
+functio da_numerum() → numerus {
+    redde 42
+}
+
+incipit {
+    redde
+}
