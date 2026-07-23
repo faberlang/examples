@@ -9,5 +9,5 @@ summary = "same-width literal vector swizzle lowers for GPU text emit"
 functio vector_swizzle(fractus<f32> x) → fractus<f32> {
     fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]
     fixum vf32[4] b ← a.swizzle("wzyx")
-    redde b.dot(a)
+    redde b.productum(a)
 }

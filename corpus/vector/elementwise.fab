@@ -6,33 +6,33 @@ summary = "vector elementwise arithmetic lowers for GPU text emit"
 +++
 
 @ nucleum
-functio vector_add(fractus<f32> x) → fractus<f32> {
+functio addita(fractus<f32> x) → fractus<f32> {
     fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]
     fixum vf32[4] b ← [1.0, 1.0, 1.0, 1.0] ↦ vf32[4]
     fixum vf32[4] c ← a.addita(b)
-    redde c.dot(b)
+    redde c.productum(b)
 }
 
 @ nucleum
-functio vector_sub(fractus<f32> x) → fractus<f32> {
+functio subtrahe(fractus<f32> x) → fractus<f32> {
     fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]
     fixum vf32[4] b ← [1.0, 1.0, 1.0, 1.0] ↦ vf32[4]
     fixum vf32[4] c ← a.subtrahe(b)
-    redde c.dot(b)
+    redde c.productum(b)
 }
 
 @ nucleum
-functio vector_mul(fractus<f32> x) → fractus<f32> {
+functio multiplica(fractus<f32> x) → fractus<f32> {
     fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]
     fixum vf32[4] b ← [1.0, 1.0, 1.0, 1.0] ↦ vf32[4]
     fixum vf32[4] c ← a.multiplica(b)
-    redde c.dot(b)
+    redde c.productum(b)
 }
 
 @ nucleum
-functio vector_div(fractus<f32> x) → fractus<f32> {
+functio divida(fractus<f32> x) → fractus<f32> {
     fixum vf32[4] a ← [x, 2.0, 3.0, 4.0] ↦ vf32[4]
     fixum vf32[4] b ← [1.0, 1.0, 1.0, 1.0] ↦ vf32[4]
     fixum vf32[4] c ← a.divida(b)
-    redde c.dot(b)
+    redde c.productum(b)
 }

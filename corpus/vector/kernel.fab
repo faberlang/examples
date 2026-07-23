@@ -6,6 +6,6 @@ summary = "nucleum kernel baseline for vector GPU emit"
 +++
 
 @ nucleum
-functio vec_scale(fractus<f32> x) → fractus<f32> {
+functio scala(fractus<f32> x) → fractus<f32> {
     redde x + 1.0
 }

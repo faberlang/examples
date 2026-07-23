@@ -10,6 +10,6 @@ functio takes(vector<fractus<f32>, 4> v, vf32[4] w) → numerus {
     redde 0
 }
 
-functio vectorDeclSmoke() → numerus {
+functio declSmoke() → numerus {
     redde 0
 }
