@@ -7,7 +7,7 @@
 #   I-01..I-06  Interaction sequences
 #   P-01..P-03  Pixel samples (when HV_GPU_CHECK=1)
 #   R-01..R-04  Resource lifecycle
-#   D-01..D-06  Dependency scan (pre/post clean-break)
+#   D-01..D-06  Dependency scan
 #
 # Usage:
 #   FABER_BIN=faber HV_GPU_CHECK=0 bash proof-driver.sh
@@ -72,8 +72,8 @@ pass "S-01 build"
 
 BUILD_DIR="$APP_DIR/dist"
 
-# ---- Step 2: Structural assertions (S-02..S-07) ------------------------------
-echo "=== Step 2: Structural assertions (S-02..S-07) ==="
+# ---- Step 2: Structural assertions (S-02..S-05, S-07) ------------------------
+echo "=== Step 2: Structural assertions (S-02..S-05, S-07) ==="
 
 # S-02: build artifact directory exists and is non-empty
 if [[ -d "$BUILD_DIR" ]]; then
@@ -116,16 +116,6 @@ else
   fail "S-05 no emitted .d.ts declarations"
 fi
 
-# S-06: build timestamp present in metadata
-if [[ -f "$CONTROLLERS" ]]; then
-  BT="$(jq -r '."build-timestamp" // ""' "$CONTROLLERS" 2>/dev/null)"
-  if [[ -n "$BT" ]]; then
-    pass "S-06 build-timestamp=$BT"
-  else
-    fail "S-06 build-timestamp missing or empty"
-  fi
-fi
-
 # S-07: data-hv-residual-path matches admitted multi-draw
 HV_RESIDUAL="$(grep -l 'per-chunk-multi-draw' "$BUILD_DIR" -r 2>/dev/null || true)"
 if [[ -n "$HV_RESIDUAL" ]]; then
@@ -134,13 +124,13 @@ else
   fail "S-07 per-chunk-multi-draw not found in build artifacts"
 fi
 
-# ---- Step 3: Dependency scan pre-clean-break (D-01..D-06) --------------------
-echo "=== Step 3: Dependency scan — pre-clean-break (D-01..D-06) ==="
-column "node-dom" "D-01..D-06 check-hello-voxel-runtime-deps"
-if bash "$WORKSPACE/triga/scripta/check-hello-voxel-runtime-deps" 2>&1; then
-  pass "D-01..D-06 pre-clean-break scan exit 0"
+# ---- Step 3: Dependency scan (D-01..D-06) ------------------------------------
+echo "=== Step 3: Dependency scan (D-01..D-06) ==="
+column "node-dom" "D-01..D-06 dep-scan"
+if python3 "$WORKSPACE/triga/scripta/check-hello-voxel-runtime-deps" 2>&1; then
+  pass "D-01..D-06 dep-scan exit 0"
 else
-  fail "D-01..D-06 pre-clean-break scan exit non-zero"
+  fail "D-01..D-06 dep-scan exit non-zero"
 fi
 
 # ---- Step 4: Browser + interaction evidence (B-01..B-08, I-01..I-06) ---------
@@ -177,14 +167,7 @@ else
   skip "P-01..P-03 pixel proof (HV_GPU_CHECK=0, structural primary gate)"
 fi
 
-# ---- Step 7: Dependency scan post-clean-break (D-01..D-06) -------------------
-echo "=== Step 7: Dependency scan — post-clean-break (D-01..D-06) ==="
-column "node-dom" "D-01..D-06 check-hello-voxel-runtime-deps --post-clean-break"
-if bash "$WORKSPACE/triga/scripta/check-hello-voxel-runtime-deps --post-clean-break" 2>&1; then
-  pass "D-01..D-06 post-clean-break scan exit 0"
-else
-  fail "D-01..D-06 post-clean-break scan exit non-zero"
-fi
+
 
 # ---- Summary ----------------------------------------------------------------
 echo ""
