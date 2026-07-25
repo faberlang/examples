@@ -1,0 +1,67 @@
+# =============================================================================
+# train.fab — Phase 1 training-loop exemplum: honest same-shape reverse-AD
+# =============================================================================
+#
+# Phase 1 uses reverse-AD MVP ops only (Add, Mul, Mean). MatMul MSE deferred
+# to later Stage E when MatMul/Sub VJPs land. The forward function computes
+# loss = mean((x ⊙ w)²) — elementwise multiply on same-shape tf32[4] tensors,
+# squared via self-multiplica, reduced via media. Only w is trainable; x is
+# frozen input whose gradient is discarded.
+#
+# Companion ABI (Stage 0+D residual chain):
+#   scale_backward(tensor_params..., residual: vacuum, upstream: R) → tuple grads
+#   Destructure: fixum [gx, gw] ← grads
+#   Frozen input: discard gx; sgd_step only on trainable param w.
+#
+# Import: norma:optimizer provides sgd_step(param, grad, lr) → tensor.
+# =============================================================================
+
+importa ex "norma:optimizer" privata optimizer
+
+# -------------------------------------------------------------------------
+# Differentiable forward: loss = mean((x ⊙ w)²)
+# -------------------------------------------------------------------------
+
+@ radix lane "air"
+@ radix backward "scale_backward"
+functio scale_loss(tensor<f32, [4]> x, tensor<f32, [4]> w) → fractus {
+    fixum tensor<f32, [4]> pred ← x.multiplica(w)
+    redde pred.multiplica(pred).media()
+}
+
+# -------------------------------------------------------------------------
+# nil() — vacuum residual for companion ABI
+# -------------------------------------------------------------------------
+
+functio nil() → vacuum {
+    tacet
+}
+
+# -------------------------------------------------------------------------
+# incipit — single training step
+# -------------------------------------------------------------------------
+
+incipit {
+    # Build tensors: x is frozen input; w is trainable.
+    fixum lista<f32> data_x ← [1.0, 2.0, 3.0, 4.0]
+    fixum lista<f32> data_w ← [5.0, 6.0, 7.0, 8.0]
+    fixum tensor<f32, []> seed ← vacua
+
+    varia tensor<f32, [4]> x ← seed.strue(data_x, [4])
+    varia tensor<f32, [4]> w ← seed.strue(data_w, [4])
+
+    # Forward pass: compute loss.
+    fixum fractus loss ← scale_loss(x, w)
+    nota loss
+
+    # Backward pass: compute gradients via generated companion.
+    fixum fractus upstream ← 1.0
+    fixum _ grads ← scale_backward(x, w, nil(), upstream)
+    fixum [gx, gw] ← grads
+
+    # Optimizer step: update trainable param w; discard frozen gx.
+    fixum fractus lr ← 0.01
+    w ← optimizer.sgd_step(w, gw, lr)
+
+    nota w
+}
