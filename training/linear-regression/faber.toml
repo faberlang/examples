@@ -8,5 +8,5 @@ source = "src"
 entry = "train.fab"
 
 [build]
-target = "scena"
+target = "fmir-text"
 kind = "bin"

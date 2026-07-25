@@ -13,7 +13,12 @@
 #   Destructure: fixum [gx, gw] ← grads
 #   Frozen input: discard gx; sgd_step only on trainable param w.
 #
-# Import: norma:optimizer provides sgd_step(param, grad, lr) → tensor.
+# Import: norma:optimizer provides sgd_step(param, grad, lr) → tensor
+#   with specialised f32 and fractus overloads.
+#
+# Build target: fmir-text (MIR-backed) is required for AIR-lane companion
+# codegen. Validate with tip-rebuilt faber (cargo run -p faber -- check …),
+# not a stale ~/.cargo/bin/faber.
 # =============================================================================
 
 importa ex "norma:optimizer" privata optimizer
@@ -55,12 +60,12 @@ incipit {
     nota loss
 
     # Backward pass: compute gradients via generated companion.
-    fixum fractus upstream ← 1.0
+    fixum f32 upstream ← 1.0
     fixum _ grads ← scale_backward(x, w, nil(), upstream)
     fixum [gx, gw] ← grads
 
     # Optimizer step: update trainable param w; discard frozen gx.
-    fixum fractus lr ← 0.01
+    fixum f32 lr ← 0.01
     w ← optimizer.sgd_step(w, gw, lr)
 
     nota w
