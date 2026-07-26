@@ -54,7 +54,7 @@
 # Stage: Stage 3, operand-parsing with local flag parser
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 genus SeqOptiones {
     lista<textus> operands

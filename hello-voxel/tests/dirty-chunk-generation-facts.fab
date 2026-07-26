@@ -39,8 +39,8 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "../src/voxel" privata voxel
-importa ex "../src/meshing" privata meshing
+importa ex "§src/voxel" privata voxel
+importa ex "§src/meshing" privata meshing
 importa ex "triga:scene" privata scene
 
 functio set_solid(

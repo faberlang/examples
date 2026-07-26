@@ -46,7 +46,7 @@
 # Stage: Stage 4, stdin-only passthrough, file-operand tee deferred
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio no_file_subsetne(lista<textus> operands) → bivalens {
     redde operands.longitudo() ≡ 0

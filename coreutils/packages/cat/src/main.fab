@@ -41,7 +41,7 @@
 # =============================================================================
 
 importa ex "norma:solum" privata solum
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio modus_stdin(lista<textus> operands) → bivalens {
     redde operands.longitudo() ≡ 0

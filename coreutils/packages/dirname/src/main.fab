@@ -38,7 +38,7 @@
 # Backend: stepper+Rust
 # =============================================================================
 
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio sine_slash_finali(textus via) → textus {
     si via.longitudo() ≡ 0 ergo redde ""

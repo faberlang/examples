@@ -6,6 +6,9 @@ edition = "2026"
 [paths]
 entry = "main.fab"
 
+[paths.templates]
+src = "src"
+
 [build]
 target = "ts"
 kind = "bin"

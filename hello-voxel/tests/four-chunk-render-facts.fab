@@ -31,8 +31,8 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "../src/voxel" privata voxel
-importa ex "../src/meshing" privata meshing
+importa ex "§src/voxel" privata voxel
+importa ex "§src/meshing" privata meshing
 
 incipit {
     fixum voxel.World world ← voxel.fixture_world()

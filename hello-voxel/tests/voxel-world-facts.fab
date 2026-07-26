@@ -33,7 +33,7 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "../src/voxel" privata voxel
+importa ex "§src/voxel" privata voxel
 
 incipit {
     # ------------------------------------------------------------------

@@ -42,7 +42,7 @@
 # Backend: stepper
 # =============================================================================
 importa ex "norma:processus" privata processus
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio printenv_nomen(textus nomen) → vacuum {
     fac {

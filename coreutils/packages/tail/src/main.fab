@@ -51,7 +51,7 @@
 # Stage: Stage 4, stdin-only line-mode tail
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 genus TailOptiones {
     numerus lineae

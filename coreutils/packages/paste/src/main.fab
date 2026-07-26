@@ -46,7 +46,7 @@
 # Stage: Stage 4, stdin-only serial mode and default passthrough
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio tabulator() → textus {
     redde "	"

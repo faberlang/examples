@@ -39,8 +39,8 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "../src/voxel" privata voxel
-importa ex "../src/application" privata application
+importa ex "§src/voxel" privata voxel
+importa ex "§src/application" privata application
 importa ex "triga:triga" privata triga
 
 functio approx(f32 a, f32 b, f32 eps) → bivalens {

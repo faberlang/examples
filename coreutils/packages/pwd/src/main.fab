@@ -31,7 +31,7 @@
 # Backend: stepper
 # =============================================================================
 importa ex "norma:processus" privata processus
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 @ cli "pwd"
 @ descriptio "GNU coreutils pwd parity exemplum"

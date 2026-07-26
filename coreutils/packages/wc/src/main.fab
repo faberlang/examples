@@ -47,8 +47,8 @@
 # Stage: Stage 4, stdin-only line/word/byte counting
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/format" privata gnu_format
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/format" privata gnu_format
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio spatiumne(textus c) → bivalens {
     redde c ≡ " " aut c ≡ "\t"

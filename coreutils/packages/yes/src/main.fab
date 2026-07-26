@@ -35,7 +35,7 @@
 # Stage: Stage 3, trivial infinite-output operand
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 # GNU yes repeats one line forever; parity fixtures cap stdout line count in the
 # harness rather than pretending the utility terminates on its own.

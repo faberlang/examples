@@ -48,7 +48,7 @@
 #   After:  cksum
 # =============================================================================
 
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio latitudo_activa(numerus petitus) → numerus {
     si petitus > 0 ergo redde petitus

@@ -53,7 +53,7 @@
 # Stage: Stage 4, stdin-only stepper, ASCII keyless sort with -f/-r/-u
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio lege_omnes_lineas() → lista<textus> {
     varia lista<textus> lineae ← vacua

@@ -33,7 +33,7 @@
 # Backend: stepper+Rust
 # =============================================================================
 
-importa ex "../../../common/gnu/argv" privata gnu_argv
+importa ex "§gnu/argv" privata gnu_argv
 
 probandum "false operands" tag "coreutils" {
     proba "empty ignored operands format as empty text" {

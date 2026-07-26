@@ -52,7 +52,7 @@
 # Stage: Stage 4, stdin-only adjacent-line deduplication with -c/-d/-u/-i/-s/-w
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 genus GrexUniq {
     textus linea

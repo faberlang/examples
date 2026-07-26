@@ -49,7 +49,7 @@
 # Stage: Stage 4, stdin-only ASCII transliterate/delete/squeeze via set expansion
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio range_fragment(textus range) → textus {
     si range ≡ "a-z" ergo redde "abcdefghijklmnopqrstuvwxyz"

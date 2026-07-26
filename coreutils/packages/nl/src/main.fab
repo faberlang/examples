@@ -50,7 +50,7 @@
 # Stage: Stage 4, stdin-only line numbering, deferred file operands/headers
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio numerare_omnesne(textus stilus_corporis) → bivalens {
     redde stilus_corporis ≡ "a"

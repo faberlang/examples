@@ -7,6 +7,9 @@ edition = "2026"
 source = "src"
 entry = "main.fab"
 
+[paths.templates]
+gnu = "../common/gnu"
+
 [build]
 target = "rust"
 kind = "bin"

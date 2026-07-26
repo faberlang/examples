@@ -52,7 +52,7 @@
 # Backend: stepper
 # =============================================================================
 importa ex "norma:solum" privata solum
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio lege_stdin_lineas() → lista<textus> {
     varia lista<textus> lineae ← vacua

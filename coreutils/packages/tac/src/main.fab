@@ -44,7 +44,7 @@
 # Stage: Stage 4, stdin-only line reversal
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio verte_lineas(lista<textus> lineae) → lista<textus> {
     varia lista<textus> reversae ← vacua

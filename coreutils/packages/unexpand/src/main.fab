@@ -54,7 +54,7 @@
 # Stage: Stage 4, stdin-only ASCII space-to-tab conversion
 # Backend: stepper
 # =============================================================================
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 genus Tabulatio {
     bivalens finita

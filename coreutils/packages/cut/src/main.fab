@@ -52,7 +52,7 @@
 #   After:  join, paste
 # =============================================================================
 
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio discinde(textus s, textus separator) → lista<textus> {
     varia lista<textus> partes ← vacua

@@ -50,7 +50,7 @@
 #   After:  printf
 # =============================================================================
 
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" privata gnu_stdio
 
 genus Tabulae {
     bivalens finita

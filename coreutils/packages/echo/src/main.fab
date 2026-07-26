@@ -51,8 +51,8 @@
 # =============================================================================
 
 importa ex "norma:consolum" privata consolum
-importa ex "../../../common/gnu/format" privata gnu_format
-importa ex "../../../common/gnu/stdio" privata gnu_stdio
+importa ex "§gnu/format" privata gnu_format
+importa ex "§gnu/stdio" privata gnu_stdio
 
 functio optio_noop_e(textus arg) → bivalens {
     redde arg ≡ "-E"

@@ -32,8 +32,8 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "../src/voxel" privata voxel
-importa ex "../src/meshing" privata meshing
+importa ex "§src/voxel" privata voxel
+importa ex "§src/meshing" privata meshing
 importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
 
