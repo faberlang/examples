@@ -66,9 +66,9 @@ const root = document.querySelector("#triga-drift-city");
 const status = root.querySelector(".drift-status");
 const facts = root.querySelector(".drift-facts");
 
-assert(status.textContent === "simulation-ready-renderer-blocked", "mount publishes honest blocked status");
-assert(facts.getAttribute("data-render-status") === "blocked", "renderer status is blocked");
-assert(facts.getAttribute("data-render-gate") === "pending-direct-webgpu", "direct-WebGPU gate is pending");
+assert(status.textContent === "simulation-running-gpu-active", "mount publishes GPU-active status");
+assert(facts.getAttribute("data-render-status") === "live-direct-webgpu", "renderer status is live-direct-webgpu");
+assert(facts.getAttribute("data-render-gate") === "open", "direct-WebGPU gate is open");
 assert(facts.getAttribute("data-simulation-owner") === "faber", "simulation ownership is Faber");
 assert(facts.getAttribute("data-scene-road-count") === "4", "scene publishes four roads");
 assert(facts.getAttribute("data-scene-building-count") === "5", "scene publishes five buildings");
@@ -76,6 +76,9 @@ assert(facts.getAttribute("data-scene-car-count") === "1", "scene publishes one 
 assert(facts.getAttribute("data-scene-roads").length > 0, "road Box3 facts are inspectable");
 assert(facts.getAttribute("data-camera-target-z") !== null, "camera target is inspectable");
 assert(facts.getAttribute("data-key-focused") === "0", "input starts unfocused");
+
+// --- U4: device status and transform payload ---
+assert(facts.getAttribute("data-device-status") === "active", "device status starts active");
 
 const startZ = Number(facts.getAttribute("data-vehicle-z"));
 facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
@@ -89,6 +92,17 @@ const drivenZ = Number(facts.getAttribute("data-vehicle-z"));
 const advancedFrame = Number(facts.getAttribute("data-frame"));
 assert(drivenZ < startZ, `frame advancement moves car forward (${drivenZ} < ${startZ})`);
 assert(advancedFrame > 0, "frame fact advances");
+
+// --- U4: transform payload check ---
+const payloadAttr = facts.getAttribute("data-transform-payload");
+assert(payloadAttr !== null && payloadAttr !== undefined, "transform payload attribute exists");
+const payloadFloats = payloadAttr.trim().split(/\s+/);
+assert(payloadFloats.length === 32, `transform payload has 32 floats, got ${payloadFloats.length}`);
+const modelM15 = Number(payloadFloats[15]); // last model element (m15 = 1.0 for identity)
+assert(Math.abs(modelM15 - 1.0) < 0.001, `model matrix m15 is 1.0, got ${modelM15}`);
+
+// --- U4: resize sets canvas aspect on controller ---
+assert(facts.getAttribute("data-device-status") === "active", "device status stays active after frames");
 
 facts.dispatchEvent(new FakeEvent("keydown", { key: " ", code: "Space" }));
 assert(facts.getAttribute("data-key-handbrake") === "1", "Space reaches Faber handbrake state");

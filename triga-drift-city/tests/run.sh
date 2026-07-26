@@ -122,4 +122,52 @@ test -f "$APP_DIR/dist/public/faber-kernel.js"
 test -f "$APP_DIR/dist/public/webgpu-runtime.js"
 test -f "$APP_DIR/dist/public/host-init.js"
 
+# --- U4 stage checks ---
+echo "checking U4: host-init.js imports real updateGraphicsStorage (not stub)"
+node -e "
+const fs = require('fs');
+const src = fs.readFileSync('$APP_DIR/public/host-init.js', 'utf8');
+const checks = [
+  src.includes('updateGraphicsStorage'),
+  !src.includes(\"throw new Error('not wired')\"),
+  src.includes('import { acquireWebGpuDevice, updateGraphicsStorage }'),
+  src.includes('GPUBufferUsage.MAP_READ'),
+  src.includes('requestAnimationFrame'),
+  src.includes('data-device-status'),
+  src.includes('device.lost'),
+  src.includes('context.configure'),
+];
+const ok = checks.every(Boolean);
+if (!ok) {
+  const labels = ['updateGraphicsStorage','no not-wired','real import','MAP_READ','rAF','device-status','device.lost','context.configure'];
+  for (let i = 0; i < checks.length; i++) {
+    if (!checks[i]) console.error('  missing: ' + labels[i]);
+  }
+  process.exit(1);
+}
+console.log('  host-init U4 checks ok');
+"
+
+echo "checking U4: controller publishes data-device-status"
+node -e "
+const fs = require('fs');
+const src = fs.readFileSync('$APP_DIR/src/main.fab', 'utf8');
+const checks = [
+  src.includes('data-device-status'),
+  src.includes('data-transform-payload'),
+  src.includes('publish_transform'),
+  src.includes('compute_frame_transform'),
+  src.includes('on_resize'),
+];
+const ok = checks.every(Boolean);
+if (!ok) {
+  const labels = ['data-device-status','data-transform-payload','publish_transform','compute_frame_transform','on_resize'];
+  for (let i = 0; i < checks.length; i++) {
+    if (!checks[i]) console.error('  missing: ' + labels[i]);
+  }
+  process.exit(1);
+}
+console.log('  controller U4 checks ok');
+"
+
 echo "triga-drift-city: ok"
