@@ -80,6 +80,10 @@ export async function initHost() {
   let frameId = null;
   let running = true;
   let frameCount = 0;
+  let readbackSnapshot = null;
+  let readbackPhase = 0; // 0=waiting, 1=snapshot captured, 2=verified, -1=failed
+  let resizeObserver = null;
+  let resizeListenerBound = false;
 
   function destroyBuffers() {
     try {
@@ -94,6 +98,45 @@ export async function initHost() {
     if (frameId !== null) {
       cancelAnimationFrame(frameId);
       frameId = null;
+    }
+  }
+
+  // Readback proof (F1): after 2+ frames, map the transform storage buffer
+  // directly via GPUMapMode.READ to verify the transform reached GPU storage
+  // and changed across frames. Runs as a fire-and-forget async path gated by
+  // readbackPhase — only maps twice (snapshot + compare), then stops.
+  async function doReadback() {
+    if (!running || readbackPhase < 0 || readbackPhase >= 2) return;
+    try {
+      await device.queue.onSubmittedWorkDone();
+      await transformBuffer.mapAsync(GPUMapMode.READ);
+      const mapped = new Float32Array(transformBuffer.getMappedRange());
+      const copy = new Float32Array(mapped);
+      transformBuffer.unmap();
+
+      if (readbackPhase === 0) {
+        readbackSnapshot = copy;
+        readbackPhase = 1;
+      } else if (readbackPhase === 1) {
+        let changed = false;
+        for (let i = 0; i < 32; i++) {
+          if (copy[i] !== readbackSnapshot[i]) {
+            changed = true;
+            break;
+          }
+        }
+        readbackPhase = changed ? 2 : 1;
+        const facts = document.querySelector(FACTS_SELECTOR);
+        if (facts) {
+          facts.setAttribute("data-readback-proof", changed ? "verified" : "unchanged");
+        }
+      }
+    } catch (err) {
+      readbackPhase = -1;
+      const facts = document.querySelector(FACTS_SELECTOR);
+      if (facts) {
+        facts.setAttribute("data-readback-proof", "failed");
+      }
     }
   }
 
@@ -133,6 +176,9 @@ export async function initHost() {
               data: floats,
             });
             frameCount++;
+            if (frameCount >= 2 && readbackPhase < 2) {
+              doReadback();
+            }
           }
         }
       }
@@ -171,18 +217,24 @@ export async function initHost() {
   function destroy() {
     stopLoop();
     destroyBuffers();
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+      resizeObserver = null;
+    }
+    if (resizeListenerBound) {
+      window.removeEventListener("resize", resize);
+      resizeListenerBound = false;
+    }
   }
 
   // Wire resize observer. ResizeObserver is more reliable than the
   // window resize event for canvas-driven layout changes.
   if (typeof ResizeObserver !== "undefined") {
-    const observer = new ResizeObserver(() => resize());
-    observer.observe(canvas);
-    // Store for cleanup.
-    resources._observer = observer;
+    resizeObserver = new ResizeObserver(() => resize());
+    resizeObserver.observe(canvas);
   } else {
     window.addEventListener("resize", resize);
-    resources._resizeListener = true;
+    resizeListenerBound = true;
   }
 
   return Object.freeze({
