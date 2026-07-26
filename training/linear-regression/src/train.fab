@@ -1,37 +1,57 @@
 # =============================================================================
-# train.fab — Phase 1 training-loop exemplum: honest same-shape reverse-AD
+# train.fab — Stage E2: real linear+MSE training exemplum
 # =============================================================================
 #
-# Phase 1 uses reverse-AD MVP ops only (Add, Mul, Mean). MatMul MSE deferred
-# to later Stage E when MatMul/Sub VJPs land. The forward function computes
-# loss = mean((x ⊙ w)²) — elementwise multiply on same-shape tf32[4] tensors,
-# squared via self-multiplica, reduced via media. Only w is trainable; x is
-# frozen input whose gradient is discarded.
+# Replaces the Stage E1 smoke exemplum (Add+Mul+Mean same-shape proxy).
+# Stage E2 uses all five ops required for honest linear+MSE:
+#   MatMul (true linear layer)        — F2 landed  e7210ff5e
+#   Add    (broadcast bias)           — Stage A    a459c2cdd
+#   Sub    (MSE residual)             — F1 landed  bf3282bbf
+#   Mul    (square error)             — Stage A    a459c2cdd
+#   Mean   (reduce to scalar loss)    — Stage A    a459c2cdd
 #
-# Companion ABI (Stage 0+D residual chain):
-#   scale_backward(tensor_params..., residual: vacuum, upstream: R) → tuple grads
-#   Destructure: fixum [gx, gw] ← grads
-#   Frozen input: discard gx; sgd_step only on trainable param w.
+# Matches tape oracle: linear_training_step_loss
+#   at faber-runtime/src/autograd_reference_test.rs:245-263
 #
-# Import: norma:optimizer provides sgd_step(param, grad, lr) → tensor
-#   with specialised f32 and fractus overloads.
+# Parameter layout (oracle flat slice):
+#   Input:  [0.5, -1.0, 2.0, 0.75]          2×2  frozen
+#   Weight: [1.25, -0.5, 0.8, 1.1]           2×2  trainable
+#   Bias:   [0.2, -0.3, 0.2, -0.3]             2×2  trainable (same-shape)
+#   Target: [0.25, -1.0, 1.5, 0.75]          2×2  constant
+#   LR:     0.01
 #
-# Build target: fmir-text (MIR-backed) is required for AIR-lane companion
-# codegen. Validate with tip-rebuilt faber (cargo run -p faber -- check …),
-# not a stale ~/.cargo/bin/faber.
+# Negative f32 literals use 0.0 - value (fractus negation would produce
+# fractus, which conflicts with f32 list element type). This is a known
+# radix lexical limitation tracked for cleanup.
+#
+# Companion ABI: linear_backward(input, weight, bias, target, nil(), 1.0)
+#   → iuncta(grad_input, grad_weight, grad_bias, grad_target)
+#   Discard frozen: grad_input, grad_target.
+#   Update trainable: weight, bias via inline SGD step.
+#
+# SGD update is inlined (param -= lr * grad) because MIR-backed targets
+# cannot yet import library modules like norma:optimizer.
+#
+# Build: faber run -t fmir examples/training/linear-regression/
 # =============================================================================
-
-importa ex "norma:optimizer" privata optimizer
 
 # -------------------------------------------------------------------------
-# Differentiable forward: loss = mean((x ⊙ w)²)
+# Differentiable forward: loss = mean((input·weight + bias − target)²)
 # -------------------------------------------------------------------------
 
 @ radix lane "air"
-@ radix backward "scale_backward"
-functio scale_loss(tensor<f32, [4]> x, tensor<f32, [4]> w) → fractus {
-    fixum tensor<f32, [4]> pred ← x.multiplica(w)
-    redde pred.multiplica(pred).media()
+@ radix backward "linear_backward"
+functio linear_loss(
+    tensor<f32, [2,2]> input,
+    tensor<f32, [2,2]> weight,
+    tensor<f32, [2,2]> bias,
+    tensor<f32, [2,2]> target
+) → fractus {
+    fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
+    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
+    fixum tensor<f32, [2,2]> residual   ← shifted.subtrahe(target)
+    fixum tensor<f32, [2,2]> squared    ← residual.multiplica(residual)
+    redde squared.media()
 }
 
 # -------------------------------------------------------------------------
@@ -43,30 +63,46 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# incipit — single training step
+# incipit — single training step: forward → backward → SGD → nota
 # -------------------------------------------------------------------------
 
 incipit {
-    # Build tensors: x is frozen input; w is trainable.
-    fixum lista<f32> data_x ← [1.0, 2.0, 3.0, 4.0]
-    fixum lista<f32> data_w ← [5.0, 6.0, 7.0, 8.0]
+    # Match tape oracle initial params exactly.
+    # Negative values computed as 0.0 - v to avoid fractus coercion.
+    fixum lista<f32> data_input  ← [0.5,      0.0 - 1.0, 2.0,   0.75]
+    fixum lista<f32> data_weight ← [1.25,     0.0 - 0.5, 0.8,   1.1]
+    fixum lista<f32> data_bias   ← [0.2,      0.0 - 0.3, 0.2, 0.0 - 0.3]
+    fixum lista<f32> data_target ← [0.25,     0.0 - 1.0, 1.5,   0.75]
     fixum tensor<f32, []> seed ← vacua
 
-    varia tensor<f32, [4]> x ← seed.strue(data_x, [4])
-    varia tensor<f32, [4]> w ← seed.strue(data_w, [4])
+    fixum tensor<f32, [2,2]> input  ← seed.strue(data_input,  [2, 2])
+    varia tensor<f32, [2,2]> weight ← seed.strue(data_weight, [2, 2])
+    varia tensor<f32, [2,2]> bias   ← seed.strue(data_bias,   [2, 2])
+    fixum tensor<f32, [2,2]> target ← seed.strue(data_target, [2, 2])
 
-    # Forward pass: compute loss.
-    fixum fractus loss ← scale_loss(x, w)
+    # Forward pass.
+    fixum fractus loss ← linear_loss(input, weight, bias, target)
     nota loss
 
-    # Backward pass: compute gradients via generated companion.
+    # Backward pass via compiler-generated companion.
     fixum f32 upstream ← 1.0
-    fixum _ grads ← scale_backward(x, w, nil(), upstream)
-    fixum [gx, gw] ← grads
+    fixum _ grads ← linear_backward(input, weight, bias, target, nil(), upstream)
+    fixum [_, gw, gb, _] ← grads
 
-    # Optimizer step: update trainable param w; discard frozen gx.
+    # Inline SGD step — MIR-backed targets can't import library modules.
+    # weight -= lr * gw
     fixum f32 lr ← 0.01
-    w ← optimizer.sgd_step(w, gw, lr)
+    fixum lista<numerus> shape_w ← weight.magnitudines()
+    fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
+    fixum tensor<f32, [2,2]> scaled_w ← gw.multiplica(lr_fill_w)
+    weight ← weight.subtrahe(scaled_w)
 
-    nota w
+    # bias -= lr * gb
+    fixum lista<numerus> shape_b ← bias.magnitudines()
+    fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
+    fixum tensor<f32, [2,2]> scaled_b ← gb.multiplica(lr_fill_b)
+    bias ← bias.subtrahe(scaled_b)
+
+    nota weight
+    nota bias
 }
