@@ -26,15 +26,17 @@ const MIME = {
 };
 
 function resolvePlaywright() {
-  const candidates = [
-    path.join(WORKSPACE, "node_modules/playwright"),
-    "/Users/ianzepp/work/cephalopodic/app/node_modules/playwright",
-    "/Users/ianzepp/work/ianzepp/llama.cpp/tools/server/webui/node_modules/playwright",
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(path.join(c, "package.json"))) {
-      return pathToFileURL(path.join(c, "index.mjs")).href;
+  // Pin: HV04C_PLAYWRIGHT env or workspace dep only. No foreign worktree scavenger.
+  const env = process.env.HV04C_PLAYWRIGHT;
+  if (env) {
+    if (fs.existsSync(path.join(env, "package.json"))) {
+      return pathToFileURL(path.join(env, "index.mjs")).href;
     }
+    console.error(`run-hv04c-host-proof: HV04C_PLAYWRIGHT path ${env} not found`);
+  }
+  const ws = path.join(WORKSPACE, "node_modules/playwright");
+  if (fs.existsSync(path.join(ws, "package.json"))) {
+    return pathToFileURL(path.join(ws, "index.mjs")).href;
   }
   // Last resort: require.resolve from cwd
   try {
