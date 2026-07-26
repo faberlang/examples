@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Triga Drift City — Application Foundation</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+  <main id="triga-drift-city">
+    <header>
+      <p class="eyebrow">Faber application foundation</p>
+      <h1>Triga Drift City</h1>
+      <p class="summary">The deterministic drive loop is implemented in Faber. Browser mounting and direct-WebGPU presentation are still blocked.</p>
+    </header>
+
+    <section class="drift-panel" aria-labelledby="drive-title">
+      <h2 id="drive-title">Drive facts</h2>
+      <p class="drift-status" aria-live="polite">simulation-pending</p>
+      <div class="drift-facts" tabindex="0" role="application" aria-label="Triga Drift City keyboard controller">
+        <p>Focus this panel, then use W/S/A/D or the arrow keys. Hold Space to drift.</p>
+        <p>No game image is rendered in this foundation unit. Inspect this element's <code>data-*</code> attributes for Faber-owned frame facts.</p>
+      </div>
+    </section>
+
+    <aside>
+      <strong>Renderer status:</strong> blocked — pending direct-WebGPU host admission.
+    </aside>
+  </main>
+</body>
+</html>

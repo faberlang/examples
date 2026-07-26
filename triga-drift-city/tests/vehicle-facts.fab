@@ -1,0 +1,252 @@
+importa ex "./city" privata city
+importa ex "./vehicle" privata vehicle
+importa ex "triga:triga" privata triga
+
+functio approx(f32 a, f32 b, f32 epsilon) → bivalens {
+    redde (a - b).absolutum() ≤ epsilon
+}
+
+functio input_code(textus code) → vehicle.InputState {
+    fixum vehicle.InputState focused ← vehicle.apply_focus(
+        vehicle.empty_input(),
+        verum
+    )
+    redde vehicle.set_key_by_code(focused, code, verum)
+}
+
+functio with_heading(de vehicle.Vehicle source, f32 heading_degrees) → vehicle.Vehicle {
+    redde vehicle.Vehicle {
+        x = source.x,
+        y = source.y,
+        z = source.z,
+        heading_degrees = heading_degrees,
+        velocity_x = source.velocity_x,
+        velocity_z = source.velocity_z,
+        drift_amount = source.drift_amount,
+        collided = source.collided
+    }
+}
+
+incipit {
+    fixum city.City map ← city.drift_city()
+    fixum vehicle.Vehicle spawn ← vehicle.spawn_vehicle()
+
+    fixum triga.Box3 heading_zero_box ← vehicle.vehicle_box(spawn)
+    fixum triga.Box3 heading_forty_five_box ← vehicle.vehicle_box(
+        with_heading(spawn, 45.0 ∷ f32)
+    )
+    fixum triga.Box3 heading_ninety_box ← vehicle.vehicle_box(
+        with_heading(spawn, 90.0 ∷ f32)
+    )
+    adfirma approx(
+        heading_zero_box.max.x - heading_zero_box.min.x,
+        vehicle.vehicle_half_width() * 2.0 ∷ f32,
+        0.001 ∷ f32
+    ) et approx(
+        heading_zero_box.max.z - heading_zero_box.min.z,
+        vehicle.vehicle_half_length() * 2.0 ∷ f32,
+        0.001 ∷ f32
+    ), "heading-zero collision bounds follow vehicle width and length"
+    adfirma approx(
+        heading_forty_five_box.max.x - heading_forty_five_box.min.x,
+        3.8184 ∷ f32,
+        0.05 ∷ f32
+    ) et approx(
+        heading_forty_five_box.max.z - heading_forty_five_box.min.z,
+        3.8184 ∷ f32,
+        0.05 ∷ f32
+    ), "heading-45 collision bounds combine forward and right extents"
+    adfirma approx(
+        heading_ninety_box.max.x - heading_ninety_box.min.x,
+        vehicle.vehicle_half_length() * 2.0 ∷ f32,
+        0.01 ∷ f32
+    ) et approx(
+        heading_ninety_box.max.z - heading_ninety_box.min.z,
+        vehicle.vehicle_half_width() * 2.0 ∷ f32,
+        0.01 ∷ f32
+    ), "heading-90 collision bounds rotate into the world-axis envelope"
+
+    fixum vehicle.InputState unfocused_input ← vehicle.empty_input()
+    fixum vehicle.InputState ignored_forward ← vehicle.set_key_by_code(
+        unfocused_input,
+        "KeyW",
+        verum
+    )
+    fixum vehicle.InputState admitted_forward ← input_code("KeyW")
+    adfirma unfocused_input.focused ≡ falsum,
+        "keyboard input starts unfocused"
+    adfirma ignored_forward.forward ≡ falsum,
+        "unfocused keyboard input is rejected"
+    adfirma admitted_forward.forward,
+        "focused keyboard input is admitted"
+
+    adfirma vehicle.normalize_heading_degrees(540.0 ∷ f32) ≡ (180.0 ∷ f32)
+        et vehicle.normalize_heading_degrees(0.0 ∷ f32 - 540.0 ∷ f32) ≡ (0.0 ∷ f32 - 180.0 ∷ f32),
+        "heading normalization stays within the bounded Triga angle range"
+
+    adfirma vehicle.clamp_delta_seconds(1.0 ∷ f32) ≡ vehicle.max_delta_seconds(),
+        "frame delta clamps at the deterministic maximum"
+    adfirma vehicle.clamp_delta_seconds(0.0 ∷ f32 - 1.0 ∷ f32) ≡ (0.0 ∷ f32),
+        "negative frame delta clamps to zero"
+
+    fixum vehicle.Vehicle clamped ← vehicle.step_vehicle(
+        map,
+        spawn,
+        input_code("KeyW"),
+        1.0 ∷ f32
+    )
+    fixum vehicle.Vehicle explicit_max ← vehicle.step_vehicle(
+        map,
+        spawn,
+        input_code("KeyW"),
+        vehicle.max_delta_seconds()
+    )
+    adfirma approx(clamped.z, explicit_max.z, 0.0001 ∷ f32)
+        et approx(clamped.velocity_z, explicit_max.velocity_z, 0.0001 ∷ f32),
+        "large frame and max frame produce the same motion"
+
+    varia vehicle.Vehicle forward_car ← vehicle.spawn_vehicle()
+    varia numerus forward_steps ← 0
+    dum forward_steps < 20 {
+        forward_car ← vehicle.step_vehicle(
+            map,
+            forward_car,
+            input_code("ArrowUp"),
+            0.05 ∷ f32
+        )
+        forward_steps ← forward_steps + 1
+    }
+    adfirma forward_car.z < spawn.z,
+        "W or ArrowUp accelerates toward heading zero forward"
+    adfirma forward_car.velocity_z < 0.0,
+        "forward acceleration creates negative Z velocity"
+
+    fixum vehicle.Vehicle braking_car ← vehicle.step_vehicle(
+        map,
+        forward_car,
+        input_code("KeyS"),
+        0.05 ∷ f32
+    )
+    adfirma vehicle.speed(braking_car) < vehicle.speed(forward_car),
+        "S brakes a forward-moving car before engaging reverse"
+
+    varia vehicle.Vehicle reverse_car ← vehicle.spawn_vehicle()
+    varia numerus reverse_steps ← 0
+    dum reverse_steps < 20 {
+        reverse_car ← vehicle.step_vehicle(
+            map,
+            reverse_car,
+            input_code("KeyS"),
+            0.05 ∷ f32
+        )
+        reverse_steps ← reverse_steps + 1
+    }
+    adfirma reverse_car.z > spawn.z,
+        "S from rest engages deterministic reverse"
+    adfirma reverse_car.velocity_z > 0.0,
+        "reverse acceleration creates positive Z velocity"
+
+    fixum vehicle.InputState forward_left ← vehicle.set_key_by_code(
+        input_code("KeyW"),
+        "ArrowLeft",
+        verum
+    )
+    fixum vehicle.Vehicle steered ← vehicle.step_vehicle(
+        map,
+        forward_car,
+        forward_left,
+        0.05 ∷ f32
+    )
+    adfirma steered.heading_degrees < forward_car.heading_degrees,
+        "A or ArrowLeft steers left while moving"
+    fixum vehicle.InputState forward_left_handbrake ← vehicle.set_key_by_code(
+        forward_left,
+        "Space",
+        verum
+    )
+    fixum vehicle.Vehicle steered_handbrake ← vehicle.step_vehicle(
+        map,
+        forward_car,
+        forward_left_handbrake,
+        0.05 ∷ f32
+    )
+    adfirma steered_handbrake.drift_amount > steered.drift_amount,
+        "accelerate, steer, and handbrake preserves more player-path drift"
+
+    fixum vehicle.Vehicle lateral ← vehicle.Vehicle {
+        x = -22.0 ∷ f32,
+        y = 0.2 ∷ f32,
+        z = 0.0 ∷ f32,
+        heading_degrees = 0.0 ∷ f32,
+        velocity_x = 6.0 ∷ f32,
+        velocity_z = 0.0 ∷ f32,
+        drift_amount = 0.0 ∷ f32,
+        collided = falsum
+    }
+    fixum vehicle.Vehicle gripped ← vehicle.step_vehicle(
+        map,
+        lateral,
+        vehicle.empty_input(),
+        0.05 ∷ f32
+    )
+    fixum vehicle.Vehicle handbrake ← vehicle.step_vehicle(
+        map,
+        lateral,
+        input_code("Space"),
+        0.05 ∷ f32
+    )
+    adfirma handbrake.drift_amount > gripped.drift_amount,
+        "Space reduces lateral grip and preserves more drift"
+    adfirma handbrake.velocity_x.absolutum() > gripped.velocity_x.absolutum(),
+        "handbrake retains more lateral velocity than normal grip"
+
+    fixum vehicle.Vehicle wall_bound ← vehicle.Vehicle {
+        x = -17.3 ∷ f32,
+        y = 0.2 ∷ f32,
+        z = -4.0 ∷ f32,
+        heading_degrees = 0.0 ∷ f32,
+        velocity_x = 20.0 ∷ f32,
+        velocity_z = 0.0 ∷ f32,
+        drift_amount = 0.0 ∷ f32,
+        collided = falsum
+    }
+    fixum vehicle.Vehicle rejected ← vehicle.step_vehicle(
+        map,
+        wall_bound,
+        vehicle.empty_input(),
+        0.05 ∷ f32
+    )
+    adfirma rejected.collided,
+        "building collision is recorded"
+    adfirma approx(rejected.x, wall_bound.x, 0.0001 ∷ f32)
+        et approx(rejected.z, wall_bound.z, 0.0001 ∷ f32),
+        "collision rejects the proposed position"
+    adfirma vehicle.speed(rejected) < vehicle.speed(wall_bound) * 0.3 ∷ f32,
+        "collision response loses most velocity"
+    adfirma rejected.drift_amount ≤ vehicle.speed(rejected) + 0.0001 ∷ f32,
+        "collision drift reflects the reduced post-impact velocity"
+
+    fixum vehicle.ChaseCamera camera ← vehicle.chase_camera(forward_car)
+    adfirma approx(camera.target.x, forward_car.x, 0.0001 ∷ f32)
+        et approx(camera.target.z, forward_car.z, 0.0001 ∷ f32),
+        "chase target follows vehicle position"
+    adfirma camera.target.y > forward_car.y,
+        "chase target sits above the vehicle base"
+    adfirma camera.position.y > camera.target.y,
+        "chase camera stays elevated"
+    adfirma camera.position.z > camera.target.z,
+        "heading-zero camera follows behind the car"
+
+    fixum vehicle.Application app0 ← vehicle.spawn_application()
+    fixum vehicle.Application app1 ← vehicle.step_application(
+        map,
+        vehicle.Application {
+            input = input_code("KeyW"),
+            vehicle = app0.vehicle,
+            camera = app0.camera
+        },
+        0.05 ∷ f32
+    )
+    adfirma app1.camera.target.z ≡ app1.vehicle.z,
+        "application step stores updated chase-camera state in Faber"
+}

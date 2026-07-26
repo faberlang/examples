@@ -1,0 +1,143 @@
+importa ex "web:web" privata web
+importa ex "web:dom" privata dom
+importa ex "triga:triga" privata triga
+importa ex "./city" privata city
+importa ex "./vehicle" privata vehicle
+
+functio bivalens_textus(bivalens value) → textus {
+    si value { redde "1" }
+    redde "0"
+}
+
+functio box_textus(de triga.Box3 bounds) → textus {
+    redde "§,§,§,§,§,§"(
+        bounds.min.x ↦ textus,
+        bounds.min.y ↦ textus,
+        bounds.min.z ↦ textus,
+        bounds.max.x ↦ textus,
+        bounds.max.y ↦ textus,
+        bounds.max.z ↦ textus
+    )
+}
+
+functio boxes_textus(de lista<triga.Box3> boxes) → textus {
+    varia textus output ← ""
+    varia numerus i ← 0
+    dum i < boxes.longitudo() {
+        si i ≡ 0 {
+            output ← box_textus(boxes[i])
+        } secus {
+            output ← "§;§"(output, box_textus(boxes[i]))
+        }
+        i ← i + 1
+    }
+    redde output
+}
+
+functio publish_scene(
+    dom.Element facts_element,
+    de city.City map,
+    de vehicle.Vehicle car
+) → vacuum {
+    fixum city.SceneFacts facts ← city.scene_facts(map, vehicle.vehicle_box(car))
+    dom.attr_set(facts_element, "data-scene-road-count", facts.road_count ↦ textus)
+    dom.attr_set(facts_element, "data-scene-building-count", facts.building_count ↦ textus)
+    dom.attr_set(facts_element, "data-scene-car-count", facts.car_count ↦ textus)
+    dom.attr_set(facts_element, "data-scene-roads", boxes_textus(facts.road_bounds))
+    dom.attr_set(facts_element, "data-scene-buildings", boxes_textus(facts.building_bounds))
+    dom.attr_set(facts_element, "data-scene-car", box_textus(facts.car_bounds))
+}
+
+functio publish_frame(
+    dom.Element facts_element,
+    de city.City map,
+    de vehicle.Application app,
+    numerus frame
+) → vacuum {
+    dom.attr_set(facts_element, "data-frame", frame ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-x", app.vehicle.x ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-y", app.vehicle.y ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-z", app.vehicle.z ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-heading", app.vehicle.heading_degrees ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-speed", vehicle.speed(app.vehicle) ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-drift", app.vehicle.drift_amount ↦ textus)
+    dom.attr_set(facts_element, "data-vehicle-collided", bivalens_textus(app.vehicle.collided))
+    dom.attr_set(facts_element, "data-camera-x", app.camera.position.x ↦ textus)
+    dom.attr_set(facts_element, "data-camera-y", app.camera.position.y ↦ textus)
+    dom.attr_set(facts_element, "data-camera-z", app.camera.position.z ↦ textus)
+    dom.attr_set(facts_element, "data-camera-target-x", app.camera.target.x ↦ textus)
+    dom.attr_set(facts_element, "data-camera-target-y", app.camera.target.y ↦ textus)
+    dom.attr_set(facts_element, "data-camera-target-z", app.camera.target.z ↦ textus)
+    dom.attr_set(facts_element, "data-key-forward", bivalens_textus(app.input.forward))
+    dom.attr_set(facts_element, "data-key-reverse", bivalens_textus(app.input.reverse))
+    dom.attr_set(facts_element, "data-key-left", bivalens_textus(app.input.left))
+    dom.attr_set(facts_element, "data-key-right", bivalens_textus(app.input.right))
+    dom.attr_set(facts_element, "data-key-handbrake", bivalens_textus(app.input.handbrake))
+    dom.attr_set(facts_element, "data-key-focused", bivalens_textus(app.input.focused))
+    publish_scene(facts_element, map, app.vehicle)
+}
+
+@ WebController { selector = "#triga-drift-city" }
+functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription> {
+    fixum dom.Element status ← dom.require(scope, ".drift-status")
+    fixum dom.Element facts ← dom.require(scope, ".drift-facts")
+    fixum city.City live_city ← city.drift_city()
+    varia vehicle.Application live_app ← vehicle.spawn_application()
+    varia numerus live_frame ← 0
+
+    dom.attr_set(facts, "data-render-status", "blocked")
+    dom.attr_set(facts, "data-render-gate", "pending-direct-webgpu")
+    dom.attr_set(facts, "data-simulation-owner", "faber")
+    dom.text_set(status, "simulation-ready-renderer-blocked")
+    publish_frame(facts, live_city, live_app, 0)
+
+    fixum dom.Subscription frame_sub ←
+        dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
+            fixum f32 delta_seconds ← frame.delta_ms / 1000.0 ∷ f32
+            live_frame ← frame.frame
+            live_app ← vehicle.step_application(live_city, live_app, delta_seconds)
+            publish_frame(facts, live_city, live_app, live_frame)
+        })
+
+    fixum dom.Subscription keydown_sub ←
+        dom.on_keyboard(facts, "keydown", (dom.KeyboardState key) → vacuum ∴ fac {
+            live_app ← vehicle.Application {
+                input = vehicle.set_key_by_code(live_app.input, key.code, verum),
+                vehicle = live_app.vehicle,
+                camera = live_app.camera
+            }
+            publish_frame(facts, live_city, live_app, live_frame)
+        })
+
+    fixum dom.Subscription keyup_sub ←
+        dom.on_keyboard(facts, "keyup", (dom.KeyboardState key) → vacuum ∴ fac {
+            live_app ← vehicle.Application {
+                input = vehicle.set_key_by_code(live_app.input, key.code, falsum),
+                vehicle = live_app.vehicle,
+                camera = live_app.camera
+            }
+            publish_frame(facts, live_city, live_app, live_frame)
+        })
+
+    fixum dom.Subscription focus_sub ←
+        dom.on_focus(facts, "focus", (dom.FocusState focus) → vacuum ∴ fac {
+            live_app ← vehicle.Application {
+                input = vehicle.apply_focus(live_app.input, verum),
+                vehicle = live_app.vehicle,
+                camera = live_app.camera
+            }
+            publish_frame(facts, live_city, live_app, live_frame)
+        })
+
+    fixum dom.Subscription blur_sub ←
+        dom.on_focus(facts, "blur", (dom.FocusState focus) → vacuum ∴ fac {
+            live_app ← vehicle.Application {
+                input = vehicle.apply_focus(live_app.input, falsum),
+                vehicle = live_app.vehicle,
+                camera = live_app.camera
+            }
+            publish_frame(facts, live_city, live_app, live_frame)
+        })
+
+    redde [frame_sub, keydown_sub, keyup_sub, focus_sub, blur_sub]
+}
