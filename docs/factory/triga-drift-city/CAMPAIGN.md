@@ -183,15 +183,25 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 
 ### Stage 1 — Canonical Browser Product And Live Host Bridge
 
-**Status:** planned; not selected
+**Status:** in-progress; U1+U3+U4 accepted, U2 blocked on faber compile baseline (foreign dirt)
 **Participating repos:** `examples`, `faber`, `faber-web`, `hosts`; `radix` only for a demonstrated artifact/reflection blocker
 **Depends on:** Stage 0
 **Why now:** every later visible feature depends on one admitted path from generated Faber state to the WebGPU host.
 **Surface:** real controller mounting, coherent artifact packaging, host-runtime loading, dynamic named storage-buffer updates, frame/resize/device-loss lifecycle, and same-build identity.
 **Gate:** the generated product mounts and disposes its controller with inspectable failure state; one product manifest identifies the same-build page, ESM, host runtime, WGSL, and reflection; a Faber-owned changing transform reaches a generic host update before a direct WebGPU frame; resize replaces dependent resources without losing the scene; device loss produces a bounded error and cleanup state; the admitted module graph contains no Three.js.
-**Open decision:** freeze the canonical per-object transform/resource contract. Default: generic retained model transforms, not per-frame car vertex baking or DOM-prefix-specific host code.
+**Open decision:** freeze the canonical per-object transform/resource contract. Default: generic retained model transforms, not per-frame car vertex baking or DOM-prefix-specific host code. — **RESOLVED 2026-07-26:** transform contract frozen as `triga::TransformPayload` (32 floats: 16 model + 16 view-projection, column-major); host bridge consumes existing reflection-driven `updateGraphicsStorage`, not a competing seam.
 **Lowers to:** `delivery` → `factory`.
 **Batching:** discovery-first.
+**Delivery spec:** [`01-browser-product-host-bridge-delivery.md`](01-browser-product-host-bridge-delivery.md)
+**Audit reports:** [`01-stage1-audit-report.md`](01-stage1-audit-report.md) (residual, 5 P2, fixed), [`01-stage1-reaudit-report.md`](01-stage1-reaudit-report.md) (residual, N1 fixed), post-land auditor-2 (residual, U4 F1+F2 repaired).
+**Landed units:**
+- U1 (`u1-product-page-canvas-host-loading`) — examples `0e44f72`. ACCEPTED.
+- U2 (`u2-product-identity-manifest`) — faber `a5b607a`. COMMITTED, blocked on faber compile baseline (foreign dirt). Need `0f3f799c` to operator.
+- U3 (`u3-canonical-host-storage-update`) — hosts HEAD `9cdd3c9`, confirmation-only. ACCEPTED.
+- U4 (`u4-integration-lifecycle-transform-bridge`) — examples `04d9f97` + `96b350a` (F1+F2 repair), triga `635cb12`. ACCEPTED.
+**Stage gate status:** CANNOT CLOSE until U2 is unblocked (faber compile baseline fix) and validated end-to-end.
+**Blind spots:** real WebGPU browser checks not run (no headless WebGPU browser); radix not re-grounded (not a Stage 1 participating repo).
+**Next:** when operator unblocks faber, rebuild binary, validate U2 end-to-end, re-audit U2, close Stage 1 gate, then select and lower Stage 2 (First Visible Greybox Drive).
 
 ### Stage 2 — First Visible Greybox Drive
 
