@@ -8,11 +8,11 @@
 # Derivation:
 #   prediction = weight * x
 #   loss       = (weight * x - y)²
-#   d_weight   = (weight * x - y) * x
-#   update     = weight - rate * d_weight
+#   d_loss/d_w = 2 * (weight * x - y) * x         (*2 from chain rule)
+#   update     = weight - rate * d_loss/d_w
 #
-# Step 0: weight=0.0 → loss=16.0 → d_weight=-8.0 → weight=2.0
-# Step 1: weight=2.0 → loss=0.0  → d_weight=0.0  → weight=2.0
+# Step 0: weight=0.0 → loss=16.0 → d_weight=-16.0 → weight=2.0 (lr=0.125)
+# Step 1: weight=2.0 → loss=0.0  → d_weight=0.0   → weight=2.0
 #
 # SGD update is inlined (param -= lr * grad) because MIR-backed targets
 # cannot yet import library modules like norma:optimizer.
@@ -50,25 +50,26 @@ functio nil() → vacuum {
 
 incipit {
     fixum tensor<f32, []> seed ← vacua
-    varia tensor<f32, []> weight ← seed.crea(0.0, [])
-    fixum tensor<f32, []> x ← seed.crea(2.0, [])
-    fixum tensor<f32, []> y ← seed.crea(4.0, [])
-    fixum f32 lr ← 0.25
+    fixum lista<numerus> shape_0d ← seed.magnitudines()
+    varia tensor<f32, []> weight ← seed.crea(0.0, shape_0d)
+    fixum tensor<f32, []> x ← seed.crea(2.0, shape_0d)
+    fixum tensor<f32, []> y ← seed.crea(4.0, shape_0d)
+    fixum f32 lr ← 0.125
     fixum f32 upstream ← 1.0
 
-    # Step 0 — loss = (0*2 - 4)² = 16.0
+    # Step 0 — loss = (0*2 - 4)² = 16.0, d_weight = 2*(0*2-4)*2 = -16.0
     fixum f32 loss0 ← rung4_loss(weight, x, y)
     fixum _ grads0 ← rung4_backward(weight, x, y, nil(), upstream)
     fixum [gw0, _, _] ← grads0
-    fixum tensor<f32, []> lr_fill_w0 ← seed.crea(lr, [])
+    fixum tensor<f32, []> lr_fill_w0 ← seed.crea(lr, shape_0d)
     fixum tensor<f32, []> scaled_w0 ← gw0.multiplica(lr_fill_w0)
     weight ← weight.subtrahe(scaled_w0)
 
-    # Step 1 — loss = (2*2 - 4)² = 0.0
+    # Step 1 — loss = (2*2 - 4)² = 0.0, d_weight = 2*(2*2-4)*2 = 0.0
     fixum f32 loss1 ← rung4_loss(weight, x, y)
     fixum _ grads1 ← rung4_backward(weight, x, y, nil(), upstream)
     fixum [gw1, _, _] ← grads1
-    fixum tensor<f32, []> lr_fill_w1 ← seed.crea(lr, [])
+    fixum tensor<f32, []> lr_fill_w1 ← seed.crea(lr, shape_0d)
     fixum tensor<f32, []> scaled_w1 ← gw1.multiplica(lr_fill_w1)
     weight ← weight.subtrahe(scaled_w1)
 
