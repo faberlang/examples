@@ -84,13 +84,16 @@ fixum tensor<f32, [M,K]> residual ← shifted.subtrahe(target)
 fixum tensor<f32, [M,K]> squared  ← residual.multiplica(residual)
 redde squared.media()
 
-# Cross-entropy loss (when PSC-1 lands in faber-runtime)
+# Cross-entropy loss (PSC-1: runtime layer only — FAB binding pending)
 # redde prediction.crux_entropia(target)
 ```
 
 MSE is the default and ships in the current compiler. Cross-entropy loss
-(`crux_entropia`) is tracked in PSC-1 but not yet available as of this
-writing.
+(`crux_entropia`) is available at the Rust runtime layer (PSC-1,
+`faber-runtime` commit `bfba771`) — the `Tensor<f32>::crux_entropia(&self,
+targets)` method performs softmax → negative log-likelihood with analytical
+VJP and domain validation. The FAB → runtime binding is not yet wired, so
+the call site above remains commented out in this exemplum.
 
 ---
 
