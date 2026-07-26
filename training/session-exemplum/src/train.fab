@@ -6,7 +6,7 @@
 #   A composable training session pattern: model → loss → backward → SGD step,
 #   iterated over multiple steps with a loss trace.
 #
-# Model: 2×2 linear layer (input·weight + bias) with MSE loss.
+# Model: 2×2 linear layer (input·weight + bias) with cross-entropy loss.
 #   Same proof surface as linear-regression/ but structured for reuse.
 #
 # Pattern components (documented below):
@@ -30,9 +30,9 @@
 # returns gradients for every tensor parameter.
 #
 # To swap the model:   change the forward math inside this function.
-# To swap the loss:    change the reduction (e.g. MSE → cross-entropy).
-#   MSE:     mean((prediction − target)²)
-#   Cross-entropy:  -mean(sum(targets * log(softmax(prediction) + ε)))
+# To swap the loss:    change the reduction (e.g. cross-entropy → MSE).
+#   Cross-entropy:      crux_entropia(prediction, target)
+#   MSE (legacy):        mean((prediction − target)²)
 #
 # The companion name ("model_backward") is how the generated backward pass
 # is called from the training step.
@@ -49,10 +49,8 @@ functio model_loss(
     fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
     fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
 
-    # MSE loss: mean((prediction − target)²)
-    fixum tensor<f32, [2,2]> residual   ← shifted.subtrahe(target)
-    fixum tensor<f32, [2,2]> squared    ← residual.multiplica(residual)
-    redde squared.media()
+    # Cross-entropy loss: crux_entropia(shifted, target)
+    redde shifted.crux_entropia(target)
 }
 
 # ---------------------------------------------------------------------------
@@ -116,9 +114,7 @@ incipit {
         # model_loss(input, weight, bias, target) inlined due to SEM010.
         fixum tensor<f32, [2,2]> pred ← input.matmul(weight)
         fixum tensor<f32, [2,2]> shft ← pred.addita(bias)
-        fixum tensor<f32, [2,2]> resd ← shft.subtrahe(target)
-        fixum tensor<f32, [2,2]> sqrd ← resd.multiplica(resd)
-        fixum f32 loss ← sqrd.media()
+        fixum f32 loss ← shft.crux_entropia(target)
         loss_trace.appende(loss)
 
         # ── BACKWARD ──────────────────────────────────────────────────────

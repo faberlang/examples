@@ -11,7 +11,7 @@ A training session has four components:
 | Component | Role | In this exemplum |
 |-----------|------|------------------|
 | **Model** | Differentiable forward function | 2×2 linear layer (`input·weight + bias`) |
-| **Loss** | Scalar reduction of prediction error | MSE: `mean((prediction − target)²)` |
+| **Loss** | Scalar reduction of prediction error | Cross-entropy: `crux_entropia(prediction, target)` |
 | **Optimizer** | Parameter update rule | Inline SGD: `param -= lr × grad` |
 | **Loop** | Iterate step N times | 8 steps, record loss trace |
 
@@ -84,16 +84,17 @@ fixum tensor<f32, [M,K]> residual ← shifted.subtrahe(target)
 fixum tensor<f32, [M,K]> squared  ← residual.multiplica(residual)
 redde squared.media()
 
-# Cross-entropy loss (PSC-1: runtime layer only — FAB binding pending)
-# redde prediction.crux_entropia(target)
+# Cross-entropy loss (shipped: runtime + FAB binding)
+# redde shifted.crux_entropia(target)
 ```
 
-MSE is the default and ships in the current compiler. Cross-entropy loss
-(`crux_entropia`) is available at the Rust runtime layer (PSC-1,
-`faber-runtime` commit `bfba771`) — the `Tensor<f32>::crux_entropia(&self,
-targets)` method performs softmax → negative log-likelihood with analytical
-VJP and domain validation. The FAB → runtime binding is not yet wired, so
-the call site above remains commented out in this exemplum.
+MSE is the historical default. Cross-entropy loss (`crux_entropia`) is
+the current loss in this exemplum: PSC-1 shipped the runtime
+(`faber-runtime` commit `bfba771`), and the FAB → runtime binding
+landed at radix commits `8efec35db` (compiler pipeline) and
+`b32ce3742` (reverse AD VJP). To swap back to MSE, replace
+`shifted.crux_entropia(target)` with the residual → square → mean
+pattern shown above.
 
 ---
 
