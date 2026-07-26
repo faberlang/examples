@@ -4,22 +4,22 @@ import { web } from "web:web";
 
 import { dom } from "web:dom";
 
-import { triga } from "./triga-triga.js";
+import { triga } from "triga:triga";
 
-import { scene } from "./triga-scene.js";
+import { scene } from "triga:scene";
 
-import { voxel } from "./voxel.js";
+import { voxel } from "./voxel";
 
-import { meshing } from "./meshing.js";
+import { meshing } from "./meshing";
 
-import { application } from "./application.js";
+import { application } from "./application";
 
 const DEFAULT_ASPECT: number = 1.778 as number;
 
-function residual_path_multi_draw(): string {
+export function residual_path_multi_draw(): string {
     return "per-chunk-multi-draw";
 }
-function lista_f32_textus(values: Array<number>): string {
+export function lista_f32_textus(values: Array<number>): string {
     let out: string = "";
     let i: number = 0;
     while ((i < values.length)) {
@@ -32,7 +32,7 @@ function lista_f32_textus(values: Array<number>): string {
     }
     return out;
 }
-function lista_u32_textus(values: Array<number>): string {
+export function lista_u32_textus(values: Array<number>): string {
     let out: string = "";
     let i: number = 0;
     while ((i < values.length)) {
@@ -45,7 +45,7 @@ function lista_u32_textus(values: Array<number>): string {
     }
     return out;
 }
-function lista_numerus_textus(values: Array<number>): string {
+export function lista_numerus_textus(values: Array<number>): string {
     let out: string = "";
     let i: number = 0;
     while ((i < values.length)) {
@@ -58,13 +58,13 @@ function lista_numerus_textus(values: Array<number>): string {
     }
     return out;
 }
-function bivalens_textus(value: boolean): string {
+export function bivalens_textus(value: boolean): string {
     if (value) {
         return "1";
     }
     return "0";
 }
-class WorldChunkBatch {
+export class WorldChunkBatch {
     chunk_count!: number;
     non_empty_count!: number;
     total_face_count!: number;
@@ -76,7 +76,7 @@ class WorldChunkBatch {
     indices!: Array<number>;
 }
 
-function append_f32(dest: Array<number>, src: Array<number>): Array<number> {
+export function append_f32(dest: Array<number>, src: Array<number>): Array<number> {
     let out: Array<number> = dest;
     let i: number = 0;
     while ((i < src.length)) {
@@ -85,7 +85,7 @@ function append_f32(dest: Array<number>, src: Array<number>): Array<number> {
     }
     return out;
 }
-function append_indices_offset(dest: Array<number>, src: Array<number>, vertex_base: number): Array<number> {
+export function append_indices_offset(dest: Array<number>, src: Array<number>, vertex_base: number): Array<number> {
     let out: Array<number> = dest;
     let i: number = 0;
     while ((i < src.length)) {
@@ -95,13 +95,13 @@ function append_indices_offset(dest: Array<number>, src: Array<number>, vertex_b
     }
     return out;
 }
-function chunk_cx_from_index(chunk_index: number): number {
+export function chunk_cx_from_index(chunk_index: number): number {
     return (chunk_index % voxel.chunk_count_x());
 }
-function chunk_cz_from_index(chunk_index: number): number {
+export function chunk_cz_from_index(chunk_index: number): number {
     return (chunk_index / voxel.chunk_count_x());
 }
-function dirty_mark_all(): any {
+export function dirty_mark_all(): any {
     let dirty: any = voxel.dirty_empty();
     let i: number = 0;
     while ((i < voxel.chunk_count())) {
@@ -113,7 +113,7 @@ function dirty_mark_all(): any {
     }
     return dirty;
 }
-function batch_from_resource_table(table: any): WorldChunkBatch | null {
+export function batch_from_resource_table(table: any): WorldChunkBatch | null {
     if (((meshing.chunk_resource_table_valid(table) as boolean) === (false as boolean))) {
         return null;
     }
@@ -148,7 +148,7 @@ function batch_from_resource_table(table: any): WorldChunkBatch | null {
     }
     return Object.assign(new WorldChunkBatch(), { chunk_count: voxel.chunk_count(), non_empty_count: non_empty, total_face_count: total_faces, total_vertex_count: total_vertices, total_index_count: total_indices, meshes: meshes, positions: positions, colors: colors, indices: indices });
 }
-function mesh_world(world: any): WorldChunkBatch | null {
+export function mesh_world(world: any): WorldChunkBatch | null {
     if (((voxel.world_valid(world) as boolean) === (false as boolean))) {
         return null;
     }
@@ -160,10 +160,10 @@ function mesh_world(world: any): WorldChunkBatch | null {
     }
     return batch_from_resource_table(remesh!.resources);
 }
-function mesh_fixture_world(): WorldChunkBatch | null {
+export function mesh_fixture_world(): WorldChunkBatch | null {
     return mesh_world(voxel.fixture_world());
 }
-function emit_chunk_geometry(canvas: any, mesh: any, slot: number): void {
+export function emit_chunk_geometry(canvas: any, mesh: any, slot: number): void {
     const prefix: string = `${"data-hv-c"}${String(slot)}`;
     dom.attr_set(canvas, `${prefix}${"-cx"}`, String(mesh.cx));
     dom.attr_set(canvas, `${prefix}${"-cz"}`, String(mesh.cz));
@@ -174,13 +174,13 @@ function emit_chunk_geometry(canvas: any, mesh: any, slot: number): void {
     dom.attr_set(canvas, `${prefix}${"-colors"}`, lista_f32_textus(mesh.colors));
     dom.attr_set(canvas, `${prefix}${"-indices"}`, lista_u32_textus(mesh.indices));
 }
-function emit_chunk_resource_state(canvas: any, state: any, slot: number): void {
+export function emit_chunk_resource_state(canvas: any, state: any, slot: number): void {
     const prefix: string = `${"data-hv-c"}${String(slot)}`;
     dom.attr_set(canvas, `${prefix}${"-generation"}`, String(state.handle.generation));
     dom.attr_set(canvas, `${prefix}${"-live"}`, bivalens_textus(state.live));
     dom.attr_set(canvas, `${prefix}${"-logical-id"}`, String(state.handle.index));
 }
-function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
+export function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
     dom.attr_set(canvas, "data-hv-chunk-count", String(batch.chunk_count));
     dom.attr_set(canvas, "data-hv-non-empty-chunk-count", String(batch.non_empty_count));
     dom.attr_set(canvas, "data-hv-resource-pair-count", String(batch.non_empty_count));
@@ -198,7 +198,7 @@ function emit_world_geometry(canvas: any, batch: WorldChunkBatch): void {
         i = (i + 1);
     }
 }
-function emit_host_replace_queue(canvas: any, transitions: Array<any>, resources: any): void {
+export function emit_host_replace_queue(canvas: any, transitions: Array<any>, resources: any): void {
     let replace_count: number = 0;
     let i: number = 0;
     while ((i < transitions.length)) {
@@ -238,7 +238,7 @@ function emit_host_replace_queue(canvas: any, transitions: Array<any>, resources
     }
     dom.attr_set(canvas, "data-hv-host-replace-count", String(replace_count));
 }
-function emit_resource_snapshot(canvas: any, resources: any, remeshed: Array<number>, transitions: Array<any>): void {
+export function emit_resource_snapshot(canvas: any, resources: any, remeshed: Array<number>, transitions: Array<any>): void {
     let gens: Array<number> = [];
     let live_flags: Array<number> = [];
     let i: number = 0;
@@ -258,14 +258,14 @@ function emit_resource_snapshot(canvas: any, resources: any, remeshed: Array<num
     dom.attr_set(canvas, "data-hv-remeshed", lista_numerus_textus(remeshed));
     emit_host_replace_queue(canvas, transitions, resources);
 }
-function clear_host_replace_queue(canvas: any): void {
+export function clear_host_replace_queue(canvas: any): void {
     dom.attr_set(canvas, "data-hv-host-replace-count", "0");
     dom.attr_set(canvas, "data-hv-remeshed", "");
 }
-function identity_matrix(): any {
+export function identity_matrix(): any {
     return triga.matrix4_identitas();
 }
-function first_person_view_projection(camera: any, player: any, aspect: number): any {
+export function first_person_view_projection(camera: any, player: any, aspect: number): any {
     let safe_aspect: number = 1 as number;
     if ((aspect > 0)) {
         safe_aspect = aspect;
@@ -285,7 +285,7 @@ function first_person_view_projection(camera: any, player: any, aspect: number):
     }
     return triga.matrix4_multiplicata(projection, view);
 }
-function first_person_transform_payload(camera: any, player: any, aspect: number): any {
+export function first_person_transform_payload(camera: any, player: any, aspect: number): any {
     const model: any = identity_matrix();
     const view_projection: any = first_person_view_projection(camera, player, aspect);
     const packed: any | null = triga.transform_payload(model, view_projection);
@@ -294,7 +294,7 @@ function first_person_transform_payload(camera: any, player: any, aspect: number
     }
     return Object.assign({}, { values: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] });
 }
-function emit_transform(canvas: any, camera: any, player: any, aspect: number): void {
+export function emit_transform(canvas: any, camera: any, player: any, aspect: number): void {
     const payload: any = first_person_transform_payload(camera, player, aspect);
     const values: Array<number> = payload.values;
     let model_values: Array<number> = [];
@@ -322,7 +322,7 @@ function emit_transform(canvas: any, camera: any, player: any, aspect: number): 
     dom.attr_set(canvas, "data-hv-target-y", String((eye.y + application.camera_view_facts(camera, player).direction.y)));
     dom.attr_set(canvas, "data-hv-target-z", String((eye.z + application.camera_view_facts(camera, player).direction.z)));
 }
-function emit_selection(canvas: any, outline: any): void {
+export function emit_selection(canvas: any, outline: any): void {
     dom.attr_set(canvas, "data-hv-select-active", bivalens_textus(outline.active));
     dom.attr_set(canvas, "data-hv-select-hit-x", String(outline.hit_x));
     dom.attr_set(canvas, "data-hv-select-hit-y", String(outline.hit_y));
@@ -340,7 +340,7 @@ function emit_selection(canvas: any, outline: any): void {
     dom.attr_set(canvas, "data-hv-select-draw-count", String(outline.draw_count));
     dom.attr_set(canvas, "data-hv-select-via", "box_wire");
 }
-function emit_player_input(canvas: any, app: any): void {
+export function emit_player_input(canvas: any, app: any): void {
     dom.attr_set(canvas, "data-hv-player-x", String(app.player.x));
     dom.attr_set(canvas, "data-hv-player-y", String(app.player.y));
     dom.attr_set(canvas, "data-hv-player-z", String(app.player.z));
@@ -352,7 +352,7 @@ function emit_player_input(canvas: any, app: any): void {
     dom.attr_set(canvas, "data-hv-focused", bivalens_textus(app.input.focused));
     dom.attr_set(canvas, "data-hv-pointer-locked", bivalens_textus(app.input.pointer_locked));
 }
-function emit_pointer_lock_mode(canvas: any, state: any): void {
+export function emit_pointer_lock_mode(canvas: any, state: any): void {
     dom.attr_set(canvas, "data-hv-pointer-lock-supported", bivalens_textus(state.supported));
     dom.attr_set(canvas, "data-hv-pointer-lock-denied", bivalens_textus(state.denied));
     dom.attr_set(canvas, "data-hv-pointer-locked", bivalens_textus(state.locked));
@@ -370,7 +370,7 @@ function emit_pointer_lock_mode(canvas: any, state: any): void {
     }
     dom.attr_set(canvas, "data-hv-pointer-lock-mode", "unlocked");
 }
-function emit_world_probe(canvas: any, world: any, x: number, y: number, z: number): void {
+export function emit_world_probe(canvas: any, world: any, x: number, y: number, z: number): void {
     dom.attr_set(canvas, "data-hv-world-probe-x", String(x));
     dom.attr_set(canvas, "data-hv-world-probe-y", String(y));
     dom.attr_set(canvas, "data-hv-world-probe-z", String(z));
@@ -381,7 +381,7 @@ function emit_world_probe(canvas: any, world: any, x: number, y: number, z: numb
     }
     dom.attr_set(canvas, "data-hv-world-probe-id", String((id ?? 0)));
 }
-function emit_interaction_snapshot(canvas: any, world: any, app: any, aspect: number, last_edit: string): void {
+export function emit_interaction_snapshot(canvas: any, world: any, app: any, aspect: number, last_edit: string): void {
     emit_player_input(canvas, app);
     emit_transform(canvas, app.camera, app.player, aspect);
     const outline: any = application.selection_outline_for_camera(world, app.camera, app.player);
@@ -393,7 +393,7 @@ function emit_interaction_snapshot(canvas: any, world: any, app: any, aspect: nu
     }
     dom.attr_set(canvas, "data-hv-last-edit", last_edit);
 }
-function aspect_from_resize(resize: any): number {
+export function aspect_from_resize(resize: any): number {
     const width: number = resize.width;
     const height: number = resize.height;
     if ((height > 0)) {
@@ -580,3 +580,35 @@ export function hello_voxel_controller(scope: any): Array<any> {
      })());
     return [frame_sub, resize_sub, keydown_sub, keyup_sub, pointer_move_sub, pointer_down_sub, focus_sub, blur_sub, lock_state_sub, click_sub];
 }
+export const main = {
+  residual_path_multi_draw,
+  lista_f32_textus,
+  lista_u32_textus,
+  lista_numerus_textus,
+  bivalens_textus,
+  WorldChunkBatch,
+  append_f32,
+  append_indices_offset,
+  chunk_cx_from_index,
+  chunk_cz_from_index,
+  dirty_mark_all,
+  batch_from_resource_table,
+  mesh_world,
+  mesh_fixture_world,
+  emit_chunk_geometry,
+  emit_chunk_resource_state,
+  emit_world_geometry,
+  emit_host_replace_queue,
+  emit_resource_snapshot,
+  clear_host_replace_queue,
+  identity_matrix,
+  first_person_view_projection,
+  first_person_transform_payload,
+  emit_transform,
+  emit_selection,
+  emit_player_input,
+  emit_pointer_lock_mode,
+  emit_world_probe,
+  emit_interaction_snapshot,
+  aspect_from_resize
+};
