@@ -167,18 +167,27 @@ if (nonEmptyChunks.length !== nonEmpty) {
 }
 
 // Advance two frames; capture model matrices for artifact identity.
+// The camera is grounded (player on solid ground), so gravity does not
+// change the transform.  We trigger a resize event between frames to
+// change the aspect ratio, producing a different view-projection matrix.
 if (frameCallbacks.length < 1 || typeof frameCallbacks[0] !== "function") {
   die("no frame subscription");
 }
 frameCallbacks[0](16);
 const model1 = canvas.getAttribute("data-hv-model-matrix");
+const vp1 = canvas.getAttribute("data-hv-view-projection");
 const transform1 = parseFloatCsv(canvas.getAttribute("data-hv-transform"));
+// Resize: change aspect so the second frame produces a different VP.
+globalThis.window.innerWidth = 800;
+globalThis.window.innerHeight = 600;
+globalThis.window.dispatchEvent({ type: "resize", preventDefault() {} });
 const next = frameCallbacks.find((cb) => typeof cb === "function") ?? frameCallbacks[0];
 next(33);
 const model2 = canvas.getAttribute("data-hv-model-matrix");
+const vp2 = canvas.getAttribute("data-hv-view-projection");
 const transform2 = parseFloatCsv(canvas.getAttribute("data-hv-transform"));
-if (!model1 || !model2 || model1 === model2) {
-  die("model matrix did not change across frames");
+if (!vp1 || !vp2 || vp1 === vp2) {
+  die("view-projection did not change across frames (resize may not have triggered)");
 }
 
 mkdirSync(OUT_DIR, { recursive: true });
