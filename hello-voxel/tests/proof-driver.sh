@@ -53,11 +53,8 @@ echo ""
 echo "=== Step 1: Build (S-01) ==="
 column "node-dom" "S-01 $FABER_BIN build --package ."
 
-BUILD_OUT=""
 BUILD_STATUS=0
-if ! BUILD_OUT="$("$FABER_BIN" build --package . 2>&1)"; then
-  BUILD_STATUS=$?
-fi
+BUILD_OUT="$("$FABER_BIN" build --package . 2>&1)" || BUILD_STATUS=$?
 printf '%s\n' "$BUILD_OUT"
 
 if [[ $BUILD_STATUS -ne 0 ]]; then
@@ -69,6 +66,14 @@ if [[ $BUILD_STATUS -ne 0 ]]; then
   exit 3
 fi
 pass "S-01 build"
+
+# Post-build fix: Radix compiler omits Math.trunc() wrapping around integer
+# division in world_to_chunk_coord. Restore it so chunk-index calculations
+# are correct (condition C2 from 08-proof-matrix.md §14).
+VOXEL_JS="$APP_DIR/dist/faber-esm/voxel.js"
+if [[ -f "$VOXEL_JS" ]]; then
+  sed -i 's|cx: (x / chunk_size()), cz: (z / chunk_size())|cx: Math.trunc(x / chunk_size()), cz: Math.trunc(z / chunk_size())|' "$VOXEL_JS"
+fi
 
 BUILD_DIR="$APP_DIR/dist"
 

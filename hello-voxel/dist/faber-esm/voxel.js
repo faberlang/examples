@@ -94,7 +94,7 @@ export function world_to_chunk_coord(x, y, z) {
     if ((world_in_bounds(x, y, z) === false)) {
         return null;
     }
-    return Object.assign(new ChunkCoord(), { cx: Math.trunc((x) / (chunk_size())), cz: Math.trunc((z) / (chunk_size())) });
+    return Object.assign(new ChunkCoord(), { cx: Math.trunc(x / chunk_size()), cz: Math.trunc(z / chunk_size()) });
 }
 export function world_to_local_coord(x, y, z) {
     if ((world_in_bounds(x, y, z) === false)) {
