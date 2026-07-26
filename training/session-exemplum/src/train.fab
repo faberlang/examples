@@ -1,0 +1,152 @@
+# =============================================================================
+# train.fab — Reusable Training Session Exemplum (PSC-2)
+# =============================================================================
+#
+# What this demonstrates:
+#   A composable training session pattern: model → loss → backward → SGD step,
+#   iterated over multiple steps with a loss trace.
+#
+# Model: 2×2 linear layer (input·weight + bias) with MSE loss.
+#   Same proof surface as linear-regression/ but structured for reuse.
+#
+# Pattern components (documented below):
+#   1. Model + loss function  — @ radix backward "model_backward"
+#   2. Training step           — forward → backward → inline SGD per param
+#   3. Training loop           — repeat step N times, record loss trace
+#
+# Build:  faber run -t fmir examples/training/session-exemplum/
+# Output: loss trace (8 values), final weight, final bias
+#
+# Negative f32 literals use 0.0 - value (fractus negation would produce
+# fractus, which conflicts with f32 list element type). This is a known
+# radix lexical limitation.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# 1. MODEL + LOSS — differentiable forward function
+# ---------------------------------------------------------------------------
+# A training session needs at least one differentiable function annotated
+# with @ radix backward. The compiler generates a backward companion that
+# returns gradients for every tensor parameter.
+#
+# To swap the model:   change the forward math inside this function.
+# To swap the loss:    change the reduction (e.g. MSE → cross-entropy).
+#   MSE:     mean((prediction − target)²)
+#   Cross-entropy:  -mean(sum(targets * log(softmax(prediction) + ε)))
+#
+# The companion name ("model_backward") is how the generated backward pass
+# is called from the training step.
+
+@ radix lane "air"
+@ radix backward "model_backward"
+functio model_loss(
+    tensor<f32, [2,2]> input,
+    tensor<f32, [2,2]> weight,
+    tensor<f32, [2,2]> bias,
+    tensor<f32, [2,2]> target
+) → fractus {
+    # Forward: prediction = input · weight + bias
+    fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
+    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
+
+    # MSE loss: mean((prediction − target)²)
+    fixum tensor<f32, [2,2]> residual   ← shifted.subtrahe(target)
+    fixum tensor<f32, [2,2]> squared    ← residual.multiplica(residual)
+    redde squared.media()
+}
+
+# ---------------------------------------------------------------------------
+# nil() — vacuum residual for companion ABI
+# ---------------------------------------------------------------------------
+# The backward companion expects one argument per forward parameter. Frozen
+# parameters (input, target) pass nil() as their gradient — the companion
+# still returns a gradient slot, but it is discarded during the update step.
+
+functio nil() → vacuum {
+    tacet
+}
+
+# ---------------------------------------------------------------------------
+# 2. TRAINING STEP — forward + backward + SGD
+# ---------------------------------------------------------------------------
+# Each step:
+#   1. Forward pass through model_loss to compute loss
+#   2. Backward pass via compiler-generated companion
+#   3. Inline SGD update: param = param - lr × grad(param)
+#
+# To swap the optimizer: replace the inline multiplication/subtraction with
+# a different update rule (e.g. Adam, momentum). Shape-generic SGD is
+# blocked on Radix shape generics (radix tip 8ed5c1434).
+#
+# NOTE: Forward is inlined inside the loop below because function calls
+# returning tensors inside loops trigger SEM010 in the current compiler.
+# The logical separation is shown in comments — once the limitation is
+# lifted, the step body can move to a dedicated function.
+
+# ---------------------------------------------------------------------------
+# 3. TRAINING LOOP — iterate step, record loss trace
+# ---------------------------------------------------------------------------
+
+incipit {
+    # ── Data ──────────────────────────────────────────────────────────────
+    # Fixed initial parameters matching tape oracle.
+    fixum lista<f32> data_input  ← [0.5,      0.0 - 1.0, 2.0,   0.75]
+    fixum lista<f32> data_weight ← [1.25,     0.0 - 0.5, 0.8,   1.1]
+    fixum lista<f32> data_bias   ← [0.2,      0.0 - 0.3, 0.2, 0.0 - 0.3]
+    fixum lista<f32> data_target ← [0.25,     0.0 - 1.0, 1.5,   0.75]
+
+    fixum tensor<f32, []> seed ← vacua
+
+    fixum tensor<f32, [2,2]> input  ← seed.strue(data_input,  [2, 2])
+    varia tensor<f32, [2,2]> weight ← seed.strue(data_weight, [2, 2])
+    varia tensor<f32, [2,2]> bias   ← seed.strue(data_bias,   [2, 2])
+    fixum tensor<f32, [2,2]> target ← seed.strue(data_target, [2, 2])
+
+    # ── Hyperparameters ───────────────────────────────────────────────────
+    fixum f32 lr ← 0.01
+    fixum lista<numerus> shape_w ← weight.magnitudines()
+    fixum lista<numerus> shape_b ← bias.magnitudines()
+
+    # ── Loop ──────────────────────────────────────────────────────────────
+    fixum numerus steps ← 8
+    varia lista<f32> loss_trace ← vacua
+
+    itera ab 0‥steps fixum step {
+        # ── FORWARD ───────────────────────────────────────────────────────
+        # model_loss(input, weight, bias, target) inlined due to SEM010.
+        fixum tensor<f32, [2,2]> pred ← input.matmul(weight)
+        fixum tensor<f32, [2,2]> shft ← pred.addita(bias)
+        fixum tensor<f32, [2,2]> resd ← shft.subtrahe(target)
+        fixum tensor<f32, [2,2]> sqrd ← resd.multiplica(resd)
+        fixum f32 loss ← sqrd.media()
+        loss_trace.appende(loss)
+
+        # ── BACKWARD ──────────────────────────────────────────────────────
+        # Call the compiler-generated companion.
+        # Input order matches model_loss parameter order.
+        # Frozen params (input, target) pass nil() as their gradient slot.
+        # Destructure: [grad_input, grad_weight, grad_bias, grad_target]
+        fixum f32 upstream ← 1.0
+        fixum _ grads ← model_backward(input, weight, bias, target, nil(), upstream)
+        fixum [_, gw, gb, _] ← grads
+
+        # ── OPTIMIZER STEP (inline SGD) ───────────────────────────────────
+        # param -= lr × grad(param)
+        # Shape-generic SGD is blocked on Radix shape generics.
+        # Concrete overloads exist in norma:optimizer for [4], [2,2], [1,2], [].
+        fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
+        fixum tensor<f32, [2,2]> scaled_w  ← gw.multiplica(lr_fill_w)
+        weight ← weight.subtrahe(scaled_w)
+
+        fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
+        fixum tensor<f32, [2,2]> scaled_b  ← gb.multiplica(lr_fill_b)
+        bias ← bias.subtrahe(scaled_b)
+    }
+
+    # ── Output ────────────────────────────────────────────────────────────
+    # Loss trace shows monotonically decreasing values (convergence).
+    # Final weight and bias show the trained parameter values.
+    nota loss_trace
+    nota weight
+    nota bias
+}
