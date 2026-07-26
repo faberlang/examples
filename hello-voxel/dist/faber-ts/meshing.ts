@@ -2,11 +2,11 @@
 
 import { voxel } from "./voxel";
 
-import { triga } from "./triga-triga.js";
+import { triga } from "triga:triga";
 
-import { geometry } from "./triga-geometry.js";
+import { geometry } from "triga:geometry";
 
-import { scene } from "./triga-scene.js";
+import { scene } from "triga:scene";
 
 export class ChunkMesh {
     cx!: number;

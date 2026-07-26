@@ -2,9 +2,9 @@
 
 import { voxel } from "./voxel";
 
-import { triga } from "./triga-triga.js";
+import { triga } from "triga:triga";
 
-import { geometry } from "./triga-geometry.js";
+import { geometry } from "triga:geometry";
 
 export function player_width(): number {
     return 0.6 as number;

@@ -89,3 +89,81 @@ declare module "web:web" {
     selector_of(mount: Mount): string;
   };
 }
+declare module "triga:triga" {
+  export function vector3(x: number, y: number, z: number): any;
+  export function vector3_subtracta(a: any, b: any): any;
+  export function vector3_normalizata(v: any): any;
+  export function vector3_cross(a: any, b: any): any;
+  export function box3_intersecat(a: any, b: any): any;
+  export function box(min: any, max: any): any;
+  export function matrix4_identitas(): any;
+  export function matrix4_perspectiva(fov_degrees: number, aspect: number, near: number, far: number): any;
+  export function matrix4_conspectus(eye: any, target: any, up: any): any;
+  export function matrix4_multiplicata(a: any, b: any): any;
+  export function transform_payload(model: any, view_projection: any): any;
+  export function camera_pitch_coercita(pitch_degrees: number): number;
+  export function camera_yaw_pitch_facts(eye: any, yaw_degrees: number, pitch_degrees: number): any;
+  export function camera_motus_planus_ex_yaw(yaw_degrees: number, forward: number, right: number, speed: number, delta_seconds: number): any;
+  export function face_code_color(face_code: number): number;
+  export function face_code_colored_quad_mesh_append(positions: any, colors: any, indices: any, face_code: number, x: number, y: number, z: number, color: number): any;
+  export function face_code_normal(face_code: number): any;
+  export function face_code_valid(face_code: number): boolean;
+  export function face_code_x_offset(face_code: number): number;
+  export function face_code_y_offset(face_code: number): number;
+  export function face_code_z_offset(face_code: number): number;
+  export function matrix4_valid(matrix: any): boolean;
+  export function transform_payload_byte_count(payload: any): number | null;
+  export const triga: {
+    vector3(x: number, y: number, z: number): any;
+    vector3_subtracta(a: any, b: any): any;
+    vector3_normalizata(v: any): any;
+    vector3_cross(a: any, b: any): any;
+    box3_intersecat(a: any, b: any): any;
+    box(min: any, max: any): any;
+    matrix4_identitas(): any;
+    matrix4_perspectiva(fov_degrees: number, aspect: number, near: number, far: number): any;
+    matrix4_conspectus(eye: any, target: any, up: any): any;
+    matrix4_multiplicata(a: any, b: any): any;
+    transform_payload(model: any, view_projection: any): any;
+    camera_pitch_coercita(pitch_degrees: number): number;
+    camera_yaw_pitch_facts(eye: any, yaw_degrees: number, pitch_degrees: number): any;
+    camera_motus_planus_ex_yaw(yaw_degrees: number, forward: number, right: number, speed: number, delta_seconds: number): any;
+    face_code_color(face_code: number): number;
+    face_code_colored_quad_mesh_append(positions: any, colors: any, indices: any, face_code: number, x: number, y: number, z: number, color: number): any;
+    face_code_normal(face_code: number): any;
+    face_code_valid(face_code: number): boolean;
+    face_code_x_offset(face_code: number): number;
+    face_code_y_offset(face_code: number): number;
+    face_code_z_offset(face_code: number): number;
+    matrix4_valid(matrix: any): boolean;
+    transform_payload_byte_count(payload: any): number | null;
+  };
+}
+declare module "triga:geometry" {
+  export function box_wire_geometry(width: number, height: number, depth: number): any;
+  export function box_wire_draw_batch_facts(width: number, height: number, depth: number, color: number): any;
+  export function colored_quad_mesh_bounding_box(payload: any): any;
+  export function colored_quad_mesh_facts(payload: any): any;
+  export function colored_quad_mesh_append(positions: any, colors: any, indices: any, ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number, dx: number, dy: number, dz: number, r: number, g: number, b: number): any;
+  export const geometry: {
+    box_wire_geometry(width: number, height: number, depth: number): any;
+    box_wire_draw_batch_facts(width: number, height: number, depth: number, color: number): any;
+    colored_quad_mesh_bounding_box(payload: any): any;
+    colored_quad_mesh_facts(payload: any): any;
+    colored_quad_mesh_append(positions: any, colors: any, indices: any, ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number, dx: number, dy: number, dz: number, r: number, g: number, b: number): any;
+  };
+}
+declare module "triga:scene" {
+  export function resource_lifecycle_created(payload: any): any;
+  export function resource_lifecycle_removed(payload: any): any;
+  export function resource_lifecycle_replaced(payload: any): any;
+  export function resource_lifecycle_unchanged(payload: any): any;
+  export function resource_lifecycles_valid(payload: any): boolean;
+  export const scene: {
+    resource_lifecycle_created(payload: any): any;
+    resource_lifecycle_removed(payload: any): any;
+    resource_lifecycle_replaced(payload: any): any;
+    resource_lifecycle_unchanged(payload: any): any;
+    resource_lifecycles_valid(payload: any): boolean;
+  };
+}
