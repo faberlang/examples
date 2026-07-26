@@ -216,12 +216,12 @@ async function main() {
 
   // Frame 1 — copy samples after onSubmittedWorkDone using readTexturePixelsRgba.
   const points1 = samplePoints(canvas.width, canvas.height);
-  runChunkGraphicsFrame(device, context, resources, descriptor, frameState, {
+  const frame1Result = runChunkGraphicsFrame(device, context, resources, descriptor, frameState, {
     clearValue: CLEAR,
     recordSubmit: true,
   });
   await device.queue.onSubmittedWorkDone();
-  const texture1 = context.getCurrentTexture();
+  const texture1 = frame1Result.texture;
   const samples1 = await readTexturePixelsRgba(device, texture1, points1);
 
   // Clear-only control (same-encoder clear + copy).
@@ -269,16 +269,16 @@ async function main() {
 
   // Frame 2 with package transform at second frame time.
   // Update the storage buffer inline with transform2.
-  const storageBuffer = resources.storageBuffers.get(0);
+  const storageBuffer = resources.storageBuffers.get(0).buffer;
   device.queue.writeBuffer(storageBuffer, 0, transform2);
 
   const points2 = samplePoints(canvas.width, canvas.height);
-  runChunkGraphicsFrame(device, context, resources, descriptor, frameState, {
+  const frame2Result = runChunkGraphicsFrame(device, context, resources, descriptor, frameState, {
     clearValue: CLEAR,
     recordSubmit: true,
   });
   await device.queue.onSubmittedWorkDone();
-  const texture2 = context.getCurrentTexture();
+  const texture2 = frame2Result.texture;
   const samples2 = await readTexturePixelsRgba(device, texture2, points2);
 
   const observedClearHex = clearSamples[0]?.hex;
