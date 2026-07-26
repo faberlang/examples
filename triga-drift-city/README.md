@@ -4,6 +4,8 @@ This browser package owns a deterministic arcade-driving simulation in Faber. It
 
 This unit is **not yet the rendered Drift City MVP**. When mounted, the generated controller publishes inspectable `data-*` facts and reports rendering as `blocked` with the gate `pending-direct-webgpu`. The current browser product does not yet provide the live mounting and direct-WebGPU bridge, so this package does not claim an independently runnable page or visible game rendering.
 
+The cross-repository path from this framework to the playable MVP is documented in [`../docs/factory/triga-drift-city/CAMPAIGN.md`](../docs/factory/triga-drift-city/CAMPAIGN.md). The campaign is a routing document and does not authorize implementation by itself.
+
 ## Controls
 
 - `W` or `ArrowUp`: accelerate
