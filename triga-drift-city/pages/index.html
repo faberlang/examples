@@ -23,9 +23,28 @@
       </div>
     </section>
 
+    <canvas class="drift-canvas" width="960" height="540" aria-label="Triga Drift City render target"></canvas>
+
     <aside>
       <strong>Renderer status:</strong> blocked — pending direct-WebGPU host admission.
     </aside>
   </main>
+  <script type="module">
+    import { mountControllers } from "../faber-esm/faber-browser.js";
+
+    const root = globalThis.document.querySelector("#triga-drift-city");
+    if (!root) {
+      globalThis.document.documentElement.setAttribute(
+        "data-mount-error",
+        "missing controller root: #triga-drift-city",
+      );
+    } else {
+      const runtime = mountControllers(globalThis.document);
+      if (runtime.failures.length > 0) {
+        root.setAttribute("data-mount-error", runtime.failures[0].error.message);
+      }
+      globalThis.__driftRuntime = runtime;
+    }
+  </script>
 </body>
 </html>

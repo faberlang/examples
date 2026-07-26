@@ -81,4 +81,45 @@ echo "running browser controller fixture"
 node --import "$WORKSPACE/examples/browser-app/tests/register-hooks.mjs" \
   "$SCRIPT_DIR/browser-fixture-test.mjs"
 
+# --- U1 stage checks ---
+echo "checking U1: host runtime files in public/"
+test -f "$APP_DIR/public/faber-kernel.js"
+test -f "$APP_DIR/public/webgpu-runtime.js"
+test -f "$APP_DIR/public/host-init.js"
+
+echo "checking U1: host-init exports initHost with stub updateGraphicsStorage"
+node -e "
+const fs = require('fs');
+const src = fs.readFileSync('$APP_DIR/public/host-init.js', 'utf8');
+const checks = [
+  src.includes('export async function initHost'),
+  src.includes('updateGraphicsStorage'),
+  src.includes('not wired'),
+  src.includes('submitFrame'),
+  src.includes('resize'),
+  src.includes('destroy'),
+];
+const ok = checks.every(Boolean);
+if (!ok) {
+  const labels = ['initHost','updateGraphicsStorage','not wired','submitFrame','resize','destroy'];
+  for (let i = 0; i < checks.length; i++) {
+    if (!checks[i]) console.error('  missing: ' + labels[i]);
+  }
+  process.exit(1);
+}
+console.log('  host-init exports ok');
+"
+
+echo "checking U1: product page has canvas element"
+grep -q '<canvas' "$APP_DIR/pages/index.html"
+
+echo "checking U1: dist/controllers.json has expected selector"
+test -f "$APP_DIR/dist/controllers.json"
+grep -q '"selector": "#triga-drift-city"' "$APP_DIR/dist/controllers.json"
+
+echo "checking U1: dist/public/ has copied host runtime files"
+test -f "$APP_DIR/dist/public/faber-kernel.js"
+test -f "$APP_DIR/dist/public/webgpu-runtime.js"
+test -f "$APP_DIR/dist/public/host-init.js"
+
 echo "triga-drift-city: ok"
