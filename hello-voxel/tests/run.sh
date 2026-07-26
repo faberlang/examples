@@ -40,28 +40,7 @@ LOCK
 
 (
   cd "$APP_DIR"
-  # Browser product tsc fails until pure Triga TS modules are linked (faber only
-  # ambient-packages web:*). Capture the TypeScript intermediate, then finish.
-  set +e
-  BUILD_OUT="$("$FABER_BIN" build --package . 2>&1)"
-  BUILD_STATUS=$?
-  set -e
-  printf '%s\n' "$BUILD_OUT"
-  if [[ $BUILD_STATUS -ne 0 ]]; then
-    if [[ ! -f "$APP_DIR/dist/faber-ts/main.ts" ]]; then
-      echo "faber build failed before TypeScript emit" >&2
-      exit "$BUILD_STATUS"
-    fi
-    if printf '%s' "$BUILD_OUT" | grep -q 'triga:triga'; then
-      node "$APP_DIR/scripta/link-triga-ts.mjs"
-    else
-      echo "faber build failed for a non-triga reason" >&2
-      exit "$BUILD_STATUS"
-    fi
-  elif grep -q 'triga:triga' "$APP_DIR/dist/faber-ts/main.ts" 2>/dev/null; then
-    # Build claimed success but still has unresolved virtual import — link.
-    node "$APP_DIR/scripta/link-triga-ts.mjs"
-  fi
+  "$FABER_BIN" build --package .
 )
 
 test -f "$APP_DIR/dist/faber-esm/faber-browser.js"
