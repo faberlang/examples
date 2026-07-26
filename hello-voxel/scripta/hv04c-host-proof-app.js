@@ -1,6 +1,8 @@
-// HV-04C browser graphics proof: hosts/webgpu-browser runtime + package attrs.
-// Loads package-owned geometry/transform from /generated/ (hello-voxel dist)
+// HV-05C browser graphics proof: per-chunk multi-draw host path (HV-07B/C).
+// Loads package-owned per-chunk geometry/transform from /generated/chunks/<slot>/
 // and WGSL/reflection from the webgpu-browser host public/generated.
+// Uses createChunkGraphicsResources / applyChunkResourceReplace / runChunkGraphicsFrame
+// instead of the old concatenated-single-buffer path.
 
 import {
   FaberKernelContractError,
@@ -8,10 +10,14 @@ import {
 } from "/host-src/faber-kernel.js";
 import {
   acquireWebGpuDevice,
-  createGraphicsResources,
-  runGraphicsFrameWithTexture,
-  mapPixelBuffers,
+  createChunkGraphicsResources,
+  applyChunkResourceReplace,
+  runChunkGraphicsFrame,
+  chunkResourceCounters,
+  liveChunkIds,
+  readTexturePixelsRgba,
   replaceDepthTextureOnResize,
+  mapPixelBuffers,
   onDeviceLost,
 } from "/host-src/webgpu-runtime.js";
 
@@ -41,9 +47,6 @@ async function main() {
   const [
     wgslResponse,
     reflectionResponse,
-    positionsResponse,
-    colorsResponse,
-    indicesResponse,
     transformResponse,
     transform2Response,
     drawResponse,
@@ -51,9 +54,6 @@ async function main() {
   ] = await Promise.all([
     fetch("/host-generated/graphics.wgsl"),
     fetch("/host-generated/graphics-reflection.json"),
-    fetch("/generated/vertex-positions.bin"),
-    fetch("/generated/vertex-colors.bin"),
-    fetch("/generated/indices.bin"),
     fetch("/generated/transform.bin"),
     fetch("/generated/transform-frame2.bin"),
     fetch("/generated/draw.json"),
@@ -63,9 +63,6 @@ async function main() {
   for (const [label, response] of [
     ["wgsl", wgslResponse],
     ["reflection", reflectionResponse],
-    ["positions", positionsResponse],
-    ["colors", colorsResponse],
-    ["indices", indicesResponse],
     ["transform", transformResponse],
     ["transform2", transform2Response],
     ["draw", drawResponse],
@@ -108,72 +105,124 @@ async function main() {
     usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
   });
 
-  const positionsBuffer = await positionsResponse.arrayBuffer();
-  const colorsBuffer = await colorsResponse.arrayBuffer();
-  const indicesBuffer = await indicesResponse.arrayBuffer();
   const transform1 = new Float32Array(await transformResponse.arrayBuffer());
   const transform2 = new Float32Array(await transform2Response.arrayBuffer());
 
-  // HV-05C: package-owned four-chunk (or residual cube) sizes from draw.json.
-  // Fail closed on empty or mismatched position/color/index payloads.
-  const expectedIndexCount = Number(drawManifest.index_count);
-  if (!Number.isFinite(expectedIndexCount) || expectedIndexCount <= 0) {
+  // HV-05C: per-chunk geometry pair loading from chunks/<slot>/ bins.
+  // Fail closed on empty or mismatched payloads.
+  const expectedDrawCount = Number(drawManifest.draw_count);
+  if (!Number.isFinite(expectedDrawCount) || expectedDrawCount <= 0) {
     throw new FaberKernelContractError(
       "drawManifest",
-      `invalid index_count ${drawManifest.index_count}`,
-    );
-  }
-  if (indicesBuffer.byteLength !== expectedIndexCount * 4) {
-    throw new FaberKernelContractError(
-      "package-indices",
-      `expected ${expectedIndexCount * 4} bytes (${expectedIndexCount}×u32), got ${indicesBuffer.byteLength}`,
-    );
-  }
-  if (positionsBuffer.byteLength === 0 || colorsBuffer.byteLength === 0) {
-    throw new FaberKernelContractError(
-      "package-geometry",
-      "empty positions or colors buffer",
-    );
-  }
-  if (positionsBuffer.byteLength !== colorsBuffer.byteLength) {
-    throw new FaberKernelContractError(
-      "package-geometry",
-      `positions ${positionsBuffer.byteLength}B != colors ${colorsBuffer.byteLength}B`,
-    );
-  }
-  if (positionsBuffer.byteLength % 12 !== 0) {
-    throw new FaberKernelContractError(
-      "package-positions",
-      `positions byte length not multiple of 12 (vec3 f32), got ${positionsBuffer.byteLength}`,
+      `invalid draw_count ${drawManifest.draw_count}`,
     );
   }
 
-  const basePayloads = {
-    vertexBuffers: [
-      { slot: 0, data: positionsBuffer },
-      { slot: 1, data: colorsBuffer },
-    ],
-    indexData: new Uint32Array(indicesBuffer),
-  };
+  const chunks = [];
+  for (let slot = 0; slot < expectedDrawCount; slot++) {
+    const base = `/generated/chunks/${slot}/`;
+    const [posRes, colRes, idxRes, drawRes] = await Promise.all([
+      fetch(`${base}vertex-positions.bin`),
+      fetch(`${base}vertex-colors.bin`),
+      fetch(`${base}indices.bin`),
+      fetch(`${base}draw.json`),
+    ]);
 
-  let resources = createGraphicsResources(
-    device,
-    descriptor,
-    { ...basePayloads, storageData: { transform: transform1 } },
+    for (const [label, response] of [
+      [`chunks/${slot}/vertex-positions.bin`, posRes],
+      [`chunks/${slot}/vertex-colors.bin`, colRes],
+      [`chunks/${slot}/indices.bin`, idxRes],
+      [`chunks/${slot}/draw.json`, drawRes],
+    ]) {
+      if (!response.ok) {
+        throw new FaberKernelContractError(label, `failed to fetch ${label}`, "artifact-fetch");
+      }
+    }
+
+    const chunkDrawManifest = await drawRes.json();
+    const indexCount = Number(chunkDrawManifest.index_count);
+
+    if (!Number.isFinite(indexCount) || indexCount < 0) {
+      throw new FaberKernelContractError(
+        `chunks/${slot}/draw.json`,
+        `invalid index_count ${chunkDrawManifest.index_count}`,
+      );
+    }
+
+    const positions = await posRes.arrayBuffer();
+    const colors = await colRes.arrayBuffer();
+    const indices = await idxRes.arrayBuffer();
+
+    if (indexCount > 0) {
+      if (indices.byteLength !== indexCount * 4) {
+        throw new FaberKernelContractError(
+          `chunks/${slot}/indices.bin`,
+          `expected ${indexCount * 4} bytes (${indexCount}×u32), got ${indices.byteLength}`,
+        );
+      }
+      if (positions.byteLength === 0 || colors.byteLength === 0) {
+        throw new FaberKernelContractError(
+          `chunks/${slot}`,
+          "empty positions or colors buffer",
+        );
+      }
+      if (positions.byteLength !== colors.byteLength) {
+        throw new FaberKernelContractError(
+          `chunks/${slot}`,
+          `positions ${positions.byteLength}B != colors ${colors.byteLength}B`,
+        );
+      }
+      if (positions.byteLength % 12 !== 0) {
+        throw new FaberKernelContractError(
+          `chunks/${slot}/vertex-positions.bin`,
+          `byte length not multiple of 12 (vec3 f32), got ${positions.byteLength}`,
+        );
+      }
+    }
+
+    chunks.push({
+      slot,
+      index_count: indexCount,
+      positions,
+      colors,
+      indices,
+    });
+  }
+
+  // Create chunk graphics resources with per-chunk multi-draw path.
+  let resources = createChunkGraphicsResources(
+    device, descriptor,
+    { storageData: { transform: transform1 } },
     context,
   );
+
+  // Bootstrap: one create per non-empty chunk.
+  for (const chunk of chunks) {
+    if (chunk.index_count > 0) {
+      applyChunkResourceReplace(device, resources, {
+        logical_id: chunk.slot,
+        generation: 0,
+        payload: {
+          positions: chunk.positions,
+          colors: chunk.colors,
+          indices: chunk.indices,
+        },
+      });
+    }
+  }
+
   const frameState = { submittedFrameCount: 0, submits: [] };
   const clearHex = rgbToHex(CLEAR.r, CLEAR.g, CLEAR.b);
 
-  // Frame 1 — copy samples in same encoder as drawIndexed.
+  // Frame 1 — copy samples after onSubmittedWorkDone using readTexturePixelsRgba.
   const points1 = samplePoints(canvas.width, canvas.height);
-  const frame1 = runGraphicsFrameWithTexture(device, context, resources, descriptor, frameState, {
+  runChunkGraphicsFrame(device, context, resources, descriptor, frameState, {
     clearValue: CLEAR,
     recordSubmit: true,
-    pixelSamples: points1,
   });
   await device.queue.onSubmittedWorkDone();
-  const samples1 = await mapPixelBuffers(frame1.pixelBuffers);
+  const texture1 = context.getCurrentTexture();
+  const samples1 = await readTexturePixelsRgba(device, texture1, points1);
 
   // Clear-only control (same-encoder clear + copy).
   const clearPoints = [{ name: "clear_center", x: Math.floor(canvas.width / 2), y: Math.floor(canvas.height / 2) }];
@@ -219,20 +268,18 @@ async function main() {
   resources = replaceDepthTextureOnResize(device, resources, 320, 180);
 
   // Frame 2 with package transform at second frame time.
-  resources = createGraphicsResources(
-    device,
-    descriptor,
-    { ...basePayloads, storageData: { transform: transform2 } },
-    context,
-  );
+  // Update the storage buffer inline with transform2.
+  const storageBuffer = resources.storageBuffers.get(0);
+  device.queue.writeBuffer(storageBuffer, 0, transform2);
+
   const points2 = samplePoints(canvas.width, canvas.height);
-  const frame2 = runGraphicsFrameWithTexture(device, context, resources, descriptor, frameState, {
+  runChunkGraphicsFrame(device, context, resources, descriptor, frameState, {
     clearValue: CLEAR,
     recordSubmit: true,
-    pixelSamples: points2,
   });
   await device.queue.onSubmittedWorkDone();
-  const samples2 = await mapPixelBuffers(frame2.pixelBuffers);
+  const texture2 = context.getCurrentTexture();
+  const samples2 = await readTexturePixelsRgba(device, texture2, points2);
 
   const observedClearHex = clearSamples[0]?.hex;
   const nonBackground = (samples) =>
@@ -280,6 +327,10 @@ async function main() {
   const frame1NonBlack = nonBlackCoverage(samples1);
   const frame2NonBlack = nonBlackCoverage(samples2);
 
+  const counters = chunkResourceCounters(resources);
+  const lastSubmit = frameState.submits[frameState.submits.length - 1] ?? null;
+  const firstSubmit = frameState.submits[0] ?? null;
+
   window.faberHv04cProof = Object.freeze({
     ok:
       frameState.submittedFrameCount >= 2
@@ -317,9 +368,9 @@ async function main() {
       frames_rgb_differ: framesRgbDiffer,
     },
     package: {
-      positions_bytes: positionsBuffer.byteLength,
-      colors_bytes: colorsBuffer.byteLength,
-      indices_bytes: indicesBuffer.byteLength,
+      positions_bytes: chunks.reduce((s, c) => s + (c.positions?.byteLength ?? 0), 0),
+      colors_bytes: chunks.reduce((s, c) => s + (c.colors?.byteLength ?? 0), 0),
+      indices_bytes: chunks.reduce((s, c) => s + (c.indices?.byteLength ?? 0), 0),
       index_count: drawManifest.index_count,
       instance_count: drawManifest.instance_count,
       resource_pair_count: drawManifest.resource_pair_count ?? null,
@@ -327,17 +378,26 @@ async function main() {
       chunk_count: drawManifest.chunk_count ?? null,
       non_empty_chunk_count: drawManifest.non_empty_chunk_count ?? null,
       payload_kind: drawManifest.payload_kind ?? null,
-      source: "examples/hello-voxel package attrs → dist/generated bins",
+      source: "examples/hello-voxel package attrs → dist/generated/chunks/<slot>/ bins",
     },
-    lastSubmit: frameState.submits[frameState.submits.length - 1] ?? null,
+    lastSubmit,
     index_count: descriptor.draw.indexCount,
     instance_count: descriptor.draw.instanceCount,
     method: "drawIndexed",
     drawIndexed: true,
+    multi_draw: firstSubmit?.multi_draw === true,
+    draw_count: lastSubmit?.draw_count ?? 0,
+    host_path: firstSubmit?.path ?? null,
+    live_chunk_ids: [...liveChunkIds(resources)],
+    chunk_counters: {
+      live_chunks: counters.live_chunks,
+      live_buffers: counters.live,
+      path: counters.path,
+    },
   });
 
   statusEl.textContent = window.faberHv04cProof.ok
-    ? `ready frames=${frameState.submittedFrameCount} rgbDiff=${framesRgbDiffer}`
+    ? `ready frames=${frameState.submittedFrameCount} rgbDiff=${framesRgbDiffer} mdraw=${window.faberHv04cProof.multi_draw} draws=${window.faberHv04cProof.draw_count}`
     : `incomplete clearOk=${clearControlOk} f1=${frame1NonBg}/${frame1NonBlack} f2=${frame2NonBg}/${frame2NonBlack} rgbDiff=${framesRgbDiffer}`;
 }
 
