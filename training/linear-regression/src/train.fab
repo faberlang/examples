@@ -29,13 +29,8 @@
 # SGD update is inlined (param -= lr * grad) because MIR-backed targets
 # cannot yet import library modules like norma:optimizer.
 #
-# Multi-step: iterates 8 SGD steps, records loss trace, notas the trace.
-#
-# NOTE: Backward companion has a pre-existing runtime type error
-# ("tensor receiver type mismatch: Unit") that prevents the backward+SGD
-# section from executing. Once the companion generation fix lands, uncomment
-# the backward+update block. The forward-pass loop infrastructure is proven
-# working independently.
+# Multi-step: iterates 8 SGD steps with backward pass + inline SGD update,
+# records loss trace, notas the trace, weight, and bias.
 #
 # Build: faber run -t fmir examples/training/linear-regression/
 # =============================================================================
@@ -68,7 +63,7 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# incipit — multi-step training loop: forward × 8 + backward (pending)
+# incipit — multi-step training loop: forward × 8 + backward + SGD
 # -------------------------------------------------------------------------
 
 incipit {
@@ -102,22 +97,22 @@ incipit {
         fixum f32 loss ← sqrd.media()
         loss_trace.appende(loss)
 
-        # TODO: Uncomment when backward companion runtime type error is resolved.
-        # Backward pass + SGD update currently blocked by
-        # "tensor receiver type mismatch: Unit" — the companion is generated
-        # but fails at execution because one argument resolves to Unit.
-        #
-        #   fixum _ grads ← linear_backward(input, weight, bias, target, nil(), upstream)
-        #   fixum [_, gw, gb, _] ← grads
-        #
-        #   fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
-        #   fixum tensor<f32, [2,2]> scaled_w ← gw.multiplica(lr_fill_w)
-        #   weight ← weight.subtrahe(scaled_w)
-        #
-        #   fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
-        #   fixum tensor<f32, [2,2]> scaled_b ← gb.multiplica(lr_fill_b)
-        #   bias ← bias.subtrahe(scaled_b)
+        # Backward pass via compiler-generated companion
+        fixum f32 upstream ← 1.0
+        fixum _ grads ← linear_backward(input, weight, bias, target, nil(), upstream)
+        fixum [_, gw, gb, _] ← grads
+
+        # SGD update: weight -= lr * gw, bias -= lr * gb
+        fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
+        fixum tensor<f32, [2,2]> scaled_w ← gw.multiplica(lr_fill_w)
+        weight ← weight.subtrahe(scaled_w)
+
+        fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
+        fixum tensor<f32, [2,2]> scaled_b ← gb.multiplica(lr_fill_b)
+        bias ← bias.subtrahe(scaled_b)
     }
 
     nota loss_trace
+    nota weight
+    nota bias
 }
