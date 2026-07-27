@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Triga Drift City — Application Foundation</title>
+  <title>Triga Drift City — Greybox Drive</title>
   <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
@@ -11,17 +11,25 @@
     <header>
       <p class="eyebrow">Faber application foundation</p>
       <h1>Triga Drift City</h1>
-      <p class="summary">Direct-WebGPU render with U1 greybox shader pipeline. First colored triangle verified via pixel readback.</p>
+      <p class="summary">
+        Direct-WebGPU greybox drive: U3 scene geometry, U1 shader pipeline,
+        keyboard simulation in Faber, render loop in host JS.
+      </p>
     </header>
 
     <section class="drift-panel" aria-labelledby="drive-title">
-      <h2 id="drive-title">Render facts</h2>
+      <h2 id="drive-title">Drive status</h2>
       <p class="drift-status" aria-live="polite">initializing</p>
-      <div class="drift-facts" tabindex="0" role="application" aria-label="Triga Drift City render facts">
+      <div class="drift-facts" tabindex="0" role="application" aria-label="Triga Drift City drive panel">
         <p data-fact="pipeline-status">Pipeline: pending</p>
+        <p data-fact="scene-upload">Scene upload: pending</p>
         <p data-fact="pixel-readback">Pixel readback: pending</p>
         <p data-fact="render-status">Render status: pending</p>
       </div>
+      <p class="drive-hints">
+        Focus panel · <kbd>W</kbd>/<kbd>A</kbd>/<kbd>S</kbd>/<kbd>D</kbd> drive ·
+        <kbd>Space</kbd> handbrake · <kbd>R</kbd> reset spawn
+      </p>
     </section>
 
     <canvas class="drift-canvas" width="960" height="540" aria-label="Triga Drift City render target"></canvas>
@@ -31,6 +39,7 @@
     </aside>
   </main>
   <script type="module">
+    import { mountControllers } from "../faber-esm/faber-browser.js";
     import { initHost } from "../public/host-init.js";
 
     const root = globalThis.document.querySelector("#triga-drift-city");
@@ -39,24 +48,42 @@
     const rendererStatus = globalThis.document.querySelector("#renderer-status");
 
     async function main() {
+      // Mount Faber controller first so data-scene-geometry is published
+      // before the host waits for upload.
+      let runtime = null;
+      try {
+        runtime = mountControllers(globalThis.document);
+        if (runtime.failures?.length) {
+          console.error("controller mount failures", runtime.failures);
+        }
+      } catch (err) {
+        console.error("mountControllers failed", err);
+        if (root) root.setAttribute("data-mount-error", err.message);
+      }
+
       try {
         const host = await initHost();
 
         if (statusEl) {
-          statusEl.textContent = host.pipelineLoaded ? "render-active" : "pipeline-failed";
+          statusEl.textContent = host.pipelineLoaded
+            ? (host.sceneMounted ? "render-active-scene" : "render-active-triangle")
+            : "pipeline-failed";
         }
 
         if (rendererStatus) {
           rendererStatus.textContent = host.pipelineLoaded
-            ? `active — pixel readback: ${host.renderStatus}`
+            ? `active — scene=${host.sceneMounted} pixel=${host.renderStatus}`
             : "pipeline load failed";
         }
 
-        // Update fact elements from host data attributes
         if (factsEl) {
           const pipelineFact = factsEl.querySelector('[data-fact="pipeline-status"]');
           if (pipelineFact) {
             pipelineFact.textContent = `Pipeline: ${host.pipelineLoaded ? "loaded" : "failed"}`;
+          }
+          const sceneFact = factsEl.querySelector('[data-fact="scene-upload"]');
+          if (sceneFact) {
+            sceneFact.textContent = `Scene upload: ${host.sceneMounted ? "ok" : "pending/failed"}`;
           }
           const pixelFact = factsEl.querySelector('[data-fact="pixel-readback"]');
           if (pixelFact) {
@@ -72,6 +99,7 @@
         }
 
         globalThis.__driftHost = host;
+        globalThis.__driftRuntime = runtime;
       } catch (err) {
         console.error("host-init failed", err);
         if (statusEl) {

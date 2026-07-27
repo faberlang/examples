@@ -1,6 +1,6 @@
 importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
-importa ex "./geometry" privata geom
+importa ex "./box_geom" privata box_geom
 importa ex "./city" privata city
 
 # ---------------------------------------------------------------------------
@@ -36,11 +36,11 @@ functio _add_object(
     f32 red, f32 green, f32 blue
 ) → lista<SceneObjectGeometry> {
     fixum geometry.BufferGeometry ∪ nihil geo_result ←
-        geom.box_geometry(bounds, red, green, blue)
+        box_geom.box_geometry(bounds, red, green, blue)
     si geo_result est nihil ergo redde objects
 
     fixum lista<f32> ∪ nihil vp_result ←
-        geom.box_vertex_payload(bounds, red, green, blue)
+        box_geom.box_vertex_payload(bounds, red, green, blue)
     si vp_result est nihil ergo redde objects
 
     fixum geometry.BufferGeometry gg ← geometry.BufferGeometry {

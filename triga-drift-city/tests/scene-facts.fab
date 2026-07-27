@@ -1,6 +1,6 @@
 importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
-importa ex "./geometry" privata geom
+importa ex "./box_geom" privata box_geom
 importa ex "./scene" privata scene
 importa ex "./city" privata city
 importa ex "./vehicle" privata vehicle
@@ -11,7 +11,7 @@ incipit {
         min = triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         max = triga.vector3(2.0 ∷ f32, 2.0 ∷ f32, 2.0 ∷ f32)
     }
-    fixum geometry.BufferGeometry ∪ nihil geo_result ← geom.box_geometry(
+    fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(
         test_box,
         0.5 ∷ f32, 0.5 ∷ f32, 0.5 ∷ f32
     )
@@ -35,7 +35,7 @@ incipit {
         "box_geometry must produce 36 indices (12 triangles, 2 per face × 6 faces)"
 
     # ---- box_vertex_payload produces interleaved payload --------------------
-    fixum lista<f32> ∪ nihil vp_result ← geom.box_vertex_payload(
+    fixum lista<f32> ∪ nihil vp_result ← box_geom.box_vertex_payload(
         test_box,
         0.5 ∷ f32, 0.5 ∷ f32, 0.5 ∷ f32
     )

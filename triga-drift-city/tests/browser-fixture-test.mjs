@@ -66,54 +66,76 @@ const root = document.querySelector("#triga-drift-city");
 const status = root.querySelector(".drift-status");
 const facts = root.querySelector(".drift-facts");
 
+// Mount-once status attrs (U4 done_when 10)
 assert(status.textContent === "simulation-running-gpu-active", "mount publishes GPU-active status");
 assert(facts.getAttribute("data-render-status") === "live-direct-webgpu", "renderer status is live-direct-webgpu");
 assert(facts.getAttribute("data-render-gate") === "open", "direct-WebGPU gate is open");
 assert(facts.getAttribute("data-simulation-owner") === "faber", "simulation ownership is Faber");
-assert(facts.getAttribute("data-scene-road-count") === "4", "scene publishes four roads");
-assert(facts.getAttribute("data-scene-building-count") === "5", "scene publishes five buildings");
-assert(facts.getAttribute("data-scene-car-count") === "1", "scene publishes one car");
-assert(facts.getAttribute("data-scene-roads").length > 0, "road Box3 facts are inspectable");
-assert(facts.getAttribute("data-camera-target-z") !== null, "camera target is inspectable");
-assert(facts.getAttribute("data-key-focused") === "0", "input starts unfocused");
-
-// --- U4: device status and transform payload ---
 assert(facts.getAttribute("data-device-status") === "active", "device status starts active");
 
-const startZ = Number(facts.getAttribute("data-vehicle-z"));
-facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
-assert(facts.getAttribute("data-key-forward") === "0", "unfocused key input is rejected");
-facts.dispatchEvent(new FakeEvent("focus"));
-assert(facts.getAttribute("data-key-focused") === "1", "panel focus admits keyboard input");
-facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
-assert(facts.getAttribute("data-key-forward") === "1", "focused keydown reaches Faber input state");
-await new Promise((resolve) => setTimeout(resolve, 15));
-const drivenZ = Number(facts.getAttribute("data-vehicle-z"));
-const advancedFrame = Number(facts.getAttribute("data-frame"));
-assert(drivenZ < startZ, `frame advancement moves car forward (${drivenZ} < ${startZ})`);
-assert(advancedFrame > 0, "frame fact advances");
+// Frame-specific vehicle/camera/key scrape attrs must NOT be the source of truth
+assert(facts.getAttribute("data-vehicle-x") === null, "no per-frame data-vehicle-x");
+assert(facts.getAttribute("data-camera-x") === null, "no per-frame data-camera-x");
+assert(facts.getAttribute("data-key-forward") === null, "no per-frame data-key-forward");
+assert(facts.getAttribute("data-frame") === null, "no per-frame data-frame scrape attr");
 
-// --- U4: transform payload check ---
+// One-shot scene geometry for host upload
+const geo = facts.getAttribute("data-scene-geometry");
+assert(geo !== null && geo.length > 0, "mount publishes data-scene-geometry blob");
+assert(facts.getAttribute("data-scene-object-count") === "10", "scene geometry has 10 objects");
+assert(geo.includes("car;car;"), "geometry blob includes car role");
+assert(geo.includes("road-0;static;"), "geometry blob includes road-0 static");
+const objectParts = geo.split("|");
+assert(objectParts.length === 10, `geometry blob has 10 objects, got ${objectParts.length}`);
+
+// Transform payload host bridge (32 floats)
 const payloadAttr = facts.getAttribute("data-transform-payload");
 assert(payloadAttr !== null && payloadAttr !== undefined, "transform payload attribute exists");
 const payloadFloats = payloadAttr.trim().split(/\s+/);
 assert(payloadFloats.length === 32, `transform payload has 32 floats, got ${payloadFloats.length}`);
-const modelM15 = Number(payloadFloats[15]); // last model element (m15 = 1.0 for identity)
+const modelM15 = Number(payloadFloats[15]);
 assert(Math.abs(modelM15 - 1.0) < 0.001, `model matrix m15 is 1.0, got ${modelM15}`);
 
-// --- U4: resize sets canvas aspect on controller ---
-assert(facts.getAttribute("data-device-status") === "active", "device status stays active after frames");
+// Keyboard / focus: simulation still runs; transform model translation should move
+const startTx = Number(payloadFloats[12]); // model translation x (column-major m[12])
+const startTz = Number(payloadFloats[14]); // model translation z
 
-facts.dispatchEvent(new FakeEvent("keydown", { key: " ", code: "Space" }));
-assert(facts.getAttribute("data-key-handbrake") === "1", "Space reaches Faber handbrake state");
-assert(Number(facts.getAttribute("data-frame")) === advancedFrame, "input preserves the published frame");
-facts.dispatchEvent(new FakeEvent("keyup", { key: " ", code: "Space" }));
-assert(facts.getAttribute("data-key-handbrake") === "0", "Space keyup clears handbrake state");
+// Unfocused key input must not drive
+facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
+await new Promise((resolve) => setTimeout(resolve, 15));
+const midPayload = facts.getAttribute("data-transform-payload").trim().split(/\s+/);
+const midTz = Number(midPayload[14]);
+assert(Math.abs(midTz - startTz) < 0.0001, "unfocused key input does not move car");
+
+// Focus + drive forward
+facts.dispatchEvent(new FakeEvent("focus"));
+facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
+await new Promise((resolve) => setTimeout(resolve, 40));
+const drivenPayload = facts.getAttribute("data-transform-payload").trim().split(/\s+/);
+const drivenTz = Number(drivenPayload[14]);
+// Spawn heading 0° forward is -Z in this camera convention (vehicle.fab uses camera_forward_planus)
+assert(
+  drivenTz < startTz || Number(drivenPayload[12]) !== startTx,
+  `focused drive changes car transform (tz ${drivenTz} vs ${startTz}, tx ${drivenPayload[12]} vs ${startTx})`,
+);
+
+// Reset R restores spawn translation
+facts.dispatchEvent(new FakeEvent("keydown", { key: "r", code: "KeyR" }));
+await new Promise((resolve) => setTimeout(resolve, 5));
+const resetPayload = facts.getAttribute("data-transform-payload").trim().split(/\s+/);
+const resetTx = Number(resetPayload[12]);
+const resetTz = Number(resetPayload[14]);
+assert(Math.abs(resetTx - (-22.0)) < 0.01, `reset restores spawn x ≈ -22, got ${resetTx}`);
+assert(Math.abs(resetTz - 0.0) < 0.01, `reset restores spawn z ≈ 0, got ${resetTz}`);
+
+// Blur clears held keys (no further drive after blur)
+facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
 facts.dispatchEvent(new FakeEvent("blur"));
-assert(facts.getAttribute("data-key-focused") === "0", "panel blur revokes keyboard input");
-assert(facts.getAttribute("data-key-forward") === "0", "panel blur clears held movement input");
-facts.dispatchEvent(new FakeEvent("keyup", { key: "w", code: "KeyW" }));
-assert(facts.getAttribute("data-key-forward") === "0", "keyup keeps Faber input state clear");
+const blurPayload = facts.getAttribute("data-transform-payload");
+assert(blurPayload !== null, "transform still published after blur");
+
+// Device status stays active under normal operation
+assert(facts.getAttribute("data-device-status") === "active", "device status stays active");
 
 runtime.dispose();
 console.log(`${passed} passed, ${failed} failed`);

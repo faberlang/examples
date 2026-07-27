@@ -3,38 +3,13 @@ importa ex "web:dom" privata dom
 importa ex "triga:triga" privata triga
 importa ex "./city" privata city
 importa ex "./vehicle" privata vehicle
+importa ex "./scene" privata scene
 
-functio bivalens_textus(bivalens value) → textus {
-    si value { redde "1" }
-    redde "0"
-}
+# ---------------------------------------------------------------------------
+# Text helpers for host bridge (transform payload + one-shot geometry).
+# ---------------------------------------------------------------------------
 
-functio box_textus(de triga.Box3 bounds) → textus {
-    redde "§,§,§,§,§,§"(
-        bounds.min.x ↦ textus,
-        bounds.min.y ↦ textus,
-        bounds.min.z ↦ textus,
-        bounds.max.x ↦ textus,
-        bounds.max.y ↦ textus,
-        bounds.max.z ↦ textus
-    )
-}
-
-functio boxes_textus(de lista<triga.Box3> boxes) → textus {
-    varia textus output ← ""
-    varia numerus i ← 0
-    dum i < boxes.longitudo() {
-        si i ≡ 0 {
-            output ← box_textus(boxes[i])
-        } secus {
-            output ← "§;§"(output, box_textus(boxes[i]))
-        }
-        i ← i + 1
-    }
-    redde output
-}
-
-functio payload_textus(de lista<f32> values) → textus {
+functio floats_textus(de lista<f32> values) → textus {
     varia textus output ← ""
     varia numerus i ← 0
     dum i < values.longitudo() {
@@ -47,6 +22,59 @@ functio payload_textus(de lista<f32> values) → textus {
     }
     redde output
 }
+
+functio indices_textus(de lista<u32> values) → textus {
+    varia textus output ← ""
+    varia numerus i ← 0
+    dum i < values.longitudo() {
+        si i ≡ 0 {
+            output ← values[i] ↦ textus
+        } secus {
+            output ← "§ §"(output, values[i] ↦ textus)
+        }
+        i ← i + 1
+    }
+    redde output
+}
+
+# Object role for host multi-draw: car gets model matrix, rest identity.
+functio object_role(textus name) → textus {
+    si name ≡ "car" { redde "car" }
+    redde "static"
+}
+
+# Encode one SceneObjectGeometry as:
+#   name;role;vertex_count;index_count;v0 v1 ...;i0 i1 ...
+functio object_geometry_textus(de scene.SceneObjectGeometry obj) → textus {
+    redde "§;§;§;§;§;§"(
+        obj.name,
+        object_role(obj.name),
+        obj.vertex_count ↦ textus,
+        obj.index_count ↦ textus,
+        floats_textus(obj.vertex_payload),
+        indices_textus(obj.index_payload)
+    )
+}
+
+# Full scene blob: objects joined by '|'. Host parseSceneGeometryBlob consumes.
+functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus {
+    varia textus output ← ""
+    varia numerus i ← 0
+    dum i < manifest.objects.longitudo() {
+        fixum textus piece ← object_geometry_textus(manifest.objects[i])
+        si i ≡ 0 {
+            output ← piece
+        } secus {
+            output ← "§|§"(output, piece)
+        }
+        i ← i + 1
+    }
+    redde output
+}
+
+# ---------------------------------------------------------------------------
+# Transform: car model (16) + chase view-projection (16) → 32 f32 payload.
+# ---------------------------------------------------------------------------
 
 functio compute_model_matrix(de vehicle.Vehicle v) → triga.Matrix4 ∪ nihil {
     fixum triga.Euler yaw_rotation ← triga.euler(
@@ -111,6 +139,7 @@ functio compute_frame_transform(
     redde triga.transform_payload(model, view_proj)
 }
 
+# Host bridge: publish 32-float transform each frame for updateGraphicsStorage.
 functio publish_transform(
     dom.Element facts_element,
     de vehicle.Vehicle v,
@@ -123,53 +152,24 @@ functio publish_transform(
         nota nihil
         redde
     }
-    dom.attr_set(facts_element, "data-transform-payload", payload_textus(payload_result!.values))
+    dom.attr_set(facts_element, "data-transform-payload", floats_textus(payload_result!.values))
 }
 
-functio publish_scene(
+# One-shot geometry upload payload for host createGraphicsResources path.
+functio publish_scene_geometry(
     dom.Element facts_element,
     de city.City map,
     de vehicle.Vehicle car
 ) → vacuum {
-    fixum city.SceneFacts facts ← city.scene_facts(map, vehicle.vehicle_box(car))
-    dom.attr_set(facts_element, "data-scene-road-count", facts.road_count ↦ textus)
-    dom.attr_set(facts_element, "data-scene-building-count", facts.building_count ↦ textus)
-    dom.attr_set(facts_element, "data-scene-car-count", facts.car_count ↦ textus)
-    dom.attr_set(facts_element, "data-scene-roads", boxes_textus(facts.road_bounds))
-    dom.attr_set(facts_element, "data-scene-buildings", boxes_textus(facts.building_bounds))
-    dom.attr_set(facts_element, "data-scene-car", box_textus(facts.car_bounds))
+    fixum scene.SceneGeometryManifest manifest ←
+        scene.greybox_scene_geometry(map, vehicle.vehicle_box(car))
+    dom.attr_set(facts_element, "data-scene-geometry", scene_geometry_blob(manifest))
+    dom.attr_set(facts_element, "data-scene-object-count", manifest.objects.longitudo() ↦ textus)
 }
 
-functio publish_frame(
-    dom.Element facts_element,
-    de city.City map,
-    de vehicle.Application app,
-    numerus frame,
-    f32 canvas_aspect
-) → vacuum {
-    dom.attr_set(facts_element, "data-frame", frame ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-x", app.vehicle.x ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-y", app.vehicle.y ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-z", app.vehicle.z ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-heading", app.vehicle.heading_degrees ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-speed", vehicle.speed(app.vehicle) ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-drift", app.vehicle.drift_amount ↦ textus)
-    dom.attr_set(facts_element, "data-vehicle-collided", bivalens_textus(app.vehicle.collided))
-    dom.attr_set(facts_element, "data-camera-x", app.camera.position.x ↦ textus)
-    dom.attr_set(facts_element, "data-camera-y", app.camera.position.y ↦ textus)
-    dom.attr_set(facts_element, "data-camera-z", app.camera.position.z ↦ textus)
-    dom.attr_set(facts_element, "data-camera-target-x", app.camera.target.x ↦ textus)
-    dom.attr_set(facts_element, "data-camera-target-y", app.camera.target.y ↦ textus)
-    dom.attr_set(facts_element, "data-camera-target-z", app.camera.target.z ↦ textus)
-    dom.attr_set(facts_element, "data-key-forward", bivalens_textus(app.input.forward))
-    dom.attr_set(facts_element, "data-key-reverse", bivalens_textus(app.input.reverse))
-    dom.attr_set(facts_element, "data-key-left", bivalens_textus(app.input.left))
-    dom.attr_set(facts_element, "data-key-right", bivalens_textus(app.input.right))
-    dom.attr_set(facts_element, "data-key-handbrake", bivalens_textus(app.input.handbrake))
-    dom.attr_set(facts_element, "data-key-focused", bivalens_textus(app.input.focused))
-    publish_transform(facts_element, app.vehicle, app.camera, canvas_aspect)
-    publish_scene(facts_element, map, app.vehicle)
-}
+# ---------------------------------------------------------------------------
+# Controller — simulation + host bridge. No per-frame vehicle/camera/key DOM.
+# ---------------------------------------------------------------------------
 
 @ WebController { selector = "#triga-drift-city" }
 functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription> {
@@ -180,29 +180,47 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
     varia numerus live_frame ← 0
     varia f32 live_aspect ← 960.0 ∷ f32 / 540.0 ∷ f32
 
+    # Mount-once status attrs (done_when 10)
     dom.attr_set(facts, "data-render-status", "live-direct-webgpu")
     dom.attr_set(facts, "data-render-gate", "open")
     dom.attr_set(facts, "data-simulation-owner", "faber")
     dom.attr_set(facts, "data-device-status", "active")
     dom.text_set(status, "simulation-running-gpu-active")
-    publish_frame(facts, live_city, live_app, 0, live_aspect)
+
+    # U3 geometry → host upload (one-shot)
+    publish_scene_geometry(facts, live_city, live_app.vehicle)
+    # Initial transform for first host frame
+    publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
 
     fixum dom.Subscription frame_sub ←
         dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
             fixum f32 delta_seconds ← frame.delta_ms / 1000.0 ∷ f32
             live_frame ← frame.frame
             live_app ← vehicle.step_application(live_city, live_app, delta_seconds)
-            publish_frame(facts, live_city, live_app, live_frame, live_aspect)
+            publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
         })
 
     fixum dom.Subscription keydown_sub ←
         dom.on_keyboard(facts, "keydown", (dom.KeyboardState key) → vacuum ∴ fac {
+            # Reset (R): restore spawn state; re-publish transform only.
+            si key.code ≡ "KeyR" {
+                fixum bivalens was_focused ← live_app.input.focused
+                live_app ← vehicle.spawn_application()
+                si was_focused {
+                    live_app ← vehicle.Application {
+                        input = vehicle.apply_focus(live_app.input, verum),
+                        vehicle = live_app.vehicle,
+                        camera = live_app.camera
+                    }
+                }
+                publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
+                redde
+            }
             live_app ← vehicle.Application {
                 input = vehicle.set_key_by_code(live_app.input, key.code, verum),
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
-            publish_frame(facts, live_city, live_app, live_frame, live_aspect)
         })
 
     fixum dom.Subscription keyup_sub ←
@@ -212,7 +230,6 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
-            publish_frame(facts, live_city, live_app, live_frame, live_aspect)
         })
 
     fixum dom.Subscription focus_sub ←
@@ -222,7 +239,6 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
-            publish_frame(facts, live_city, live_app, live_frame, live_aspect)
         })
 
     fixum dom.Subscription blur_sub ←
@@ -232,7 +248,6 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
-            publish_frame(facts, live_city, live_app, live_frame, live_aspect)
         })
 
     fixum dom.Subscription resize_sub ←
@@ -242,7 +257,7 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                 fixum f32 h ← resize.height ↦ f32
                 live_aspect ← w / h
             }
-            publish_frame(facts, live_city, live_app, live_frame, live_aspect)
+            publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
         })
 
     redde [frame_sub, keydown_sub, keyup_sub, focus_sub, blur_sub, resize_sub]

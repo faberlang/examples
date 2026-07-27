@@ -1,30 +1,94 @@
 /**
- * host-init.js — WebGPU host session for Drift City.
+ * host-init.js — WebGPU host session for Drift City (U2 + U4).
  *
- * U2 integration: loads U1's WGSL + reflection, creates the greybox graphics
- * pipeline with a test triangle, renders one frame, and proves non-clear
- * output via pixel readback.
+ * Transport + WebGPU lifecycle only. Simulation / collision / camera stay
+ * in Faber. Each frame:
+ *   1. Read 32-float transform payload from controller (data-transform-payload)
+ *   2. updateGraphicsStorage / per-object model via renderGreyboxSceneFrame
+ *   3. Multi-draw scene (10 objects)
  *
- * Extends the Stage 1 bootstrap with greybox-host rendering and a continuous
- * frame loop for U4 compatibility.
+ * Mount path: wait for data-scene-geometry (one-shot from Faber controller),
+ * upload meshes, then enter the continuous render loop.
  */
 
-import { acquireWebGpuDevice, updateGraphicsStorage } from "./webgpu-runtime.js";
+import {
+  acquireWebGpuDevice,
+  updateGraphicsStorage,
+  onDeviceLost,
+} from "./webgpu-runtime.js";
 import {
   loadGreyboxPipeline,
   initGreyboxRenderer,
+  initGreyboxSceneRenderer,
   renderGreyboxFrame,
   renderGreyboxFrameWithSamples,
+  renderGreyboxSceneFrame,
+  parseSceneGeometryBlob,
   mapPixelBuffers,
+  resizeGreyboxRenderer,
 } from "./greybox-host.js";
 
 const TRANSFORM_BYTE_LEN = 128; // 32 f32 × 4 bytes
 const CANVAS_SELECTOR = ".drift-canvas";
 const FACTS_SELECTOR = ".drift-facts";
+const GEOMETRY_ATTR = "data-scene-geometry";
+const TRANSFORM_ATTR = "data-transform-payload";
+const GEOMETRY_WAIT_MS = 8000;
+const GEOMETRY_POLL_MS = 50;
+
+function factsEl() {
+  return document.querySelector(FACTS_SELECTOR);
+}
+
+function setFact(name, value) {
+  const el = factsEl();
+  if (el) el.setAttribute(name, value);
+}
 
 /**
- * Initialize the WebGPU host session with greybox renderer.
- * @returns {Promise<{ device: GPUDevice, updateGraphicsStorage: Function, submitFrame: Function, resize: Function, destroy: Function, renderState: object|null }>}
+ * Wait until the Faber controller publishes the one-shot scene geometry blob.
+ * @returns {Promise<string>}
+ */
+function waitForSceneGeometry() {
+  return new Promise((resolve, reject) => {
+    const start = performance.now();
+    function tick() {
+      const el = factsEl();
+      const blob = el?.getAttribute(GEOMETRY_ATTR);
+      if (blob && blob.length > 0) {
+        resolve(blob);
+        return;
+      }
+      if (performance.now() - start > GEOMETRY_WAIT_MS) {
+        reject(new Error(`host-init: timed out waiting for ${GEOMETRY_ATTR}`));
+        return;
+      }
+      setTimeout(tick, GEOMETRY_POLL_MS);
+    }
+    tick();
+  });
+}
+
+/**
+ * Parse transform payload text ("f0 f1 ... f31") into Float32Array(32).
+ * @param {string|null} text
+ * @returns {Float32Array|null}
+ */
+function parseTransformPayload(text) {
+  if (!text) return null;
+  const parts = text.trim().split(/\s+/);
+  if (parts.length !== 32) return null;
+  const floats = new Float32Array(32);
+  for (let i = 0; i < 32; i++) {
+    floats[i] = Number(parts[i]);
+    if (!Number.isFinite(floats[i])) return null;
+  }
+  return floats;
+}
+
+/**
+ * Initialize the WebGPU host session with greybox scene renderer.
+ * @returns {Promise<object>}
  */
 export async function initHost() {
   const { device } = await acquireWebGpuDevice();
@@ -39,7 +103,6 @@ export async function initHost() {
     throw new Error("host-init: WebGPU canvas context unavailable");
   }
 
-  // Canvas initial dimensions
   const initialWidth = canvas.clientWidth || canvas.width || 960;
   const initialHeight = canvas.clientHeight || canvas.height || 540;
   canvas.width = initialWidth;
@@ -52,77 +115,81 @@ export async function initHost() {
     usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
   });
 
-  // ── U2: Load greybox pipeline and create renderer ──────────────────────
+  // ── Load greybox pipeline (U1 artifacts from public/) ───────────────────
 
-  let greyboxRenderState = null;
+  let pipelinePack = null;
   let pipelineLoaded = false;
 
   try {
-    const { descriptor } = await loadGreyboxPipeline(device);
-    greyboxRenderState = initGreyboxRenderer(device, descriptor, context);
+    pipelinePack = await loadGreyboxPipeline(device);
     pipelineLoaded = true;
-
-    // Update facts element to show pipeline loaded
-    const facts = document.querySelector(FACTS_SELECTOR);
-    if (facts) {
-      facts.setAttribute("data-pipeline-status", "loaded");
-    }
+    setFact("data-pipeline-status", "loaded");
   } catch (err) {
     console.warn("host-init: greybox pipeline load failed", err);
-    const facts = document.querySelector(FACTS_SELECTOR);
-    if (facts) {
-      facts.setAttribute("data-pipeline-status", "failed");
-      facts.setAttribute("data-pipeline-error", err.message);
-    }
+    setFact("data-pipeline-status", "failed");
+    setFact("data-pipeline-error", err.message);
   }
 
-  // ── U2: Render first frame and prove non-clear output via pixel readback ──
+  // ── U2 fallback: triangle path while waiting for scene geometry ─────────
 
+  let triangleState = null;
   let readbackSamples = null;
   let renderStatus = "none";
 
-  if (pipelineLoaded && greyboxRenderState) {
+  if (pipelineLoaded && pipelinePack) {
     try {
-      // Render one frame and capture center pixel
+      triangleState = initGreyboxRenderer(device, pipelinePack.descriptor, context);
       const pixelSamples = [
         { name: "center", x: Math.floor(initialWidth / 2), y: Math.floor(initialHeight / 2) },
         { name: "corner", x: 10, y: 10 },
       ];
-
-      const { texture, pixelBuffers } = renderGreyboxFrameWithSamples(
-        greyboxRenderState,
-        pixelSamples,
-      );
-
-      // Await pixel readback
+      const { pixelBuffers } = renderGreyboxFrameWithSamples(triangleState, pixelSamples);
       readbackSamples = await mapPixelBuffers(pixelBuffers);
-
-      // Verify center pixel is non-clear (not the clear color 0x120a08)
       const center = readbackSamples.find((s) => s.name === "center");
       if (center) {
         const isNonClear = center.r > 10 || center.g > 10 || center.b > 10;
         renderStatus = isNonClear ? "verified" : "clear-only";
-
-        const facts = document.querySelector(FACTS_SELECTOR);
-        if (facts) {
-          facts.setAttribute("data-pixel-readback", renderStatus);
-          facts.setAttribute("data-pixel-center-hex", center.hex);
-          facts.setAttribute("data-pixel-center-rgba",
-            `${center.r},${center.g},${center.b},${center.a}`);
-        }
+        setFact("data-pixel-readback", renderStatus);
+        setFact("data-pixel-center-hex", center.hex);
+        setFact(
+          "data-pixel-center-rgba",
+          `${center.r},${center.g},${center.b},${center.a}`,
+        );
       }
     } catch (err) {
-      console.warn("host-init: first render / readback failed", err);
+      console.warn("host-init: first triangle render / readback failed", err);
       renderStatus = "failed";
-      const facts = document.querySelector(FACTS_SELECTOR);
-      if (facts) {
-        facts.setAttribute("data-pixel-readback", "failed");
-        facts.setAttribute("data-pixel-readback-error", err.message);
-      }
+      setFact("data-pixel-readback", "failed");
+      setFact("data-pixel-readback-error", err.message);
     }
   }
 
-  // ── Storage buffer for transform (U4 compatibility) ────────────────────
+  // ── U4: wait for controller geometry, mount multi-mesh scene ────────────
+
+  let sceneState = null;
+  let sceneMounted = false;
+
+  if (pipelineLoaded && pipelinePack) {
+    try {
+      const blob = await waitForSceneGeometry();
+      const meshes = parseSceneGeometryBlob(blob);
+      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes, {
+        spawn: [-22.0, 0.2, 0.0],
+      });
+      sceneMounted = true;
+      setFact("data-scene-upload", "ok");
+      setFact("data-scene-object-count", String(meshes.length));
+      // Drop geometry blob from DOM after upload (one-shot mount evidence kept via counts).
+      const el = factsEl();
+      if (el) el.removeAttribute(GEOMETRY_ATTR);
+    } catch (err) {
+      console.warn("host-init: scene geometry mount failed", err);
+      setFact("data-scene-upload", "failed");
+      setFact("data-scene-upload-error", err.message);
+    }
+  }
+
+  // ── Transform storage (U4 bridge / readback proof) ──────────────────────
 
   const transformBuffer = device.createBuffer({
     size: TRANSFORM_BYTE_LEN,
@@ -132,13 +199,13 @@ export async function initHost() {
       GPUBufferUsage.MAP_READ,
   });
 
-  const resources = Object.freeze({
+  const storageResources = Object.freeze({
     storageBuffers: new Map([
       [0, { buffer: transformBuffer, generation: 0 }],
     ]),
   });
 
-  const descriptor = Object.freeze({
+  const storageDescriptor = Object.freeze({
     bindGroups: [
       {
         entries: [
@@ -159,7 +226,7 @@ export async function initHost() {
   let running = true;
   let frameCount = 0;
   let readbackSnapshot = null;
-  let readbackPhase = 0; // 0=waiting, 1=snapshot captured, 2=verified, -1=failed
+  let readbackPhase = 0; // 0=waiting, 1=snapshot, 2=verified, -1=failed
   let resizeObserver = null;
   let resizeListenerBound = false;
 
@@ -167,7 +234,7 @@ export async function initHost() {
     try {
       transformBuffer.destroy();
     } catch (_) {
-      // Already destroyed.
+      // already destroyed
     }
   }
 
@@ -179,7 +246,6 @@ export async function initHost() {
     }
   }
 
-  // Readback proof for transform storage buffer
   async function doReadback() {
     if (!running || readbackPhase < 0 || readbackPhase >= 2) return;
     try {
@@ -201,26 +267,24 @@ export async function initHost() {
           }
         }
         readbackPhase = changed ? 2 : 1;
-        const facts = document.querySelector(FACTS_SELECTOR);
-        if (facts) {
-          facts.setAttribute("data-readback-proof", changed ? "verified" : "unchanged");
-        }
+        setFact("data-readback-proof", changed ? "verified" : "unchanged");
       }
-    } catch (err) {
+    } catch (_) {
       readbackPhase = -1;
-      const facts = document.querySelector(FACTS_SELECTOR);
-      if (facts) {
-        facts.setAttribute("data-readback-proof", "failed");
-      }
+      setFact("data-readback-proof", "failed");
     }
   }
 
-  // Device loss
+  // Device loss — bounded, no uncaught errors
+  onDeviceLost(device, (info) => {
+    setFact("data-device-status", "lost");
+    setFact("data-device-loss-reason", info.reason || "unknown");
+    stopLoop();
+    destroyBuffers();
+  });
+
   device.lost.then((info) => {
-    const facts = document.querySelector(FACTS_SELECTOR);
-    if (facts) {
-      facts.setAttribute("data-device-status", "lost");
-    }
+    setFact("data-device-status", "lost");
     stopLoop();
     destroyBuffers();
     return { reason: info.reason, message: info.message };
@@ -234,33 +298,31 @@ export async function initHost() {
     if (!running) return;
 
     try {
-      // U2: render greybox frame each tick (triangle is visible)
-      if (greyboxRenderState) {
-        renderGreyboxFrame(greyboxRenderState, {
+      const el = factsEl();
+      const floats = parseTransformPayload(el?.getAttribute(TRANSFORM_ATTR) ?? null);
+
+      if (sceneState && floats) {
+        // U4 path: multi-draw scene with car model + view-proj
+        renderGreyboxSceneFrame(sceneState, floats);
+        // Mirror transform into MAP_READ buffer for readback proof
+        updateGraphicsStorage(device, storageResources, storageDescriptor, {
+          resourceIndex: 0,
+          data: floats,
+        });
+        frameCount++;
+        if (frameCount >= 2 && readbackPhase < 2) {
+          doReadback();
+        }
+      } else if (triangleState) {
+        // U2 fallback while scene not ready
+        renderGreyboxFrame(triangleState, {
           clearValue: { r: 0.02, g: 0.06, b: 0.07, a: 1.0 },
         });
-      }
-
-      // U4: transform storage update from DOM
-      const facts = document.querySelector(FACTS_SELECTOR);
-      if (facts) {
-        const payloadAttr = facts.getAttribute("data-transform-payload");
-        if (payloadAttr) {
-          const parts = payloadAttr.trim().split(/\s+/);
-          if (parts.length === 32) {
-            const floats = new Float32Array(32);
-            for (let i = 0; i < 32; i++) {
-              floats[i] = Number(parts[i]);
-            }
-            updateGraphicsStorage(device, resources, descriptor, {
-              resourceIndex: 0,
-              data: floats,
-            });
-            frameCount++;
-            if (frameCount >= 2 && readbackPhase < 2) {
-              doReadback();
-            }
-          }
+        if (floats) {
+          updateGraphicsStorage(device, storageResources, storageDescriptor, {
+            resourceIndex: 0,
+            data: floats,
+          });
         }
       }
     } catch (err) {
@@ -270,25 +332,30 @@ export async function initHost() {
     frameId = requestAnimationFrame(frameLoop);
   }
 
-  // Start the frame loop
   frameId = requestAnimationFrame(frameLoop);
 
   function submitFrame() {
-    // No-op pulse for API compatibility
+    // no-op pulse for API compatibility
   }
 
   function resize() {
     const w = canvas.clientWidth || canvas.width;
     const h = canvas.clientHeight || canvas.height;
-    if (w > 0 && h > 0) {
-      canvas.width = w;
-      canvas.height = h;
-      context.configure({
-        device,
-        format: "bgra8unorm",
-        alphaMode: "opaque",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-      });
+    if (w <= 0 || h <= 0) return;
+
+    canvas.width = w;
+    canvas.height = h;
+    context.configure({
+      device,
+      format: "bgra8unorm",
+      alphaMode: "opaque",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+    });
+
+    if (sceneState) {
+      resizeGreyboxRenderer(sceneState, w, h);
+    } else if (triangleState) {
+      triangleState = resizeGreyboxRenderer(triangleState, w, h);
     }
   }
 
@@ -305,7 +372,6 @@ export async function initHost() {
     }
   }
 
-  // Wire resize observer
   if (typeof ResizeObserver !== "undefined") {
     resizeObserver = new ResizeObserver(() => resize());
     resizeObserver.observe(canvas);
@@ -316,10 +382,11 @@ export async function initHost() {
 
   return Object.freeze({
     device,
-    greyboxRenderState,
     pipelineLoaded,
+    sceneMounted,
     renderStatus,
     readbackSamples,
+    greyboxRenderState: sceneState || triangleState,
     updateGraphicsStorage: (res, desc, opts) =>
       updateGraphicsStorage(device, res, desc, opts),
     submitFrame,
