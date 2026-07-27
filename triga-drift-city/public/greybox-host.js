@@ -319,16 +319,29 @@ export function recenterCarVertices(vertices, spawn) {
  * @returns {Promise<{ descriptor: object, wgsl: string, reflection: object }>}
  */
 export async function loadGreyboxPipeline(device) {
+  // Resolve against this module URL, not the document URL. The page lives at
+  // /pages/index.html; `fetch("./kernel.wgsl")` would hit /pages/kernel.wgsl (404).
+  // Artifacts are co-located with this module under /public/.
+  const wgslUrl = new URL("./kernel.wgsl", import.meta.url);
+  const reflectionUrl = new URL("./reflection.json", import.meta.url);
   const [wgslResp, reflectionResp] = await Promise.all([
-    fetch("./kernel.wgsl"),
-    fetch("./reflection.json"),
+    fetch(wgslUrl),
+    fetch(reflectionUrl),
   ]);
 
   if (!wgslResp.ok) {
-    throw new FaberKernelContractError("fetch", `failed to fetch kernel.wgsl: ${wgslResp.status}`, "artifact-fetch");
+    throw new FaberKernelContractError(
+      "fetch",
+      `failed to fetch kernel.wgsl (${wgslUrl.href}): ${wgslResp.status}`,
+      "artifact-fetch",
+    );
   }
   if (!reflectionResp.ok) {
-    throw new FaberKernelContractError("fetch", `failed to fetch reflection.json: ${reflectionResp.status}`, "artifact-fetch");
+    throw new FaberKernelContractError(
+      "fetch",
+      `failed to fetch reflection.json (${reflectionUrl.href}): ${reflectionResp.status}`,
+      "artifact-fetch",
+    );
   }
 
   const wgsl = await wgslResp.text();
