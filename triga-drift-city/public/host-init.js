@@ -1,24 +1,30 @@
-// U4 host-init.js — full WebGPU host session with frame loop, resize,
-// device loss handling, and transform bridge to updateGraphicsStorage.
-//   - Imports the real updateGraphicsStorage from webgpu-runtime.js
-//     (replacing the U1 stub that threw "not wired").
-//   - Creates a storage buffer (STORAGE | COPY_DST | MAP_READ) for the
-//     transform payload (128 bytes = 32 f32, resourceIndex 0).
-//   - rAF loop reads data-transform-payload from the Faber controller DOM
-//     and calls updateGraphicsStorage each frame.
-//   - Resize reconfigures the GPUCanvasContext.
-//   - Device loss sets data-device-status="lost", stops the loop, and
-//     destroys buffers.
+/**
+ * host-init.js — WebGPU host session for Drift City.
+ *
+ * U2 integration: loads U1's WGSL + reflection, creates the greybox graphics
+ * pipeline with a test triangle, renders one frame, and proves non-clear
+ * output via pixel readback.
+ *
+ * Extends the Stage 1 bootstrap with greybox-host rendering and a continuous
+ * frame loop for U4 compatibility.
+ */
 
 import { acquireWebGpuDevice, updateGraphicsStorage } from "./webgpu-runtime.js";
+import {
+  loadGreyboxPipeline,
+  initGreyboxRenderer,
+  renderGreyboxFrame,
+  renderGreyboxFrameWithSamples,
+  mapPixelBuffers,
+} from "./greybox-host.js";
 
 const TRANSFORM_BYTE_LEN = 128; // 32 f32 × 4 bytes
 const CANVAS_SELECTOR = ".drift-canvas";
 const FACTS_SELECTOR = ".drift-facts";
 
 /**
- * Initialize the WebGPU host session.
- * @returns {Promise<{ device: GPUDevice, updateGraphicsStorage: Function, submitFrame: Function, resize: Function, destroy: Function }>}
+ * Initialize the WebGPU host session with greybox renderer.
+ * @returns {Promise<{ device: GPUDevice, updateGraphicsStorage: Function, submitFrame: Function, resize: Function, destroy: Function, renderState: object|null }>}
  */
 export async function initHost() {
   const { device } = await acquireWebGpuDevice();
@@ -33,7 +39,7 @@ export async function initHost() {
     throw new Error("host-init: WebGPU canvas context unavailable");
   }
 
-  // Canvas initial dimensions: match the HTML attribute defaults.
+  // Canvas initial dimensions
   const initialWidth = canvas.clientWidth || canvas.width || 960;
   const initialHeight = canvas.clientHeight || canvas.height || 540;
   canvas.width = initialWidth;
@@ -46,8 +52,78 @@ export async function initHost() {
     usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
   });
 
-  // Storage buffer for transform payload.
-  // MAP_READ enables the readback proof required by done_when (6).
+  // ── U2: Load greybox pipeline and create renderer ──────────────────────
+
+  let greyboxRenderState = null;
+  let pipelineLoaded = false;
+
+  try {
+    const { descriptor } = await loadGreyboxPipeline(device);
+    greyboxRenderState = initGreyboxRenderer(device, descriptor, context);
+    pipelineLoaded = true;
+
+    // Update facts element to show pipeline loaded
+    const facts = document.querySelector(FACTS_SELECTOR);
+    if (facts) {
+      facts.setAttribute("data-pipeline-status", "loaded");
+    }
+  } catch (err) {
+    console.warn("host-init: greybox pipeline load failed", err);
+    const facts = document.querySelector(FACTS_SELECTOR);
+    if (facts) {
+      facts.setAttribute("data-pipeline-status", "failed");
+      facts.setAttribute("data-pipeline-error", err.message);
+    }
+  }
+
+  // ── U2: Render first frame and prove non-clear output via pixel readback ──
+
+  let readbackSamples = null;
+  let renderStatus = "none";
+
+  if (pipelineLoaded && greyboxRenderState) {
+    try {
+      // Render one frame and capture center pixel
+      const pixelSamples = [
+        { name: "center", x: Math.floor(initialWidth / 2), y: Math.floor(initialHeight / 2) },
+        { name: "corner", x: 10, y: 10 },
+      ];
+
+      const { texture, pixelBuffers } = renderGreyboxFrameWithSamples(
+        greyboxRenderState,
+        pixelSamples,
+      );
+
+      // Await pixel readback
+      readbackSamples = await mapPixelBuffers(pixelBuffers);
+
+      // Verify center pixel is non-clear (not the clear color 0x120a08)
+      const center = readbackSamples.find((s) => s.name === "center");
+      if (center) {
+        const isNonClear = center.r > 10 || center.g > 10 || center.b > 10;
+        renderStatus = isNonClear ? "verified" : "clear-only";
+
+        const facts = document.querySelector(FACTS_SELECTOR);
+        if (facts) {
+          facts.setAttribute("data-pixel-readback", renderStatus);
+          facts.setAttribute("data-pixel-center-hex", center.hex);
+          facts.setAttribute("data-pixel-center-rgba",
+            `${center.r},${center.g},${center.b},${center.a}`);
+        }
+      }
+    } catch (err) {
+      console.warn("host-init: first render / readback failed", err);
+      renderStatus = "failed";
+      const facts = document.querySelector(FACTS_SELECTOR);
+      if (facts) {
+        facts.setAttribute("data-pixel-readback", "failed");
+        facts.setAttribute("data-pixel-readback-error", err.message);
+      }
+    }
+  }
+
+  // ── Storage buffer for transform (U4 compatibility) ────────────────────
+
   const transformBuffer = device.createBuffer({
     size: TRANSFORM_BYTE_LEN,
     usage:
@@ -77,6 +153,8 @@ export async function initHost() {
     ],
   });
 
+  // ── Frame loop and lifecycle ───────────────────────────────────────────
+
   let frameId = null;
   let running = true;
   let frameCount = 0;
@@ -101,10 +179,7 @@ export async function initHost() {
     }
   }
 
-  // Readback proof (F1): after 2+ frames, map the transform storage buffer
-  // directly via GPUMapMode.READ to verify the transform reached GPU storage
-  // and changed across frames. Runs as a fire-and-forget async path gated by
-  // readbackPhase — only maps twice (snapshot + compare), then stops.
+  // Readback proof for transform storage buffer
   async function doReadback() {
     if (!running || readbackPhase < 0 || readbackPhase >= 2) return;
     try {
@@ -140,7 +215,7 @@ export async function initHost() {
     }
   }
 
-  // Device loss: set status, stop loop, destroy buffers.
+  // Device loss
   device.lost.then((info) => {
     const facts = document.querySelector(FACTS_SELECTOR);
     if (facts) {
@@ -148,11 +223,9 @@ export async function initHost() {
     }
     stopLoop();
     destroyBuffers();
-    // Prevent unhandled rejection noise.
     return { reason: info.reason, message: info.message };
   });
 
-  // Uncaptured error: log but do not crash.
   device.addEventListener("uncapturederror", (event) => {
     console.error("host-init: uncaptured WebGPU error", event.error);
   });
@@ -161,6 +234,14 @@ export async function initHost() {
     if (!running) return;
 
     try {
+      // U2: render greybox frame each tick (triangle is visible)
+      if (greyboxRenderState) {
+        renderGreyboxFrame(greyboxRenderState, {
+          clearValue: { r: 0.02, g: 0.06, b: 0.07, a: 1.0 },
+        });
+      }
+
+      // U4: transform storage update from DOM
       const facts = document.querySelector(FACTS_SELECTOR);
       if (facts) {
         const payloadAttr = facts.getAttribute("data-transform-payload");
@@ -183,20 +264,17 @@ export async function initHost() {
         }
       }
     } catch (err) {
-      // Contract errors from updateGraphicsStorage are bounded.
-      // Log and continue — the loop must not die on a single bad frame.
-      console.warn("host-init: frame storage update failed", err);
+      console.warn("host-init: frame loop error", err);
     }
 
     frameId = requestAnimationFrame(frameLoop);
   }
 
-  // Start the frame loop.
+  // Start the frame loop
   frameId = requestAnimationFrame(frameLoop);
 
   function submitFrame() {
-    // The frame loop already calls updateGraphicsStorage each rAF tick.
-    // This is a no-op pulse for API compatibility.
+    // No-op pulse for API compatibility
   }
 
   function resize() {
@@ -227,8 +305,7 @@ export async function initHost() {
     }
   }
 
-  // Wire resize observer. ResizeObserver is more reliable than the
-  // window resize event for canvas-driven layout changes.
+  // Wire resize observer
   if (typeof ResizeObserver !== "undefined") {
     resizeObserver = new ResizeObserver(() => resize());
     resizeObserver.observe(canvas);
@@ -239,6 +316,10 @@ export async function initHost() {
 
   return Object.freeze({
     device,
+    greyboxRenderState,
+    pipelineLoaded,
+    renderStatus,
+    readbackSamples,
     updateGraphicsStorage: (res, desc, opts) =>
       updateGraphicsStorage(device, res, desc, opts),
     submitFrame,

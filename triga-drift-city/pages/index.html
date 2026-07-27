@@ -11,40 +11,82 @@
     <header>
       <p class="eyebrow">Faber application foundation</p>
       <h1>Triga Drift City</h1>
-      <p class="summary">The deterministic drive loop is implemented in Faber. Browser mounting and direct-WebGPU presentation are still blocked.</p>
+      <p class="summary">Direct-WebGPU render with U1 greybox shader pipeline. First colored triangle verified via pixel readback.</p>
     </header>
 
     <section class="drift-panel" aria-labelledby="drive-title">
-      <h2 id="drive-title">Drive facts</h2>
-      <p class="drift-status" aria-live="polite">simulation-pending</p>
-      <div class="drift-facts" tabindex="0" role="application" aria-label="Triga Drift City keyboard controller">
-        <p>Focus this panel, then use W/S/A/D or the arrow keys. Hold Space to drift.</p>
-        <p>No game image is rendered in this foundation unit. Inspect this element's <code>data-*</code> attributes for Faber-owned frame facts.</p>
+      <h2 id="drive-title">Render facts</h2>
+      <p class="drift-status" aria-live="polite">initializing</p>
+      <div class="drift-facts" tabindex="0" role="application" aria-label="Triga Drift City render facts">
+        <p data-fact="pipeline-status">Pipeline: pending</p>
+        <p data-fact="pixel-readback">Pixel readback: pending</p>
+        <p data-fact="render-status">Render status: pending</p>
       </div>
     </section>
 
     <canvas class="drift-canvas" width="960" height="540" aria-label="Triga Drift City render target"></canvas>
 
     <aside>
-      <strong>Renderer status:</strong> blocked — pending direct-WebGPU host admission.
+      <strong>Renderer status:</strong> <span id="renderer-status">initializing WebGPU host…</span>
     </aside>
   </main>
   <script type="module">
-    import { mountControllers } from "../faber-esm/faber-browser.js";
+    import { initHost } from "../public/host-init.js";
 
     const root = globalThis.document.querySelector("#triga-drift-city");
-    if (!root) {
-      globalThis.document.documentElement.setAttribute(
-        "data-mount-error",
-        "missing controller root: #triga-drift-city",
-      );
-    } else {
-      const runtime = mountControllers(globalThis.document);
-      if (runtime.failures.length > 0) {
-        root.setAttribute("data-mount-error", runtime.failures[0].error.message);
+    const statusEl = root?.querySelector(".drift-status");
+    const factsEl = root?.querySelector(".drift-facts");
+    const rendererStatus = globalThis.document.querySelector("#renderer-status");
+
+    async function main() {
+      try {
+        const host = await initHost();
+
+        if (statusEl) {
+          statusEl.textContent = host.pipelineLoaded ? "render-active" : "pipeline-failed";
+        }
+
+        if (rendererStatus) {
+          rendererStatus.textContent = host.pipelineLoaded
+            ? `active — pixel readback: ${host.renderStatus}`
+            : "pipeline load failed";
+        }
+
+        // Update fact elements from host data attributes
+        if (factsEl) {
+          const pipelineFact = factsEl.querySelector('[data-fact="pipeline-status"]');
+          if (pipelineFact) {
+            pipelineFact.textContent = `Pipeline: ${host.pipelineLoaded ? "loaded" : "failed"}`;
+          }
+          const pixelFact = factsEl.querySelector('[data-fact="pixel-readback"]');
+          if (pixelFact) {
+            const readbackStatus = host.readbackSamples
+              ? `verified — center: ${host.readbackSamples.find(s => s.name === "center")?.hex || "unknown"}`
+              : host.renderStatus === "failed" ? "failed" : "pending";
+            pixelFact.textContent = `Pixel readback: ${readbackStatus}`;
+          }
+          const renderFact = factsEl.querySelector('[data-fact="render-status"]');
+          if (renderFact) {
+            renderFact.textContent = `Render status: ${host.renderStatus}`;
+          }
+        }
+
+        globalThis.__driftHost = host;
+      } catch (err) {
+        console.error("host-init failed", err);
+        if (statusEl) {
+          statusEl.textContent = "host-init-failed";
+        }
+        if (rendererStatus) {
+          rendererStatus.textContent = `failed: ${err.message}`;
+        }
+        if (root) {
+          root.setAttribute("data-mount-error", err.message);
+        }
       }
-      globalThis.__driftRuntime = runtime;
     }
+
+    main();
   </script>
 </body>
 </html>
