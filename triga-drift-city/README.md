@@ -23,6 +23,23 @@ From this directory:
 
 The script checks all authored Faber files, compiles and runs the city and vehicle fact programs, builds the browser package, verifies the controller manifest, and runs a minimal DOM admission fixture.
 
+## Serve (Stage 2 browser check)
+
+Rebuild the product and serve **`dist/`** (required so `/faber-esm/*` resolves):
+
+```sh
+./serve.sh                  # build + serve on :8765
+./serve.sh --rebuild-faber  # cargo build -p faber first (shared cache)
+./serve.sh --port 9000
+./serve.sh --no-build       # restart server only
+```
+
+Open **http://127.0.0.1:8765/pages/index.html** and hard-refresh after rebuild.
+
+`FABER` may point at a binary; otherwise the script tries
+`~/.cache/faberlang-target/faber/debug/faber` (faber’s shared target-dir), then
+`faber/target/debug/faber`.
+
 ## Ownership
 
 - `src/city.fab` owns the circuit, road and building `Triga Box3` values, collision queries, and scene facts.

@@ -1,3 +1,4 @@
 /dist/
 /target/
 /faber.lock
+.serve.pid
