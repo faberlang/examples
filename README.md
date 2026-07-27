@@ -12,14 +12,17 @@ triga-drift-city/  Arcade driving workload and direct-WebGPU game capstone
 browser-app/       Browser WEB5 application fixture (WebController ESM demos)
 conversio-matrix/  Type conversion matrix (conversion pair exempla)
 ai-workbench/      AI workbench evidence maps and oracle fixtures
+typescript-to-hir/ TypeScript intake corpus for HIR conversion work
 air/               AIR lane demos
 script-kernel/     faber:* script-kernel demos
 coreutils/         GNU coreutils reimplementation (application campaign)
 automation/        automation sketch packages
+training/          Training and FMIR workload examples
 reader-locale/     Locale pack demos
 vivilite/          ViviLite mailspace application
 sqlite/            SQLite runtime bindings
 arena-handle/      Arena handle exempla
+generated-backward/ Generated-backward compatibility fixture
 fixtures/          Boundary fixtures used by tooling tests
 cista-lab/         Package-store lab material
 scripta/           Check scripts and verifiers

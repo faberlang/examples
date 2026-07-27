@@ -19,7 +19,7 @@ For application scalar math, use the native stdlib catalog:
 importa ex "norma:mathesis" privata mathesis
 ```
 
-See [`docs/stdlib/mathesis-methods.md`](../../../../docs/stdlib/mathesis-methods.md).
+The stdlib mathesis method catalog lives with the Norma stdlib docs, outside this examples repo.
 
 Current validation commands:
 

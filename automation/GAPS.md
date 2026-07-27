@@ -63,7 +63,7 @@ The production executor scans `*/SKILL.md`. The `norma:solum` library has direct
 
 Gap (narrowed):
 
-`norma:solum.explora(radix, exemplar) → lista<textus> ⇥ textus` is on the stdlib contract (v1 shallow glob: `*` = one path segment). The native body is **not implemented** yet — blocked on radix parser bug [`DEFER-067`](../../docs/factory/deferred/defer-067.md) (`si expr ≡ "*" { }` fails parse). Calls `iace` with `DEFER-067` until fixed.
+`norma:solum.explora(radix, exemplar) → lista<textus> ⇥ textus` is on the stdlib contract (v1 shallow glob: `*` = one path segment). The native body is **not implemented** yet — blocked on radix parser bug `DEFER-067` (`si expr ≡ "*" { }` fails parse). Calls `iace` with `DEFER-067` until fixed.
 
 Possible directions until DEFER-067 lands:
 
