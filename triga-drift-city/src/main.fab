@@ -177,6 +177,13 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
     fixum dom.Element facts ← dom.require(scope, ".drift-facts")
     fixum city.City live_city ← city.drift_city()
     varia vehicle.Application live_app ← vehicle.spawn_application()
+    # Drive accepts keys immediately; blur still clears via on_focus handlers.
+    # (set_key_by_code no-ops while focused=falsum.)
+    live_app ← vehicle.Application {
+        input = vehicle.apply_focus(live_app.input, verum),
+        vehicle = live_app.vehicle,
+        camera = live_app.camera
+    }
     varia numerus live_frame ← 0
     varia f32 live_aspect ← 960.0 ∷ f32 / 540.0 ∷ f32
 
@@ -185,6 +192,7 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
     dom.attr_set(facts, "data-render-gate", "open")
     dom.attr_set(facts, "data-simulation-owner", "faber")
     dom.attr_set(facts, "data-device-status", "active")
+    dom.attr_set(facts, "data-input-focused", "true")
     dom.text_set(status, "simulation-running-gpu-active")
 
     # U3 geometry → host upload (one-shot)
@@ -239,6 +247,7 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
+            dom.attr_set(facts, "data-input-focused", "true")
         })
 
     fixum dom.Subscription blur_sub ←
@@ -248,6 +257,7 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
+            dom.attr_set(facts, "data-input-focused", "false")
         })
 
     fixum dom.Subscription resize_sub ←

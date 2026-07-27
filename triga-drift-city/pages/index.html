@@ -61,6 +61,24 @@
         if (root) root.setAttribute("data-mount-error", err.message);
       }
 
+      // Drive input: keep the facts panel focused so focus/blur still track
+      // intent, and re-focus when the user clicks the canvas (common after
+      // looking at the scene). Keyboard also listens on window (faber-web).
+      const canvas = root?.querySelector(".drift-canvas");
+      const focusDrivePanel = () => {
+        if (factsEl && typeof factsEl.focus === "function") {
+          factsEl.focus({ preventScroll: true });
+        }
+      };
+      focusDrivePanel();
+      canvas?.addEventListener("pointerdown", focusDrivePanel);
+      root?.addEventListener("pointerdown", (ev) => {
+        // Any click inside the app shell re-arms drive focus.
+        if (ev.target instanceof Node && factsEl && !factsEl.contains(ev.target)) {
+          focusDrivePanel();
+        }
+      });
+
       try {
         const host = await initHost();
 
