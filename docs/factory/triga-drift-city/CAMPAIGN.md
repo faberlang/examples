@@ -205,7 +205,7 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 
 ### Stage 2 — First Visible Greybox Drive
 
-**Status:** selected — delivery spec lowered 2026-07-27 by planner-2
+**Status:** in progress — delivery lowered 2026-07-27; U1+U2 accepted; U3/U5 in flight; U4 gated
 **Delivery spec:** [`02-first-visible-greybox-drive-delivery.md`](02-first-visible-greybox-drive-delivery.md)
 **Participating repos:** `examples`, `triga`, `radix`, `hosts`, `faber`
 **Depends on:** Stage 1
@@ -214,6 +214,11 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 **Overlap rule:** shader, reflection, host, geometry, and app changes remain one integrated checkpoint even when committed by repository.
 **Lowers to:** `delivery` → `factory`.
 **Batching:** discovery-first for the first integrated draw, then batch repeated colored geometry.
+**Landed units:**
+- U1 (`u1-graphics-shader-pipeline`) — examples `0b95770`. ACCEPTED (reference WGSL/reflection path; residual: no Faber V/F MIR→WGSL yet).
+- U2 (`u2-host-graphics-integration`) — examples `316a4fe`. ACCEPTED 2026-07-27 Mind. `public/greybox-host.js` + host-init + U1 artifacts in `public/`. Uses flat-reflection → `createGraphicsResources` path (not `loadFaberGraphicsPipeline` — U1 flat format lacks `launch.webgpu_adapter`).
+**In flight:** U3 geometry (hand-3), U5 product build (hand-2). **Blocked until U1–U3:** U4 drive loop.
+**U2 residuals (non-blocking):** (1) no call to `loadFaberGraphicsPipeline` — intentional adapter for U1 flat reflection; unify later if host kernel expects launch blocks. (2) `tests/run.sh` not extended with export greps in this commit. (3) browser pixel readback not re-run by Mind (hand claim + code path present).
 
 ### Stage 3 — City Scene And Resource Scale
 
