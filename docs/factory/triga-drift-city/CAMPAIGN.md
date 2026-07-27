@@ -5,7 +5,7 @@
 **Owner repo:** `examples`
 **Participating repos:** `examples`, `triga`, `radix`, `hosts`, `faber`, `faber-web`
 **Framework package:** [`../../../triga-drift-city/`](../../../triga-drift-city/)
-**Selected next stage:** none — lower Stage 1 only after explicit activation
+**Selected next stage:** Stage 2 — lowered 2026-07-27 via planner-2; delivery spec: [`02-first-visible-greybox-drive-delivery.md`](02-first-visible-greybox-drive-delivery.md)
 **Release posture:** no release before the playable direct-WebGPU capstone
 
 ## Summary
@@ -154,9 +154,9 @@ Planning documents are claims until reconciled with live code during the selecte
 | Project framework | Complete | Preserve as executable specification |
 | Vehicle simulation | Deterministic Faber implementation and compiled facts pass | Tune only from visible play evidence |
 | City/collision | Bounded Box3 circuit and heading-aware car collision pass | Convert scene facts into retained renderable objects |
-| Browser controller | Generated package and fixture mount pass | Establish a real packaged browser mount |
-| Direct graphics host | Indexed and multi-draw primitives exist outside the app | Add the canonical live application bridge and dynamic updates |
-| Visible scene | Not implemented | Render the first road, structures, and car after Stage 1 |
+| Browser controller | Generated package, fixture mount, and live product page pass | Mounted via Stage 1 — controller calls `updateGraphicsStorage` with transform payload each frame |
+| Direct graphics host | Indexed and multi-draw primitives, canonical storage-update seam confirmed | Admitted via Stage 1; ready for Stage 2 shader + geometry integration |
+| Visible scene | Not implemented | Target for Stage 2 — render the first road, structures, and car |
 | Materials/atmosphere | Not implemented for the app | Add after the greybox route is stable |
 | Drift feedback/HUD | Simulation facts exist; presentation absent | Add after continuous rendering is accepted |
 | Real-browser evidence | Absent | Establish at the first visible scene and strengthen through capstone |
@@ -183,7 +183,7 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 
 ### Stage 1 — Canonical Browser Product And Live Host Bridge
 
-**Status:** in-progress; U1+U3+U4 accepted, U2 blocked on faber compile baseline (foreign dirt)
+**Status:** complete — accepted 2026-07-27
 **Participating repos:** `examples`, `faber`, `faber-web`, `hosts`; `radix` only for a demonstrated artifact/reflection blocker
 **Depends on:** Stage 0
 **Why now:** every later visible feature depends on one admitted path from generated Faber state to the WebGPU host.
@@ -196,16 +196,17 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 **Audit reports:** [`01-stage1-audit-report.md`](01-stage1-audit-report.md) (residual, 5 P2, fixed), [`01-stage1-reaudit-report.md`](01-stage1-reaudit-report.md) (residual, N1 fixed), post-land auditor-2 (residual, U4 F1+F2 repaired).
 **Landed units:**
 - U1 (`u1-product-page-canvas-host-loading`) — examples `0e44f72`. ACCEPTED.
-- U2 (`u2-product-identity-manifest`) — faber `a5b607a`. COMMITTED, blocked on faber compile baseline (foreign dirt). Need `0f3f799c` to operator.
+- U2 (`u2-product-identity-manifest`) — faber `a5b607a`, validated 2026-07-27 by hand-3 `f70d084c` (clean_pass: `product.json` emit + `tests/run.sh` 30/30). ACCEPTED. Compile baseline green (hand-1 confirmation).
 - U3 (`u3-canonical-host-storage-update`) — hosts HEAD `9cdd3c9`, confirmation-only. ACCEPTED.
 - U4 (`u4-integration-lifecycle-transform-bridge`) — examples `04d9f97` + `96b350a` (F1+F2 repair), triga `635cb12`. ACCEPTED.
-**Stage gate status:** CANNOT CLOSE until U2 is unblocked (faber compile baseline fix) and validated end-to-end.
-**Blind spots:** real WebGPU browser checks not run (no headless WebGPU browser); radix not re-grounded (not a Stage 1 participating repo).
-**Next:** when operator unblocks faber, rebuild binary, validate U2 end-to-end, re-audit U2, close Stage 1 gate, then select and lower Stage 2 (First Visible Greybox Drive).
+**Stage gate status:** CLOSED 2026-07-27. All four units accepted; U2 validated by hand-3 f70d084c clean_pass; compile baseline green (hand-1). End-to-end: controller → `updateGraphicsStorage` → GPU write → readback proof verified. Resize and device-loss lifecycle exercised. No Three.js in admitted module graph. Transform contract frozen.
+**Residual (non-blocking):** real WebGPU browser checks not run (no headless WebGPU browser); radix not re-grounded (not a Stage 1 participating repo). Neither blocks Stage 2 — Stage 2 will exercise real-browser rendering as its core acceptance path.
+**Next:** select and lower Stage 2 (First Visible Greybox Drive).
 
 ### Stage 2 — First Visible Greybox Drive
 
-**Status:** planned
+**Status:** selected — delivery spec lowered 2026-07-27 by planner-2
+**Delivery spec:** [`02-first-visible-greybox-drive-delivery.md`](02-first-visible-greybox-drive-delivery.md)
 **Participating repos:** `examples`, `triga`, `radix`, `hosts`, `faber`
 **Depends on:** Stage 1
 **Surface:** one road mesh, a small set of structures, one car, depth testing, chase-camera view projection, continuous indexed rendering, keyboard drive loop, collision, reset, and resize.
