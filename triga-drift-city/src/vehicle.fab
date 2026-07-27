@@ -167,6 +167,37 @@ functio vehicle_box(de Vehicle vehicle) → triga.Box3 {
     redde vehicle_box_at(vehicle.x, vehicle.y, vehicle.z, vehicle.heading_degrees)
 }
 
+functio vehicle_height() → f32 { redde 1.2 ∷ f32 }
+
+# The collision shape is the car's own rotated rectangle. An axis-aligned bound
+# of that rectangle would be up to twice its area at diagonal headings, so the
+# car would collide with geometry a metre clear of it, and the bound would grow
+# and shrink as the car turned.
+functio vehicle_footprint_at(
+    f32 x,
+    f32 y,
+    f32 z,
+    f32 heading_degrees
+) → city.Footprint {
+    redde city.Footprint {
+        centre = triga.vector3(x, y, z),
+        forward = triga.camera_forward_planus_ex_yaw(heading_degrees),
+        right = triga.camera_right_ex_yaw(heading_degrees),
+        half_length = vehicle_half_length(),
+        half_width = vehicle_half_width(),
+        height = vehicle_height()
+    }
+}
+
+functio vehicle_footprint(de Vehicle vehicle) → city.Footprint {
+    redde vehicle_footprint_at(
+        vehicle.x,
+        vehicle.y,
+        vehicle.z,
+        vehicle.heading_degrees
+    )
+}
+
 functio blocked_at(
     de city.City map,
     f32 x,
@@ -174,7 +205,7 @@ functio blocked_at(
     f32 z,
     f32 heading_degrees
 ) → bivalens {
-    redde city.city_collides_box(map, vehicle_box_at(x, y, z, heading_degrees))
+    redde city.city_collides_footprint(map, vehicle_footprint_at(x, y, z, heading_degrees))
 }
 
 # Car body in model space: centred on x/z, resting on y = 0. The renderer
@@ -219,6 +250,62 @@ functio spawn_application() → Application {
     }
 }
 
+# Where the body ends up once this step's turn is resolved.
+genus Turn {
+    f32 heading_degrees
+    f32 x
+    f32 z
+}
+
+functio turn_clearance_attempts() → numerus { redde 5 }
+functio turn_clearance_step() → f32 { redde 0.06 ∷ f32 }
+
+# Choose the heading for this step, edging back along the body axis if that is
+# what the turn needs.
+#
+# Rotating a long body sweeps its corners outward, so a body flush against a
+# wall cannot pivot in place. The clearance needed is proportional to the
+# rotation step, so at frame rates it is millimetres: refusing the turn outright
+# would leave a car nosed into a wall unable to steer at all, which reads as
+# broken. A driver edges back to pivot, so try that first, and only keep the old
+# heading when even that has no room.
+functio resolve_turn(
+    de city.City map,
+    de Vehicle vehicle,
+    f32 desired_heading
+) → Turn {
+    si blocked_at(map, vehicle.x, vehicle.y, vehicle.z, desired_heading) ≡ falsum {
+        redde Turn {
+            heading_degrees = desired_heading,
+            x = vehicle.x,
+            z = vehicle.z
+        }
+    }
+
+    fixum triga.Vector3 heading_forward ← triga.camera_forward_planus_ex_yaw(desired_heading)
+    varia numerus attempt ← 0
+    varia f32 retreat ← 0.0 ∷ f32
+    dum attempt < turn_clearance_attempts() {
+        retreat ← retreat + turn_clearance_step()
+        fixum f32 eased_x ← vehicle.x - heading_forward.x * retreat
+        fixum f32 eased_z ← vehicle.z - heading_forward.z * retreat
+        si blocked_at(map, eased_x, vehicle.y, eased_z, desired_heading) ≡ falsum {
+            redde Turn {
+                heading_degrees = desired_heading,
+                x = eased_x,
+                z = eased_z
+            }
+        }
+        attempt ← attempt + 1
+    }
+
+    redde Turn {
+        heading_degrees = vehicle.heading_degrees,
+        x = vehicle.x,
+        z = vehicle.z
+    }
+}
+
 functio drive_acceleration(f32 throttle, f32 forward_speed) → f32 {
     si throttle > 0.0 { redde forward_acceleration() }
     si throttle < 0.0 {
@@ -245,10 +332,26 @@ functio step_vehicle(
     )
     varia f32 travel_sign ← 1.0 ∷ f32
     si old_forward_speed < 0.0 { travel_sign ← 0.0 ∷ f32 - 1.0 ∷ f32 }
-    fixum f32 next_heading ← normalize_heading_degrees(
+    fixum bivalens embedded ← blocked_at(
+        map,
+        vehicle.x,
+        vehicle.y,
+        vehicle.z,
+        vehicle.heading_degrees
+    )
+    fixum f32 desired_heading ← normalize_heading_degrees(
         vehicle.heading_degrees
             + steering_amount(input) * steering_rate_degrees() * dt * speed_ratio * travel_sign
     )
+    varia Turn turn ← Turn {
+        heading_degrees = desired_heading,
+        x = vehicle.x,
+        z = vehicle.z
+    }
+    si embedded ≡ falsum {
+        turn ← resolve_turn(map, vehicle, desired_heading)
+    }
+    fixum f32 next_heading ← turn.heading_degrees
 
     fixum triga.Vector3 forward ← triga.camera_forward_planus_ex_yaw(next_heading)
     fixum triga.Vector3 right ← triga.camera_right_ex_yaw(next_heading)
@@ -270,59 +373,76 @@ functio step_vehicle(
 
     fixum f32 velocity_x ← forward.x * forward_speed + right.x * lateral_speed
     fixum f32 velocity_z ← forward.z * forward_speed + right.z * lateral_speed
-    fixum f32 proposed_x ← vehicle.x + velocity_x * dt
-    fixum f32 proposed_z ← vehicle.z + velocity_z * dt
-    si blocked_at(map, proposed_x, vehicle.y, proposed_z, next_heading) ≡ falsum {
-        redde Vehicle {
-            x = proposed_x,
-            y = vehicle.y,
-            z = proposed_z,
-            heading_degrees = next_heading,
-            velocity_x = velocity_x,
-            velocity_z = velocity_z,
-            drift_amount = lateral_speed.absolutum(),
-            collided = falsum
-        }
+    # resolve_turn may have eased the body back to make room for the turn, so
+    # movement starts from where the turn left it.
+    fixum f32 base_x ← turn.x
+    fixum f32 base_z ← turn.z
+    fixum f32 proposed_x ← base_x + velocity_x * dt
+    fixum f32 proposed_z ← base_z + velocity_z * dt
+    # Fall back through progressively smaller moves. The last case keeps the
+    # body where it is and bleeds off most of the impact speed.
+    varia f32 final_x ← base_x
+    varia f32 final_z ← base_z
+    varia f32 final_velocity_x ← velocity_x * 0.2 ∷ f32
+    varia f32 final_velocity_z ← velocity_z * 0.2 ∷ f32
+    fixum bivalens full_move_clear ← blocked_at(
+        map,
+        proposed_x,
+        vehicle.y,
+        proposed_z,
+        next_heading
+    ) ≡ falsum
+    varia bivalens resolved ← full_move_clear
+
+    si full_move_clear {
+        final_x ← proposed_x
+        final_z ← proposed_z
+        final_velocity_x ← velocity_x
+        final_velocity_z ← velocity_z
     }
 
-    # Blocked on the full move. Keep whichever single axis still clears so the
-    # car slides along the obstacle. Rejecting both axes pins the car against
-    # any wall it touches at an angle, with no way to drive out.
-    si blocked_at(map, proposed_x, vehicle.y, vehicle.z, next_heading) ≡ falsum {
-        redde Vehicle {
-            x = proposed_x,
-            y = vehicle.y,
-            z = vehicle.z,
-            heading_degrees = next_heading,
-            velocity_x = velocity_x,
-            velocity_z = 0.0 ∷ f32,
-            drift_amount = lateral_speed.absolutum(),
-            collided = verum
-        }
+    # Already overlapping geometry before this step. Driving cannot reach this
+    # state, since every accepted move and turn above leaves the body clear, so
+    # it is a bad starting state rather than gameplay. Move freely: rejecting
+    # the move would freeze the car for good.
+    si resolved ≡ falsum et embedded {
+        final_x ← proposed_x
+        final_z ← proposed_z
+        final_velocity_x ← velocity_x
+        final_velocity_z ← velocity_z
+        resolved ← verum
     }
 
-    si blocked_at(map, vehicle.x, vehicle.y, proposed_z, next_heading) ≡ falsum {
-        redde Vehicle {
-            x = vehicle.x,
-            y = vehicle.y,
-            z = proposed_z,
-            heading_degrees = next_heading,
-            velocity_x = 0.0 ∷ f32,
-            velocity_z = velocity_z,
-            drift_amount = lateral_speed.absolutum(),
-            collided = verum
-        }
+    # Blocked head-on but one axis still clears, so slide along the obstacle.
+    # Rejecting both axes stops the car dead on any wall it touches at an angle.
+    si resolved ≡ falsum
+        et blocked_at(map, proposed_x, vehicle.y, base_z, next_heading) ≡ falsum {
+        final_x ← proposed_x
+        final_velocity_x ← velocity_x
+        final_velocity_z ← 0.0 ∷ f32
+        resolved ← verum
+    }
+
+    si resolved ≡ falsum
+        et blocked_at(map, base_x, vehicle.y, proposed_z, next_heading) ≡ falsum {
+        final_z ← proposed_z
+        final_velocity_x ← 0.0 ∷ f32
+        final_velocity_z ← velocity_z
+        resolved ← verum
     }
 
     redde Vehicle {
-        x = vehicle.x,
+        x = final_x,
         y = vehicle.y,
-        z = vehicle.z,
+        z = final_z,
         heading_degrees = next_heading,
-        velocity_x = velocity_x * 0.2 ∷ f32,
-        velocity_z = velocity_z * 0.2 ∷ f32,
-        drift_amount = lateral_speed.absolutum() * 0.2 ∷ f32,
-        collided = verum
+        velocity_x = final_velocity_x,
+        velocity_z = final_velocity_z,
+        drift_amount = triga.vector3_dot(
+            triga.vector3(final_velocity_x, 0.0 ∷ f32, final_velocity_z),
+            right
+        ).absolutum(),
+        collided = full_move_clear ≡ falsum
     }
 }
 

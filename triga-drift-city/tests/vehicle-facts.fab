@@ -252,6 +252,27 @@ incipit {
     adfirma slid.z < grazing.z,
         "the clear axis keeps sliding along the obstacle"
 
+    # The collision shape is the car's own rotated rectangle, not an
+    # axis-aligned bound of it. Diagonally off the north-west corner of
+    # building 0 is clear for the car but not for that bound.
+    fixum vehicle.Vehicle diagonal ← vehicle.Vehicle {
+        x = 0.0 ∷ f32 - 17.5 ∷ f32,
+        y = 0.2 ∷ f32,
+        z = 1.5 ∷ f32,
+        heading_degrees = 45.0 ∷ f32,
+        velocity_x = 0.0 ∷ f32,
+        velocity_z = 0.0 ∷ f32,
+        drift_amount = 0.0 ∷ f32,
+        collided = falsum
+    }
+    adfirma city.city_collides_box(map, vehicle.vehicle_box(diagonal)),
+        "an axis-aligned bound of the rotated car reports a corner collision"
+    adfirma city.city_collides_footprint(
+        map,
+        vehicle.vehicle_footprint(diagonal)
+    ) ≡ falsum,
+        "the exact footprint clears the same building corner"
+
     fixum vehicle.Vehicle at_rest ← vehicle.spawn_vehicle()
     fixum vehicle.Vehicle turned_left ← vehicle.step_vehicle(
         map,

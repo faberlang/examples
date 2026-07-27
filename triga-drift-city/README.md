@@ -42,7 +42,7 @@ Open **http://127.0.0.1:8765/pages/index.html** and hard-refresh after rebuild.
 
 ## Ownership
 
-- `src/city.fab` owns the circuit, road and building `Triga Box3` values, collision queries, and scene facts.
+- `src/city.fab` owns the circuit, road and building `Triga Box3` values, collision queries including the oriented-footprint test, and scene facts.
 - `src/vehicle.fab` owns input, frame clamping, deterministic drift dynamics, collision response, chase-camera state, and the model-space car body.
 - `src/scene.fab` and `src/box_geom.fab` own scene geometry assembly.
 - `src/main.fab` owns browser subscriptions and publishes Faber state as inspectable DOM attributes.
@@ -50,8 +50,9 @@ Open **http://127.0.0.1:8765/pages/index.html** and hard-refresh after rebuild.
 
 ## Ownership boundaries worth keeping
 
-Four couplings are easy to break silently:
+Five couplings are easy to break silently:
 
+- **Collision shape.** The car collides as its own rotated rectangle (`city.Footprint`, tested by separating axes). `vehicle_box_at()` still exists for scene facts, but it is an *axis-aligned bound* of that rectangle: it is over twice the car's area at diagonal headings, and it grows and shrinks as the car turns, so a turn taken while flush against a wall lands the car inside the wall with no legal move left. Do not route collision back through it.
 - **Yaw convention.** `heading_degrees` is a Triga camera yaw: `camera_forward_planus_ex_yaw` swings travel from -Z toward +X as it increases. A right-handed rotation about +Y turns the opposite way, so `compute_model_matrix` rotates the body by the *negated* heading. Drop the negation and the car yaws against its own path.
 - **Projection aspect.** `styles/main.css` pins `.drift-canvas` to a 16:9 box and `src/main.fab` uses a matching constant. The controller never measures the element, and window size is not canvas size. Change the ratio in one place and the scene skews.
 - **Car mesh space.** Faber publishes the car body in model space through `vehicle_local_box()`; the host applies the vehicle model matrix. The host must never re-centre vertices or know where the car spawns.

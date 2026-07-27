@@ -6,6 +6,17 @@ genus City {
     lista<triga.Box3> buildings
 }
 
+# A body resting on the ground as an oriented rectangle in the x/z plane.
+# `centre.y` is the base; the body rises to `centre.y + height`.
+genus Footprint {
+    triga.Vector3 centre
+    triga.Vector3 forward
+    triga.Vector3 right
+    f32 half_length
+    f32 half_width
+    f32 height
+}
+
 genus SceneFacts {
     numerus road_count
     numerus building_count
@@ -76,6 +87,99 @@ functio city_collides_box(de City city, de triga.Box3 candidate) → bivalens {
     }
     itera ex city.buildings fixum building {
         si triga.box3_intersecat(candidate, building) {
+            redde verum
+        }
+    }
+    redde falsum
+}
+
+# One corner of the footprint. `along` and `across` are ±1 selectors.
+functio footprint_corner(
+    de Footprint body,
+    f32 along,
+    f32 across
+) → triga.Vector3 {
+    redde triga.vector3(
+        body.centre.x
+            + body.forward.x * body.half_length * along
+            + body.right.x * body.half_width * across,
+        body.centre.y,
+        body.centre.z
+            + body.forward.z * body.half_length * along
+            + body.right.z * body.half_width * across
+    )
+}
+
+functio corner_within_bounds(
+    de Footprint body,
+    de triga.Box3 bounds,
+    f32 along,
+    f32 across
+) → bivalens {
+    fixum triga.Vector3 corner ← footprint_corner(body, along, across)
+    redde corner.x ≥ bounds.min.x
+        et corner.x ≤ bounds.max.x
+        et corner.z ≥ bounds.min.z
+        et corner.z ≤ bounds.max.z
+}
+
+functio footprint_within_bounds(de Footprint body, de triga.Box3 bounds) → bivalens {
+    si body.centre.y < bounds.min.y { redde falsum }
+    si body.centre.y + body.height > bounds.max.y { redde falsum }
+    fixum f32 plus ← 1.0 ∷ f32
+    fixum f32 minus ← 0.0 ∷ f32 - 1.0 ∷ f32
+    redde corner_within_bounds(body, bounds, plus, plus)
+        et corner_within_bounds(body, bounds, plus, minus)
+        et corner_within_bounds(body, bounds, minus, plus)
+        et corner_within_bounds(body, bounds, minus, minus)
+}
+
+# Separating-axis test on one axis. The axis must lie in the x/z plane so the
+# vertical extents stay out of the projection.
+functio separated_on_axis(
+    de Footprint body,
+    de triga.Box3 box,
+    de triga.Vector3 axis
+) → bivalens {
+    fixum triga.Vector3 box_centre ← triga.vector3(
+        (box.min.x + box.max.x) * 0.5 ∷ f32,
+        0.0 ∷ f32,
+        (box.min.z + box.max.z) * 0.5 ∷ f32
+    )
+    fixum f32 centre_gap ← (
+        triga.vector3_dot(axis, body.centre) - triga.vector3_dot(axis, box_centre)
+    ).absolutum()
+    fixum f32 body_reach ← triga.vector3_dot(axis, body.forward).absolutum() * body.half_length
+        + triga.vector3_dot(axis, body.right).absolutum() * body.half_width
+    fixum f32 box_reach ← axis.x.absolutum() * (box.max.x - box.min.x) * 0.5 ∷ f32
+        + axis.z.absolutum() * (box.max.z - box.min.z) * 0.5 ∷ f32
+    redde centre_gap > body_reach + box_reach
+}
+
+# Exact overlap between the oriented footprint and an axis-aligned box. Two
+# convex rectangles in a plane are disjoint when any of the four face normals
+# separates them, so this is exact rather than the conservative envelope an
+# axis-aligned bound of the rotated body would give.
+functio footprint_intersects_box(de Footprint body, de triga.Box3 box) → bivalens {
+    si body.centre.y + body.height ≤ box.min.y { redde falsum }
+    si box.max.y ≤ body.centre.y { redde falsum }
+    si separated_on_axis(body, box, triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32)) {
+        redde falsum
+    }
+    si separated_on_axis(body, box, triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32)) {
+        redde falsum
+    }
+    si separated_on_axis(body, box, body.forward) { redde falsum }
+    si separated_on_axis(body, box, body.right) { redde falsum }
+    redde verum
+}
+
+functio city_collides_footprint(de City city, de Footprint body) → bivalens {
+    si footprint_within_bounds(body, city.bounds) ≡ falsum {
+        redde verum
+    }
+    itera ex city.buildings fixum building {
+        si footprint_intersects_box(body, building) {
             redde verum
         }
     }

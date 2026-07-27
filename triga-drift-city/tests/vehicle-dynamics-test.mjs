@@ -97,37 +97,164 @@ assert(
 
 // ── A car driven into a wall can always recover ────────────────────────────
 //
-// Hold throttle into the outer west wall until pinned, then steer away and
-// drive out. Without wall sliding and a steering floor this never escapes.
-let pinned = withState({ x: -25.0, z: 0.0, heading_degrees: -90.0 });
-for (let i = 0; i < 120; i++) {
-  pinned = vehicle.step_vehicle(map, pinned, pressed("KeyW"), DT);
-}
-assert(pinned.collided, "holding throttle into the west wall reaches the wall");
+// This is what the player actually does: drive straight into a wall, then hold
+// throttle and steer. Each recovery input is checked on its own, because the
+// failure being guarded against was a car that answered none of them.
 
-let recovered = pinned;
-let escapeFrames = -1;
-for (let i = 0; i < 600; i++) {
-  recovered = vehicle.step_vehicle(map, recovered, pressed("KeyW", "KeyD"), DT);
-  if (!recovered.collided) {
-    escapeFrames = i + 1;
+function driveIntoWall() {
+  let car = vehicle.spawn_vehicle();
+  for (let i = 0; i < 300; i++) {
+    car = vehicle.step_vehicle(map, car, pressed("KeyW"), DT);
+  }
+  return car;
+}
+
+const pinned = driveIntoWall();
+assert(pinned.collided, "holding throttle drives the car into the north wall");
+assert(
+  !cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(pinned)),
+  "a car stopped by a wall rests clear of it, not inside it",
+);
+
+// Throttle and steer: the car should turn off the wall and drive away.
+let steeredOff = pinned;
+for (let i = 0; i < 300; i++) {
+  steeredOff = vehicle.step_vehicle(map, steeredOff, pressed("KeyW", "KeyD"), DT);
+}
+assert(
+  Math.abs(steeredOff.heading_degrees - pinned.heading_degrees) > 90.0,
+  `throttle and steer turns the car off the wall ` +
+    `(heading ${pinned.heading_degrees.toFixed(1)} to ${steeredOff.heading_degrees.toFixed(1)})`,
+);
+assert(
+  Math.hypot(steeredOff.x - pinned.x, steeredOff.z - pinned.z) > 5.0,
+  "throttle and steer carries the car away from the wall",
+);
+assert(vehicle.speed(steeredOff) > 1.0, "the recovered car is still moving");
+
+// Steering with no throttle must also work: a pinned car can always pivot.
+let pivoted = pinned;
+for (let i = 0; i < 300; i++) {
+  pivoted = vehicle.step_vehicle(map, pivoted, pressed("KeyD"), DT);
+}
+assert(
+  Math.abs(pivoted.heading_degrees - pinned.heading_degrees) > 90.0,
+  `a pinned car can pivot on steering alone ` +
+    `(heading ${pivoted.heading_degrees.toFixed(1)})`,
+);
+
+// Reverse must also work.
+let reversed = pinned;
+for (let i = 0; i < 120; i++) {
+  reversed = vehicle.step_vehicle(map, reversed, pressed("KeyS"), DT);
+}
+assert(
+  Math.hypot(reversed.x - pinned.x, reversed.z - pinned.z) > 5.0,
+  `a pinned car can reverse out ` +
+    `(moved ${Math.hypot(reversed.x - pinned.x, reversed.z - pinned.z).toFixed(2)})`,
+);
+
+// ── The collision shape is the car, not a bound around it ──────────────────
+//
+// An axis-aligned bound of the rotated car fills the corners the car itself
+// does not occupy. Sitting diagonally off the north-west corner of building 0
+// (x -16..-3, z -9..0) is clear for the car but not for that bound.
+const diagonal = withState({ x: -17.5, z: 1.5, heading_degrees: 45.0 });
+assert(
+  cityMod.city_collides_box(map, vehicle.vehicle_box(diagonal)),
+  "the axis-aligned bound would report a corner collision here",
+);
+assert(
+  !cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(diagonal)),
+  "the exact footprint clears the building corner",
+);
+
+for (const heading of [30, 45, 60]) {
+  const bound = vehicle.vehicle_box_at(0, 0.2, 0, heading);
+  const boundArea = (bound.max.x - bound.min.x) * (bound.max.z - bound.min.z);
+  const carArea =
+    vehicle.vehicle_half_length() * 2 * vehicle.vehicle_half_width() * 2;
+  assert(
+    boundArea > carArea * 1.5,
+    `heading ${heading}: the discarded bound really was oversized ` +
+      `(${boundArea.toFixed(1)} m² vs ${carArea.toFixed(1)} m²)`,
+  );
+}
+
+// ── Turning may never leave the car inside geometry ────────────────────────
+//
+// The footprint sweeps as it rotates, so a turn taken while flush against a
+// wall used to land the car inside that wall, where no move was legal.
+let flush = withState({ x: -16.95, z: -4.5, heading_degrees: 0.0 });
+assert(
+  !cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(flush)),
+  "the car starts flush against the wall and clear of it",
+);
+let everEmbedded = false;
+for (let i = 0; i < 240; i++) {
+  flush = vehicle.step_vehicle(map, flush, pressed("KeyD"), DT);
+  if (cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(flush))) {
+    everEmbedded = true;
     break;
   }
 }
+assert(everEmbedded === false, "turning while flush never embeds the car");
+
+// Backing away from that wall must still work.
+let backing = flush;
+for (let i = 0; i < 90; i++) {
+  backing = vehicle.step_vehicle(map, backing, pressed("KeyS"), DT);
+}
+const backedOff = Math.hypot(backing.x - flush.x, backing.z - flush.z);
 assert(
-  escapeFrames > 0,
-  `steering away from a wall recovers (collided ${recovered.collided})`,
+  backedOff > 5.0,
+  `a car flush against a wall can still reverse away (moved ${backedOff.toFixed(2)})`,
 );
 
-const escapePoint = recovered;
-for (let i = 0; i < 60; i++) {
-  recovered = vehicle.step_vehicle(map, recovered, pressed("KeyW"), DT);
-}
-const travelled = Math.hypot(recovered.x - escapePoint.x, recovered.z - escapePoint.z);
+// ── An embedded car can always drive clear ────────────────────────────────
+//
+// Driving cannot reach this state, but a bad starting state must not freeze.
+let inside = withState({ x: -10.0, z: -4.5, heading_degrees: 0.0 });
 assert(
-  travelled > 1.0,
-  `recovered car keeps driving after escaping (travelled ${travelled.toFixed(2)})`,
+  cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(inside)),
+  "the recovery case starts inside a building",
 );
+for (let i = 0; i < 300; i++) {
+  inside = vehicle.step_vehicle(map, inside, pressed("KeyW"), DT);
+  if (!cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(inside))) break;
+}
+assert(
+  !cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(inside)),
+  "a car starting inside a building can drive out of it",
+);
+
+// ── Sweep: ram something from every direction and always get free ─────────
+//
+// The reported failure was a car that reached a state where no input did
+// anything. Drive into whatever lies ahead on each heading, then check the car
+// is still outside geometry and that throttle-and-steer frees it.
+for (let heading = 0; heading < 360; heading += 30) {
+  let car = withState({ heading_degrees: heading > 180 ? heading - 360 : heading });
+  for (let i = 0; i < 300; i++) {
+    car = vehicle.step_vehicle(map, car, pressed("KeyW"), DT);
+  }
+  assert(
+    !cityMod.city_collides_footprint(map, vehicle.vehicle_footprint(car)),
+    `heading ${heading}: car never ends up inside geometry`,
+  );
+
+  let freed = car;
+  for (let i = 0; i < 300; i++) {
+    freed = vehicle.step_vehicle(map, freed, pressed("KeyW", "KeyD"), DT);
+  }
+  const moved = Math.hypot(freed.x - car.x, freed.z - car.z);
+  const turned = Math.abs(freed.heading_degrees - car.heading_degrees);
+  assert(
+    moved > 3.0 || turned > 45.0,
+    `heading ${heading}: throttle and steer frees the car ` +
+      `(moved ${moved.toFixed(1)}, turned ${turned.toFixed(1)})`,
+  );
+}
 
 // ── Reset-relevant invariant: spawn sits inside the circuit ────────────────
 

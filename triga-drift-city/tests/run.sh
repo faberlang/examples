@@ -244,6 +244,23 @@ echo "checking U4: controller publishes the car mesh in model space"
 grep -q 'vehicle_local_box' "$APP_DIR/src/main.fab"
 grep -q 'functio vehicle_local_box' "$APP_DIR/src/vehicle.fab"
 
+echo "checking collision uses the exact footprint, not a bound around it"
+node -e "
+const fs = require('fs');
+const src = fs.readFileSync('$APP_DIR/src/vehicle.fab', 'utf8');
+if (/city_collides_box/.test(src)) {
+  console.error('  vehicle.fab collides against an axis-aligned bound of the rotated car;');
+  console.error('  that envelope is oversized at diagonal headings and changes size as');
+  console.error('  the car turns, which lets a turn embed the car in a wall.');
+  process.exit(1);
+}
+if (!/city_collides_footprint/.test(src)) {
+  console.error('  vehicle.fab no longer queries the city with a footprint');
+  process.exit(1);
+}
+console.log('  collision goes through the exact footprint');
+"
+
 echo "checking U4: controller does not derive projection aspect from window size"
 node -e "
 const fs = require('fs');
