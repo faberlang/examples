@@ -6,7 +6,7 @@ canonical = true
 summary = "Groups early-exit guard checks before the main body of a function."
 syntax = "custodi <block>"
 aliases = ["guard"]
-related = ["si", "ergo", "redde"]
+related = ["si", "redde"]
 +++
 
 # =============================================================================
@@ -21,7 +21,7 @@ related = ["si", "ergo", "redde"]
 # Common mistakes:
 #   • Using `custodi` outside a function — guard blocks are only valid inside functio bodies.
 #
-# See also: si, ergo, redde
+# See also: si, redde
 # =============================================================================
 
 # custodi — guard blocks for early exit
