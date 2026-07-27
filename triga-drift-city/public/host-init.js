@@ -190,13 +190,11 @@ export async function initHost() {
   }
 
   // ── Transform storage (U4 bridge / readback proof) ──────────────────────
-
+  // WebGPU: MapRead may only combine with CopyDst (not Storage).
+  // updateGraphicsStorage uses queue.writeBuffer → COPY_DST is enough.
   const transformBuffer = device.createBuffer({
     size: TRANSFORM_BYTE_LEN,
-    usage:
-      GPUBufferUsage.STORAGE |
-      GPUBufferUsage.COPY_DST |
-      GPUBufferUsage.MAP_READ,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
   });
 
   const storageResources = Object.freeze({
