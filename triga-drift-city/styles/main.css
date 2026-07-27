@@ -58,6 +58,18 @@ aside {
   box-shadow: 0 0 0 3px rgb(120 217 188 / 20%);
 }
 
+/* The 16:9 box is a contract: src/main.fab uses a constant projection aspect
+   of 960/540 and never measures the element. Changing this ratio without
+   changing that constant skews the scene. */
+.drift-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid #2c665a;
+  border-radius: 0.5rem;
+  background: #05090a;
+}
+
 code {
   color: #9be7d0;
 }

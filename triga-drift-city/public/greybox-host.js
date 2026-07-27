@@ -294,23 +294,6 @@ export function parseSceneGeometryBlob(blob) {
   return objects;
 }
 
-/**
- * De-center car mesh verts so model matrix (vehicle pose) places them correctly.
- * Vertices from U3 are world-space at spawn; subtract spawn translation.
- *
- * @param {Float32Array} vertices interleaved pos+color
- * @param {[number, number, number]} spawn [x,y,z]
- */
-export function recenterCarVertices(vertices, spawn) {
-  const out = new Float32Array(vertices);
-  for (let i = 0; i < out.length; i += 6) {
-    out[i] -= spawn[0];
-    out[i + 1] -= spawn[1];
-    out[i + 2] -= spawn[2];
-  }
-  return out;
-}
-
 // ── Exports ────────────────────────────────────────────────────────────────
 
 /**
@@ -389,33 +372,23 @@ export function initGreyboxRenderer(device, descriptor, canvasContext) {
 /**
  * Create multi-mesh scene renderer (U4): one draw call per object.
  *
+ * Meshes arrive in the space the draw uses: static objects in world space and
+ * the car in model space. No spawn or pose correction happens here — that is
+ * Faber's to publish.
+ *
  * @param {GPUDevice} device
  * @param {object} pipelinePack - from loadGreyboxPipeline ({ descriptor, wgsl, reflection })
  * @param {GPUCanvasContext} canvasContext
  * @param {Array<{ name: string, role: string, vertices: Float32Array, indices: Uint32Array }>} meshes
- * @param {{ spawn?: [number, number, number] }} [options]
  * @returns {object} renderState (mutable resources holder for resize)
  */
-export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, meshes, options = {}) {
+export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, meshes) {
   if (!Array.isArray(meshes) || meshes.length === 0) {
     throw new Error("initGreyboxSceneRenderer: meshes required");
   }
 
-  const spawn = options.spawn || [-22.0, 0.2, 0.0];
-  const prepared = meshes.map((m) => {
-    if (m.role === "car") {
-      return {
-        name: m.name,
-        role: "car",
-        vertices: recenterCarVertices(m.vertices, spawn),
-        indices: m.indices,
-      };
-    }
-    return m;
-  });
-
   // Descriptor indexCount must match first mesh for createGraphicsResources bounds check.
-  const first = prepared[0];
+  const first = meshes[0];
   const descriptor = buildDescriptorFromReflection(
     pipelinePack.wgsl,
     pipelinePack.reflection,
@@ -430,7 +403,7 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
 
   let resources = createGraphicsResources(device, descriptor, payloads, canvasContext);
 
-  const meshEntries = prepared.map((m, i) => {
+  const meshEntries = meshes.map((m, i) => {
     if (i === 0) {
       // Reuse buffers from createGraphicsResources for mesh 0.
       return {
@@ -506,6 +479,11 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
   carCombined.set(carModel, 0);
   carCombined.set(viewProj, 16);
 
+  // One canvas texture and one depth view for the whole frame; the passes
+  // differ only in load op and which mesh they draw.
+  const textureView = context.getCurrentTexture().createView();
+  const depthView = resources.depthTexture.createView();
+
   for (let i = 0; i < meshes.length; i++) {
     const mesh = meshes[i];
     const isCar = i === carIndex || mesh.role === "car";
@@ -517,7 +495,6 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
       sourceName: "transform",
     });
 
-    const textureView = context.getCurrentTexture().createView();
     const commandEncoder = device.createCommandEncoder();
     const renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [
@@ -529,7 +506,7 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
         },
       ],
       depthStencilAttachment: {
-        view: resources.depthTexture.createView(),
+        view: depthView,
         depthClearValue: 1.0,
         depthLoadOp: i === 0 ? "clear" : "load",
         depthStoreOp: "store",

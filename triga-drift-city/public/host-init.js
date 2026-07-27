@@ -70,6 +70,21 @@ function waitForSceneGeometry() {
 }
 
 /**
+ * Backing-store size for a canvas laid out by CSS, in device pixels.
+ * @param {HTMLCanvasElement} canvas
+ * @returns {{ width: number, height: number }}
+ */
+function backingSize(canvas) {
+  const ratio = globalThis.devicePixelRatio || 1;
+  const cssWidth = canvas.clientWidth || canvas.width || 960;
+  const cssHeight = canvas.clientHeight || canvas.height || 540;
+  return {
+    width: Math.max(1, Math.round(cssWidth * ratio)),
+    height: Math.max(1, Math.round(cssHeight * ratio)),
+  };
+}
+
+/**
  * Parse transform payload text ("f0 f1 ... f31") into Float32Array(32).
  * @param {string|null} text
  * @returns {Float32Array|null}
@@ -92,6 +107,7 @@ function parseTransformPayload(text) {
  */
 export async function initHost() {
   const { device } = await acquireWebGpuDevice();
+  setFact("data-device-status", "active");
 
   const canvas = document.querySelector(CANVAS_SELECTOR);
   if (!canvas) {
@@ -103,8 +119,7 @@ export async function initHost() {
     throw new Error("host-init: WebGPU canvas context unavailable");
   }
 
-  const initialWidth = canvas.clientWidth || canvas.width || 960;
-  const initialHeight = canvas.clientHeight || canvas.height || 540;
+  const { width: initialWidth, height: initialHeight } = backingSize(canvas);
   canvas.width = initialWidth;
   canvas.height = initialHeight;
 
@@ -128,6 +143,8 @@ export async function initHost() {
     console.warn("host-init: greybox pipeline load failed", err);
     setFact("data-pipeline-status", "failed");
     setFact("data-pipeline-error", err.message);
+    setFact("data-render-status", "pipeline-load-failed");
+    setFact("data-render-gate", "blocked-pipeline");
   }
 
   // ── U2 fallback: triangle path while waiting for scene geometry ─────────
@@ -173,12 +190,12 @@ export async function initHost() {
     try {
       const blob = await waitForSceneGeometry();
       const meshes = parseSceneGeometryBlob(blob);
-      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes, {
-        spawn: [-22.0, 0.2, 0.0],
-      });
+      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes);
       sceneMounted = true;
       setFact("data-scene-upload", "ok");
       setFact("data-scene-object-count", String(meshes.length));
+      setFact("data-render-status", "scene-mounted");
+      setFact("data-render-gate", "pending-first-frame");
       // Drop geometry blob from DOM after upload (one-shot mount evidence kept via counts).
       const el = factsEl();
       if (el) el.removeAttribute(GEOMETRY_ATTR);
@@ -186,6 +203,8 @@ export async function initHost() {
       console.warn("host-init: scene geometry mount failed", err);
       setFact("data-scene-upload", "failed");
       setFact("data-scene-upload-error", err.message);
+      setFact("data-render-status", "scene-upload-failed");
+      setFact("data-render-gate", "blocked-geometry");
     }
   }
 
@@ -225,6 +244,9 @@ export async function initHost() {
   let frameCount = 0;
   let readbackSnapshot = null;
   let readbackPhase = 0; // 0=waiting, 1=snapshot, 2=verified, -1=failed
+  let readbackBusy = false;
+  let sceneRendered = false;
+  let lastTransform = null;
   let resizeObserver = null;
   let resizeListenerBound = false;
 
@@ -245,7 +267,10 @@ export async function initHost() {
   }
 
   async function doReadback() {
-    if (!running || readbackPhase < 0 || readbackPhase >= 2) return;
+    if (!running || readbackBusy || readbackPhase < 0 || readbackPhase >= 2) return;
+    // While this buffer is map-pending or mapped, queue.writeBuffer against it
+    // is a validation error, so the frame loop must skip its mirror write.
+    readbackBusy = true;
     try {
       await device.queue.onSubmittedWorkDone();
       await transformBuffer.mapAsync(GPUMapMode.READ);
@@ -270,6 +295,8 @@ export async function initHost() {
     } catch (_) {
       readbackPhase = -1;
       setFact("data-readback-proof", "failed");
+    } finally {
+      readbackBusy = false;
     }
   }
 
@@ -298,25 +325,38 @@ export async function initHost() {
     try {
       const el = factsEl();
       const floats = parseTransformPayload(el?.getAttribute(TRANSFORM_ATTR) ?? null);
+      if (floats) lastTransform = floats;
 
-      if (sceneState && floats) {
-        // U4 path: multi-draw scene with car model + view-proj
-        renderGreyboxSceneFrame(sceneState, floats);
-        // Mirror transform into MAP_READ buffer for readback proof
-        updateGraphicsStorage(device, storageResources, storageDescriptor, {
-          resourceIndex: 0,
-          data: floats,
-        });
-        frameCount++;
-        if (frameCount >= 2 && readbackPhase < 2) {
-          doReadback();
+      if (sceneState) {
+        // U4 path: multi-draw scene with car model + view-proj. A payload that
+        // fails to parse must not drop the scene back to the U2 triangle, so
+        // hold the last good transform until a new one arrives.
+        const transform = floats ?? lastTransform;
+        if (transform) {
+          renderGreyboxSceneFrame(sceneState, transform);
+          if (!sceneRendered) {
+            sceneRendered = true;
+            setFact("data-render-status", "live-direct-webgpu");
+            setFact("data-render-gate", "open");
+          }
+          if (!readbackBusy) {
+            // Mirror transform into MAP_READ buffer for readback proof
+            updateGraphicsStorage(device, storageResources, storageDescriptor, {
+              resourceIndex: 0,
+              data: transform,
+            });
+            frameCount++;
+            if (frameCount >= 2 && readbackPhase < 2) {
+              doReadback();
+            }
+          }
         }
       } else if (triangleState) {
-        // U2 fallback while scene not ready
+        // U2 path while the scene geometry has not mounted yet
         renderGreyboxFrame(triangleState, {
           clearValue: { r: 0.02, g: 0.06, b: 0.07, a: 1.0 },
         });
-        if (floats) {
+        if (floats && !readbackBusy) {
           updateGraphicsStorage(device, storageResources, storageDescriptor, {
             resourceIndex: 0,
             data: floats,
@@ -337,9 +377,8 @@ export async function initHost() {
   }
 
   function resize() {
-    const w = canvas.clientWidth || canvas.width;
-    const h = canvas.clientHeight || canvas.height;
-    if (w <= 0 || h <= 0) return;
+    const { width: w, height: h } = backingSize(canvas);
+    if (w === canvas.width && h === canvas.height) return;
 
     canvas.width = w;
     canvas.height = h;

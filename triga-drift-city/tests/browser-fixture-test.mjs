@@ -66,12 +66,13 @@ const root = document.querySelector("#triga-drift-city");
 const status = root.querySelector(".drift-status");
 const facts = root.querySelector(".drift-facts");
 
-// Mount-once status attrs (U4 done_when 10)
-assert(status.textContent === "simulation-running-gpu-active", "mount publishes GPU-active status");
-assert(facts.getAttribute("data-render-status") === "live-direct-webgpu", "renderer status is live-direct-webgpu");
-assert(facts.getAttribute("data-render-gate") === "open", "direct-WebGPU gate is open");
+// Mount-once status attrs. The controller owns simulation state only; render
+// and device state stay pending until the host reports a real device.
+assert(status.textContent === "simulation-running", "mount publishes simulation status");
 assert(facts.getAttribute("data-simulation-owner") === "faber", "simulation ownership is Faber");
-assert(facts.getAttribute("data-device-status") === "active", "device status starts active");
+assert(facts.getAttribute("data-render-status") === "awaiting-host", "renderer status awaits the host");
+assert(facts.getAttribute("data-render-gate") === "pending-host-init", "render gate is pending host init");
+assert(facts.getAttribute("data-device-status") === "unknown", "device status is unknown without a host");
 
 // Frame-specific vehicle/camera/key scrape attrs must NOT be the source of truth
 assert(facts.getAttribute("data-vehicle-x") === null, "no per-frame data-vehicle-x");
@@ -100,15 +101,11 @@ assert(Math.abs(modelM15 - 1.0) < 0.001, `model matrix m15 is 1.0, got ${modelM1
 const startTx = Number(payloadFloats[12]); // model translation x (column-major m[12])
 const startTz = Number(payloadFloats[14]); // model translation z
 
-// Unfocused key input must not drive
-facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
-await new Promise((resolve) => setTimeout(resolve, 15));
-const midPayload = facts.getAttribute("data-transform-payload").trim().split(/\s+/);
-const midTz = Number(midPayload[14]);
-assert(Math.abs(midTz - startTz) < 0.0001, "unfocused key input does not move car");
+// Drive input is armed at mount because the document has focus. No click or
+// element-focus ritual is required.
+assert(facts.getAttribute("data-input-focused") === "true", "drive input is armed at mount");
 
-// Focus + drive forward
-facts.dispatchEvent(new FakeEvent("focus"));
+// Drive forward
 facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
 await new Promise((resolve) => setTimeout(resolve, 40));
 const drivenPayload = facts.getAttribute("data-transform-payload").trim().split(/\s+/);
@@ -128,14 +125,22 @@ const resetTz = Number(resetPayload[14]);
 assert(Math.abs(resetTx - (-22.0)) < 0.01, `reset restores spawn x ≈ -22, got ${resetTx}`);
 assert(Math.abs(resetTz - 0.0) < 0.01, `reset restores spawn z ≈ 0, got ${resetTz}`);
 
-// Blur clears held keys (no further drive after blur)
+// Losing document focus disarms drive and clears held keys
 facts.dispatchEvent(new FakeEvent("keydown", { key: "w", code: "KeyW" }));
+document.focused = false;
 facts.dispatchEvent(new FakeEvent("blur"));
-const blurPayload = facts.getAttribute("data-transform-payload");
-assert(blurPayload !== null, "transform still published after blur");
+assert(facts.getAttribute("data-input-focused") === "false", "lost document focus disarms drive");
 
-// Device status stays active under normal operation
-assert(facts.getAttribute("data-device-status") === "active", "device status stays active");
+const blurredTz = Number(
+  facts.getAttribute("data-transform-payload").trim().split(/\s+/)[14],
+);
+await new Promise((resolve) => setTimeout(resolve, 40));
+const afterBlurPayload = facts.getAttribute("data-transform-payload").trim().split(/\s+/);
+assert(afterBlurPayload.length === 32, "transform still published after blur");
+assert(
+  Math.abs(Number(afterBlurPayload[14]) - blurredTz) < 0.5,
+  "held keys stop driving once the document loses focus",
+);
 
 runtime.dispose();
 console.log(`${passed} passed, ${failed} failed`);

@@ -4,12 +4,27 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 WORKSPACE="$(cd "$APP_DIR/../.." && pwd)"
-FABER_BIN="${FABER:-$WORKSPACE/faber/target/debug/faber}"
+# Same resolution order as serve.sh: explicit override, faber's shared
+# target-dir, then a local debug build.
+for candidate in \
+  "${FABER:-}" \
+  "${HOME}/.cache/faberlang-target/faber/debug/faber" \
+  "$WORKSPACE/faber/target/debug/faber"
+do
+  if [[ -n "$candidate" && -x "$candidate" ]]; then
+    FABER_BIN="$candidate"
+    break
+  fi
+done
 
-if [[ ! -x "$FABER_BIN" ]]; then
-  echo "triga-drift-city: missing faber binary at $FABER_BIN" >&2
+if [[ -z "${FABER_BIN:-}" ]]; then
+  echo "triga-drift-city: no faber binary found. Tried:" >&2
+  echo "  FABER=${FABER:-<unset>}" >&2
+  echo "  ${HOME}/.cache/faberlang-target/faber/debug/faber" >&2
+  echo "  $WORKSPACE/faber/target/debug/faber" >&2
   exit 1
 fi
+echo "using faber: $FABER_BIN"
 
 cat > "$APP_DIR/faber.lock" <<LOCK
 
@@ -190,18 +205,71 @@ const checks = [
   src.includes('renderGreyboxSceneFrame'),
   src.includes('parseSceneGeometryBlob'),
   src.includes('drawIndexed'),
-  src.includes('recenterCarVertices'),
   src.includes('loadOp'),
 ];
 const ok = checks.every(Boolean);
 if (!ok) {
-  const labels = ['initGreyboxSceneRenderer','renderGreyboxSceneFrame','parseSceneGeometryBlob','drawIndexed','recenterCarVertices','loadOp'];
+  const labels = ['initGreyboxSceneRenderer','renderGreyboxSceneFrame','parseSceneGeometryBlob','drawIndexed','loadOp'];
   for (let i = 0; i < checks.length; i++) {
     if (!checks[i]) console.error('  missing: ' + labels[i]);
   }
   process.exit(1);
 }
 console.log('  greybox-host multi-mesh ok');
+"
+
+echo "checking U4: host JS holds no simulation constants (spawn, extents, speeds)"
+node -e "
+const fs = require('fs');
+const files = ['public/greybox-host.js', 'public/host-init.js'];
+const banned = [/-22\.0/, /vehicle_half/, /recenterCarVertices/, /spawn\s*[:=]/];
+let bad = false;
+for (const rel of files) {
+  const src = fs.readFileSync('$APP_DIR/' + rel, 'utf8');
+  for (const pattern of banned) {
+    if (pattern.test(src)) {
+      console.error('  ' + rel + ' reproduces Faber simulation state: ' + pattern);
+      bad = true;
+    }
+  }
+}
+if (bad) process.exit(1);
+console.log('  host JS free of duplicated simulation constants');
+"
+
+echo "checking U4: controller publishes the car mesh in model space"
+grep -q 'vehicle_local_box' "$APP_DIR/src/main.fab"
+grep -q 'functio vehicle_local_box' "$APP_DIR/src/vehicle.fab"
+
+echo "checking U4: controller does not derive projection aspect from window size"
+node -e "
+const fs = require('fs');
+const src = fs.readFileSync('$APP_DIR/src/main.fab', 'utf8');
+if (/resize\.width/.test(src) || /resize\.height/.test(src)) {
+  console.error('  main.fab derives aspect from window resize state');
+  process.exit(1);
+}
+if (!/canvas_aspect/.test(src)) {
+  console.error('  main.fab is missing the fixed canvas_aspect contract');
+  process.exit(1);
+}
+console.log('  projection aspect is the fixed canvas contract');
+"
+
+echo "checking U4: render status is host-owned, not asserted at controller mount"
+node -e "
+const fs = require('fs');
+const controller = fs.readFileSync('$APP_DIR/src/main.fab', 'utf8');
+const host = fs.readFileSync('$APP_DIR/public/host-init.js', 'utf8');
+if (/live-direct-webgpu/.test(controller)) {
+  console.error('  main.fab claims live rendering before the host has a device');
+  process.exit(1);
+}
+if (!/live-direct-webgpu/.test(host)) {
+  console.error('  host-init.js never reports live rendering');
+  process.exit(1);
+}
+console.log('  render status ownership ok');
 "
 
 echo "checking U4: controller geometry + transform + reset + on_resize"

@@ -142,8 +142,20 @@ export const dom = {
       primary: event.isPrimary ?? false,
     }));
   },
+  // Mirrors faber-web/runtime/dom.ts: focus state means "the document has
+  // focus", tracked on the element and on window, and emitted once at
+  // subscribe so a subscriber never starts from a stale default.
   on_focus(el, eventName, handler) {
-    return dom.on(el, eventName, () => handler({ focused: globalThis.document.hasFocus() }));
+    const emit = () => handler({ focused: globalThis.document.hasFocus() });
+    el.addEventListener(eventName, emit);
+    const win = globalThis.window;
+    const alsoWindow = win !== undefined && typeof win.addEventListener === "function" && win !== el;
+    if (alsoWindow) win.addEventListener(eventName, emit);
+    emit();
+    return rememberSubscription(() => {
+      el.removeEventListener(eventName, emit);
+      if (alsoWindow) win.removeEventListener(eventName, emit);
+    });
   },
   pointer_lock_state(el) {
     return pointerLockState(el, false);

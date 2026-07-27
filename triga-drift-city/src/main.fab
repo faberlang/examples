@@ -37,6 +37,11 @@ functio indices_textus(de lista<u32> values) → textus {
     redde output
 }
 
+functio bivalens_textus(bivalens value) → textus {
+    si value { redde "true" }
+    redde "false"
+}
+
 # Object role for host multi-draw: car gets model matrix, rest identity.
 functio object_role(textus name) → textus {
     si name ≡ "car" { redde "car" }
@@ -158,11 +163,10 @@ functio publish_transform(
 # One-shot geometry upload payload for host createGraphicsResources path.
 functio publish_scene_geometry(
     dom.Element facts_element,
-    de city.City map,
-    de vehicle.Vehicle car
+    de city.City map
 ) → vacuum {
     fixum scene.SceneGeometryManifest manifest ←
-        scene.greybox_scene_geometry(map, vehicle.vehicle_box(car))
+        scene.greybox_scene_geometry(map, vehicle.vehicle_local_box())
     dom.attr_set(facts_element, "data-scene-geometry", scene_geometry_blob(manifest))
     dom.attr_set(facts_element, "data-scene-object-count", manifest.objects.longitudo() ↦ textus)
 }
@@ -177,35 +181,33 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
     fixum dom.Element facts ← dom.require(scope, ".drift-facts")
     fixum city.City live_city ← city.drift_city()
     varia vehicle.Application live_app ← vehicle.spawn_application()
-    # Drive accepts keys immediately; blur still clears via on_focus handlers.
-    # (set_key_by_code no-ops while focused=falsum.)
-    live_app ← vehicle.Application {
-        input = vehicle.apply_focus(live_app.input, verum),
-        vehicle = live_app.vehicle,
-        camera = live_app.camera
-    }
     varia numerus live_frame ← 0
-    varia f32 live_aspect ← 960.0 ∷ f32 / 540.0 ∷ f32
 
-    # Mount-once status attrs (done_when 10)
-    dom.attr_set(facts, "data-render-status", "live-direct-webgpu")
-    dom.attr_set(facts, "data-render-gate", "open")
+    # The canvas holds a 16:9 box through `.drift-canvas` in styles/main.css,
+    # so the projection aspect is constant. Window size is not canvas size and
+    # must not be substituted here.
+    fixum f32 canvas_aspect ← 960.0 ∷ f32 / 540.0 ∷ f32
+
+    # Simulation is owned here and live at mount. Rendering and device state
+    # belong to the host, which replaces these pending values only after a
+    # device and scene actually exist.
     dom.attr_set(facts, "data-simulation-owner", "faber")
-    dom.attr_set(facts, "data-device-status", "active")
-    dom.attr_set(facts, "data-input-focused", "true")
-    dom.text_set(status, "simulation-running-gpu-active")
+    dom.attr_set(facts, "data-render-status", "awaiting-host")
+    dom.attr_set(facts, "data-render-gate", "pending-host-init")
+    dom.attr_set(facts, "data-device-status", "unknown")
+    dom.text_set(status, "simulation-running")
 
     # U3 geometry → host upload (one-shot)
-    publish_scene_geometry(facts, live_city, live_app.vehicle)
+    publish_scene_geometry(facts, live_city)
     # Initial transform for first host frame
-    publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
+    publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
 
     fixum dom.Subscription frame_sub ←
         dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
             fixum f32 delta_seconds ← frame.delta_ms / 1000.0 ∷ f32
             live_frame ← frame.frame
             live_app ← vehicle.step_application(live_city, live_app, delta_seconds)
-            publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
+            publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
         })
 
     fixum dom.Subscription keydown_sub ←
@@ -221,7 +223,7 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
                         camera = live_app.camera
                     }
                 }
-                publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
+                publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
                 redde
             }
             live_app ← vehicle.Application {
@@ -240,34 +242,35 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
             }
         })
 
+    # on_focus reports whether the document has focus, and emits once at
+    # subscribe. That arms drive input on mount and disarms it when the window
+    # loses focus, so no page script has to stage-manage DOM focus.
     fixum dom.Subscription focus_sub ←
         dom.on_focus(facts, "focus", (dom.FocusState focus) → vacuum ∴ fac {
             live_app ← vehicle.Application {
-                input = vehicle.apply_focus(live_app.input, verum),
+                input = vehicle.apply_focus(live_app.input, focus.focused),
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
-            dom.attr_set(facts, "data-input-focused", "true")
+            dom.attr_set(facts, "data-input-focused", bivalens_textus(focus.focused))
         })
 
     fixum dom.Subscription blur_sub ←
         dom.on_focus(facts, "blur", (dom.FocusState focus) → vacuum ∴ fac {
             live_app ← vehicle.Application {
-                input = vehicle.apply_focus(live_app.input, falsum),
+                input = vehicle.apply_focus(live_app.input, focus.focused),
                 vehicle = live_app.vehicle,
                 camera = live_app.camera
             }
-            dom.attr_set(facts, "data-input-focused", "false")
+            dom.attr_set(facts, "data-input-focused", bivalens_textus(focus.focused))
         })
 
+    # Canvas aspect is fixed by CSS, so resize only refreshes the payload the
+    # host reads for its next frame.
     fixum dom.Subscription resize_sub ←
         dom.on_resize((dom.ResizeState resize) → vacuum ∴ fac {
-            si resize.width > 0 et resize.height > 0 {
-                fixum f32 w ← resize.width ↦ f32
-                fixum f32 h ← resize.height ↦ f32
-                live_aspect ← w / h
-            }
-            publish_transform(facts, live_app.vehicle, live_app.camera, live_aspect)
+            nota resize
+            publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
         })
 
     redde [frame_sub, keydown_sub, keyup_sub, focus_sub, blur_sub, resize_sub]

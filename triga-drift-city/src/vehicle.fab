@@ -162,6 +162,13 @@ functio vehicle_box(de Vehicle vehicle) → triga.Box3 {
     redde vehicle_box_at(vehicle.x, vehicle.y, vehicle.z, vehicle.heading_degrees)
 }
 
+# Car body in model space: centred on x/z, resting on y = 0. The renderer
+# places it with the vehicle model matrix, so no spawn position may leak into
+# the mesh or into the host.
+functio vehicle_local_box() → triga.Box3 {
+    redde vehicle_box_at(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32)
+}
+
 functio spawn_vehicle() → Vehicle {
     redde Vehicle {
         x = -22.0 ∷ f32,
