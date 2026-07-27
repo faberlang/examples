@@ -205,7 +205,7 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 
 ### Stage 2 — First Visible Greybox Drive
 
-**Status:** in progress — delivery lowered 2026-07-27; U1+U2 accepted; U3/U5 in flight; U4 gated
+**Status:** in progress — U1–U3+U5 accepted; U4 drive loop in flight
 **Delivery spec:** [`02-first-visible-greybox-drive-delivery.md`](02-first-visible-greybox-drive-delivery.md)
 **Participating repos:** `examples`, `triga`, `radix`, `hosts`, `faber`
 **Depends on:** Stage 1
@@ -217,8 +217,13 @@ Stage 4 discovery may overlap the tail of Stage 3 only after resource ownership 
 **Landed units:**
 - U1 (`u1-graphics-shader-pipeline`) — examples `0b95770`. ACCEPTED (reference WGSL/reflection path; residual: no Faber V/F MIR→WGSL yet).
 - U2 (`u2-host-graphics-integration`) — examples `316a4fe`. ACCEPTED 2026-07-27 Mind. `public/greybox-host.js` + host-init + U1 artifacts in `public/`. Uses flat-reflection → `createGraphicsResources` path (not `loadFaberGraphicsPipeline` — U1 flat format lacks `launch.webgpu_adapter`).
-**In flight:** U3 geometry (hand-3), U5 product build (hand-2). **Blocked until U1–U3:** U4 drive loop.
-**U2 residuals (non-blocking):** (1) no call to `loadFaberGraphicsPipeline` — intentional adapter for U1 flat reflection; unify later if host kernel expects launch blocks. (2) `tests/run.sh` not extended with export greps in this commit. (3) browser pixel readback not re-run by Mind (hand claim + code path present).
+- U3 (`u3-scene-geometry-assembly`) — examples `538978e`. ACCEPTED 2026-07-27 Mind. `box_geometry` 8 verts/36 indices; `greybox_scene_geometry` 10 objects; colors per delivery default; `faber check` green. Residual: `faber run` scene-facts blocked by pre-existing radix-runtime-contract core-support path (not U3).
+- U5 (`u5-product-build-shader-artifacts`) — faber `86a7d90` + examples `5cca8d9`. ACCEPTED 2026-07-27 Mind. `[product.shaders]` copies U1 reference → `dist/generated/`; `product.json` stage=2 with wgsl+reflection artifacts. Default A (no live V/F MIR→WGSL).
+**In flight:** U4 drive-render loop (hand-4).
+**Residuals (non-blocking):**
+- U2: no `loadFaberGraphicsPipeline`; run.sh greps not in U2 commit; browser pixel proof hand-claim.
+- U5: packages reference artifacts only until radix V/F lower exists. Host fetches `public/`; product emits `dist/generated/` — U4 should pick one canonical path.
+- U3: runtime fact execution blocked by core-support `radix-runtime-contract` path debt.
 
 ### Stage 3 — City Scene And Resource Scale
 
