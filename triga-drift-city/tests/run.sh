@@ -103,6 +103,9 @@ if grep -R -i -E 'three(\.js)?' \
   exit 1
 fi
 
+echo "running vehicle dynamics checks"
+node "$SCRIPT_DIR/vehicle-dynamics-test.mjs"
+
 echo "running browser controller fixture"
 node --import "$WORKSPACE/examples/browser-app/tests/register-hooks.mjs" \
   "$SCRIPT_DIR/browser-fixture-test.mjs"

@@ -82,9 +82,14 @@ functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus 
 # ---------------------------------------------------------------------------
 
 functio compute_model_matrix(de vehicle.Vehicle v) → triga.Matrix4 ∪ nihil {
+    # Heading feeds triga.camera_forward_planus_ex_yaw, where +yaw swings the
+    # travel direction from -Z toward +X. A right-handed rotation about +Y
+    # carries the car's -Z nose the other way, toward -X, so the mesh rotation
+    # is the negated heading. Using +heading here yaws the body against the
+    # direction of travel.
     fixum triga.Euler yaw_rotation ← triga.euler(
         0.0 ∷ f32,
-        triga.radians_ex_gradibus(v.heading_degrees),
+        triga.radians_ex_gradibus(0.0 ∷ f32 - v.heading_degrees),
         0.0 ∷ f32
     )
     fixum triga.Quaternion ∪ nihil rotation_result ← triga.euler_ad_quaternionem(yaw_rotation)

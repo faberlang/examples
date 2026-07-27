@@ -226,6 +226,49 @@ incipit {
     adfirma rejected.drift_amount ≤ vehicle.speed(rejected) + 0.0001 ∷ f32,
         "collision drift reflects the reduced post-impact velocity"
 
+    # Grazing the same building sideways: at heading 90 the car is 3.6 wide in
+    # X, so x = -17.9 leaves its east face just clear. The blocked +X push must
+    # not cancel the clear -Z travel.
+    fixum vehicle.Vehicle grazing ← vehicle.Vehicle {
+        x = 0.0 ∷ f32 - 17.9 ∷ f32,
+        y = 0.2 ∷ f32,
+        z = 0.0 ∷ f32 - 4.0 ∷ f32,
+        heading_degrees = 90.0 ∷ f32,
+        velocity_x = 12.0 ∷ f32,
+        velocity_z = 0.0 ∷ f32 - 6.0 ∷ f32,
+        drift_amount = 0.0 ∷ f32,
+        collided = falsum
+    }
+    fixum vehicle.Vehicle slid ← vehicle.step_vehicle(
+        map,
+        grazing,
+        vehicle.empty_input(),
+        0.05 ∷ f32
+    )
+    adfirma slid.collided,
+        "grazing an obstacle records a collision"
+    adfirma approx(slid.x, grazing.x, 0.0001 ∷ f32),
+        "the blocked axis is held while grazing"
+    adfirma slid.z < grazing.z,
+        "the clear axis keeps sliding along the obstacle"
+
+    fixum vehicle.Vehicle at_rest ← vehicle.spawn_vehicle()
+    fixum vehicle.Vehicle turned_left ← vehicle.step_vehicle(
+        map,
+        at_rest,
+        input_code("KeyA"),
+        0.05 ∷ f32
+    )
+    fixum vehicle.Vehicle turned_right ← vehicle.step_vehicle(
+        map,
+        at_rest,
+        input_code("KeyD"),
+        0.05 ∷ f32
+    )
+    adfirma turned_left.heading_degrees < at_rest.heading_degrees
+        et turned_right.heading_degrees > at_rest.heading_degrees,
+        "a stopped car keeps enough steering authority to turn away from a wall"
+
     fixum vehicle.ChaseCamera camera ← vehicle.chase_camera(forward_car)
     adfirma approx(camera.target.x, forward_car.x, 0.0001 ∷ f32)
         et approx(camera.target.z, forward_car.z, 0.0001 ∷ f32),
