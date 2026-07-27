@@ -10,10 +10,7 @@ importa ex "triga:geometry" privata geometry
 #   4 (x1,y1,z2)  5 (x2,y1,z2)  6 (x2,y2,z2)  7 (x1,y2,z2)  back
 # ---------------------------------------------------------------------------
 @ privata
-functio _box_corner_positions(
-    f32 x1, f32 y1, f32 z1,
-    f32 x2, f32 y2, f32 z2
-) → lista<f32> {
+functio _box_corner_positions(f32 x1, f32 y1, f32 z1, f32 x2, f32 y2, f32 z2) → lista<f32> {
     varia lista<f32> p ← vacua
     p.appende(x1)
     p.appende(y1)
@@ -117,16 +114,10 @@ functio _box_color_array(f32 r, f32 g, f32 b) → lista<f32> {
 # × 6 faces).  Vertex format: position (location 0, Float32x3) + colour
 # (location 1, Float32x3), stride 24 bytes.
 # ---------------------------------------------------------------------------
-functio box_geometry(
-    de triga.Box3 bounds,
-    f32 r, f32 g, f32 b
-) → geometry.BufferGeometry ∪ nihil {
+functio box_geometry(de triga.Box3 bounds, f32 r, f32 g, f32 b) → geometry.BufferGeometry ∪ nihil {
     si triga.box3_validum(bounds) ≡ falsum ergo redde nihil
 
-    fixum lista<f32> positions ← _box_corner_positions(
-        bounds.min.x, bounds.min.y, bounds.min.z,
-        bounds.max.x, bounds.max.y, bounds.max.z
-    )
+    fixum lista<f32> positions ← _box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
     fixum lista<f32> colors ← _box_color_array(r, g, b)
     fixum lista<u32> indices ← _box_indices()
 
@@ -140,16 +131,10 @@ functio box_geometry(
 #
 # Payload stride: 6 f32 (24 bytes) — position (3) + colour (3) per vertex.
 # ---------------------------------------------------------------------------
-functio box_vertex_payload(
-    de triga.Box3 bounds,
-    f32 r, f32 g, f32 b
-) → lista<f32> ∪ nihil {
+functio box_vertex_payload(de triga.Box3 bounds, f32 r, f32 g, f32 b) → lista<f32> ∪ nihil {
     si triga.box3_validum(bounds) ≡ falsum ergo redde nihil
 
-    fixum lista<f32> positions ← _box_corner_positions(
-        bounds.min.x, bounds.min.y, bounds.min.z,
-        bounds.max.x, bounds.max.y, bounds.max.z
-    )
+    fixum lista<f32> positions ← _box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
 
     # Interleave: [px,py,pz, cr,cg,cb, …] for each vertex
     varia lista<f32> payload ← vacua

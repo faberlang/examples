@@ -15,7 +15,8 @@ functio floats_textus(de lista<f32> values) → textus {
     dum i < values.longitudo() {
         si i ≡ 0 {
             output ← values[i] ↦ textus
-        } secus {
+        }
+        secus {
             output ← "§ §"(output, values[i] ↦ textus)
         }
         i ← i + 1
@@ -29,7 +30,8 @@ functio indices_textus(de lista<u32> values) → textus {
     dum i < values.longitudo() {
         si i ≡ 0 {
             output ← values[i] ↦ textus
-        } secus {
+        }
+        secus {
             output ← "§ §"(output, values[i] ↦ textus)
         }
         i ← i + 1
@@ -38,27 +40,24 @@ functio indices_textus(de lista<u32> values) → textus {
 }
 
 functio bivalens_textus(bivalens value) → textus {
-    si value { redde "true" }
+    si value {
+        redde "true"
+    }
     redde "false"
 }
 
 # Object role for host multi-draw: car gets model matrix, rest identity.
 functio object_role(textus name) → textus {
-    si name ≡ "car" { redde "car" }
+    si name ≡ "car" {
+        redde "car"
+    }
     redde "static"
 }
 
 # Encode one SceneObjectGeometry as:
 #   name;role;vertex_count;index_count;v0 v1 ...;i0 i1 ...
 functio object_geometry_textus(de scene.SceneObjectGeometry obj) → textus {
-    redde "§;§;§;§;§;§"(
-        obj.name,
-        object_role(obj.name),
-        obj.vertex_count ↦ textus,
-        obj.index_count ↦ textus,
-        floats_textus(obj.vertex_payload),
-        indices_textus(obj.index_payload)
-    )
+    redde "§;§;§;§;§;§"(obj.name, object_role(obj.name), obj.vertex_count ↦ textus, obj.index_count ↦ textus, floats_textus(obj.vertex_payload), indices_textus(obj.index_payload))
 }
 
 # Full scene blob: objects joined by '|'. Host parseSceneGeometryBlob consumes.
@@ -66,10 +65,11 @@ functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus 
     varia textus output ← ""
     varia numerus i ← 0
     dum i < manifest.objects.longitudo() {
-        fixum textus piece ← object_geometry_textus(manifest.objects[i])
+        fixum textus piece ← object_geometry_textus((manifest.objects)[i])
         si i ≡ 0 {
             output ← piece
-        } secus {
+        }
+        secus {
             output ← "§|§"(output, piece)
         }
         i ← i + 1
@@ -87,59 +87,19 @@ functio compute_model_matrix(de vehicle.Vehicle v) → triga.Matrix4 ∪ nihil {
     # carries the car's -Z nose the other way, toward -X, so the mesh rotation
     # is the negated heading. Using +heading here yaws the body against the
     # direction of travel.
-    fixum triga.Euler yaw_rotation ← triga.euler(
-        0.0 ∷ f32,
-        triga.radians_ex_gradibus(0.0 ∷ f32 - v.heading_degrees),
-        0.0 ∷ f32
-    )
+    fixum triga.Euler yaw_rotation ← triga.euler(0.0, triga.radians_ex_gradibus(0.0 - v.heading_degrees), 0.0)
     fixum triga.Quaternion ∪ nihil rotation_result ← triga.euler_ad_quaternionem(yaw_rotation)
     si rotation_result est nihil ergo redde nihil
-    fixum triga.Quaternion rotation ← triga.Quaternion {
-        x = rotation_result!.x,
-        y = rotation_result!.y,
-        z = rotation_result!.z,
-        w = rotation_result!.w
-    }
-    redde triga.matrix4_composita(
-        triga.vector3(v.x, v.y, v.z),
-        rotation,
-        triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32)
-    )
+    fixum triga.Quaternion rotation ← triga.Quaternion { x = rotation_result!.x, y = rotation_result!.y, z = rotation_result!.z, w = rotation_result!.w }
+    redde triga.matrix4_composita(triga.vector3(v.x, v.y, v.z), rotation, triga.vector3(1.0, 1.0, 1.0))
 }
 
-functio compute_view_projection(
-    de vehicle.ChaseCamera camera,
-    f32 aspect
-) → triga.Matrix4 ∪ nihil {
-    fixum triga.PerspectiveCamera perspective ← triga.PerspectiveCamera {
-        base = triga.Object3D {
-            position = triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
-            rotation = triga.euler(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
-            quaternion = triga.quaternion(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
-            scale = triga.vector3(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32),
-            matrix = triga.matrix4_identitas(),
-            children = vacua,
-            visible = verum,
-            name = "chase"
-        },
-        fov = 50.0 ∷ f32,
-        aspect = aspect,
-        near = 0.1 ∷ f32,
-        far = 2000.0 ∷ f32
-    }
-    redde triga.camera_view_projection(
-        perspective,
-        camera.position,
-        camera.target,
-        triga.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
-    )
+functio compute_view_projection(de vehicle.ChaseCamera camera, f32 aspect) → triga.Matrix4 ∪ nihil {
+    fixum triga.PerspectiveCamera perspective ← triga.PerspectiveCamera { base = triga.Object3D { position = triga.vector3(0.0, 0.0, 0.0), rotation = triga.euler(0.0, 0.0, 0.0), quaternion = triga.quaternion(0.0, 0.0, 0.0, 1.0), scale = triga.vector3(1.0, 1.0, 1.0), matrix = triga.matrix4_identitas(), children = vacua, visible = verum, name = "chase" }, fov = 50.0, aspect = aspect, near = 0.1, far = 2000.0 }
+    redde triga.camera_view_projection(perspective, camera.position, camera.target, triga.vector3(0.0, 1.0, 0.0))
 }
 
-functio compute_frame_transform(
-    de vehicle.Vehicle v,
-    de vehicle.ChaseCamera camera,
-    f32 aspect
-) → triga.TransformPayload ∪ nihil {
+functio compute_frame_transform(de vehicle.Vehicle v, de vehicle.ChaseCamera camera, f32 aspect) → triga.TransformPayload ∪ nihil {
     fixum triga.Matrix4 ∪ nihil model_result ← compute_model_matrix(v)
     si model_result est nihil ergo redde nihil
     fixum triga.Matrix4 ∪ nihil view_proj_result ← compute_view_projection(camera, aspect)
@@ -150,14 +110,8 @@ functio compute_frame_transform(
 }
 
 # Host bridge: publish 32-float transform each frame for updateGraphicsStorage.
-functio publish_transform(
-    dom.Element facts_element,
-    de vehicle.Vehicle v,
-    de vehicle.ChaseCamera camera,
-    f32 aspect
-) → vacuum {
-    fixum triga.TransformPayload ∪ nihil payload_result ←
-        compute_frame_transform(v, camera, aspect)
+functio publish_transform(dom.Element facts_element, de vehicle.Vehicle v, de vehicle.ChaseCamera camera, f32 aspect) → vacuum {
+    fixum triga.TransformPayload ∪ nihil payload_result ← compute_frame_transform(v, camera, aspect)
     si payload_result est nihil {
         nota nihil
         redde
@@ -166,12 +120,8 @@ functio publish_transform(
 }
 
 # One-shot geometry upload payload for host createGraphicsResources path.
-functio publish_scene_geometry(
-    dom.Element facts_element,
-    de city.City map
-) → vacuum {
-    fixum scene.SceneGeometryManifest manifest ←
-        scene.greybox_scene_geometry(map, vehicle.vehicle_local_box())
+functio publish_scene_geometry(dom.Element facts_element, de city.City map) → vacuum {
+    fixum scene.SceneGeometryManifest manifest ← scene.greybox_scene_geometry(map, vehicle.vehicle_local_box())
     dom.attr_set(facts_element, "data-scene-geometry", scene_geometry_blob(manifest))
     dom.attr_set(facts_element, "data-scene-object-count", manifest.objects.longitudo() ↦ textus)
 }
@@ -180,7 +130,7 @@ functio publish_scene_geometry(
 # Controller — simulation + host bridge. No per-frame vehicle/camera/key DOM.
 # ---------------------------------------------------------------------------
 
-@ WebController { selector = "#triga-drift-city" }
+@ WebController {selector = "#triga-drift-city" }
 functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription> {
     fixum dom.Element status ← dom.require(scope, ".drift-status")
     fixum dom.Element facts ← dom.require(scope, ".drift-facts")
@@ -191,7 +141,7 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
     # The canvas holds a 16:9 box through `.drift-canvas` in styles/main.css,
     # so the projection aspect is constant. Window size is not canvas size and
     # must not be substituted here.
-    fixum f32 canvas_aspect ← 960.0 ∷ f32 / 540.0 ∷ f32
+    fixum f32 canvas_aspect ← 960.0 / 540.0
 
     # Simulation is owned here and live at mount. Rendering and device state
     # belong to the host, which replaces these pending values only after a
@@ -207,76 +157,50 @@ functio triga_drift_city_controller(dom.Scope scope) → lista<dom.Subscription>
     # Initial transform for first host frame
     publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
 
-    fixum dom.Subscription frame_sub ←
-        dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
-            fixum f32 delta_seconds ← frame.delta_ms / 1000.0 ∷ f32
-            live_frame ← frame.frame
-            live_app ← vehicle.step_application(live_city, live_app, delta_seconds)
+    fixum dom.Subscription frame_sub ← dom.on_frame(dom.FrameState frame → vacuum ∴ fac {
+        fixum f32 delta_seconds ← frame.delta_ms / 1000.0
+        live_frame ← frame.frame
+        live_app ← vehicle.step_application(live_city, live_app, delta_seconds)
+        publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
+    })
+
+    fixum dom.Subscription keydown_sub ← dom.on_keyboard(facts, "keydown", dom.KeyboardState key → vacuum ∴ fac {
+        # Reset (R): restore spawn state; re-publish transform only.
+        si key.code ≡ "KeyR" {
+            fixum bivalens was_focused ← live_app.input.focused
+            live_app ← vehicle.spawn_application()
+            si was_focused {
+                live_app ← vehicle.Application { input = vehicle.apply_focus(live_app.input, verum), vehicle = live_app.vehicle, camera = live_app.camera }
+            }
             publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
-        })
+            redde
+        }
+        live_app ← vehicle.Application { input = vehicle.set_key_by_code(live_app.input, key.code, verum), vehicle = live_app.vehicle, camera = live_app.camera }
+    })
 
-    fixum dom.Subscription keydown_sub ←
-        dom.on_keyboard(facts, "keydown", (dom.KeyboardState key) → vacuum ∴ fac {
-            # Reset (R): restore spawn state; re-publish transform only.
-            si key.code ≡ "KeyR" {
-                fixum bivalens was_focused ← live_app.input.focused
-                live_app ← vehicle.spawn_application()
-                si was_focused {
-                    live_app ← vehicle.Application {
-                        input = vehicle.apply_focus(live_app.input, verum),
-                        vehicle = live_app.vehicle,
-                        camera = live_app.camera
-                    }
-                }
-                publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
-                redde
-            }
-            live_app ← vehicle.Application {
-                input = vehicle.set_key_by_code(live_app.input, key.code, verum),
-                vehicle = live_app.vehicle,
-                camera = live_app.camera
-            }
-        })
-
-    fixum dom.Subscription keyup_sub ←
-        dom.on_keyboard(facts, "keyup", (dom.KeyboardState key) → vacuum ∴ fac {
-            live_app ← vehicle.Application {
-                input = vehicle.set_key_by_code(live_app.input, key.code, falsum),
-                vehicle = live_app.vehicle,
-                camera = live_app.camera
-            }
-        })
+    fixum dom.Subscription keyup_sub ← dom.on_keyboard(facts, "keyup", dom.KeyboardState key → vacuum ∴ fac {
+        live_app ← vehicle.Application { input = vehicle.set_key_by_code(live_app.input, key.code, falsum), vehicle = live_app.vehicle, camera = live_app.camera }
+    })
 
     # on_focus reports whether the document has focus, and emits once at
     # subscribe. That arms drive input on mount and disarms it when the window
     # loses focus, so no page script has to stage-manage DOM focus.
-    fixum dom.Subscription focus_sub ←
-        dom.on_focus(facts, "focus", (dom.FocusState focus) → vacuum ∴ fac {
-            live_app ← vehicle.Application {
-                input = vehicle.apply_focus(live_app.input, focus.focused),
-                vehicle = live_app.vehicle,
-                camera = live_app.camera
-            }
-            dom.attr_set(facts, "data-input-focused", bivalens_textus(focus.focused))
-        })
+    fixum dom.Subscription focus_sub ← dom.on_focus(facts, "focus", dom.FocusState focus → vacuum ∴ fac {
+        live_app ← vehicle.Application { input = vehicle.apply_focus(live_app.input, focus.focused), vehicle = live_app.vehicle, camera = live_app.camera }
+        dom.attr_set(facts, "data-input-focused", bivalens_textus(focus.focused))
+    })
 
-    fixum dom.Subscription blur_sub ←
-        dom.on_focus(facts, "blur", (dom.FocusState focus) → vacuum ∴ fac {
-            live_app ← vehicle.Application {
-                input = vehicle.apply_focus(live_app.input, focus.focused),
-                vehicle = live_app.vehicle,
-                camera = live_app.camera
-            }
-            dom.attr_set(facts, "data-input-focused", bivalens_textus(focus.focused))
-        })
+    fixum dom.Subscription blur_sub ← dom.on_focus(facts, "blur", dom.FocusState focus → vacuum ∴ fac {
+        live_app ← vehicle.Application { input = vehicle.apply_focus(live_app.input, focus.focused), vehicle = live_app.vehicle, camera = live_app.camera }
+        dom.attr_set(facts, "data-input-focused", bivalens_textus(focus.focused))
+    })
 
     # Canvas aspect is fixed by CSS, so resize only refreshes the payload the
     # host reads for its next frame.
-    fixum dom.Subscription resize_sub ←
-        dom.on_resize((dom.ResizeState resize) → vacuum ∴ fac {
-            nota resize
-            publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
-        })
+    fixum dom.Subscription resize_sub ← dom.on_resize(dom.ResizeState resize → vacuum ∴ fac {
+        nota resize
+        publish_transform(facts, live_app.vehicle, live_app.camera, canvas_aspect)
+    })
 
     redde [frame_sub, keydown_sub, keyup_sub, focus_sub, blur_sub, resize_sub]
 }

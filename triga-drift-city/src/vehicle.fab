@@ -32,179 +32,167 @@ genus Application {
     ChaseCamera camera
 }
 
-functio max_delta_seconds() → f32 { redde 0.05 ∷ f32 }
-functio forward_acceleration() → f32 { redde 18.0 ∷ f32 }
-functio reverse_acceleration() → f32 { redde 10.0 ∷ f32 }
-functio brake_acceleration() → f32 { redde 28.0 ∷ f32 }
-functio steering_rate_degrees() → f32 { redde 95.0 ∷ f32 }
-functio maximum_forward_speed() → f32 { redde 20.0 ∷ f32 }
-functio maximum_reverse_speed() → f32 { redde 9.0 ∷ f32 }
-functio vehicle_half_width() → f32 { redde 0.9 ∷ f32 }
-functio vehicle_half_length() → f32 { redde 1.8 ∷ f32 }
-functio steering_reference_speed() → f32 { redde 8.0 ∷ f32 }
+functio max_delta_seconds() → f32 {
+    redde 0.05
+}
+functio forward_acceleration() → f32 {
+    redde 18.0
+}
+functio reverse_acceleration() → f32 {
+    redde 10.0
+}
+functio brake_acceleration() → f32 {
+    redde 28.0
+}
+functio steering_rate_degrees() → f32 {
+    redde 95.0
+}
+functio maximum_forward_speed() → f32 {
+    redde 20.0
+}
+functio maximum_reverse_speed() → f32 {
+    redde 9.0
+}
+functio vehicle_half_width() → f32 {
+    redde 0.9
+}
+functio vehicle_half_length() → f32 {
+    redde 1.8
+}
+functio steering_reference_speed() → f32 {
+    redde 8.0
+}
 
 # Steering authority scales with speed but never reaches zero. A car stopped
 # against a wall must still be able to turn away from it.
-functio minimum_steering_authority() → f32 { redde 0.35 ∷ f32 }
+functio minimum_steering_authority() → f32 {
+    redde 0.35
+}
 
 functio clamp(f32 value, f32 minimum, f32 maximum) → f32 {
-    si value < minimum { redde minimum }
-    si value > maximum { redde maximum }
+    si value < minimum {
+        redde minimum
+    }
+    si value > maximum {
+        redde maximum
+    }
     redde value
 }
 
 functio clamp_delta_seconds(f32 delta_seconds) → f32 {
-    si delta_seconds ≤ 0.0 { redde 0.0 ∷ f32 }
-    si delta_seconds > max_delta_seconds() { redde max_delta_seconds() }
+    si delta_seconds ≤ 0.0 {
+        redde 0.0
+    }
+    si delta_seconds > max_delta_seconds() {
+        redde max_delta_seconds()
+    }
     redde delta_seconds
 }
 
 functio normalize_heading_degrees(f32 heading_degrees) → f32 {
     varia f32 heading ← heading_degrees
-    dum heading > 180.0 { heading ← heading - 360.0 }
-    dum heading < -180.0 { heading ← heading + 360.0 }
+    dum heading > 180.0 {
+        heading ← heading - 360.0
+    }
+    dum heading < -180.0 {
+        heading ← heading + 360.0
+    }
     redde heading
 }
 
 functio empty_input() → InputState {
-    redde InputState {
-        forward = falsum,
-        reverse = falsum,
-        left = falsum,
-        right = falsum,
-        handbrake = falsum,
-        focused = falsum
-    }
+    redde InputState { forward = falsum, reverse = falsum, left = falsum, right = falsum, handbrake = falsum, focused = falsum }
 }
 
 functio clear_keys(de InputState input) → InputState {
-    redde InputState {
-        forward = falsum,
-        reverse = falsum,
-        left = falsum,
-        right = falsum,
-        handbrake = falsum,
-        focused = input.focused
-    }
+    redde InputState { forward = falsum, reverse = falsum, left = falsum, right = falsum, handbrake = falsum, focused = input.focused }
 }
 
 functio apply_focus(de InputState input, bivalens focused) → InputState {
     si focused {
-        redde InputState {
-            forward = input.forward,
-            reverse = input.reverse,
-            left = input.left,
-            right = input.right,
-            handbrake = input.handbrake,
-            focused = verum
-        }
+        redde InputState { forward = input.forward, reverse = input.reverse, left = input.left, right = input.right, handbrake = input.handbrake, focused = verum }
     }
-    redde InputState {
-        forward = falsum,
-        reverse = falsum,
-        left = falsum,
-        right = falsum,
-        handbrake = falsum,
-        focused = falsum
-    }
+    redde InputState { forward = falsum, reverse = falsum, left = falsum, right = falsum, handbrake = falsum, focused = falsum }
 }
 
 functio set_key_by_code(de InputState input, textus code, bivalens pressed) → InputState {
-    si input.focused ≡ falsum { redde clear_keys(input) }
+    si input.focused ≡ falsum {
+        redde clear_keys(input)
+    }
     varia bivalens forward ← input.forward
     varia bivalens reverse ← input.reverse
     varia bivalens left ← input.left
     varia bivalens right ← input.right
     varia bivalens handbrake ← input.handbrake
-    si code ≡ "KeyW" aut code ≡ "ArrowUp" { forward ← pressed }
-    si code ≡ "KeyS" aut code ≡ "ArrowDown" { reverse ← pressed }
-    si code ≡ "KeyA" aut code ≡ "ArrowLeft" { left ← pressed }
-    si code ≡ "KeyD" aut code ≡ "ArrowRight" { right ← pressed }
-    si code ≡ "Space" { handbrake ← pressed }
-    redde InputState {
-        forward = forward,
-        reverse = reverse,
-        left = left,
-        right = right,
-        handbrake = handbrake,
-        focused = input.focused
+    si code ≡ "KeyW" aut code ≡ "ArrowUp" {
+        forward ← pressed
     }
+    si code ≡ "KeyS" aut code ≡ "ArrowDown" {
+        reverse ← pressed
+    }
+    si code ≡ "KeyA" aut code ≡ "ArrowLeft" {
+        left ← pressed
+    }
+    si code ≡ "KeyD" aut code ≡ "ArrowRight" {
+        right ← pressed
+    }
+    si code ≡ "Space" {
+        handbrake ← pressed
+    }
+    redde InputState { forward = forward, reverse = reverse, left = left, right = right, handbrake = handbrake, focused = input.focused }
 }
 
 functio throttle_amount(de InputState input) → f32 {
-    varia f32 amount ← 0.0 ∷ f32
-    si input.forward { amount ← amount + 1.0 ∷ f32 }
-    si input.reverse { amount ← amount - 1.0 ∷ f32 }
+    varia f32 amount ← 0.0
+    si input.forward {
+        amount ← amount + 1.0
+    }
+    si input.reverse {
+        amount ← amount - 1.0
+    }
     redde amount
 }
 
 functio steering_amount(de InputState input) → f32 {
-    varia f32 amount ← 0.0 ∷ f32
-    si input.right { amount ← amount + 1.0 ∷ f32 }
-    si input.left { amount ← amount - 1.0 ∷ f32 }
+    varia f32 amount ← 0.0
+    si input.right {
+        amount ← amount + 1.0
+    }
+    si input.left {
+        amount ← amount - 1.0
+    }
     redde amount
 }
 
-functio vehicle_box_at(
-    f32 x,
-    f32 y,
-    f32 z,
-    f32 heading_degrees
-) → triga.Box3 {
+functio vehicle_box_at(f32 x, f32 y, f32 z, f32 heading_degrees) → triga.Box3 {
     fixum triga.Vector3 forward ← triga.camera_forward_planus_ex_yaw(heading_degrees)
     fixum triga.Vector3 right ← triga.camera_right_ex_yaw(heading_degrees)
-    fixum f32 half_x ← forward.x.absolutum() * vehicle_half_length()
-        + right.x.absolutum() * vehicle_half_width()
-    fixum f32 half_z ← forward.z.absolutum() * vehicle_half_length()
-        + right.z.absolutum() * vehicle_half_width()
-    redde triga.Box3 {
-        min = triga.vector3(x - half_x, y, z - half_z),
-        max = triga.vector3(x + half_x, y + 1.2 ∷ f32, z + half_z)
-    }
+    fixum f32 half_x ← forward.x.absolutum() * vehicle_half_length() + right.x.absolutum() * vehicle_half_width()
+    fixum f32 half_z ← forward.z.absolutum() * vehicle_half_length() + right.z.absolutum() * vehicle_half_width()
+    redde triga.Box3 { min = triga.vector3(x - half_x, y, z - half_z), max = triga.vector3(x + half_x, y + 1.2, z + half_z) }
 }
 
 functio vehicle_box(de Vehicle vehicle) → triga.Box3 {
     redde vehicle_box_at(vehicle.x, vehicle.y, vehicle.z, vehicle.heading_degrees)
 }
 
-functio vehicle_height() → f32 { redde 1.2 ∷ f32 }
+functio vehicle_height() → f32 {
+    redde 1.2
+}
 
 # The collision shape is the car's own rotated rectangle. An axis-aligned bound
 # of that rectangle would be up to twice its area at diagonal headings, so the
 # car would collide with geometry a metre clear of it, and the bound would grow
 # and shrink as the car turned.
-functio vehicle_footprint_at(
-    f32 x,
-    f32 y,
-    f32 z,
-    f32 heading_degrees
-) → city.Footprint {
-    redde city.Footprint {
-        centre = triga.vector3(x, y, z),
-        forward = triga.camera_forward_planus_ex_yaw(heading_degrees),
-        right = triga.camera_right_ex_yaw(heading_degrees),
-        half_length = vehicle_half_length(),
-        half_width = vehicle_half_width(),
-        height = vehicle_height()
-    }
+functio vehicle_footprint_at(f32 x, f32 y, f32 z, f32 heading_degrees) → city.Footprint {
+    redde city.Footprint { centre = triga.vector3(x, y, z), forward = triga.camera_forward_planus_ex_yaw(heading_degrees), right = triga.camera_right_ex_yaw(heading_degrees), half_length = vehicle_half_length(), half_width = vehicle_half_width(), height = vehicle_height() }
 }
 
 functio vehicle_footprint(de Vehicle vehicle) → city.Footprint {
-    redde vehicle_footprint_at(
-        vehicle.x,
-        vehicle.y,
-        vehicle.z,
-        vehicle.heading_degrees
-    )
+    redde vehicle_footprint_at(vehicle.x, vehicle.y, vehicle.z, vehicle.heading_degrees)
 }
 
-functio blocked_at(
-    de city.City map,
-    f32 x,
-    f32 y,
-    f32 z,
-    f32 heading_degrees
-) → bivalens {
+functio blocked_at(de city.City map, f32 x, f32 y, f32 z, f32 heading_degrees) → bivalens {
     redde city.city_collides_footprint(map, vehicle_footprint_at(x, y, z, heading_degrees))
 }
 
@@ -212,42 +200,22 @@ functio blocked_at(
 # places it with the vehicle model matrix, so no spawn position may leak into
 # the mesh or into the host.
 functio vehicle_local_box() → triga.Box3 {
-    redde vehicle_box_at(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32)
+    redde vehicle_box_at(0.0, 0.0, 0.0, 0.0)
 }
 
 functio spawn_vehicle() → Vehicle {
-    redde Vehicle {
-        x = -22.0 ∷ f32,
-        y = 0.2 ∷ f32,
-        z = 0.0 ∷ f32,
-        heading_degrees = 0.0 ∷ f32,
-        velocity_x = 0.0 ∷ f32,
-        velocity_z = 0.0 ∷ f32,
-        drift_amount = 0.0 ∷ f32,
-        collided = falsum
-    }
+    redde Vehicle { x = -22.0 ∷ f32, y = 0.2, z = 0.0, heading_degrees = 0.0, velocity_x = 0.0, velocity_z = 0.0, drift_amount = 0.0, collided = falsum }
 }
 
 functio chase_camera(de Vehicle vehicle) → ChaseCamera {
     fixum triga.Vector3 forward ← triga.camera_forward_planus_ex_yaw(vehicle.heading_degrees)
-    fixum triga.Vector3 target ← triga.vector3(vehicle.x, vehicle.y + 1.0 ∷ f32, vehicle.z)
-    redde ChaseCamera {
-        position = triga.vector3(
-            target.x - forward.x * 7.0 ∷ f32,
-            target.y + 4.0 ∷ f32,
-            target.z - forward.z * 7.0 ∷ f32
-        ),
-        target = target
-    }
+    fixum triga.Vector3 target ← triga.vector3(vehicle.x, vehicle.y + 1.0, vehicle.z)
+    redde ChaseCamera { position = triga.vector3(target.x - forward.x * 7.0, target.y + 4.0, target.z - forward.z * 7.0), target = target }
 }
 
 functio spawn_application() → Application {
     fixum Vehicle car ← spawn_vehicle()
-    redde Application {
-        input = empty_input(),
-        vehicle = car,
-        camera = chase_camera(car)
-    }
+    redde Application { input = empty_input(), vehicle = car, camera = chase_camera(car) }
 }
 
 # Where the body ends up once this step's turn is resolved.
@@ -257,8 +225,12 @@ genus Turn {
     f32 z
 }
 
-functio turn_clearance_attempts() → numerus { redde 5 }
-functio turn_clearance_step() → f32 { redde 0.06 ∷ f32 }
+functio turn_clearance_attempts() → numerus {
+    redde 5
+}
+functio turn_clearance_step() → f32 {
+    redde 0.06
+}
 
 # Choose the heading for this step, edging back along the body axis if that is
 # what the turn needs.
@@ -269,85 +241,53 @@ functio turn_clearance_step() → f32 { redde 0.06 ∷ f32 }
 # would leave a car nosed into a wall unable to steer at all, which reads as
 # broken. A driver edges back to pivot, so try that first, and only keep the old
 # heading when even that has no room.
-functio resolve_turn(
-    de city.City map,
-    de Vehicle vehicle,
-    f32 desired_heading
-) → Turn {
+functio resolve_turn(de city.City map, de Vehicle vehicle, f32 desired_heading) → Turn {
     si blocked_at(map, vehicle.x, vehicle.y, vehicle.z, desired_heading) ≡ falsum {
-        redde Turn {
-            heading_degrees = desired_heading,
-            x = vehicle.x,
-            z = vehicle.z
-        }
+        redde Turn { heading_degrees = desired_heading, x = vehicle.x, z = vehicle.z }
     }
 
     fixum triga.Vector3 heading_forward ← triga.camera_forward_planus_ex_yaw(desired_heading)
     varia numerus attempt ← 0
-    varia f32 retreat ← 0.0 ∷ f32
+    varia f32 retreat ← 0.0
     dum attempt < turn_clearance_attempts() {
         retreat ← retreat + turn_clearance_step()
         fixum f32 eased_x ← vehicle.x - heading_forward.x * retreat
         fixum f32 eased_z ← vehicle.z - heading_forward.z * retreat
         si blocked_at(map, eased_x, vehicle.y, eased_z, desired_heading) ≡ falsum {
-            redde Turn {
-                heading_degrees = desired_heading,
-                x = eased_x,
-                z = eased_z
-            }
+            redde Turn { heading_degrees = desired_heading, x = eased_x, z = eased_z }
         }
         attempt ← attempt + 1
     }
 
-    redde Turn {
-        heading_degrees = vehicle.heading_degrees,
-        x = vehicle.x,
-        z = vehicle.z
-    }
+    redde Turn { heading_degrees = vehicle.heading_degrees, x = vehicle.x, z = vehicle.z }
 }
 
 functio drive_acceleration(f32 throttle, f32 forward_speed) → f32 {
-    si throttle > 0.0 { redde forward_acceleration() }
-    si throttle < 0.0 {
-        si forward_speed > 0.5 { redde 0.0 ∷ f32 - brake_acceleration() }
-        redde 0.0 ∷ f32 - reverse_acceleration()
+    si throttle > 0.0 {
+        redde forward_acceleration()
     }
-    redde 0.0 ∷ f32
+    si throttle < 0.0 {
+        si forward_speed > 0.5 {
+            redde 0.0 - brake_acceleration()
+        }
+        redde 0.0 - reverse_acceleration()
+    }
+    redde 0.0
 }
 
-functio step_vehicle(
-    de city.City map,
-    de Vehicle vehicle,
-    de InputState input,
-    f32 delta_seconds
-) → Vehicle {
+functio step_vehicle(de city.City map, de Vehicle vehicle, de InputState input, f32 delta_seconds) → Vehicle {
     fixum f32 dt ← clamp_delta_seconds(delta_seconds)
     fixum triga.Vector3 old_forward ← triga.camera_forward_planus_ex_yaw(vehicle.heading_degrees)
-    fixum triga.Vector3 old_velocity ← triga.vector3(vehicle.velocity_x, 0.0 ∷ f32, vehicle.velocity_z)
+    fixum triga.Vector3 old_velocity ← triga.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z)
     fixum f32 old_forward_speed ← triga.vector3_dot(old_velocity, old_forward)
-    fixum f32 speed_ratio ← clamp(
-        old_forward_speed.absolutum() / steering_reference_speed(),
-        minimum_steering_authority(),
-        1.0 ∷ f32
-    )
-    varia f32 travel_sign ← 1.0 ∷ f32
-    si old_forward_speed < 0.0 { travel_sign ← 0.0 ∷ f32 - 1.0 ∷ f32 }
-    fixum bivalens embedded ← blocked_at(
-        map,
-        vehicle.x,
-        vehicle.y,
-        vehicle.z,
-        vehicle.heading_degrees
-    )
-    fixum f32 desired_heading ← normalize_heading_degrees(
-        vehicle.heading_degrees
-            + steering_amount(input) * steering_rate_degrees() * dt * speed_ratio * travel_sign
-    )
-    varia Turn turn ← Turn {
-        heading_degrees = desired_heading,
-        x = vehicle.x,
-        z = vehicle.z
+    fixum f32 speed_ratio ← clamp(old_forward_speed.absolutum() / steering_reference_speed(), minimum_steering_authority(), 1.0)
+    varia f32 travel_sign ← 1.0
+    si old_forward_speed < 0.0 {
+        travel_sign ← 0.0 - 1.0
     }
+    fixum bivalens embedded ← blocked_at(map, vehicle.x, vehicle.y, vehicle.z, vehicle.heading_degrees)
+    fixum f32 desired_heading ← normalize_heading_degrees(vehicle.heading_degrees + (((steering_amount(input) * steering_rate_degrees()) * dt) * speed_ratio) * travel_sign)
+    varia Turn turn ← Turn { heading_degrees = desired_heading, x = vehicle.x, z = vehicle.z }
     si embedded ≡ falsum {
         turn ← resolve_turn(map, vehicle, desired_heading)
     }
@@ -358,16 +298,20 @@ functio step_vehicle(
     varia f32 forward_speed ← triga.vector3_dot(old_velocity, forward)
     varia f32 lateral_speed ← triga.vector3_dot(old_velocity, right)
     forward_speed ← forward_speed + drive_acceleration(throttle_amount(input), forward_speed) * dt
-    forward_speed ← clamp(forward_speed, 0.0 ∷ f32 - maximum_reverse_speed(), maximum_forward_speed())
+    forward_speed ← clamp(forward_speed, 0.0 - maximum_reverse_speed(), maximum_forward_speed())
 
-    varia f32 lateral_retention ← 1.0 ∷ f32 - 8.0 ∷ f32 * dt
-    si input.handbrake { lateral_retention ← 1.0 ∷ f32 - 1.5 ∷ f32 * dt }
-    lateral_retention ← clamp(lateral_retention, 0.0 ∷ f32, 1.0 ∷ f32)
+    varia f32 lateral_retention ← 1.0 - 8.0 * dt
+    si input.handbrake {
+        lateral_retention ← 1.0 - 1.5 * dt
+    }
+    lateral_retention ← clamp(lateral_retention, 0.0, 1.0)
     lateral_speed ← lateral_speed * lateral_retention
 
-    varia f32 drag_retention ← 1.0 ∷ f32 - 0.6 ∷ f32 * dt
-    si input.handbrake { drag_retention ← 1.0 ∷ f32 - 1.0 ∷ f32 * dt }
-    drag_retention ← clamp(drag_retention, 0.0 ∷ f32, 1.0 ∷ f32)
+    varia f32 drag_retention ← 1.0 - 0.6 * dt
+    si input.handbrake {
+        drag_retention ← 1.0 - 1.0 * dt
+    }
+    drag_retention ← clamp(drag_retention, 0.0, 1.0)
     forward_speed ← forward_speed * drag_retention
     lateral_speed ← lateral_speed * drag_retention
 
@@ -383,15 +327,9 @@ functio step_vehicle(
     # body where it is and bleeds off most of the impact speed.
     varia f32 final_x ← base_x
     varia f32 final_z ← base_z
-    varia f32 final_velocity_x ← velocity_x * 0.2 ∷ f32
-    varia f32 final_velocity_z ← velocity_z * 0.2 ∷ f32
-    fixum bivalens full_move_clear ← blocked_at(
-        map,
-        proposed_x,
-        vehicle.y,
-        proposed_z,
-        next_heading
-    ) ≡ falsum
+    varia f32 final_velocity_x ← velocity_x * 0.2
+    varia f32 final_velocity_z ← velocity_z * 0.2
+    fixum bivalens full_move_clear ← blocked_at(map, proposed_x, vehicle.y, proposed_z, next_heading) ≡ falsum
     varia bivalens resolved ← full_move_clear
 
     si full_move_clear {
@@ -415,52 +353,28 @@ functio step_vehicle(
 
     # Blocked head-on but one axis still clears, so slide along the obstacle.
     # Rejecting both axes stops the car dead on any wall it touches at an angle.
-    si resolved ≡ falsum
-        et blocked_at(map, proposed_x, vehicle.y, base_z, next_heading) ≡ falsum {
+    si resolved ≡ falsum et blocked_at(map, proposed_x, vehicle.y, base_z, next_heading) ≡ falsum {
         final_x ← proposed_x
         final_velocity_x ← velocity_x
-        final_velocity_z ← 0.0 ∷ f32
+        final_velocity_z ← 0.0
         resolved ← verum
     }
 
-    si resolved ≡ falsum
-        et blocked_at(map, base_x, vehicle.y, proposed_z, next_heading) ≡ falsum {
+    si resolved ≡ falsum et blocked_at(map, base_x, vehicle.y, proposed_z, next_heading) ≡ falsum {
         final_z ← proposed_z
-        final_velocity_x ← 0.0 ∷ f32
+        final_velocity_x ← 0.0
         final_velocity_z ← velocity_z
         resolved ← verum
     }
 
-    redde Vehicle {
-        x = final_x,
-        y = vehicle.y,
-        z = final_z,
-        heading_degrees = next_heading,
-        velocity_x = final_velocity_x,
-        velocity_z = final_velocity_z,
-        drift_amount = triga.vector3_dot(
-            triga.vector3(final_velocity_x, 0.0 ∷ f32, final_velocity_z),
-            right
-        ).absolutum(),
-        collided = full_move_clear ≡ falsum
-    }
+    redde Vehicle { x = final_x, y = vehicle.y, z = final_z, heading_degrees = next_heading, velocity_x = final_velocity_x, velocity_z = final_velocity_z, drift_amount = triga.vector3_dot(triga.vector3(final_velocity_x, 0.0, final_velocity_z), right).absolutum(), collided = full_move_clear ≡ falsum }
 }
 
-functio step_application(
-    de city.City map,
-    de Application app,
-    f32 delta_seconds
-) → Application {
+functio step_application(de city.City map, de Application app, f32 delta_seconds) → Application {
     fixum Vehicle next_vehicle ← step_vehicle(map, app.vehicle, app.input, delta_seconds)
-    redde Application {
-        input = app.input,
-        vehicle = next_vehicle,
-        camera = chase_camera(next_vehicle)
-    }
+    redde Application { input = app.input, vehicle = next_vehicle, camera = chase_camera(next_vehicle) }
 }
 
 functio speed(de Vehicle vehicle) → f32 {
-    redde triga.vector3_longitudo(
-        triga.vector3(vehicle.velocity_x, 0.0 ∷ f32, vehicle.velocity_z)
-    )
+    redde triga.vector3_longitudo(triga.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z))
 }
