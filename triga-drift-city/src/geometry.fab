@@ -1,0 +1,168 @@
+importa ex "triga:triga" privata triga
+importa ex "triga:geometry" privata geometry
+
+# ---------------------------------------------------------------------------
+# _box_corner_positions — shared private helper that returns the 8 corner
+# positions of a Box3 as a flat [x,y,z, x,y,z, …] array of length 24.
+#
+# Corner order (CCW winding):
+#   0 (x1,y1,z1)  1 (x2,y1,z1)  2 (x2,y2,z1)  3 (x1,y2,z1)  front
+#   4 (x1,y1,z2)  5 (x2,y1,z2)  6 (x2,y2,z2)  7 (x1,y2,z2)  back
+# ---------------------------------------------------------------------------
+@ privata
+functio _box_corner_positions(
+    f32 x1, f32 y1, f32 z1,
+    f32 x2, f32 y2, f32 z2
+) → lista<f32> {
+    varia lista<f32> p ← vacua
+    p.appende(x1)
+    p.appende(y1)
+    p.appende(z1)
+    p.appende(x2)
+    p.appende(y1)
+    p.appende(z1)
+    p.appende(x2)
+    p.appende(y2)
+    p.appende(z1)
+    p.appende(x1)
+    p.appende(y2)
+    p.appende(z1)
+    p.appende(x1)
+    p.appende(y1)
+    p.appende(z2)
+    p.appende(x2)
+    p.appende(y1)
+    p.appende(z2)
+    p.appende(x2)
+    p.appende(y2)
+    p.appende(z2)
+    p.appende(x1)
+    p.appende(y2)
+    p.appende(z2)
+    redde p
+}
+
+# ---------------------------------------------------------------------------
+# _box_indices — 36 index values (12 triangles, CCW winding).
+# ---------------------------------------------------------------------------
+@ privata
+functio _box_indices() → lista<u32> {
+    varia lista<u32> idx ← vacua
+    # Front (z=z1): 0-1-2, 0-2-3
+    idx.appende(0)
+    idx.appende(1)
+    idx.appende(2)
+    idx.appende(0)
+    idx.appende(2)
+    idx.appende(3)
+    # Back  (z=z2): 4-5-6, 4-6-7
+    idx.appende(4)
+    idx.appende(5)
+    idx.appende(6)
+    idx.appende(4)
+    idx.appende(6)
+    idx.appende(7)
+    # Left  (x=x1): 4-0-3, 4-3-7
+    idx.appende(4)
+    idx.appende(0)
+    idx.appende(3)
+    idx.appende(4)
+    idx.appende(3)
+    idx.appende(7)
+    # Right (x=x2): 1-5-6, 1-6-2
+    idx.appende(1)
+    idx.appende(5)
+    idx.appende(6)
+    idx.appende(1)
+    idx.appende(6)
+    idx.appende(2)
+    # Top   (y=y2): 3-2-6, 3-6-7
+    idx.appende(3)
+    idx.appende(2)
+    idx.appende(6)
+    idx.appende(3)
+    idx.appende(6)
+    idx.appende(7)
+    # Bottom(y=y1): 4-5-1, 4-1-0
+    idx.appende(4)
+    idx.appende(5)
+    idx.appende(1)
+    idx.appende(4)
+    idx.appende(1)
+    idx.appende(0)
+    redde idx
+}
+
+# ---------------------------------------------------------------------------
+# _box_color_array — a flat [r,g,b, …] of length 24 (one per corner × 8).
+# ---------------------------------------------------------------------------
+@ privata
+functio _box_color_array(f32 r, f32 g, f32 b) → lista<f32> {
+    varia lista<f32> c ← vacua
+    varia numerus i ← 0
+    dum i < 8 {
+        c.appende(r)
+        c.appende(g)
+        c.appende(b)
+        i ← i + 1
+    }
+    redde c
+}
+
+# ---------------------------------------------------------------------------
+# box_geometry — produces an indexed triangle BufferGeometry for a
+# coloured box from a triga.Box3 and an RGB colour (0..1).
+#
+# 8 unique vertices (one per corner), 36 indices (12 triangles, 2 per face
+# × 6 faces).  Vertex format: position (location 0, Float32x3) + colour
+# (location 1, Float32x3), stride 24 bytes.
+# ---------------------------------------------------------------------------
+functio box_geometry(
+    de triga.Box3 bounds,
+    f32 r, f32 g, f32 b
+) → geometry.BufferGeometry ∪ nihil {
+    si triga.box3_validum(bounds) ≡ falsum ergo redde nihil
+
+    fixum lista<f32> positions ← _box_corner_positions(
+        bounds.min.x, bounds.min.y, bounds.min.z,
+        bounds.max.x, bounds.max.y, bounds.max.z
+    )
+    fixum lista<f32> colors ← _box_color_array(r, g, b)
+    fixum lista<u32> indices ← _box_indices()
+
+    redde geometry.colored_indexed_geometry(8, positions, colors, indices)
+}
+
+# ---------------------------------------------------------------------------
+# box_vertex_payload — computes the interleaved vertex payload
+# [px,py,pz, cr,cg,cb, …] directly from Box3 and colour, without needing
+# to extract attribute data from a BufferGeometry.
+#
+# Payload stride: 6 f32 (24 bytes) — position (3) + colour (3) per vertex.
+# ---------------------------------------------------------------------------
+functio box_vertex_payload(
+    de triga.Box3 bounds,
+    f32 r, f32 g, f32 b
+) → lista<f32> ∪ nihil {
+    si triga.box3_validum(bounds) ≡ falsum ergo redde nihil
+
+    fixum lista<f32> positions ← _box_corner_positions(
+        bounds.min.x, bounds.min.y, bounds.min.z,
+        bounds.max.x, bounds.max.y, bounds.max.z
+    )
+
+    # Interleave: [px,py,pz, cr,cg,cb, …] for each vertex
+    varia lista<f32> payload ← vacua
+    varia numerus k ← 0
+    dum k < 8 {
+        fixum numerus base ← k * 3
+        payload.appende(positions[base])
+        payload.appende(positions[base + 1])
+        payload.appende(positions[base + 2])
+        payload.appende(r)
+        payload.appende(g)
+        payload.appende(b)
+        k ← k + 1
+    }
+    redde payload
+}

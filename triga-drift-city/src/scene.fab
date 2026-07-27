@@ -1,0 +1,132 @@
+importa ex "triga:triga" privata triga
+importa ex "triga:geometry" privata geometry
+importa ex "./geometry" privata geom
+importa ex "./city" privata city
+
+# ---------------------------------------------------------------------------
+# SceneObjectGeometry — one renderable object in the greybox scene.
+# ---------------------------------------------------------------------------
+genus SceneObjectGeometry {
+    textus name
+    numerus vertex_count
+    numerus index_count
+    numerus vertex_byte_count
+    numerus index_byte_count
+    lista<f32> vertex_payload
+    lista<u32> index_payload
+    triga.Color color
+    triga.Box3 bounds
+}
+
+# ---------------------------------------------------------------------------
+# SceneGeometryManifest — collection of all greybox scene objects.
+# ---------------------------------------------------------------------------
+genus SceneGeometryManifest {
+    lista<SceneObjectGeometry> objects
+}
+
+# ---------------------------------------------------------------------------
+# _add_object — appends one SceneObjectGeometry to the list.
+# Skips on geometry/payload failure (defensive; valid inputs never fail).
+# ---------------------------------------------------------------------------
+functio _add_object(
+    lista<SceneObjectGeometry> objects,
+    textus name,
+    de triga.Box3 bounds,
+    f32 red, f32 green, f32 blue
+) → lista<SceneObjectGeometry> {
+    fixum geometry.BufferGeometry ∪ nihil geo_result ←
+        geom.box_geometry(bounds, red, green, blue)
+    si geo_result est nihil ergo redde objects
+
+    fixum lista<f32> ∪ nihil vp_result ←
+        geom.box_vertex_payload(bounds, red, green, blue)
+    si vp_result est nihil ergo redde objects
+
+    fixum geometry.BufferGeometry gg ← geometry.BufferGeometry {
+        topology = geo_result!.topology,
+        vertex_count = geo_result!.vertex_count,
+        attributes = geo_result!.attributes,
+        indexed = geo_result!.indexed,
+        indices = geo_result!.indices,
+        draw_range = geo_result!.draw_range,
+        groups = geo_result!.groups
+    }
+
+    fixum numerus ∪ nihil vbc ← geometry.geometry_vertex_payload_byte_count(gg)
+    si vbc est nihil ergo redde objects
+
+    fixum numerus ∪ nihil ibc ← geometry.geometry_index_payload_byte_count(gg)
+    si ibc est nihil ergo redde objects
+
+    # Copy payload values through indexed access on the union type
+    varia lista<f32> payload ← vacua
+    varia numerus k ← 0
+    dum k < 48 {
+        payload.appende(vp_result![k])
+        k ← k + 1
+    }
+
+    objects.appende(SceneObjectGeometry {
+        name = name,
+        vertex_count = gg.vertex_count,
+        index_count = gg.indices.longitudo(),
+        vertex_byte_count = vbc vel 0,
+        index_byte_count = ibc vel 0,
+        vertex_payload = payload,
+        index_payload = gg.indices,
+        color = triga.Color { r = red, g = green, b = blue },
+        bounds = bounds
+    })
+    redde objects
+}
+
+# ---------------------------------------------------------------------------
+# greybox_scene_geometry — assembles the complete greybox scene geometry
+# from city facts.
+#
+# Produces 10 SceneObjectGeometry entries:
+#   - 4 road segments   (mid-gray  0.4, 0.4, 0.4)
+#   - 5 buildings       (dark gray 0.2, 0.2, 0.25)
+#   - 1 car             (red       0.8, 0.1, 0.1)
+# ---------------------------------------------------------------------------
+functio greybox_scene_geometry(
+    de city.City c,
+    de triga.Box3 car_box
+) → SceneGeometryManifest {
+    varia lista<SceneObjectGeometry> objects ← vacua
+
+    # Roads: mid-gray (0.4, 0.4, 0.4)
+    varia numerus ri ← 0
+    dum ri < c.roads.longitudo() {
+        objects ← _add_object(
+            objects,
+            "road-§"(ri ↦ textus),
+            c.roads[ri],
+            0.4 ∷ f32, 0.4 ∷ f32, 0.4 ∷ f32
+        )
+        ri ← ri + 1
+    }
+
+    # Buildings: dark gray (0.2, 0.2, 0.25)
+    varia numerus bi ← 0
+    dum bi < c.buildings.longitudo() {
+        objects ← _add_object(
+            objects,
+            "building-§"(bi ↦ textus),
+            c.buildings[bi],
+            0.2 ∷ f32, 0.2 ∷ f32, 0.25 ∷ f32
+        )
+        bi ← bi + 1
+    }
+
+    # Car: red (0.8, 0.1, 0.1)
+    objects ← _add_object(
+        objects,
+        "car",
+        car_box,
+        0.8 ∷ f32, 0.1 ∷ f32, 0.1 ∷ f32
+    )
+
+    redde SceneGeometryManifest { objects = objects }
+}

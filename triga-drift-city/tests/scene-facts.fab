@@ -1,0 +1,134 @@
+importa ex "triga:triga" privata triga
+importa ex "triga:geometry" privata geometry
+importa ex "./geometry" privata geom
+importa ex "./scene" privata scene
+importa ex "./city" privata city
+importa ex "./vehicle" privata vehicle
+
+incipit {
+    # ---- box_geometry produces valid indexed geometry -----------------------
+    fixum triga.Box3 test_box ← triga.Box3 {
+        min = triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
+        max = triga.vector3(2.0 ∷ f32, 2.0 ∷ f32, 2.0 ∷ f32)
+    }
+    fixum geometry.BufferGeometry ∪ nihil geo_result ← geom.box_geometry(
+        test_box,
+        0.5 ∷ f32, 0.5 ∷ f32, 0.5 ∷ f32
+    )
+    adfirma (geo_result est nihil) ≡ falsum,
+        "box_geometry must return a BufferGeometry for valid Box3 input"
+
+    fixum geometry.BufferGeometry bg ← geometry.BufferGeometry {
+        topology = geo_result!.topology,
+        vertex_count = geo_result!.vertex_count,
+        attributes = geo_result!.attributes,
+        indexed = geo_result!.indexed,
+        indices = geo_result!.indices,
+        draw_range = geo_result!.draw_range,
+        groups = geo_result!.groups
+    }
+    adfirma bg.vertex_count ≡ 8,
+        "box_geometry must produce 8 unique corner vertices"
+    adfirma bg.indexed,
+        "box_geometry must produce indexed geometry"
+    adfirma bg.indices.longitudo() ≡ 36,
+        "box_geometry must produce 36 indices (12 triangles, 2 per face × 6 faces)"
+
+    # ---- box_vertex_payload produces interleaved payload --------------------
+    fixum lista<f32> ∪ nihil vp_result ← geom.box_vertex_payload(
+        test_box,
+        0.5 ∷ f32, 0.5 ∷ f32, 0.5 ∷ f32
+    )
+    adfirma (vp_result est nihil) ≡ falsum,
+        "box_vertex_payload must return a payload for valid Box3 input"
+
+    # Copy payload through indexed access on union type
+    fixum numerus expected_floats ← 8 * 6
+    varia lista<f32> vp_values ← vacua
+    varia numerus fi ← 0
+    dum fi < expected_floats {
+        vp_values.appende(vp_result![fi])
+        fi ← fi + 1
+    }
+    adfirma vp_values.longitudo() ≡ expected_floats,
+        "vertex payload must have 8 vertices × 6 floats (pos+col)"
+
+    # ---- payload byte counts ------------------------------------------------
+    fixum numerus ∪ nihil vbc ← geometry.geometry_vertex_payload_byte_count(bg)
+    adfirma (vbc est nihil) ≡ falsum,
+        "geometry_vertex_payload_byte_count must succeed"
+    fixum numerus vertex_bytes ← vbc vel 0
+    adfirma vertex_bytes ≡ 8 * 6 * 4,
+        "vertex byte count: 8 verts × 6 floats × 4 bytes = 192"
+    fixum numerus ∪ nihil ibc ← geometry.geometry_index_payload_byte_count(bg)
+    adfirma (ibc est nihil) ≡ falsum,
+        "geometry_index_payload_byte_count must succeed"
+    fixum numerus index_bytes ← ibc vel 0
+    adfirma index_bytes ≡ 36 * 4,
+        "index byte count: 36 indices × 4 bytes = 144"
+
+    # ---- greybox scene manifest: 10 objects ---------------------------------
+    fixum city.City map ← city.drift_city()
+    fixum triga.Box3 car_box ← vehicle.vehicle_box(vehicle.spawn_vehicle())
+    fixum scene.SceneGeometryManifest manifest ←
+        scene.greybox_scene_geometry(map, car_box)
+
+    adfirma manifest.objects.longitudo() ≡ 10,
+        "greybox_scene_geometry: 4 roads + 5 buildings + 1 car = 10 objects"
+
+    # ---- each object has valid geometry -------------------------------------
+    varia numerus i ← 0
+    dum i < manifest.objects.longitudo() {
+        fixum scene.SceneObjectGeometry obj ← manifest.objects[i]
+        adfirma obj.vertex_count ≡ 8,
+            "every object: 8 unique vertices"
+        adfirma obj.index_count ≡ 36,
+            "every object: 36 indices"
+        adfirma obj.vertex_byte_count > 0,
+            "every object: positive vertex byte count"
+        adfirma obj.index_byte_count > 0,
+            "every object: positive index byte count"
+        adfirma obj.vertex_payload.longitudo() > 0,
+            "every object: non-empty vertex payload"
+        adfirma obj.index_payload.longitudo() ≡ 36,
+            "every object: 36 index entries"
+        adfirma triga.box3_validum(obj.bounds),
+            "every object: valid bounds"
+        i ← i + 1
+    }
+
+    # ---- color: roads mid-gray (0.4, 0.4, 0.4) ----------------------------
+    varia numerus ri ← 0
+    dum ri < 4 {
+        fixum scene.SceneObjectGeometry road ← manifest.objects[ri]
+        adfirma road.color.r ≡ 0.4 ∷ f32,
+            "road color.r = 0.4"
+        adfirma road.color.g ≡ 0.4 ∷ f32,
+            "road color.g = 0.4"
+        adfirma road.color.b ≡ 0.4 ∷ f32,
+            "road color.b = 0.4"
+        ri ← ri + 1
+    }
+
+    # ---- color: buildings dark gray (0.2, 0.2, 0.25) -----------------------
+    varia numerus bi ← 0
+    dum bi < 5 {
+        fixum scene.SceneObjectGeometry building ← manifest.objects[4 + bi]
+        adfirma building.color.r ≡ 0.2 ∷ f32,
+            "building color.r = 0.2"
+        adfirma building.color.g ≡ 0.2 ∷ f32,
+            "building color.g = 0.2"
+        adfirma building.color.b ≡ 0.25 ∷ f32,
+            "building color.b = 0.25"
+        bi ← bi + 1
+    }
+
+    # ---- color: car red (0.8, 0.1, 0.1) ------------------------------------
+    fixum scene.SceneObjectGeometry car ← manifest.objects[9]
+    adfirma car.color.r ≡ 0.8 ∷ f32,
+        "car color.r = 0.8"
+    adfirma car.color.g ≡ 0.1 ∷ f32,
+        "car color.g = 0.1"
+    adfirma car.color.b ≡ 0.1 ∷ f32,
+        "car color.b = 0.1"
+}
