@@ -47,9 +47,12 @@ LOCK
 for source in \
   "$APP_DIR/src/city.fab" \
   "$APP_DIR/src/vehicle.fab" \
+  "$APP_DIR/src/geometry.fab" \
+  "$APP_DIR/src/scene.fab" \
   "$APP_DIR/src/main.fab" \
   "$APP_DIR/tests/city-facts.fab" \
-  "$APP_DIR/tests/vehicle-facts.fab"
+  "$APP_DIR/tests/vehicle-facts.fab" \
+  "$APP_DIR/tests/scene-facts.fab"
 do
   echo "checking ${source#$APP_DIR/}"
   "$FABER_BIN" check "$source"
@@ -60,6 +63,9 @@ echo "running compiled city facts"
 
 echo "running compiled vehicle facts"
 "$FABER_BIN" run --compile "$APP_DIR/tests/vehicle-facts.fab"
+
+echo "running compiled scene geometry facts"
+"$FABER_BIN" run --compile "$APP_DIR/tests/scene-facts.fab"
 
 echo "building browser package"
 (
@@ -210,6 +216,61 @@ ds = pipeline.get('depth_stencil')
 assert ds is not None, 'depth/stencil must be present'
 assert ds.get('depth_write_enabled') is True, 'depth write must be enabled'
 print('  reflection.json: schema OK')
+"
+
+# --- U5 stage checks: product build shader artifacts ---
+echo "checking U5: dist/generated/ contains kernel.wgsl and reflection.json"
+test -d "$APP_DIR/dist/generated"
+test -f "$APP_DIR/dist/generated/kernel.wgsl"
+test -s "$APP_DIR/dist/generated/kernel.wgsl"
+grep -q '@vertex' "$APP_DIR/dist/generated/kernel.wgsl"
+grep -q '@fragment' "$APP_DIR/dist/generated/kernel.wgsl"
+echo "  dist/generated/kernel.wgsl: exists with @vertex and @fragment"
+
+test -f "$APP_DIR/dist/generated/reflection.json"
+python3 -m json.tool "$APP_DIR/dist/generated/reflection.json" > /dev/null
+echo "  dist/generated/reflection.json: valid JSON"
+
+echo "checking U5: product.json has stage=2 and WGSL+reflection artifacts"
+test -f "$APP_DIR/dist/product.json"
+python3 -c "
+import json
+p = json.load(open('$APP_DIR/dist/product.json'))
+assert p['version'] == 1, f'version={p[\"version\"]}'
+assert p['stage'] == 2, f'want stage=2, got {p[\"stage\"]}'
+assert 'next_stage_artifacts' not in p, 'next_stage_artifacts must be removed in stage 2'
+artifacts = p.get('artifacts', [])
+paths = [a['path'] for a in artifacts]
+kind_map = {a['kind']: a for a in artifacts}
+assert 'generated/kernel.wgsl' in paths, f'kernel.wgsl missing from artifacts: {paths}'
+assert 'generated/reflection.json' in paths, f'reflection.json missing from artifacts: {paths}'
+assert kind_map['wgsl']['kind'] == 'wgsl', 'wgsl artifact kind mismatch'
+assert kind_map['reflection']['kind'] == 'reflection', 'reflection artifact kind mismatch'
+assert kind_map['wgsl']['size'] > 0, 'wgsl artifact has zero size'
+assert kind_map['reflection']['size'] > 0, 'reflection artifact has zero size'
+print('  product.json: stage=2, artifacts include kernel.wgsl and reflection.json')
+"
+
+echo "checking U5: product.json also has esm-entry, controller-manifest, host-runtime"
+python3 -c "
+import json
+p = json.load(open('$APP_DIR/dist/product.json'))
+kinds = {a['kind'] for a in p['artifacts']}
+assert 'esm-entry' in kinds, 'esm-entry missing'
+assert 'controller-manifest' in kinds, 'controller-manifest missing'
+assert 'host-runtime' in kinds, 'host-runtime missing'
+print('  product.json: core artifacts present')
+"
+
+echo "checking U5: generated artifacts are in sync with test-data reference"
+python3 -c "
+ref = open('$APP_DIR/src/shaders/test-data/kernel.wgsl', 'rb').read()
+gen = open('$APP_DIR/dist/generated/kernel.wgsl', 'rb').read()
+assert ref == gen, 'kernel.wgsl mismatch between test-data and dist/generated'
+ref = open('$APP_DIR/src/shaders/test-data/reflection.json', 'rb').read()
+gen = open('$APP_DIR/dist/generated/reflection.json', 'rb').read()
+assert ref == gen, 'reflection.json mismatch between test-data and dist/generated'
+print('  generated artifacts match reference artifacts')
 "
 
 echo "triga-drift-city: ok"
