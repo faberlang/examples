@@ -1,0 +1,41 @@
+importa ex "triga:geometry" privata geometry
+
+# ---------------------------------------------------------------------------
+# Greybox vertex shader
+#
+# Declares vertex input layout for position (location 0) and color (location
+# 1), and binds a transform storage buffer (group 0, binding 0) with 64 f32
+# values (model matrix + view-projection matrix).
+#
+# Radix emits the WGSL vertex entry body from these reflection facts combined
+# with the default transform-storage and pipeline facts.
+# ---------------------------------------------------------------------------
+
+# Minimal sentinel BufferGeometry for triga API call resolution.
+fixum geometry.BufferGeometry ∪ nihil _g ← geometry.box_geometry(
+    1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32
+)
+
+# Vertex input 0: position at shader location 0, Float32x3 (code 3),
+# offset 0 bytes, stride 24 (6 floats × 4 B = position + color).
+adfirma geometry.geometry_vertex_layout_matches(
+    _g, 0, "position", 0, 3, 0, 24, 1
+)
+
+# Vertex input 1: color at shader location 1, Float32x3 (code 3),
+# offset 12 bytes, stride 24.
+adfirma geometry.geometry_vertex_layout_matches(
+    _g, 1, "color", 1, 3, 12, 24, 1
+)
+
+@vertex
+functio greybox_vertex() → vacuum { }
+
+# ---------------------------------------------------------------------------
+# Greybox fragment shader
+#
+# Receives the interpolated color varying from the vertex stage and outputs
+# to colour attachment location 0 (float32x4).
+# ---------------------------------------------------------------------------
+@fragment
+functio greybox_fragment() → vacuum { }

@@ -170,4 +170,46 @@ if (!ok) {
 console.log('  controller U4 checks ok');
 "
 
+# --- U1 shader pipeline checks ---
+echo "checking U1: shader source exists with @vertex and @fragment annotations"
+test -f "$APP_DIR/src/shaders/greybox.fab"
+grep -q '@vertex' "$APP_DIR/src/shaders/greybox.fab"
+grep -q '@fragment' "$APP_DIR/src/shaders/greybox.fab"
+grep -q 'adfirma geometry.geometry_vertex_layout_matches' "$APP_DIR/src/shaders/greybox.fab"
+
+echo "checking U1: reference compiled WGSL exists in test-data/"
+test -f "$APP_DIR/src/shaders/test-data/kernel.wgsl"
+grep -q '@vertex' "$APP_DIR/src/shaders/test-data/kernel.wgsl"
+grep -q '@fragment' "$APP_DIR/src/shaders/test-data/kernel.wgsl"
+grep -q 'storage' "$APP_DIR/src/shaders/test-data/kernel.wgsl"
+grep -q '@group(0) @binding(0)' "$APP_DIR/src/shaders/test-data/kernel.wgsl"
+echo "  kernel.wgsl: has @vertex, @fragment, storage, group/binding"
+
+echo "checking U1: reference reflection JSON exists in test-data/"
+test -f "$APP_DIR/src/shaders/test-data/reflection.json"
+python3 -m json.tool "$APP_DIR/src/shaders/test-data/reflection.json" > /dev/null
+python3 -c "
+import json
+r = json.load(open('$APP_DIR/src/shaders/test-data/reflection.json'))
+kernels = r.get('kernels', [])
+assert len(kernels) == 2, f'want 2 kernels, got {len(kernels)}'
+stages = [k['shader_stage'] for k in kernels]
+assert 'vertex' in stages, f'vertex stage missing: {stages}'
+assert 'fragment' in stages, f'fragment stage missing: {stages}'
+vert = [k for k in kernels if k['shader_stage'] == 'vertex'][0]
+frag = [k for k in kernels if k['shader_stage'] == 'fragment'][0]
+vert_inputs = vert.get('vertex_inputs', [])
+vert_locs = [v['location'] for v in vert_inputs]
+assert 0 in vert_locs, f'vertex input location 0 missing'
+assert 1 in vert_locs, f'vertex input location 1 missing'
+frag_outputs = frag.get('fragment_outputs', [])
+assert len(frag_outputs) >= 1, 'fragment needs at least 1 output'
+pipeline = r.get('pipeline')
+assert pipeline is not None, 'pipeline reflection must be present'
+ds = pipeline.get('depth_stencil')
+assert ds is not None, 'depth/stencil must be present'
+assert ds.get('depth_write_enabled') is True, 'depth write must be enabled'
+print('  reflection.json: schema OK')
+"
+
 echo "triga-drift-city: ok"
