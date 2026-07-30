@@ -1,5 +1,5 @@
-importa ex "triga:triga" privata triga
 importa ex "./city" privata city
+importa ex "triga:math" privata math
 
 genus InputState {
     bivalens forward
@@ -22,8 +22,8 @@ genus Vehicle {
 }
 
 genus ChaseCamera {
-    triga.Vector3 position
-    triga.Vector3 target
+    math.Vector3 position
+    math.Vector3 target
 }
 
 genus Application {
@@ -164,15 +164,15 @@ functio steering_amount(de InputState input) → f32 {
     redde amount
 }
 
-functio vehicle_box_at(f32 x, f32 y, f32 z, f32 heading_degrees) → triga.Box3 {
-    fixum triga.Vector3 forward ← triga.camera_forward_planus_ex_yaw(heading_degrees)
-    fixum triga.Vector3 right ← triga.camera_right_ex_yaw(heading_degrees)
+functio vehicle_box_at(f32 x, f32 y, f32 z, f32 heading_degrees) → math.Box3 {
+    fixum math.Vector3 forward ← math.camera_prorsum_planus_ex_yaw(heading_degrees)
+    fixum math.Vector3 right ← math.camera_dextra_ex_yaw(heading_degrees)
     fixum f32 half_x ← forward.x.absolutum() * vehicle_half_length() + right.x.absolutum() * vehicle_half_width()
     fixum f32 half_z ← forward.z.absolutum() * vehicle_half_length() + right.z.absolutum() * vehicle_half_width()
-    redde triga.Box3 { min = triga.vector3(x - half_x, y, z - half_z), max = triga.vector3(x + half_x, y + 1.2, z + half_z) }
+    redde math.Box3 { min = math.vector3(x - half_x, y, z - half_z), max = math.vector3(x + half_x, y + 1.2, z + half_z) }
 }
 
-functio vehicle_box(de Vehicle vehicle) → triga.Box3 {
+functio vehicle_box(de Vehicle vehicle) → math.Box3 {
     redde vehicle_box_at(vehicle.x, vehicle.y, vehicle.z, vehicle.heading_degrees)
 }
 
@@ -185,7 +185,7 @@ functio vehicle_height() → f32 {
 # car would collide with geometry a metre clear of it, and the bound would grow
 # and shrink as the car turned.
 functio vehicle_footprint_at(f32 x, f32 y, f32 z, f32 heading_degrees) → city.Footprint {
-    redde city.Footprint { centre = triga.vector3(x, y, z), forward = triga.camera_forward_planus_ex_yaw(heading_degrees), right = triga.camera_right_ex_yaw(heading_degrees), half_length = vehicle_half_length(), half_width = vehicle_half_width(), height = vehicle_height() }
+    redde city.Footprint { centre = math.vector3(x, y, z), forward = math.camera_prorsum_planus_ex_yaw(heading_degrees), right = math.camera_dextra_ex_yaw(heading_degrees), half_length = vehicle_half_length(), half_width = vehicle_half_width(), height = vehicle_height() }
 }
 
 functio vehicle_footprint(de Vehicle vehicle) → city.Footprint {
@@ -199,7 +199,7 @@ functio blocked_at(de city.City map, f32 x, f32 y, f32 z, f32 heading_degrees) �
 # Car body in model space: centred on x/z, resting on y = 0. The renderer
 # places it with the vehicle model matrix, so no spawn position may leak into
 # the mesh or into the host.
-functio vehicle_local_box() → triga.Box3 {
+functio vehicle_local_box() → math.Box3 {
     redde vehicle_box_at(0.0, 0.0, 0.0, 0.0)
 }
 
@@ -208,9 +208,9 @@ functio spawn_vehicle() → Vehicle {
 }
 
 functio chase_camera(de Vehicle vehicle) → ChaseCamera {
-    fixum triga.Vector3 forward ← triga.camera_forward_planus_ex_yaw(vehicle.heading_degrees)
-    fixum triga.Vector3 target ← triga.vector3(vehicle.x, vehicle.y + 1.0, vehicle.z)
-    redde ChaseCamera { position = triga.vector3(target.x - forward.x * 7.0, target.y + 4.0, target.z - forward.z * 7.0), target = target }
+    fixum math.Vector3 forward ← math.camera_prorsum_planus_ex_yaw(vehicle.heading_degrees)
+    fixum math.Vector3 target ← math.vector3(vehicle.x, vehicle.y + 1.0, vehicle.z)
+    redde ChaseCamera { position = math.vector3(target.x - forward.x * 7.0, target.y + 4.0, target.z - forward.z * 7.0), target = target }
 }
 
 functio spawn_application() → Application {
@@ -246,7 +246,7 @@ functio resolve_turn(de city.City map, de Vehicle vehicle, f32 desired_heading) 
         redde Turn { heading_degrees = desired_heading, x = vehicle.x, z = vehicle.z }
     }
 
-    fixum triga.Vector3 heading_forward ← triga.camera_forward_planus_ex_yaw(desired_heading)
+    fixum math.Vector3 heading_forward ← math.camera_prorsum_planus_ex_yaw(desired_heading)
     varia numerus attempt ← 0
     varia f32 retreat ← 0.0
     dum attempt < turn_clearance_attempts() {
@@ -277,9 +277,9 @@ functio drive_acceleration(f32 throttle, f32 forward_speed) → f32 {
 
 functio step_vehicle(de city.City map, de Vehicle vehicle, de InputState input, f32 delta_seconds) → Vehicle {
     fixum f32 dt ← clamp_delta_seconds(delta_seconds)
-    fixum triga.Vector3 old_forward ← triga.camera_forward_planus_ex_yaw(vehicle.heading_degrees)
-    fixum triga.Vector3 old_velocity ← triga.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z)
-    fixum f32 old_forward_speed ← triga.vector3_dot(old_velocity, old_forward)
+    fixum math.Vector3 old_forward ← math.camera_prorsum_planus_ex_yaw(vehicle.heading_degrees)
+    fixum math.Vector3 old_velocity ← math.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z)
+    fixum f32 old_forward_speed ← (old_velocity).productum(old_forward)
     fixum f32 speed_ratio ← clamp(old_forward_speed.absolutum() / steering_reference_speed(), minimum_steering_authority(), 1.0)
     varia f32 travel_sign ← 1.0
     si old_forward_speed < 0.0 {
@@ -293,10 +293,10 @@ functio step_vehicle(de city.City map, de Vehicle vehicle, de InputState input, 
     }
     fixum f32 next_heading ← turn.heading_degrees
 
-    fixum triga.Vector3 forward ← triga.camera_forward_planus_ex_yaw(next_heading)
-    fixum triga.Vector3 right ← triga.camera_right_ex_yaw(next_heading)
-    varia f32 forward_speed ← triga.vector3_dot(old_velocity, forward)
-    varia f32 lateral_speed ← triga.vector3_dot(old_velocity, right)
+    fixum math.Vector3 forward ← math.camera_prorsum_planus_ex_yaw(next_heading)
+    fixum math.Vector3 right ← math.camera_dextra_ex_yaw(next_heading)
+    varia f32 forward_speed ← (old_velocity).productum(forward)
+    varia f32 lateral_speed ← (old_velocity).productum(right)
     forward_speed ← forward_speed + drive_acceleration(throttle_amount(input), forward_speed) * dt
     forward_speed ← clamp(forward_speed, 0.0 - maximum_reverse_speed(), maximum_forward_speed())
 
@@ -367,7 +367,7 @@ functio step_vehicle(de city.City map, de Vehicle vehicle, de InputState input, 
         resolved ← verum
     }
 
-    redde Vehicle { x = final_x, y = vehicle.y, z = final_z, heading_degrees = next_heading, velocity_x = final_velocity_x, velocity_z = final_velocity_z, drift_amount = triga.vector3_dot(triga.vector3(final_velocity_x, 0.0, final_velocity_z), right).absolutum(), collided = full_move_clear ≡ falsum }
+    redde Vehicle { x = final_x, y = vehicle.y, z = final_z, heading_degrees = next_heading, velocity_x = final_velocity_x, velocity_z = final_velocity_z, drift_amount = (math.vector3(final_velocity_x).productum(0.0, final_velocity_z), right).absolutum(), collided = full_move_clear ≡ falsum }
 }
 
 functio step_application(de city.City map, de Application app, f32 delta_seconds) → Application {
@@ -376,5 +376,5 @@ functio step_application(de city.City map, de Application app, f32 delta_seconds
 }
 
 functio speed(de Vehicle vehicle) → f32 {
-    redde triga.vector3_longitudo(triga.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z))
+    redde (math.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z).longitudo())
 }

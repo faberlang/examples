@@ -1,9 +1,10 @@
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
-importa ex "triga:triga" privata triga
 importa ex "./city" privata city
 importa ex "./vehicle" privata vehicle
 importa ex "./scene" privata scene
+importa ex "triga:math" privata math
+importa ex "triga:graph" privata graph
 
 # ---------------------------------------------------------------------------
 # Text helpers for host bridge (transform payload + one-shot geometry).
@@ -81,37 +82,37 @@ functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus 
 # Transform: car model (16) + chase view-projection (16) → 32 f32 payload.
 # ---------------------------------------------------------------------------
 
-functio compute_model_matrix(de vehicle.Vehicle v) → triga.Matrix4 ∪ nihil {
-    # Heading feeds triga.camera_forward_planus_ex_yaw, where +yaw swings the
+functio compute_model_matrix(de vehicle.Vehicle v) → math.Matrix4 ∪ nihil {
+    # Heading feeds math.camera_prorsum_planus_ex_yaw, where +yaw swings the
     # travel direction from -Z toward +X. A right-handed rotation about +Y
     # carries the car's -Z nose the other way, toward -X, so the mesh rotation
     # is the negated heading. Using +heading here yaws the body against the
     # direction of travel.
-    fixum triga.Euler yaw_rotation ← triga.euler(0.0, triga.radians_ex_gradibus(0.0 - v.heading_degrees), 0.0)
-    fixum triga.Quaternion ∪ nihil rotation_result ← triga.euler_ad_quaternionem(yaw_rotation)
+    fixum math.Euler yaw_rotation ← math.euler(0.0, math.radians_ex_gradibus(0.0 - v.heading_degrees), 0.0)
+    fixum math.Quaternion ∪ nihil rotation_result ← yaw_rotation.ad_quaternionem()
     si rotation_result est nihil ergo redde nihil
-    fixum triga.Quaternion rotation ← triga.Quaternion { x = rotation_result!.x, y = rotation_result!.y, z = rotation_result!.z, w = rotation_result!.w }
-    redde triga.matrix4_composita(triga.vector3(v.x, v.y, v.z), rotation, triga.vector3(1.0, 1.0, 1.0))
+    fixum math.Quaternion rotation ← math.Quaternion { x = rotation_result!.x, y = rotation_result!.y, z = rotation_result!.z, w = rotation_result!.w }
+    redde math.matrix4_composita(math.vector3(v.x, v.y, v.z), rotation, math.vector3(1.0, 1.0, 1.0))
 }
 
-functio compute_view_projection(de vehicle.ChaseCamera camera, f32 aspect) → triga.Matrix4 ∪ nihil {
-    fixum triga.PerspectiveCamera perspective ← triga.PerspectiveCamera { base = triga.Object3D { position = triga.vector3(0.0, 0.0, 0.0), rotation = triga.euler(0.0, 0.0, 0.0), quaternion = triga.quaternion(0.0, 0.0, 0.0, 1.0), scale = triga.vector3(1.0, 1.0, 1.0), matrix = triga.matrix4_identitas(), children = vacua, visible = verum, name = "chase" }, fov = 50.0, aspect = aspect, near = 0.1, far = 2000.0 }
-    redde triga.camera_view_projection(perspective, camera.position, camera.target, triga.vector3(0.0, 1.0, 0.0))
+functio compute_view_projection(de vehicle.ChaseCamera camera, f32 aspect) → math.Matrix4 ∪ nihil {
+    fixum graph.PerspectiveCamera perspective ← graph.PerspectiveCamera { base = graph.Object3D { position = math.vector3(0.0, 0.0, 0.0), rotation = math.euler(0.0, 0.0, 0.0), quaternion = math.quaternion(0.0, 0.0, 0.0, 1.0), scale = math.vector3(1.0, 1.0, 1.0), matrix = math.matrix4_identitas(), children = vacua, visible = verum, name = "chase" }, fov = 50.0, aspect = aspect, near = 0.1, far = 2000.0 }
+    redde perspective.visus_projectio(camera.position, camera.target, math.vector3(0.0, 1.0, 0.0))
 }
 
-functio compute_frame_transform(de vehicle.Vehicle v, de vehicle.ChaseCamera camera, f32 aspect) → triga.TransformPayload ∪ nihil {
-    fixum triga.Matrix4 ∪ nihil model_result ← compute_model_matrix(v)
+functio compute_frame_transform(de vehicle.Vehicle v, de vehicle.ChaseCamera camera, f32 aspect) → math.TransformPayload ∪ nihil {
+    fixum math.Matrix4 ∪ nihil model_result ← compute_model_matrix(v)
     si model_result est nihil ergo redde nihil
-    fixum triga.Matrix4 ∪ nihil view_proj_result ← compute_view_projection(camera, aspect)
+    fixum math.Matrix4 ∪ nihil view_proj_result ← compute_view_projection(camera, aspect)
     si view_proj_result est nihil ergo redde nihil
-    fixum triga.Matrix4 model ← triga.Matrix4 { elements = model_result!.elements }
-    fixum triga.Matrix4 view_proj ← triga.Matrix4 { elements = view_proj_result!.elements }
-    redde triga.transform_payload(model, view_proj)
+    fixum math.Matrix4 model ← math.Matrix4 { elements = model_result!.elements }
+    fixum math.Matrix4 view_proj ← math.Matrix4 { elements = view_proj_result!.elements }
+    redde math.transform_payload(model, view_proj)
 }
 
 # Host bridge: publish 32-float transform each frame for updateGraphicsStorage.
 functio publish_transform(dom.Element facts_element, de vehicle.Vehicle v, de vehicle.ChaseCamera camera, f32 aspect) → vacuum {
-    fixum triga.TransformPayload ∪ nihil payload_result ← compute_frame_transform(v, camera, aspect)
+    fixum math.TransformPayload ∪ nihil payload_result ← compute_frame_transform(v, camera, aspect)
     si payload_result est nihil {
         nota nihil
         redde

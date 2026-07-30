@@ -44,11 +44,11 @@
 
 importa ex "web:web" privata web
 importa ex "web:dom" privata dom
-importa ex "triga:triga" privata triga
-importa ex "triga:scene" privata scene
 importa ex "./voxel" privata voxel
 importa ex "./meshing" privata meshing
 importa ex "./application" privata application
+importa ex "triga:math" privata math
+importa ex "triga:scene/resource" privata resource
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
@@ -314,13 +314,13 @@ functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → va
 # Only changed lifecycle transitions are queued for the host.
 functio emit_host_replace_queue(
     dom.Element canvas,
-    de lista<scene.ResourceLifecycleTransition> transitions,
+    de lista<resource.ResourceLifecycleTransition> transitions,
     de meshing.ChunkResourceTable resources
 ) → vacuum {
     varia numerus replace_count ← 0
     varia numerus i ← 0
     dum i < transitions.longitudo() {
-        fixum scene.ResourceLifecycleTransition t ← transitions[i]
+        fixum resource.ResourceLifecycleTransition t ← transitions[i]
         si t.changed {
             fixum textus prefix ← "§§"("data-hv-host-replace-", replace_count ↦ textus)
             dom.attr_set(canvas, "§§"(prefix, "-logical-id"), t.logical_index ↦ textus)
@@ -375,7 +375,7 @@ functio emit_resource_snapshot(
     dom.Element canvas,
     de meshing.ChunkResourceTable resources,
     de lista<numerus> remeshed,
-    de lista<scene.ResourceLifecycleTransition> transitions
+    de lista<resource.ResourceLifecycleTransition> transitions
 ) → vacuum {
     varia lista<numerus> gens ← vacua
     varia lista<numerus> live_flags ← vacua
@@ -406,60 +406,60 @@ functio clear_host_replace_queue(dom.Element canvas) → vacuum {
 # TRANSFORMS — first-person eye + yaw/pitch view-projection
 # =========================================================================
 
-functio identity_matrix() → triga.Matrix4 {
-    redde triga.matrix4_identitas()
+functio identity_matrix() → math.Matrix4 {
+    redde math.matrix4_identitas()
 }
 
 functio first_person_view_projection(
     de application.Camera camera,
     de application.Player player,
     f32 aspect
-) → triga.Matrix4 {
+) → math.Matrix4 {
     varia f32 safe_aspect ← 1.0 ∷ f32
     si aspect > 0.0 {
         safe_aspect ← aspect
     }
-    fixum triga.CameraYawPitchFacts facts ← application.camera_view_facts(camera, player)
-    fixum triga.Vector3 eye ← facts.ray.origin
-    fixum triga.Vector3 target ← triga.vector3(
+    fixum math.CameraYawPitchFacts facts ← application.camera_view_facts(camera, player)
+    fixum math.Vector3 eye ← facts.ray.origin
+    fixum math.Vector3 target ← math.vector3(
         eye.x + facts.direction.x,
         eye.y + facts.direction.y,
         eye.z + facts.direction.z
     )
-    fixum triga.Matrix4 ∪ nihil projection_result ← triga.matrix4_perspectiva(
+    fixum math.Matrix4 ∪ nihil projection_result ← math.matrix4_perspectiva(
         50.0 ∷ f32,
         safe_aspect,
         0.1 ∷ f32,
         200.0 ∷ f32
     )
-    fixum triga.Matrix4 ∪ nihil view_result ← triga.matrix4_conspectus(
+    fixum math.Matrix4 ∪ nihil view_result ← math.matrix4_conspectus(
         eye,
         target,
-        triga.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
+        math.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
     )
-    varia triga.Matrix4 projection ← identity_matrix()
-    varia triga.Matrix4 view ← identity_matrix()
+    varia math.Matrix4 projection ← identity_matrix()
+    varia math.Matrix4 view ← identity_matrix()
     si projection_result non est nihil {
-        projection ← triga.Matrix4 { elements = projection_result!.elements }
+        projection ← math.Matrix4 { elements = projection_result!.elements }
     }
     si view_result non est nihil {
-        view ← triga.Matrix4 { elements = view_result!.elements }
+        view ← math.Matrix4 { elements = view_result!.elements }
     }
-    redde triga.matrix4_multiplicata(projection, view)
+    redde (projection).multiplicata(view)
 }
 
 functio first_person_transform_payload(
     de application.Camera camera,
     de application.Player player,
     f32 aspect
-) → triga.TransformPayload {
-    fixum triga.Matrix4 model ← identity_matrix()
-    fixum triga.Matrix4 view_projection ← first_person_view_projection(camera, player, aspect)
-    fixum triga.TransformPayload ∪ nihil packed ← triga.transform_payload(model, view_projection)
+) → math.TransformPayload {
+    fixum math.Matrix4 model ← identity_matrix()
+    fixum math.Matrix4 view_projection ← first_person_view_projection(camera, player, aspect)
+    fixum math.TransformPayload ∪ nihil packed ← math.transform_payload(model, view_projection)
     si packed non est nihil {
-        redde triga.TransformPayload { values = packed!.values }
+        redde math.TransformPayload { values = packed!.values }
     }
-    redde triga.TransformPayload {
+    redde math.TransformPayload {
         values = [
             1.0, 0.0, 0.0, 0.0,
             0.0, 1.0, 0.0, 0.0,
@@ -479,7 +479,7 @@ functio emit_transform(
     de application.Player player,
     f32 aspect
 ) → vacuum {
-    fixum triga.TransformPayload payload ← first_person_transform_payload(
+    fixum math.TransformPayload payload ← first_person_transform_payload(
         camera,
         player,
         aspect
@@ -496,7 +496,7 @@ functio emit_transform(
         vp_values.appende(values[i])
         i ← i + 1
     }
-    fixum triga.Vector3 eye ← application.camera_eye(player)
+    fixum math.Vector3 eye ← application.camera_eye(player)
     dom.attr_set(canvas, "data-hv-transform", lista_f32_textus(values))
     dom.attr_set(canvas, "data-hv-model-matrix", lista_f32_textus(model_values))
     dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values))

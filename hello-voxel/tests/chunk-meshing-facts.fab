@@ -34,8 +34,8 @@
 
 importa ex "§src/voxel" privata voxel
 importa ex "§src/meshing" privata meshing
-importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
+importa ex "triga:math" privata math
 
 functio world_with_solid(
     de voxel.World world,
@@ -136,7 +136,7 @@ incipit {
         "sixth face winding matches +Z normal"
 
     # Colors from face_code_color for -X (first face)
-    fixum triga.Color ∪ nihil neg_x_color ← triga.face_code_color(1)
+    fixum math.Color ∪ nihil neg_x_color ← math.face_code_color(1)
     adfirma neg_x_color non est nihil secus
         "face code 1 has a color"
     adfirma single_mesh.colors[0] ≡ neg_x_color!.r

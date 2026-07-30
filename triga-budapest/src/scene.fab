@@ -1,7 +1,7 @@
-importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
 importa ex "./box_geom" privata box_geom
 importa ex "./bridge" privata bridge
+importa ex "triga:math" privata math
 
 genus SceneObjectGeometry {
     textus name
@@ -11,8 +11,8 @@ genus SceneObjectGeometry {
     numerus index_byte_count
     lista<f32> vertex_payload
     lista<u32> index_payload
-    triga.Color color
-    triga.Box3 bounds
+    math.Color color
+    math.Box3 bounds
 }
 
 genus SceneGeometryManifest {
@@ -41,7 +41,7 @@ functio _add_object(lista<SceneObjectGeometry> objects, de bridge.ScenePart part
         k ← k + 1
     }
 
-    objects.appende(SceneObjectGeometry { name = part.name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = triga.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
+    objects.appende(SceneObjectGeometry { name = part.name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = math.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
     redde objects
 }
 

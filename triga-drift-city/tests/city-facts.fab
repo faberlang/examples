@@ -1,33 +1,33 @@
 importa ex "./city" privata city
 importa ex "./vehicle" privata vehicle
-importa ex "triga:triga" privata triga
+importa ex "triga:math" privata math
 
 incipit {
     fixum city.City map ← city.drift_city()
-    adfirma triga.box3_validum(map.bounds) secus "city bounds are a valid Triga Box3"
+    adfirma (map.bounds).validum() secus "city bounds are a valid Triga Box3"
     adfirma map.roads.longitudo() ≡ 4 secus "original circuit has four overlapping road runs"
     adfirma map.buildings.longitudo() ≡ 5 secus "inner city has five bounded building obstacles"
 
     itera ex map.roads fixum road {
-        adfirma triga.box3_validum(road) secus "every road fact is a valid Triga Box3"
-        adfirma triga.box3_continet_box3(map.bounds, road) secus "every road stays inside the bounded city"
+        adfirma (road).validum() secus "every road fact is a valid Triga Box3"
+        adfirma (map.bounds).continet_capsam(road) secus "every road stays inside the bounded city"
     }
     itera ex map.buildings fixum building {
-        adfirma triga.box3_validum(building) secus "every building fact is a valid Triga Box3"
-        adfirma triga.box3_continet_box3(map.bounds, building) secus "every building stays inside the bounded city"
+        adfirma (building).validum() secus "every building fact is a valid Triga Box3"
+        adfirma (map.bounds).continet_capsam(building) secus "every building stays inside the bounded city"
     }
 
     fixum vehicle.Vehicle car ← vehicle.spawn_vehicle()
-    fixum triga.Box3 car_bounds ← vehicle.vehicle_box(car)
+    fixum math.Box3 car_bounds ← vehicle.vehicle_box(car)
     adfirma city.city_collides_box(map, car_bounds) ≡ falsum secus "vehicle spawn is admitted on the west road"
 
     fixum city.SceneFacts scene ← city.scene_facts(map, car_bounds)
     adfirma (scene.road_count ≡ 4 et scene.building_count ≡ 5) et scene.car_count ≡ 1 secus "scene facts expose road, building, and car counts"
     adfirma scene.road_bounds.longitudo() ≡ 4 et scene.building_bounds.longitudo() ≡ 5 secus "scene facts retain the Triga Box3 values"
 
-    fixum triga.Box3 outside ← city.box3(27.5, 0.2, 0.0, 29.0, 1.2, 1.0)
+    fixum math.Box3 outside ← city.box3(27.5, 0.2, 0.0, 29.0, 1.2, 1.0)
     adfirma city.city_collides_box(map, outside) secus "city bounds reject a car outside the circuit"
 
-    fixum triga.Box3 building_overlap ← city.box3(-15.0 ∷ f32, 0.2, -5.0 ∷ f32, -14.0 ∷ f32, 1.2, -4.0 ∷ f32)
+    fixum math.Box3 building_overlap ← city.box3(-15.0 ∷ f32, 0.2, -5.0 ∷ f32, -14.0 ∷ f32, 1.2, -4.0 ∷ f32)
     adfirma city.city_collides_box(map, building_overlap) secus "building Box3 overlap is a collision"
 }

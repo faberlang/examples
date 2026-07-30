@@ -1,8 +1,8 @@
-importa ex "triga:triga" privata triga
+importa ex "triga:math" privata math
 
 genus ScenePart {
     textus name
-    triga.Box3 bounds
+    math.Box3 bounds
     f32 red
     f32 green
     f32 blue
@@ -16,11 +16,11 @@ genus BudapestSceneFacts {
     numerus lion_marker_count
 }
 
-functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) → triga.Box3 {
-    redde triga.Box3 { min = triga.vector3(min_x, min_y, min_z), max = triga.vector3(max_x, max_y, max_z) }
+functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) → math.Box3 {
+    redde math.Box3 { min = math.vector3(min_x, min_y, min_z), max = math.vector3(max_x, max_y, max_z) }
 }
 
-functio _add_part(lista<ScenePart> parts, textus name, de triga.Box3 bounds, f32 red, f32 green, f32 blue) → lista<ScenePart> {
+functio _add_part(lista<ScenePart> parts, textus name, de math.Box3 bounds, f32 red, f32 green, f32 blue) → lista<ScenePart> {
     parts.appende(ScenePart { name = name, bounds = bounds, red = red, green = green, blue = blue })
     redde parts
 }

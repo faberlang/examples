@@ -1,13 +1,13 @@
-importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
 importa ex "./box_geom" privata box_geom
 importa ex "./scene" privata scene
 importa ex "./city" privata city
 importa ex "./vehicle" privata vehicle
+importa ex "triga:math" privata math
 
 incipit {
     # ---- box_geometry produces valid indexed geometry -----------------------
-    fixum triga.Box3 test_box ← triga.Box3 { min = triga.vector3(0.0, 0.0, 0.0), max = triga.vector3(2.0, 2.0, 2.0) }
+    fixum math.Box3 test_box ← math.Box3 { min = math.vector3(0.0, 0.0, 0.0), max = math.vector3(2.0, 2.0, 2.0) }
     fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(test_box, 0.5, 0.5, 0.5)
     adfirma (geo_result est nihil) ≡ falsum secus "box_geometry must return a BufferGeometry for valid Box3 input"
 
@@ -42,7 +42,7 @@ incipit {
 
     # ---- greybox scene manifest: 10 objects ---------------------------------
     fixum city.City map ← city.drift_city()
-    fixum triga.Box3 car_box ← vehicle.vehicle_box(vehicle.spawn_vehicle())
+    fixum math.Box3 car_box ← vehicle.vehicle_box(vehicle.spawn_vehicle())
     fixum scene.SceneGeometryManifest manifest ← scene.greybox_scene_geometry(map, car_box)
 
     adfirma manifest.objects.longitudo() ≡ 10 secus "greybox_scene_geometry: 4 roads + 5 buildings + 1 car = 10 objects"
@@ -57,7 +57,7 @@ incipit {
         adfirma obj.index_byte_count > 0 secus "every object: positive index byte count"
         adfirma obj.vertex_payload.longitudo() > 0 secus "every object: non-empty vertex payload"
         adfirma obj.index_payload.longitudo() ≡ 36 secus "every object: 36 index entries"
-        adfirma triga.box3_validum(obj.bounds) secus "every object: valid bounds"
+        adfirma (obj.bounds).validum() secus "every object: valid bounds"
         i ← i + 1
     }
 

@@ -1,7 +1,7 @@
-importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
 importa ex "./box_geom" privata box_geom
 importa ex "./city" privata city
+importa ex "triga:math" privata math
 
 # ---------------------------------------------------------------------------
 # SceneObjectGeometry — one renderable object in the greybox scene.
@@ -14,8 +14,8 @@ genus SceneObjectGeometry {
     numerus index_byte_count
     lista<f32> vertex_payload
     lista<u32> index_payload
-    triga.Color color
-    triga.Box3 bounds
+    math.Color color
+    math.Box3 bounds
 }
 
 # ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ genus SceneGeometryManifest {
 # _add_object — appends one SceneObjectGeometry to the list.
 # Skips on geometry/payload failure (defensive; valid inputs never fail).
 # ---------------------------------------------------------------------------
-functio _add_object(lista<SceneObjectGeometry> objects, textus name, de triga.Box3 bounds, f32 red, f32 green, f32 blue) → lista<SceneObjectGeometry> {
+functio _add_object(lista<SceneObjectGeometry> objects, textus name, de math.Box3 bounds, f32 red, f32 green, f32 blue) → lista<SceneObjectGeometry> {
     fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(bounds, red, green, blue)
     si geo_result est nihil ergo redde objects
 
@@ -52,7 +52,7 @@ functio _add_object(lista<SceneObjectGeometry> objects, textus name, de triga.Bo
         k ← k + 1
     }
 
-    objects.appende(SceneObjectGeometry { name = name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = triga.Color { r = red, g = green, b = blue }, bounds = bounds })
+    objects.appende(SceneObjectGeometry { name = name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = math.Color { r = red, g = green, b = blue }, bounds = bounds })
     redde objects
 }
 
@@ -65,7 +65,7 @@ functio _add_object(lista<SceneObjectGeometry> objects, textus name, de triga.Bo
 #   - 5 buildings       (dark gray 0.2, 0.2, 0.25)
 #   - 1 car             (red       0.8, 0.1, 0.1)
 # ---------------------------------------------------------------------------
-functio greybox_scene_geometry(de city.City c, de triga.Box3 car_box) → SceneGeometryManifest {
+functio greybox_scene_geometry(de city.City c, de math.Box3 car_box) → SceneGeometryManifest {
     varia lista<SceneObjectGeometry> objects ← vacua
 
     # Roads: mid-gray (0.4, 0.4, 0.4)

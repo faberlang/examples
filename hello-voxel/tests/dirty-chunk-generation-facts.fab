@@ -41,7 +41,7 @@
 
 importa ex "§src/voxel" privata voxel
 importa ex "§src/meshing" privata meshing
-importa ex "triga:scene" privata scene
+importa ex "triga:scene/resource" privata resource
 
 functio set_solid(
     de voxel.World world,
@@ -317,7 +317,7 @@ incipit {
         "first non-empty remesh has no previous handle"
     adfirma remesh1!.transitions[0].current non est nihil secus
         "first non-empty remesh has a current handle"
-    adfirma scene.resource_lifecycle_valid(remesh1!.transitions[0]) secus
+    adfirma resource.resource_lifecycle_valid(remesh1!.transitions[0]) secus
         "create transition validates against Triga lifecycle rules"
 
     adfirma meshing.chunk_is_live(resources, 1) ≡ falsum secus
@@ -393,7 +393,7 @@ incipit {
         "empty remesh has no current handle"
     adfirma remesh_empty!.transitions[0].previous non est nihil secus
         "empty remesh keeps previous handle"
-    adfirma scene.resource_lifecycle_valid(remesh_empty!.transitions[0]) secus
+    adfirma resource.resource_lifecycle_valid(remesh_empty!.transitions[0]) secus
         "removed lifecycle transition validates"
     adfirma (meshing.chunk_generation(resources, 0) vel 0) ≡ 1 secus
         "logical generation value retained after remove"
@@ -614,17 +614,17 @@ incipit {
         transitions = edge_remesh!.transitions,
         remeshed = edge_remesh!.remeshed
     }
-    fixum lista<scene.ResourceLifecycleTransition> ∪ nihil batch ←
+    fixum lista<resource.ResourceLifecycleTransition> ∪ nihil batch ←
         meshing.resource_lifecycle_batch_for_table(before_edge, edge_remesh_val)
     adfirma batch non est nihil secus
         "full four-chunk lifecycle batch validates"
     adfirma (batch vel []).longitudo() ≡ 4 secus
         "lifecycle batch covers all four logical chunks"
-    adfirma scene.resource_lifecycles_valid(batch vel []) secus
+    adfirma resource.resource_lifecycles_valid(batch vel []) secus
         "Triga validates the four-chunk lifecycle batch"
-    adfirma (scene.resource_lifecycle_unchanged_count(batch vel []) vel 0) ≡ 2 secus
+    adfirma (resource.resource_lifecycle_unchanged_count(batch vel []) vel 0) ≡ 2 secus
         "exactly two chunks unchanged in edge-edit batch"
-    adfirma (scene.resource_lifecycle_changed_count(batch vel []) vel 0) ≡ 2 secus
+    adfirma (resource.resource_lifecycle_changed_count(batch vel []) vel 0) ≡ 2 secus
         "exactly two chunks changed in edge-edit batch"
 
     # ------------------------------------------------------------------

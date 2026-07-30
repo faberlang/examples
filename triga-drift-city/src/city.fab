@@ -1,17 +1,17 @@
-importa ex "triga:triga" privata triga
+importa ex "triga:math" privata math
 
 genus City {
-    triga.Box3 bounds
-    lista<triga.Box3> roads
-    lista<triga.Box3> buildings
+    math.Box3 bounds
+    lista<math.Box3> roads
+    lista<math.Box3> buildings
 }
 
 # A body resting on the ground as an oriented rectangle in the x/z plane.
 # `centre.y` is the base; the body rises to `centre.y + height`.
 genus Footprint {
-    triga.Vector3 centre
-    triga.Vector3 forward
-    triga.Vector3 right
+    math.Vector3 centre
+    math.Vector3 forward
+    math.Vector3 right
     f32 half_length
     f32 half_width
     f32 height
@@ -21,24 +21,24 @@ genus SceneFacts {
     numerus road_count
     numerus building_count
     numerus car_count
-    lista<triga.Box3> road_bounds
-    lista<triga.Box3> building_bounds
-    triga.Box3 car_bounds
+    lista<math.Box3> road_bounds
+    lista<math.Box3> building_bounds
+    math.Box3 car_bounds
 }
 
-functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) → triga.Box3 {
-    redde triga.Box3 { min = triga.vector3(min_x, min_y, min_z), max = triga.vector3(max_x, max_y, max_z) }
+functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) → math.Box3 {
+    redde math.Box3 { min = math.vector3(min_x, min_y, min_z), max = math.vector3(max_x, max_y, max_z) }
 }
 
-functio circuit_bounds() → triga.Box3 {
+functio circuit_bounds() → math.Box3 {
     redde box3(0.0 - 28.0, 0.0, 0.0 - 22.0, 28.0, 12.0, 22.0)
 }
 
-functio circuit_roads() → lista<triga.Box3> {
+functio circuit_roads() → lista<math.Box3> {
     redde [box3(-26.0 ∷ f32, 0.0, -20.0 ∷ f32, 26.0, 0.05, -12.0 ∷ f32), box3(-26.0 ∷ f32, 0.0, 12.0, 26.0, 0.05, 20.0), box3(-26.0 ∷ f32, 0.0, -12.0 ∷ f32, -18.0 ∷ f32, 0.05, 12.0), box3(18.0, 0.0, -12.0 ∷ f32, 26.0, 0.05, 12.0)]
 }
 
-functio circuit_buildings() → lista<triga.Box3> {
+functio circuit_buildings() → lista<math.Box3> {
     redde [box3(-16.0 ∷ f32, 0.0, -9.0 ∷ f32, -3.0 ∷ f32, 7.0, 0.0), box3(3.0, 0.0, -9.0 ∷ f32, 16.0, 10.0, 0.0), box3(-16.0 ∷ f32, 0.0, 3.0, -7.0 ∷ f32, 5.0, 9.0), box3(-4.0 ∷ f32, 0.0, 3.0, 5.0, 8.0, 9.0), box3(8.0, 0.0, 3.0, 16.0, 6.0, 9.0)]
 }
 
@@ -46,15 +46,15 @@ functio drift_city() → City {
     redde City { bounds = circuit_bounds(), roads = circuit_roads(), buildings = circuit_buildings() }
 }
 
-functio city_collides_box(de City city, de triga.Box3 candidate) → bivalens {
-    si triga.box3_validum(candidate) ≡ falsum {
+functio city_collides_box(de City city, de math.Box3 candidate) → bivalens {
+    si (candidate).validum() ≡ falsum {
         redde verum
     }
-    si triga.box3_continet_box3(city.bounds, candidate) ≡ falsum {
+    si (city.bounds).continet_capsam(candidate) ≡ falsum {
         redde verum
     }
     itera ex city.buildings fixum building {
-        si triga.box3_intersecat(candidate, building) {
+        si (candidate).intersecat(building) {
             redde verum
         }
     }
@@ -62,16 +62,16 @@ functio city_collides_box(de City city, de triga.Box3 candidate) → bivalens {
 }
 
 # One corner of the footprint. `along` and `across` are ±1 selectors.
-functio footprint_corner(de Footprint body, f32 along, f32 across) → triga.Vector3 {
-    redde triga.vector3((body.centre.x + (body.forward.x * body.half_length) * along) + (body.right.x * body.half_width) * across, body.centre.y, (body.centre.z + (body.forward.z * body.half_length) * along) + (body.right.z * body.half_width) * across)
+functio footprint_corner(de Footprint body, f32 along, f32 across) → math.Vector3 {
+    redde math.vector3((body.centre.x + (body.forward.x * body.half_length) * along) + (body.right.x * body.half_width) * across, body.centre.y, (body.centre.z + (body.forward.z * body.half_length) * along) + (body.right.z * body.half_width) * across)
 }
 
-functio corner_within_bounds(de Footprint body, de triga.Box3 bounds, f32 along, f32 across) → bivalens {
-    fixum triga.Vector3 corner ← footprint_corner(body, along, across)
+functio corner_within_bounds(de Footprint body, de math.Box3 bounds, f32 along, f32 across) → bivalens {
+    fixum math.Vector3 corner ← footprint_corner(body, along, across)
     redde ((corner.x ≥ bounds.min.x et corner.x ≤ bounds.max.x) et corner.z ≥ bounds.min.z) et corner.z ≤ bounds.max.z
 }
 
-functio footprint_within_bounds(de Footprint body, de triga.Box3 bounds) → bivalens {
+functio footprint_within_bounds(de Footprint body, de math.Box3 bounds) → bivalens {
     si body.centre.y < bounds.min.y {
         redde falsum
     }
@@ -85,10 +85,10 @@ functio footprint_within_bounds(de Footprint body, de triga.Box3 bounds) → biv
 
 # Separating-axis test on one axis. The axis must lie in the x/z plane so the
 # vertical extents stay out of the projection.
-functio separated_on_axis(de Footprint body, de triga.Box3 box, de triga.Vector3 axis) → bivalens {
-    fixum triga.Vector3 box_centre ← triga.vector3((box.min.x + box.max.x) * 0.5, 0.0, (box.min.z + box.max.z) * 0.5)
-    fixum f32 centre_gap ← (triga.vector3_dot(axis, body.centre) - triga.vector3_dot(axis, box_centre)).absolutum()
-    fixum f32 body_reach ← triga.vector3_dot(axis, body.forward).absolutum() * body.half_length + triga.vector3_dot(axis, body.right).absolutum() * body.half_width
+functio separated_on_axis(de Footprint body, de math.Box3 box, de math.Vector3 axis) → bivalens {
+    fixum math.Vector3 box_centre ← math.vector3((box.min.x + box.max.x) * 0.5, 0.0, (box.min.z + box.max.z) * 0.5)
+    fixum f32 centre_gap ← ((axis).productum(body.centre) - (axis).productum(box_centre)).absolutum()
+    fixum f32 body_reach ← (axis).productum(body.forward).absolutum() * body.half_length + (axis).productum(body.right).absolutum() * body.half_width
     fixum f32 box_reach ← (axis.x.absolutum() * (box.max.x - box.min.x)) * 0.5 + (axis.z.absolutum() * (box.max.z - box.min.z)) * 0.5
     redde centre_gap > body_reach + box_reach
 }
@@ -97,17 +97,17 @@ functio separated_on_axis(de Footprint body, de triga.Box3 box, de triga.Vector3
 # convex rectangles in a plane are disjoint when any of the four face normals
 # separates them, so this is exact rather than the conservative envelope an
 # axis-aligned bound of the rotated body would give.
-functio footprint_intersects_box(de Footprint body, de triga.Box3 box) → bivalens {
+functio footprint_intersects_box(de Footprint body, de math.Box3 box) → bivalens {
     si body.centre.y + body.height ≤ box.min.y {
         redde falsum
     }
     si box.max.y ≤ body.centre.y {
         redde falsum
     }
-    si separated_on_axis(body, box, triga.vector3(1.0, 0.0, 0.0)) {
+    si separated_on_axis(body, box, math.vector3(1.0, 0.0, 0.0)) {
         redde falsum
     }
-    si separated_on_axis(body, box, triga.vector3(0.0, 0.0, 1.0)) {
+    si separated_on_axis(body, box, math.vector3(0.0, 0.0, 1.0)) {
         redde falsum
     }
     si separated_on_axis(body, box, body.forward) {
@@ -131,6 +131,6 @@ functio city_collides_footprint(de City city, de Footprint body) → bivalens {
     redde falsum
 }
 
-functio scene_facts(de City city, de triga.Box3 car_bounds) → SceneFacts {
+functio scene_facts(de City city, de math.Box3 car_bounds) → SceneFacts {
     redde SceneFacts { road_count = city.roads.longitudo(), building_count = city.buildings.longitudo(), car_count = 1, road_bounds = city.roads, building_bounds = city.buildings, car_bounds = car_bounds }
 }

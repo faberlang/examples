@@ -38,7 +38,7 @@
 
 importa ex "§src/voxel" privata voxel
 importa ex "§src/application" privata application
-importa ex "triga:triga" privata triga
+importa ex "triga:math" privata math
 
 functio approx(f32 a, f32 b, f32 eps) → bivalens {
     redde (a - b).absolutum() ≤ eps
@@ -121,7 +121,7 @@ incipit {
     adfirma look_down.pitch_degrees ≡ (0.0 ∷ f32 - 89.0 ∷ f32) secus
         "apply_yaw_pitch clamps extreme downward look"
 
-    fixum triga.CameraYawPitchFacts facts ← application.camera_view_facts(
+    fixum math.CameraYawPitchFacts facts ← application.camera_view_facts(
         look_up,
         app0.player
     )
@@ -192,7 +192,7 @@ incipit {
         grounded = verum
     }
 
-    fixum triga.Vector3 move_half ← application.planar_displacement(
+    fixum math.Vector3 move_half ← application.planar_displacement(
         yaw0,
         press_w,
         0.5 ∷ f32
@@ -202,7 +202,7 @@ incipit {
         et approx(move_half.z, 0.0 ∷ f32 - 2.0 ∷ f32, 0.0001 ∷ f32),
         "W at yaw 0 moves -Z by speed * dt (4 * 0.5 = 2)"
 
-    fixum triga.Vector3 move_full ← application.planar_displacement(
+    fixum math.Vector3 move_full ← application.planar_displacement(
         yaw0,
         press_w,
         1.0 ∷ f32
@@ -210,7 +210,7 @@ incipit {
     adfirma approx(move_full.z, 0.0 ∷ f32 - 4.0 ∷ f32, 0.0001 ∷ f32) secus
         "double frame time doubles planar displacement"
 
-    fixum triga.Vector3 move_clamped ← application.planar_displacement(
+    fixum math.Vector3 move_clamped ← application.planar_displacement(
         yaw0,
         press_w,
         application.clamp_delta_seconds(1.0 ∷ f32)
@@ -222,7 +222,7 @@ incipit {
     ),
         "clamped frame time caps displacement at speed * 0.05"
 
-    fixum triga.Vector3 move_yaw90 ← application.planar_displacement(
+    fixum math.Vector3 move_yaw90 ← application.planar_displacement(
         camera_yaw(90.0 ∷ f32),
         press_w,
         1.0 ∷ f32
@@ -288,7 +288,7 @@ incipit {
         et unfocused.mouse_dy ≡ (0.0 ∷ f32),
         "focus loss clears mouse deltas"
 
-    fixum triga.Vector3 no_move ← application.planar_displacement(
+    fixum math.Vector3 no_move ← application.planar_displacement(
         yaw0,
         unfocused,
         1.0 ∷ f32

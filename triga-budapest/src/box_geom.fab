@@ -1,5 +1,5 @@
-importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
+importa ex "triga:math" privata math
 
 # ---------------------------------------------------------------------------
 # _box_corner_positions — shared private helper that returns the 8 corner
@@ -108,13 +108,13 @@ functio _box_color_array(f32 r, f32 g, f32 b) → lista<f32> {
 
 # ---------------------------------------------------------------------------
 # box_geometry — produces an indexed triangle BufferGeometry for a
-# coloured box from a triga.Box3 and an RGB colour (0..1).
+# coloured box from a math.Box3 and an RGB colour (0..1).
 #
 # 8 unique vertices (one per corner), 36 indices (12 triangles, 2 per face
 # × 6 faces).  Vertex format: position (location 0, Float32x3) + colour
 # (location 1, Float32x3), stride 24 bytes.
 # ---------------------------------------------------------------------------
-functio box_geometry(de triga.Box3 bounds, f32 r, f32 g, f32 b) → geometry.BufferGeometry ∪ nihil {
+functio box_geometry(de math.Box3 bounds, f32 r, f32 g, f32 b) → geometry.BufferGeometry ∪ nihil {
     si bounds.validum() ≡ falsum ergo redde nihil
 
     fixum lista<f32> positions ← _box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
@@ -131,7 +131,7 @@ functio box_geometry(de triga.Box3 bounds, f32 r, f32 g, f32 b) → geometry.Buf
 #
 # Payload stride: 6 f32 (24 bytes) — position (3) + colour (3) per vertex.
 # ---------------------------------------------------------------------------
-functio box_vertex_payload(de triga.Box3 bounds, f32 r, f32 g, f32 b) → lista<f32> ∪ nihil {
+functio box_vertex_payload(de math.Box3 bounds, f32 r, f32 g, f32 b) → lista<f32> ∪ nihil {
     si bounds.validum() ≡ falsum ergo redde nihil
 
     fixum lista<f32> positions ← _box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)

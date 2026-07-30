@@ -25,7 +25,7 @@
 #
 # Alternate approaches (not shown):
 #   • continuous collision detection (CCD) — sweeps AABB instead of discrete steps
-#   • triga matrix math — triga.matrix4_perspectiva / conspectus vs manual vector algebra
+#   • triga matrix math — math.matrix4_perspectiva / conspectus vs manual vector algebra
 #
 # Anti-patterns (avoid these):
 #   • unordered collision axes — X→Y→Z order is a contract; changing it breaks edge cases
@@ -40,9 +40,9 @@
 # =========================================================================
 
 importa ex "./voxel" privata voxel
-importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
 importa ex "triga:primitives" privata primitives
+importa ex "triga:math" privata math
 
 # =========================================================================
 # CONSTANTS
@@ -173,7 +173,7 @@ functio spawn_application() → Application {
 # =========================================================================
 
 functio clamp_pitch(f32 pitch_degrees) → f32 {
-    redde triga.camera_pitch_coercita(pitch_degrees)
+    redde math.camera_pitch_coercita(pitch_degrees)
 }
 
 functio apply_yaw_pitch(de Camera camera, f32 delta_yaw, f32 delta_pitch) → Camera {
@@ -183,16 +183,16 @@ functio apply_yaw_pitch(de Camera camera, f32 delta_yaw, f32 delta_pitch) → Ca
     }
 }
 
-functio camera_eye(de Player player) → triga.Vector3 {
-    redde triga.vector3(
+functio camera_eye(de Player player) → math.Vector3 {
+    redde math.vector3(
         player.x,
         player.y + player_eye_height(),
         player.z
     )
 }
 
-functio camera_view_facts(de Camera camera, de Player player) → triga.CameraYawPitchFacts {
-    redde triga.camera_yaw_pitch_facts(
+functio camera_view_facts(de Camera camera, de Player player) → math.CameraYawPitchFacts {
+    redde math.camera_yaw_pitch_facts(
         camera_eye(player),
         camera.yaw_degrees,
         camera.pitch_degrees
@@ -370,11 +370,11 @@ functio right_amount(de InputState input) → f32 {
 # =========================================================================
 
 # Feet-centered horizontal extents; feet bottom at player.y; height player_height().
-functio player_box(de Player player) → triga.Box3 {
+functio player_box(de Player player) → math.Box3 {
     fixum f32 half ← player_half_width()
-    redde triga.Box3 {
-        min = triga.vector3(player.x - half, player.y, player.z - half),
-        max = triga.vector3(
+    redde math.Box3 {
+        min = math.vector3(player.x - half, player.y, player.z - half),
+        max = math.vector3(
             player.x + half,
             player.y + player_height(),
             player.z + half
@@ -382,11 +382,11 @@ functio player_box(de Player player) → triga.Box3 {
     }
 }
 
-functio player_box_at(f32 x, f32 y, f32 z) → triga.Box3 {
+functio player_box_at(f32 x, f32 y, f32 z) → math.Box3 {
     fixum f32 half ← player_half_width()
-    redde triga.Box3 {
-        min = triga.vector3(x - half, y, z - half),
-        max = triga.vector3(x + half, y + player_height(), z + half)
+    redde math.Box3 {
+        min = math.vector3(x - half, y, z - half),
+        max = math.vector3(x + half, y + player_height(), z + half)
     }
 }
 
@@ -421,7 +421,7 @@ functio cell_max(f32 value) → numerus {
 }
 
 functio player_overlaps_solid(de voxel.World world, de Player player) → bivalens {
-    fixum triga.Box3 bounds ← player_box(player)
+    fixum math.Box3 bounds ← player_box(player)
     fixum numerus x0 ← cell_min(bounds.min.x)
     fixum numerus x1 ← cell_max(bounds.max.x)
     fixum numerus y0 ← cell_min(bounds.min.y)
@@ -461,7 +461,7 @@ functio resolve_x(
         redde x
     }
     fixum f32 proposed ← x + dx
-    fixum triga.Box3 bounds ← player_box_at(proposed, y, z)
+    fixum math.Box3 bounds ← player_box_at(proposed, y, z)
     fixum numerus x0 ← cell_min(bounds.min.x)
     fixum numerus x1 ← cell_max(bounds.max.x)
     fixum numerus y0 ← cell_min(bounds.min.y)
@@ -516,7 +516,7 @@ functio resolve_y(
         }
     }
     fixum f32 proposed ← y + dy
-    fixum triga.Box3 bounds ← player_box_at(x, proposed, z)
+    fixum math.Box3 bounds ← player_box_at(x, proposed, z)
     fixum numerus x0 ← cell_min(bounds.min.x)
     fixum numerus x1 ← cell_max(bounds.max.x)
     fixum numerus y0 ← cell_min(bounds.min.y)
@@ -587,7 +587,7 @@ functio resolve_z(
         redde z
     }
     fixum f32 proposed ← z + dz
-    fixum triga.Box3 bounds ← player_box_at(x, y, proposed)
+    fixum math.Box3 bounds ← player_box_at(x, y, proposed)
     fixum numerus x0 ← cell_min(bounds.min.x)
     fixum numerus x1 ← cell_max(bounds.max.x)
     fixum numerus y0 ← cell_min(bounds.min.y)
@@ -633,7 +633,7 @@ functio player_is_grounded(
     f32 z
 ) → bivalens {
     fixum f32 probe_y ← y - collision_epsilon()
-    fixum triga.Box3 bounds ← player_box_at(x, probe_y, z)
+    fixum math.Box3 bounds ← player_box_at(x, probe_y, z)
     # Only sample the bottom slab just under the feet.
     fixum numerus x0 ← cell_min(bounds.min.x)
     fixum numerus x1 ← cell_max(bounds.max.x)
@@ -713,8 +713,8 @@ functio planar_displacement(
     de Camera camera,
     de InputState input,
     f32 delta_seconds
-) → triga.Vector3 {
-    redde triga.camera_motus_planus_ex_yaw(
+) → math.Vector3 {
+    redde math.camera_motus_planus_ex_yaw(
         camera.yaw_degrees,
         forward_amount(input),
         right_amount(input),
@@ -732,7 +732,7 @@ functio step_player(
     f32 delta_seconds
 ) → Player {
     fixum f32 dt ← clamp_delta_seconds(delta_seconds)
-    fixum triga.Vector3 planar ← planar_displacement(camera, input, dt)
+    fixum math.Vector3 planar ← planar_displacement(camera, input, dt)
     fixum f32 velocity_y ← player.velocity_y - gravity() * dt
     fixum f32 dy ← velocity_y * dt
     redde move_player_collided(
@@ -790,10 +790,10 @@ functio _dda_inf() → f32 { redde 1.0e30 ∷ f32 }
 
 functio _dda_eps() → f32 { redde 1.0e-8 ∷ f32 }
 
-functio voxel_cell_box(numerus x, numerus y, numerus z) → triga.Box3 {
-    redde triga.Box3 {
-        min = triga.vector3(x ↦ f32, y ↦ f32, z ↦ f32),
-        max = triga.vector3(
+functio voxel_cell_box(numerus x, numerus y, numerus z) → math.Box3 {
+    redde math.Box3 {
+        min = math.vector3(x ↦ f32, y ↦ f32, z ↦ f32),
+        max = math.vector3(
             (x ↦ f32) + 1.0 ∷ f32,
             (y ↦ f32) + 1.0 ∷ f32,
             (z ↦ f32) + 1.0 ∷ f32
@@ -808,7 +808,7 @@ functio placement_intersects_player(
     numerus y,
     numerus z
 ) → bivalens {
-    redde triga.box3_intersecat(player_box(player), voxel_cell_box(x, y, z))
+    redde (player_box(player)).intersecat(voxel_cell_box(x, y, z))
 }
 
 functio _dda_step(f32 component) → numerus {
@@ -845,8 +845,8 @@ functio _dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
 # cells are air. Starting inside a solid yields a hit with has_preceding=false.
 functio voxel_dda(
     de voxel.World world,
-    de triga.Vector3 origin,
-    de triga.Vector3 direction,
+    de math.Vector3 origin,
+    de math.Vector3 direction,
     f32 max_distance
 ) → VoxelHit ∪ nihil {
     si max_distance < 0.0 {
@@ -968,7 +968,7 @@ functio select_voxel(
     de Camera camera,
     de Player player
 ) → VoxelHit ∪ nihil {
-    fixum triga.CameraYawPitchFacts facts ← camera_view_facts(camera, player)
+    fixum math.CameraYawPitchFacts facts ← camera_view_facts(camera, player)
     redde voxel_dda(
         world,
         facts.ray.origin,
