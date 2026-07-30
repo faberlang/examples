@@ -70,15 +70,15 @@ incipit {
     # ------------------------------------------------------------------
     # Constants and spawn
     # ------------------------------------------------------------------
-    adfirma application.player_width() ≡ (0.6 ∷ f32),
+    adfirma application.player_width() ≡ (0.6 ∷ f32) secus
         "player width is locked at 0.6"
-    adfirma application.player_height() ≡ (1.8 ∷ f32),
+    adfirma application.player_height() ≡ (1.8 ∷ f32) secus
         "player height is locked at 1.8"
-    adfirma application.max_delta_seconds() ≡ (0.05 ∷ f32),
+    adfirma application.max_delta_seconds() ≡ (0.05 ∷ f32) secus
         "frame delta clamp is documented at 0.05 s"
-    adfirma application.pitch_max_degrees() ≡ (89.0 ∷ f32),
+    adfirma application.pitch_max_degrees() ≡ (89.0 ∷ f32) secus
         "pitch max is +89°"
-    adfirma application.pitch_min_degrees() ≡ (0.0 ∷ f32 - 89.0 ∷ f32),
+    adfirma application.pitch_min_degrees() ≡ (0.0 ∷ f32 - 89.0 ∷ f32) secus
         "pitch min is -89°"
 
     fixum application.Application app0 ← application.spawn_application()
@@ -86,24 +86,24 @@ incipit {
         et approx(app0.player.y, application.spawn_y(), 0.0001 ∷ f32)
         et approx(app0.player.z, application.spawn_z(), 0.0001 ∷ f32),
         "spawn places player at the fixed fixture-world location"
-    adfirma app0.player.grounded,
+    adfirma app0.player.grounded secus
         "spawn marks player grounded"
     adfirma app0.camera.yaw_degrees ≡ (0.0 ∷ f32)
         et app0.camera.pitch_degrees ≡ (0.0 ∷ f32),
         "spawn camera faces yaw 0 / pitch 0"
 
     fixum voxel.World fixture ← voxel.fixture_world()
-    adfirma application.player_overlaps_solid(fixture, app0.player) ≡ falsum,
+    adfirma application.player_overlaps_solid(fixture, app0.player) ≡ falsum secus
         "spawn player does not overlap solid blocks"
 
     # ------------------------------------------------------------------
     # Pitch clamp
     # ------------------------------------------------------------------
-    adfirma application.clamp_pitch(100.0 ∷ f32) ≡ (89.0 ∷ f32),
+    adfirma application.clamp_pitch(100.0 ∷ f32) ≡ (89.0 ∷ f32) secus
         "pitch above +89 clamps to +89"
-    adfirma application.clamp_pitch(0.0 ∷ f32 - 100.0 ∷ f32) ≡ (0.0 ∷ f32 - 89.0 ∷ f32),
+    adfirma application.clamp_pitch(0.0 ∷ f32 - 100.0 ∷ f32) ≡ (0.0 ∷ f32 - 89.0 ∷ f32) secus
         "pitch below -89 clamps to -89"
-    adfirma application.clamp_pitch(12.5 ∷ f32) ≡ (12.5 ∷ f32),
+    adfirma application.clamp_pitch(12.5 ∷ f32) ≡ (12.5 ∷ f32) secus
         "in-range pitch is unchanged"
 
     fixum application.Camera look_up ← application.apply_yaw_pitch(
@@ -111,23 +111,23 @@ incipit {
         0.0 ∷ f32,
         200.0 ∷ f32
     )
-    adfirma look_up.pitch_degrees ≡ (89.0 ∷ f32),
+    adfirma look_up.pitch_degrees ≡ (89.0 ∷ f32) secus
         "apply_yaw_pitch clamps extreme upward look"
     fixum application.Camera look_down ← application.apply_yaw_pitch(
         app0.camera,
         0.0 ∷ f32,
         0.0 ∷ f32 - 200.0 ∷ f32
     )
-    adfirma look_down.pitch_degrees ≡ (0.0 ∷ f32 - 89.0 ∷ f32),
+    adfirma look_down.pitch_degrees ≡ (0.0 ∷ f32 - 89.0 ∷ f32) secus
         "apply_yaw_pitch clamps extreme downward look"
 
     fixum triga.CameraYawPitchFacts facts ← application.camera_view_facts(
         look_up,
         app0.player
     )
-    adfirma facts.clamped_pitch_degrees ≡ (89.0 ∷ f32),
+    adfirma facts.clamped_pitch_degrees ≡ (89.0 ∷ f32) secus
         "camera view facts expose clamped pitch"
-    adfirma facts.direction.y > 0.99,
+    adfirma facts.direction.y > 0.99 secus
         "clamped up look has near-+Y view direction"
 
     # Mouse deltas ignored without pointer lock.
@@ -136,7 +136,7 @@ incipit {
         40.0 ∷ f32,
         0.0 ∷ f32
     )
-    adfirma unlocked.mouse_dx ≡ (0.0 ∷ f32),
+    adfirma unlocked.mouse_dx ≡ (0.0 ∷ f32) secus
         "mouse delta is ignored when pointer is unlocked"
     fixum application.InputState locked ← application.apply_pointer_lock(
         app0.input,
@@ -207,7 +207,7 @@ incipit {
         press_w,
         1.0 ∷ f32
     )
-    adfirma approx(move_full.z, 0.0 ∷ f32 - 4.0 ∷ f32, 0.0001 ∷ f32),
+    adfirma approx(move_full.z, 0.0 ∷ f32 - 4.0 ∷ f32, 0.0001 ∷ f32) secus
         "double frame time doubles planar displacement"
 
     fixum triga.Vector3 move_clamped ← application.planar_displacement(
@@ -244,9 +244,9 @@ incipit {
         0.01 ∷ f32
     ),
         "step_player advances -Z under W with open ground ahead"
-    adfirma walked.grounded,
+    adfirma walked.grounded secus
         "walking on fixture ground remains grounded"
-    adfirma application.player_overlaps_solid(fixture, walked) ≡ falsum,
+    adfirma application.player_overlaps_solid(fixture, walked) ≡ falsum secus
         "walking leaves no solid overlap"
 
     # ------------------------------------------------------------------
@@ -277,7 +277,7 @@ incipit {
         focused_wasd,
         falsum
     )
-    adfirma unfocused.focused ≡ falsum,
+    adfirma unfocused.focused ≡ falsum secus
         "apply_focus records focus loss"
     adfirma unfocused.key_w ≡ falsum
         et unfocused.key_a ≡ falsum
@@ -302,7 +302,7 @@ incipit {
         application.key_code_w(),
         verum
     )
-    adfirma ignored_key.key_w ≡ falsum,
+    adfirma ignored_key.key_w ≡ falsum secus
         "key events while unfocused do not stick"
 
     # ------------------------------------------------------------------
@@ -322,13 +322,13 @@ incipit {
         application.empty_input(),
         0.05 ∷ f32
     )
-    adfirma falling.y < airborne.y,
+    adfirma falling.y < airborne.y secus
         "gravity lowers airborne player"
-    adfirma falling.velocity_y < 0.0,
+    adfirma falling.velocity_y < 0.0 secus
         "falling accumulates negative vertical velocity"
-    adfirma falling.grounded ≡ falsum,
+    adfirma falling.grounded ≡ falsum secus
         "still airborne after one short fall frame"
-    adfirma application.player_overlaps_solid(fixture, falling) ≡ falsum,
+    adfirma application.player_overlaps_solid(fixture, falling) ≡ falsum secus
         "falling player never overlaps solids"
 
     # Drop until grounded on the fixture floor.
@@ -344,13 +344,13 @@ incipit {
         )
         drop_steps ← drop_steps + 1
     }
-    adfirma drop.grounded,
+    adfirma drop.grounded secus
         "airborne player eventually grounds on fixture floor"
-    adfirma approx(drop.y, 1.0 ∷ f32, 0.02 ∷ f32),
+    adfirma approx(drop.y, 1.0 ∷ f32, 0.02 ∷ f32) secus
         "grounded feet settle on top of solid y=0 (feet y ≈ 1)"
-    adfirma drop.velocity_y ≡ (0.0 ∷ f32),
+    adfirma drop.velocity_y ≡ (0.0 ∷ f32) secus
         "ground contact zeroes vertical velocity"
-    adfirma application.player_overlaps_solid(fixture, drop) ≡ falsum,
+    adfirma application.player_overlaps_solid(fixture, drop) ≡ falsum secus
         "grounded player does not overlap the floor solid"
 
     # ------------------------------------------------------------------
@@ -386,7 +386,7 @@ incipit {
         9.0 ∷ f32 + application.player_half_width() + 0.05 ∷ f32
     ),
         "Z collision settles against the wall +Z face"
-    adfirma application.player_overlaps_solid(fixture, against_wall) ≡ falsum,
+    adfirma application.player_overlaps_solid(fixture, against_wall) ≡ falsum secus
         "wall contact leaves no solid overlap"
 
     # X collision into the pillar at (4, *, 24).
@@ -419,7 +419,7 @@ incipit {
         4.0 ∷ f32 + 1.0 ∷ f32 + application.player_half_width() + 0.05 ∷ f32
     ),
         "X collision settles against the pillar"
-    adfirma application.player_overlaps_solid(fixture, against_pillar) ≡ falsum,
+    adfirma application.player_overlaps_solid(fixture, against_pillar) ≡ falsum secus
         "pillar contact leaves no solid overlap"
 
     # Isolated axis-order unit: resolve_x then resolve_y then resolve_z.
@@ -428,7 +428,7 @@ incipit {
     fixum voxel.World ∪ nihil with_block ← voxel.world_set(
         empty, 10, 1, 16, voxel.block_solid()
     )
-    adfirma with_block non est nihil,
+    adfirma with_block non est nihil secus
         "test block placement succeeds"
     fixum voxel.World block_world ← voxel.World { chunks = with_block!.chunks }
 
@@ -442,9 +442,9 @@ incipit {
         start_z,
         1.0 ∷ f32
     )
-    adfirma resolved_x ≤ (10.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+    adfirma resolved_x ≤ (10.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32) secus
         "resolve_x alone blocks +X entry into solid"
-    adfirma resolved_x ≥ (10.0 ∷ f32 - application.player_half_width() - 0.0001 ∷ f32),
+    adfirma resolved_x ≥ (10.0 ∷ f32 - application.player_half_width() - 0.0001 ∷ f32) secus
         "resolve_x settles at the solid face"
 
     # Y: fall onto a solid floor cell at y=0 under the player.
@@ -459,9 +459,9 @@ incipit {
         16.0 ∷ f32,
         0.0 ∷ f32 - 2.0 ∷ f32
     )
-    adfirma approx(y_resolved.y, 1.0 ∷ f32, 0.0001 ∷ f32),
+    adfirma approx(y_resolved.y, 1.0 ∷ f32, 0.0001 ∷ f32) secus
         "resolve_y alone lands feet on top of solid y=0"
-    adfirma y_resolved.grounded,
+    adfirma y_resolved.grounded secus
         "resolve_y marks grounded on floor hit"
 
     # Z: block at z=12, approach from z=11.
@@ -476,9 +476,9 @@ incipit {
         11.0 ∷ f32,
         1.0 ∷ f32
     )
-    adfirma resolved_z ≤ (12.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+    adfirma resolved_z ≤ (12.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32) secus
         "resolve_z alone blocks +Z entry into solid"
-    adfirma resolved_z ≥ (12.0 ∷ f32 - application.player_half_width() - 0.0001 ∷ f32),
+    adfirma resolved_z ≥ (12.0 ∷ f32 - application.player_half_width() - 0.0001 ∷ f32) secus
         "resolve_z settles at the solid face"
 
     # L-shaped solids block both +X and +Z from (7,1,7) under axis-ordered resolve.
@@ -503,10 +503,10 @@ incipit {
         1.5 ∷ f32,
         0.0 ∷ f32
     )
-    adfirma application.player_overlaps_solid(l_world, corner_moved) ≡ falsum,
+    adfirma application.player_overlaps_solid(l_world, corner_moved) ≡ falsum secus
         "X→Y→Z resolution leaves no solid overlap after diagonal intent"
-    adfirma corner_moved.x ≤ (8.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+    adfirma corner_moved.x ≤ (8.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32) secus
         "diagonal intent resolves X against the L solid"
-    adfirma corner_moved.z ≤ (8.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32),
+    adfirma corner_moved.z ≤ (8.0 ∷ f32 - application.player_half_width() + 0.0001 ∷ f32) secus
         "diagonal intent resolves Z against the L solid"
 }

@@ -41,14 +41,14 @@ related = ["adfirma", "functio"]
 
 # Validate input at function start
 functio divide(numerus a, numerus b) → numerus {
-    adfirma b ≠ 0, "divisor non sit nihil"
+    adfirma b ≠ 0 secus "divisor non sit nihil"
     redde a / b
 }
 
 # Multiple assertions
 functio aetas(numerus natus, numerus nunc) → numerus {
-    adfirma natus > 0, "annus natus positivus sit"
-    adfirma nunc ≥ natus, "annus nunc post natum sit"
+    adfirma natus > 0 secus "annus natus positivus sit"
+    adfirma nunc ≥ natus secus "annus nunc post natum sit"
     redde nunc - natus
 }
 
@@ -58,7 +58,7 @@ functio absolutum(numerus n) → numerus {
     si n < 0 {
         valor ← -n
     }
-    adfirma valor ≥ 0, "valor non negativus sit"
+    adfirma valor ≥ 0 secus "valor non negativus sit"
     redde valor
 }
 

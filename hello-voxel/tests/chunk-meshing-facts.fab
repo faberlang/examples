@@ -56,7 +56,7 @@ incipit {
     # ------------------------------------------------------------------
     fixum voxel.World empty ← voxel.empty_world()
     fixum meshing.ChunkMesh ∪ nihil empty_mesh_result ← meshing.mesh_chunk(empty, 0, 0)
-    adfirma empty_mesh_result non est nihil,
+    adfirma empty_mesh_result non est nihil secus
         "empty chunk mesh succeeds"
     fixum meshing.ChunkMesh empty_mesh ← meshing.ChunkMesh {
         cx = empty_mesh_result!.cx,
@@ -66,15 +66,15 @@ incipit {
         colors = empty_mesh_result!.colors,
         indices = empty_mesh_result!.indices
     }
-    adfirma empty_mesh.face_count ≡ 0,
+    adfirma empty_mesh.face_count ≡ 0 secus
         "empty chunk emits no faces"
-    adfirma meshing.chunk_mesh_matches_face_count(empty_mesh),
+    adfirma meshing.chunk_mesh_matches_face_count(empty_mesh) secus
         "empty chunk payload lengths match zero faces"
-    adfirma meshing.chunk_mesh_bounding_box(empty_mesh) est nihil,
+    adfirma meshing.chunk_mesh_bounding_box(empty_mesh) est nihil secus
         "empty chunk has no mesh bounds"
-    adfirma meshing.mesh_chunk(empty, 2, 0) est nihil,
+    adfirma meshing.mesh_chunk(empty, 2, 0) est nihil secus
         "invalid chunk coord fails"
-    adfirma meshing.mesh_chunk(empty, 0, -1) est nihil,
+    adfirma meshing.mesh_chunk(empty, 0, -1) est nihil secus
         "negative chunk coord fails"
 
     # ------------------------------------------------------------------
@@ -82,7 +82,7 @@ incipit {
     # ------------------------------------------------------------------
     fixum voxel.World single ← world_with_solid(empty, 0, 0, 0)
     fixum meshing.ChunkMesh ∪ nihil single_result ← meshing.mesh_chunk(single, 0, 0)
-    adfirma single_result non est nihil,
+    adfirma single_result non est nihil secus
         "single-solid chunk mesh succeeds"
     fixum meshing.ChunkMesh single_mesh ← meshing.ChunkMesh {
         cx = single_result!.cx,
@@ -92,21 +92,21 @@ incipit {
         colors = single_result!.colors,
         indices = single_result!.indices
     }
-    adfirma single_mesh.face_count ≡ 6,
+    adfirma single_mesh.face_count ≡ 6 secus
         "isolated solid emits six faces"
-    adfirma meshing.chunk_mesh_matches_face_count(single_mesh),
+    adfirma meshing.chunk_mesh_matches_face_count(single_mesh) secus
         "single solid face/index/vertex counts match"
-    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 1) vel 0) ≡ 1,
+    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 1) vel 0) ≡ 1 secus
         "single solid has one -X face"
-    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 2) vel 0) ≡ 1,
+    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 2) vel 0) ≡ 1 secus
         "single solid has one +X face"
-    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 3) vel 0) ≡ 1,
+    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 3) vel 0) ≡ 1 secus
         "single solid has one -Y face"
-    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 4) vel 0) ≡ 1,
+    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 4) vel 0) ≡ 1 secus
         "single solid has one +Y face"
-    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 5) vel 0) ≡ 1,
+    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 5) vel 0) ≡ 1 secus
         "single solid has one -Z face"
-    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 6) vel 0) ≡ 1,
+    adfirma (meshing.chunk_mesh_count_face_code(single_mesh, 6) vel 0) ≡ 1 secus
         "single solid has one +Z face"
 
     # Canonical indices for first face: 0,1,2,0,2,3
@@ -122,22 +122,22 @@ incipit {
         "second face advances index base by four"
 
     # Face 0 is code 1 (-X) because faces append in code order 1..6
-    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 0, 1),
+    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 0, 1) secus
         "first face winding matches -X normal"
-    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 1, 2),
+    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 1, 2) secus
         "second face winding matches +X normal"
-    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 2, 3),
+    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 2, 3) secus
         "third face winding matches -Y normal"
-    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 3, 4),
+    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 3, 4) secus
         "fourth face winding matches +Y normal"
-    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 4, 5),
+    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 4, 5) secus
         "fifth face winding matches -Z normal"
-    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 5, 6),
+    adfirma meshing.chunk_mesh_face_winding_matches(single_mesh, 5, 6) secus
         "sixth face winding matches +Z normal"
 
     # Colors from face_code_color for -X (first face)
     fixum triga.Color ∪ nihil neg_x_color ← triga.face_code_color(1)
-    adfirma neg_x_color non est nihil,
+    adfirma neg_x_color non est nihil secus
         "face code 1 has a color"
     adfirma single_mesh.colors[0] ≡ neg_x_color!.r
         et single_mesh.colors[1] ≡ neg_x_color!.g
@@ -146,7 +146,7 @@ incipit {
 
     fixum geometry.BoundingBox ∪ nihil single_bounds ←
         meshing.chunk_mesh_bounding_box(single_mesh)
-    adfirma single_bounds non est nihil,
+    adfirma single_bounds non est nihil secus
         "single solid produces mesh bounds"
     adfirma single_bounds!.min_x ≡ (0.0 ∷ f32)
         et single_bounds!.min_y ≡ (0.0 ∷ f32)
@@ -158,7 +158,7 @@ incipit {
 
     # Other chunks stay empty
     fixum meshing.ChunkMesh ∪ nihil other_empty ← meshing.mesh_chunk(single, 1, 0)
-    adfirma other_empty non est nihil et other_empty!.face_count ≡ 0,
+    adfirma other_empty non est nihil et other_empty!.face_count ≡ 0 secus
         "solid outside chunk does not appear in other chunk meshes"
 
     # ------------------------------------------------------------------
@@ -169,10 +169,10 @@ incipit {
         4, 2, 4
     )
     fixum meshing.ChunkMesh ∪ nihil pair_result ← meshing.mesh_chunk(pair, 0, 0)
-    adfirma pair_result non est nihil,
+    adfirma pair_result non est nihil secus
         "adjacent pair meshes"
     # Two isolated solids = 12 faces; one shared interface removes 2 → 10
-    adfirma pair_result!.face_count ≡ 10,
+    adfirma pair_result!.face_count ≡ 10 secus
         "shared face between adjacent solids is omitted both sides"
     adfirma meshing.chunk_mesh_matches_face_count(meshing.ChunkMesh {
         cx = pair_result!.cx,
@@ -212,11 +212,11 @@ incipit {
     )
     fixum meshing.ChunkMesh ∪ nihil west_result ← meshing.mesh_chunk(x_seam, 0, 0)
     fixum meshing.ChunkMesh ∪ nihil east_result ← meshing.mesh_chunk(x_seam, 1, 0)
-    adfirma west_result non est nihil et east_result non est nihil,
+    adfirma west_result non est nihil et east_result non est nihil secus
         "X-seam solids mesh in both chunks"
-    adfirma west_result!.face_count ≡ 5,
+    adfirma west_result!.face_count ≡ 5 secus
         "west solid at X seam emits five faces (no +X into east solid)"
-    adfirma east_result!.face_count ≡ 5,
+    adfirma east_result!.face_count ≡ 5 secus
         "east solid at X seam emits five faces (no -X into west solid)"
     adfirma (meshing.chunk_mesh_count_face_code(meshing.ChunkMesh {
         cx = west_result!.cx,
@@ -240,7 +240,7 @@ incipit {
     # Alone at X seam (no neighbor) still emits the boundary-side face
     fixum voxel.World west_only ← world_with_solid(empty, 15, 5, 8)
     fixum meshing.ChunkMesh ∪ nihil west_only_mesh ← meshing.mesh_chunk(west_only, 0, 0)
-    adfirma west_only_mesh non est nihil et west_only_mesh!.face_count ≡ 6,
+    adfirma west_only_mesh non est nihil et west_only_mesh!.face_count ≡ 6 secus
         "west-only solid at X seam emits all six faces"
     adfirma (meshing.chunk_mesh_count_face_code(meshing.ChunkMesh {
         cx = west_only_mesh!.cx,
@@ -261,11 +261,11 @@ incipit {
     )
     fixum meshing.ChunkMesh ∪ nihil south_result ← meshing.mesh_chunk(z_seam, 0, 0)
     fixum meshing.ChunkMesh ∪ nihil north_result ← meshing.mesh_chunk(z_seam, 0, 1)
-    adfirma south_result non est nihil et north_result non est nihil,
+    adfirma south_result non est nihil et north_result non est nihil secus
         "Z-seam solids mesh in both chunks"
-    adfirma south_result!.face_count ≡ 5,
+    adfirma south_result!.face_count ≡ 5 secus
         "south solid at Z seam emits five faces (no +Z into north solid)"
-    adfirma north_result!.face_count ≡ 5,
+    adfirma north_result!.face_count ≡ 5 secus
         "north solid at Z seam emits five faces (no -Z into south solid)"
     adfirma (meshing.chunk_mesh_count_face_code(meshing.ChunkMesh {
         cx = south_result!.cx,
@@ -291,7 +291,7 @@ incipit {
     # ------------------------------------------------------------------
     fixum voxel.World edge ← world_with_solid(empty, 31, 15, 31)
     fixum meshing.ChunkMesh ∪ nihil edge_result ← meshing.mesh_chunk(edge, 1, 1)
-    adfirma edge_result non est nihil et edge_result!.face_count ≡ 6,
+    adfirma edge_result non est nihil et edge_result!.face_count ≡ 6 secus
         "far-corner solid emits six faces against world exterior"
     adfirma (meshing.chunk_mesh_count_face_code(meshing.ChunkMesh {
         cx = edge_result!.cx,
@@ -324,18 +324,18 @@ incipit {
     # ------------------------------------------------------------------
     # face_is_visible / neighbor helpers
     # ------------------------------------------------------------------
-    adfirma meshing.face_is_visible(single, 0, 0, 0, 1),
+    adfirma meshing.face_is_visible(single, 0, 0, 0, 1) secus
         "origin solid -X is visible (OOB)"
-    adfirma meshing.face_is_visible(single, 0, 0, 0, 2),
+    adfirma meshing.face_is_visible(single, 0, 0, 0, 2) secus
         "origin solid +X is visible (air)"
-    adfirma meshing.face_is_visible(pair, 3, 2, 4, 2) ≡ falsum,
+    adfirma meshing.face_is_visible(pair, 3, 2, 4, 2) ≡ falsum secus
         "left solid +X hidden by right solid"
-    adfirma meshing.face_is_visible(pair, 4, 2, 4, 1) ≡ falsum,
+    adfirma meshing.face_is_visible(pair, 4, 2, 4, 1) ≡ falsum secus
         "right solid -X hidden by left solid"
-    adfirma meshing.face_is_visible(empty, 0, 0, 0, 1) ≡ falsum,
+    adfirma meshing.face_is_visible(empty, 0, 0, 0, 1) ≡ falsum secus
         "air cell has no visible faces"
-    adfirma meshing.neighbor_is_solid(x_seam, 16, 5, 8),
+    adfirma meshing.neighbor_is_solid(x_seam, 16, 5, 8) secus
         "X-seam east neighbor is solid"
-    adfirma meshing.neighbor_is_solid(x_seam, 17, 5, 8) ≡ falsum,
+    adfirma meshing.neighbor_is_solid(x_seam, 17, 5, 8) ≡ falsum secus
         "beyond east solid is not solid"
 }

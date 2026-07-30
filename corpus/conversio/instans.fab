@@ -47,7 +47,7 @@ incipit {
 
     adfirma millis ↦ textus ≡ "1979-05-27T07:32:00.000Z"
     adfirma micros ↦ textus ≡ "1979-05-27T07:32:00.123456Z"
-    adfirma normalized ≡ seconds, "offset ingest lands on same UTC instant"
+    adfirma normalized ≡ seconds secus "offset ingest lands on same UTC instant"
 
     fixum instans<ns> fine ← nanos
     fixum instans narrowed ← fine ↦ instans

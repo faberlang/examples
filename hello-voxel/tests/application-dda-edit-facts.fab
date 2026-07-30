@@ -93,7 +93,7 @@ incipit {
     # ------------------------------------------------------------------
     # Constants
     # ------------------------------------------------------------------
-    adfirma application.select_range() ≡ (6.0 ∷ f32),
+    adfirma application.select_range() ≡ (6.0 ∷ f32) secus
         "selection reach is locked at 6 blocks"
 
     # ------------------------------------------------------------------
@@ -117,15 +117,15 @@ incipit {
         axis_dir,
         application.select_range()
     )
-    adfirma axis_hit non est nihil,
+    adfirma axis_hit non est nihil secus
         "axis +X ray hits the solid within range"
-    adfirma axis_hit!.hit_x ≡ 5 et axis_hit!.hit_y ≡ 2 et axis_hit!.hit_z ≡ 4,
+    adfirma axis_hit!.hit_x ≡ 5 et axis_hit!.hit_y ≡ 2 et axis_hit!.hit_z ≡ 4 secus
         "axis hit coordinate is the solid cell"
-    adfirma axis_hit!.has_preceding,
+    adfirma axis_hit!.has_preceding secus
         "axis hit reports a preceding empty cell"
-    adfirma axis_hit!.prev_x ≡ 4 et axis_hit!.prev_y ≡ 2 et axis_hit!.prev_z ≡ 4,
+    adfirma axis_hit!.prev_x ≡ 4 et axis_hit!.prev_y ≡ 2 et axis_hit!.prev_z ≡ 4 secus
         "axis preceding is the empty cell west of the solid"
-    adfirma approx(axis_hit!.distance, 3.5 ∷ f32, 0.0001 ∷ f32),
+    adfirma approx(axis_hit!.distance, 3.5 ∷ f32, 0.0001 ∷ f32) secus
         "axis hit distance is origin→solid face (5 - 1.5 = 3.5)"
 
     # -Z axis
@@ -136,11 +136,11 @@ incipit {
         triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32 - 1.0 ∷ f32),
         application.select_range()
     )
-    adfirma axis_z_hit non est nihil,
+    adfirma axis_z_hit non est nihil secus
         "axis -Z ray hits the solid"
-    adfirma axis_z_hit!.hit_x ≡ 8 et axis_z_hit!.hit_y ≡ 3 et axis_z_hit!.hit_z ≡ 2,
+    adfirma axis_z_hit!.hit_x ≡ 8 et axis_z_hit!.hit_y ≡ 3 et axis_z_hit!.hit_z ≡ 2 secus
         "axis -Z hit is the solid cell"
-    adfirma axis_z_hit!.prev_x ≡ 8 et axis_z_hit!.prev_y ≡ 3 et axis_z_hit!.prev_z ≡ 3,
+    adfirma axis_z_hit!.prev_x ≡ 8 et axis_z_hit!.prev_y ≡ 3 et axis_z_hit!.prev_z ≡ 3 secus
         "axis -Z preceding is the empty cell on the +Z face of the solid"
 
     # ------------------------------------------------------------------
@@ -155,22 +155,22 @@ incipit {
         triga.vector3(inv_sqrt3, inv_sqrt3, inv_sqrt3),
         application.select_range()
     )
-    adfirma diag_hit non est nihil,
+    adfirma diag_hit non est nihil secus
         "diagonal ray hits the solid"
-    adfirma diag_hit!.hit_x ≡ 4 et diag_hit!.hit_y ≡ 4 et diag_hit!.hit_z ≡ 4,
+    adfirma diag_hit!.hit_x ≡ 4 et diag_hit!.hit_y ≡ 4 et diag_hit!.hit_z ≡ 4 secus
         "diagonal hit coordinate is the solid"
-    adfirma diag_hit!.has_preceding,
+    adfirma diag_hit!.has_preceding secus
         "diagonal hit has a preceding empty cell"
     # Preceding must be a 6-adjacent neighbor of the hit (Manhattan distance 1).
     fixum numerus diag_dx ← (diag_hit!.hit_x - diag_hit!.prev_x).absolutum()
     fixum numerus diag_dy ← (diag_hit!.hit_y - diag_hit!.prev_y).absolutum()
     fixum numerus diag_dz ← (diag_hit!.hit_z - diag_hit!.prev_z).absolutum()
-    adfirma (diag_dx + diag_dy + diag_dz) ≡ 1,
+    adfirma (diag_dx + diag_dy + diag_dz) ≡ 1 secus
         "diagonal preceding is face-adjacent to the hit"
-    adfirma diag_hit!.distance ≤ application.select_range(),
+    adfirma diag_hit!.distance ≤ application.select_range() secus
         "diagonal hit distance is within range"
     # Entering x=y=z=4 from 1.5 is Δ=2.5 per axis → t = 2.5 * √3 ≈ 4.330.
-    adfirma approx(diag_hit!.distance, 4.330127 ∷ f32, 0.01 ∷ f32),
+    adfirma approx(diag_hit!.distance, 4.330127 ∷ f32, 0.01 ∷ f32) secus
         "diagonal hit distance is 2.5 * √3"
 
     # First solid along the diagonal wins when two solids are present.
@@ -181,9 +181,9 @@ incipit {
         triga.vector3(inv_sqrt3, inv_sqrt3, inv_sqrt3),
         application.select_range()
     )
-    adfirma diag_first non est nihil,
+    adfirma diag_first non est nihil secus
         "diagonal ray with two solids still hits"
-    adfirma diag_first!.hit_x ≡ 3 et diag_first!.hit_y ≡ 3 et diag_first!.hit_z ≡ 3,
+    adfirma diag_first!.hit_x ≡ 3 et diag_first!.hit_y ≡ 3 et diag_first!.hit_z ≡ 3 secus
         "diagonal selects the nearer solid, not the farther one"
 
     # ------------------------------------------------------------------
@@ -196,7 +196,7 @@ incipit {
         triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma empty_hit est nihil,
+    adfirma empty_hit est nihil secus
         "empty world yields no DDA hit"
 
     # Solid present but ray points away.
@@ -207,7 +207,7 @@ incipit {
         triga.vector3(0.0 ∷ f32 - 1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma away_hit est nihil,
+    adfirma away_hit est nihil secus
         "ray pointing away from the only solid misses"
 
     # Zero direction is a miss.
@@ -217,7 +217,7 @@ incipit {
         triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma zero_hit est nihil,
+    adfirma zero_hit est nihil secus
         "zero-length direction yields no hit"
 
     # ------------------------------------------------------------------
@@ -230,7 +230,7 @@ incipit {
         triga.vector3(0.0 ∷ f32 - 1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma boundary_hit non est nihil,
+    adfirma boundary_hit non est nihil secus
         "boundary solid at world origin is selectable"
     adfirma boundary_hit!.hit_x ≡ 0 et boundary_hit!.hit_y ≡ 0
         et boundary_hit!.hit_z ≡ 0,
@@ -246,11 +246,11 @@ incipit {
         triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma far_hit non est nihil,
+    adfirma far_hit non est nihil secus
         "far-corner solid is selectable"
-    adfirma far_hit!.hit_x ≡ 31 et far_hit!.hit_y ≡ 15 et far_hit!.hit_z ≡ 31,
+    adfirma far_hit!.hit_x ≡ 31 et far_hit!.hit_y ≡ 15 et far_hit!.hit_z ≡ 31 secus
         "far-corner hit is (31,15,31)"
-    adfirma far_hit!.prev_x ≡ 30 et far_hit!.prev_y ≡ 15 et far_hit!.prev_z ≡ 31,
+    adfirma far_hit!.prev_x ≡ 30 et far_hit!.prev_y ≡ 15 et far_hit!.prev_z ≡ 31 secus
         "far-corner preceding stays in-bounds"
 
     # ------------------------------------------------------------------
@@ -264,7 +264,7 @@ incipit {
         triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma out_of_range est nihil,
+    adfirma out_of_range est nihil secus
         "solid entered at distance 6.5 is outside range 6"
 
     # Enter cell x=8 at t=5.5 ≤ 6 → hit.
@@ -275,11 +275,11 @@ incipit {
         triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma in_range non est nihil,
+    adfirma in_range non est nihil secus
         "solid entered at distance 5.5 is inside range 6"
-    adfirma in_range!.hit_x ≡ 8 et in_range!.hit_y ≡ 1 et in_range!.hit_z ≡ 5,
+    adfirma in_range!.hit_x ≡ 8 et in_range!.hit_y ≡ 1 et in_range!.hit_z ≡ 5 secus
         "in-range hit is the solid at x=8"
-    adfirma approx(in_range!.distance, 5.5 ∷ f32, 0.0001 ∷ f32),
+    adfirma approx(in_range!.distance, 5.5 ∷ f32, 0.0001 ∷ f32) secus
         "in-range hit distance is 5.5"
 
     # Exact boundary: enter at t=6.0 counts as a hit (distance > max only misses).
@@ -290,9 +290,9 @@ incipit {
         triga.vector3(1.0 ∷ f32, 0.0 ∷ f32, 0.0 ∷ f32),
         application.select_range()
     )
-    adfirma edge_range non est nihil,
+    adfirma edge_range non est nihil secus
         "solid entered at exact distance 6 is still in range"
-    adfirma approx(edge_range!.distance, 6.0 ∷ f32, 0.0001 ∷ f32),
+    adfirma approx(edge_range!.distance, 6.0 ∷ f32, 0.0001 ∷ f32) secus
         "edge-of-range hit distance is exactly 6"
 
     # ------------------------------------------------------------------
@@ -305,7 +305,7 @@ incipit {
         axis_dir,
         application.select_range()
     )
-    adfirma remove_sel non est nihil,
+    adfirma remove_sel non est nihil secus
         "remove fixture has a selectable solid"
     fixum application.VoxelHit remove_hit ← application.VoxelHit {
         hit_x = remove_sel!.hit_x,
@@ -321,11 +321,11 @@ incipit {
         remove_world,
         remove_hit
     )
-    adfirma after_remove non est nihil,
+    adfirma after_remove non est nihil secus
         "remove_hit applies on a solid selection"
     fixum voxel.World removed_world ← voxel.World { chunks = after_remove!.chunks }
     fixum numerus ∪ nihil removed_id ← voxel.world_get(removed_world, 5, 2, 4)
-    adfirma removed_id non est nihil et (removed_id vel 1) ≡ voxel.block_air(),
+    adfirma removed_id non est nihil et (removed_id vel 1) ≡ voxel.block_air() secus
         "remove_hit sets the hit cell to air"
     # Re-cast after removal: no hit.
     fixum application.VoxelHit ∪ nihil after_remove_sel ← application.voxel_dda(
@@ -334,7 +334,7 @@ incipit {
         axis_dir,
         application.select_range()
     )
-    adfirma after_remove_sel est nihil,
+    adfirma after_remove_sel est nihil secus
         "after removal the same ray misses"
 
     # ------------------------------------------------------------------
@@ -347,7 +347,7 @@ incipit {
         axis_dir,
         application.select_range()
     )
-    adfirma place_sel non est nihil et place_sel!.has_preceding,
+    adfirma place_sel non est nihil et place_sel!.has_preceding secus
         "place fixture has hit + preceding"
     # Player far from the placement cell so overlap check passes.
     fixum application.Player far_player ← player_at(
@@ -365,7 +365,7 @@ incipit {
         has_preceding = place_sel!.has_preceding,
         distance = place_sel!.distance
     }
-    adfirma place_hit.prev_x ≡ 4 et place_hit.prev_y ≡ 2 et place_hit.prev_z ≡ 4,
+    adfirma place_hit.prev_x ≡ 4 et place_hit.prev_y ≡ 2 et place_hit.prev_z ≡ 4 secus
         "place preceding is (4,2,4)"
     adfirma application.placement_intersects_player(
         far_player,
@@ -379,14 +379,14 @@ incipit {
         far_player,
         place_hit
     )
-    adfirma after_place non est nihil,
+    adfirma after_place non est nihil secus
         "place_at_preceding applies when legal"
     fixum voxel.World placed_world ← voxel.World { chunks = after_place!.chunks }
     fixum numerus ∪ nihil placed_id ← voxel.world_get(placed_world, 4, 2, 4)
-    adfirma placed_id non est nihil et (placed_id vel 0) ≡ voxel.block_solid(),
+    adfirma placed_id non est nihil et (placed_id vel 0) ≡ voxel.block_solid() secus
         "place writes solid id 1 at the preceding cell"
     fixum numerus ∪ nihil still_hit ← voxel.world_get(placed_world, 5, 2, 4)
-    adfirma still_hit non est nihil et (still_hit vel 0) ≡ voxel.block_solid(),
+    adfirma still_hit non est nihil et (still_hit vel 0) ≡ voxel.block_solid() secus
         "place does not mutate the original hit cell"
 
     # New ray from farther west now hits the newly placed solid first.
@@ -396,9 +396,9 @@ incipit {
         axis_dir,
         application.select_range()
     )
-    adfirma placed_sel non est nihil,
+    adfirma placed_sel non est nihil secus
         "after place the ray still hits"
-    adfirma placed_sel!.hit_x ≡ 4 et placed_sel!.hit_y ≡ 2 et placed_sel!.hit_z ≡ 4,
+    adfirma placed_sel!.hit_x ≡ 4 et placed_sel!.hit_y ≡ 2 et placed_sel!.hit_z ≡ 4 secus
         "after place the nearer solid at preceding is selected first"
 
     # ------------------------------------------------------------------
@@ -413,7 +413,7 @@ incipit {
         triga.vector3(0.0 ∷ f32, 0.0 ∷ f32, 1.0 ∷ f32),
         application.select_range()
     )
-    adfirma overlap_sel non est nihil,
+    adfirma overlap_sel non est nihil secus
         "overlap fixture selects the solid"
     adfirma overlap_sel!.hit_x ≡ 10 et overlap_sel!.hit_y ≡ 1
         et overlap_sel!.hit_z ≡ 10,
@@ -451,10 +451,10 @@ incipit {
         blocking_player,
         overlap_hit
     )
-    adfirma rejected est nihil,
+    adfirma rejected est nihil secus
         "place is rejected when preceding intersects the player AABB"
     fixum numerus ∪ nihil still_air ← voxel.world_get(overlap_world, 10, 1, 9)
-    adfirma still_air non est nihil et (still_air vel 1) ≡ voxel.block_air(),
+    adfirma still_air non est nihil et (still_air vel 1) ≡ voxel.block_air() secus
         "rejected place leaves the preceding cell as air"
 
     # Same selection with a far player succeeds.
@@ -463,7 +463,7 @@ incipit {
         far_player,
         overlap_hit
     )
-    adfirma allowed non est nihil,
+    adfirma allowed non est nihil secus
         "same place succeeds when the player is clear of the cell"
 
     # ------------------------------------------------------------------
@@ -486,13 +486,13 @@ incipit {
         face_neg_z,
         near_wall
     )
-    adfirma cam_hit non est nihil,
+    adfirma cam_hit non est nihil secus
         "select_voxel from camera hits the fixture wall"
-    adfirma cam_hit!.hit_z ≡ voxel.fixture_wall_z(),
+    adfirma cam_hit!.hit_z ≡ voxel.fixture_wall_z() secus
         "camera selection hit z is the fixture wall"
-    adfirma cam_hit!.has_preceding,
+    adfirma cam_hit!.has_preceding secus
         "camera selection reports preceding"
-    adfirma cam_hit!.prev_z ≡ voxel.fixture_wall_z() + 1,
+    adfirma cam_hit!.prev_z ≡ voxel.fixture_wall_z() + 1 secus
         "camera preceding is the empty cell on the +Z side of the wall"
 
     fixum voxel.World ∪ nihil cam_removed ← application.try_remove(
@@ -500,7 +500,7 @@ incipit {
         face_neg_z,
         near_wall
     )
-    adfirma cam_removed non est nihil,
+    adfirma cam_removed non est nihil secus
         "try_remove mutates through the camera ray"
     fixum voxel.World cam_removed_world ← voxel.World {
         chunks = cam_removed!.chunks
@@ -511,7 +511,7 @@ incipit {
         cam_hit!.hit_y,
         cam_hit!.hit_z
     )
-    adfirma wall_gone non est nihil et (wall_gone vel 1) ≡ voxel.block_air(),
+    adfirma wall_gone non est nihil et (wall_gone vel 1) ≡ voxel.block_air() secus
         "try_remove cleared the selected wall cell"
 
     # Place against the pillar via camera: stand south of pillar, look -Z? 
@@ -526,7 +526,7 @@ incipit {
         face_neg_z,
         near_pillar
     )
-    adfirma pillar_hit non est nihil,
+    adfirma pillar_hit non est nihil secus
         "camera selects the fixture pillar"
     adfirma pillar_hit!.hit_x ≡ voxel.fixture_pillar_x()
         et pillar_hit!.hit_z ≡ voxel.fixture_pillar_z(),
@@ -539,7 +539,7 @@ incipit {
         face_neg_z,
         near_pillar
     )
-    adfirma pillar_placed non est nihil,
+    adfirma pillar_placed non est nihil secus
         "try_place against pillar succeeds when player is clear"
     fixum voxel.World pillar_placed_world ← voxel.World {
         chunks = pillar_placed!.chunks
@@ -550,6 +550,6 @@ incipit {
         pillar_hit!.prev_y,
         pillar_hit!.prev_z
     )
-    adfirma placed_prev non est nihil et (placed_prev vel 0) ≡ voxel.block_solid(),
+    adfirma placed_prev non est nihil et (placed_prev vel 0) ≡ voxel.block_solid() secus
         "try_place wrote solid id 1 at the preceding cell"
 }
