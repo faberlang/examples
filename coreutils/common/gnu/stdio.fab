@@ -29,7 +29,7 @@
 # Anti-patterns (avoid these):
 #   • Calling norma:consolum from shared common/* helpers — providers are not yet
 #     rewritten correctly for shared library units; prefer importing at the
-#     package entry point (see anti-patterns: norma:hal/* imports)
+#     package entry point (see anti-patterns: retired host-abstraction imports)
 #
 # Learning path:
 #   Before: functio (Stage 1), vacuum (Stage 3), nota (Stage 1)
