@@ -1,0 +1,120 @@
+importa ex "web:web" privata web
+importa ex "web:dom" privata dom
+importa ex "triga:triga" privata triga
+importa ex "./bridge" privata bridge
+importa ex "./camera" privata camera
+importa ex "./scene" privata scene
+
+functio floats_textus(de lista<f32> values) → textus {
+    varia textus output ← ""
+    varia numerus i ← 0
+    dum i < values.longitudo() {
+        si i ≡ 0 {
+            output ← values[i] ↦ textus
+        }
+        secus {
+            output ← "§ §"(output, values[i] ↦ textus)
+        }
+        i ← i + 1
+    }
+    redde output
+}
+
+functio indices_textus(de lista<u32> values) → textus {
+    varia textus output ← ""
+    varia numerus i ← 0
+    dum i < values.longitudo() {
+        si i ≡ 0 {
+            output ← values[i] ↦ textus
+        }
+        secus {
+            output ← "§ §"(output, values[i] ↦ textus)
+        }
+        i ← i + 1
+    }
+    redde output
+}
+
+functio object_geometry_textus(de scene.SceneObjectGeometry obj) → textus {
+    redde "§;§;§;§;§;§"(obj.name, "static", obj.vertex_count ↦ textus, obj.index_count ↦ textus, floats_textus(obj.vertex_payload), indices_textus(obj.index_payload))
+}
+
+functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus {
+    varia textus output ← ""
+    varia numerus i ← 0
+    dum i < manifest.objects.longitudo() {
+        fixum textus piece ← object_geometry_textus((manifest.objects)[i])
+        si i ≡ 0 {
+            output ← piece
+        }
+        secus {
+            output ← "§|§"(output, piece)
+        }
+        i ← i + 1
+    }
+    redde output
+}
+
+functio publish_scene_geometry(dom.Element facts_element) → vacuum {
+    fixum scene.SceneGeometryManifest manifest ← scene.budapest_scene_geometry()
+    fixum bridge.BudapestSceneFacts facts ← bridge.scene_facts()
+    dom.attr_set(facts_element, "data-scene-geometry", scene_geometry_blob(manifest))
+    dom.attr_set(facts_element, "data-scene-object-count", manifest.objects.longitudo() ↦ textus)
+    dom.attr_set(facts_element, "data-budapest-towers", facts.tower_count ↦ textus)
+    dom.attr_set(facts_element, "data-budapest-chain-segments", facts.chain_segment_count ↦ textus)
+    dom.attr_set(facts_element, "data-budapest-lion-markers", facts.lion_marker_count ↦ textus)
+}
+
+functio publish_transform(dom.Element facts_element, de camera.OrbitCamera orbit, f32 aspect) → vacuum {
+    fixum triga.TransformPayload ∪ nihil payload_result ← camera.transform_payload(orbit, aspect)
+    si payload_result est nihil {
+        dom.attr_set(facts_element, "data-transform-status", "invalid")
+        redde
+    }
+    dom.attr_set(facts_element, "data-transform-status", "ready")
+    dom.attr_set(facts_element, "data-transform-payload", floats_textus(payload_result!.values))
+    dom.attr_set(facts_element, "data-camera-yaw", orbit.yaw_degrees ↦ textus)
+    dom.attr_set(facts_element, "data-camera-pitch", orbit.pitch_degrees ↦ textus)
+    dom.attr_set(facts_element, "data-camera-distance", orbit.distance ↦ textus)
+}
+
+@ WebController { selector = "#triga-budapest" }
+functio triga_budapest_controller(dom.Scope scope) → lista<dom.Subscription> {
+    fixum dom.Element status ← dom.require(scope, ".budapest-status")
+    fixum dom.Element facts ← dom.require(scope, ".budapest-facts")
+    varia camera.OrbitCamera orbit ← camera.spawn_camera()
+    fixum f32 canvas_aspect ← 960.0 / 540.0
+
+    dom.attr_set(facts, "data-scene-name", "triga-budapest-chain-bridge")
+    dom.attr_set(facts, "data-render-status", "awaiting-host")
+    dom.attr_set(facts, "data-render-gate", "pending-host-init")
+    dom.attr_set(facts, "data-device-status", "unknown")
+    dom.text_set(status, "scene-ready")
+
+    publish_scene_geometry(facts)
+    publish_transform(facts, orbit, canvas_aspect)
+
+    fixum dom.Subscription frame_sub ← dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
+        fixum f32 delta_seconds ← frame.delta_ms / 1000.0
+        orbit ← camera.step_camera(orbit, delta_seconds)
+        publish_transform(facts, orbit, canvas_aspect)
+        dom.attr_set(facts, "data-frame", frame.frame ↦ textus)
+    })
+
+    fixum dom.Subscription keydown_sub ← dom.on_keyboard(facts, "keydown", (dom.KeyboardState key) → vacuum ∴ fac {
+        orbit ← camera.OrbitCamera { target = orbit.target, yaw_degrees = orbit.yaw_degrees, pitch_degrees = orbit.pitch_degrees, distance = orbit.distance, input = camera.set_key_by_code(orbit.input, key.code, verum) }
+        publish_transform(facts, orbit, canvas_aspect)
+    })
+
+    fixum dom.Subscription keyup_sub ← dom.on_keyboard(facts, "keyup", (dom.KeyboardState key) → vacuum ∴ fac {
+        orbit ← camera.OrbitCamera { target = orbit.target, yaw_degrees = orbit.yaw_degrees, pitch_degrees = orbit.pitch_degrees, distance = orbit.distance, input = camera.set_key_by_code(orbit.input, key.code, falsum) }
+        publish_transform(facts, orbit, canvas_aspect)
+    })
+
+    fixum dom.Subscription resize_sub ← dom.on_resize((dom.ResizeState resize) → vacuum ∴ fac {
+        nota resize
+        publish_transform(facts, orbit, canvas_aspect)
+    })
+
+    redde [frame_sub, keydown_sub, keyup_sub, resize_sub]
+}

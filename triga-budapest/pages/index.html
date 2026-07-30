@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Triga Budapest</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+  </head>
+  <body>
+    <main id="triga-budapest" class="budapest-shell">
+      <section class="budapest-stage" aria-label="Triga Budapest Chain Bridge">
+        <canvas class="budapest-canvas" tabindex="0"></canvas>
+        <div class="budapest-overlay">
+          <h1>Triga Budapest</h1>
+          <p>Chain Bridge renderer showcase</p>
+          <div class="budapest-status">loading</div>
+        </div>
+        <div class="budapest-facts" tabindex="0" aria-hidden="true"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { mountControllers } from "../faber-esm/faber-browser.js";
+      import { initHost } from "../public/host-init.js";
+
+      const root = globalThis.document.querySelector("#triga-budapest");
+      const facts = globalThis.document.querySelector(".budapest-facts");
+
+      async function main() {
+        try {
+          const runtime = mountControllers(globalThis.document);
+          if (runtime.failures?.length) {
+            console.error("controller mount failures", runtime.failures);
+          }
+        } catch (error) {
+          console.error("mountControllers failed", error);
+          if (root) {
+            root.setAttribute("data-mount-error", error.message);
+          }
+        }
+
+        try {
+          await initHost();
+        } catch (error) {
+          if (facts) {
+            facts.setAttribute("data-render-status", "host-failed");
+            facts.setAttribute("data-render-error", error.message);
+          }
+          console.error(error);
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>

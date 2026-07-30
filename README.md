@@ -8,6 +8,7 @@ Public Faber language corpus, named tracks, and application packages.
 corpus/            Keyword / language reference (faber explain source)
 gpu-workload/      GPU systems workload rungs
 hello-voxel/       Direct WebGPU campaign application scaffold
+triga-budapest/    Static Chain Bridge renderer-completeness showcase
 triga-drift-city/  Arcade driving workload and direct-WebGPU game capstone
 browser-app/       Browser WEB5 application fixture (WebController ESM demos)
 conversio-matrix/  Type conversion matrix (conversion pair exempla)

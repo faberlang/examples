@@ -1,0 +1,12 @@
+importa ex "./bridge" privata bridge
+importa ex "./scene" privata scene
+
+incipit {
+    fixum bridge.BudapestSceneFacts facts ← bridge.scene_facts()
+    fixum scene.SceneGeometryManifest manifest ← scene.budapest_scene_geometry()
+
+    adfirma facts.object_count > 100 secus "Budapest scene should pressure many static meshes"
+    adfirma manifest.objects.longitudo() ≡ facts.object_count secus "scene facts and manifest count must match"
+    adfirma facts.chain_segment_count ≥ 40 secus "Chain Bridge proof should include many chain segments"
+    nota "budapest-scene-ok"
+}

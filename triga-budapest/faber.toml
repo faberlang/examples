@@ -1,0 +1,26 @@
+[package]
+name = "triga-budapest"
+version = "0.1.0"
+edition = "2026"
+
+[paths]
+entry = "main.fab"
+
+[build]
+target = "ts"
+kind = "bin"
+
+[product]
+kind = "browser-app"
+emit = "typescript"
+out = "dist"
+templates = "pages"
+styles = "styles"
+controllers_json = "controllers.json"
+
+[product.shaders]
+source = "src/shaders/test-data"
+
+[dependencies]
+web = "0.1.0"
+triga = "0.1.0"

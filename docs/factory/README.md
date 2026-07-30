@@ -32,5 +32,6 @@ Each `goal.md` / `CAMPAIGN.md` owns its **Status** line.
 | Goal | Status | Entry |
 | ---- | ------ | ----- |
 | Coreutils application exempla | active | [`coreutils/CAMPAIGN.md`](coreutils/CAMPAIGN.md) |
+| Triga Budapest | Stage 0 scaffold active; Chain Bridge greybox package present | [`triga-budapest/CAMPAIGN.md`](triga-budapest/CAMPAIGN.md) |
 | Triga Drift City | framework established; roadmap ready for routing only | [`triga-drift-city/CAMPAIGN.md`](triga-drift-city/CAMPAIGN.md) |
 | ViviLite application exemplum | Stage 0–1 file-backed scaffold landed; SQLite lane deferred | [`vivilite/goal.md`](vivilite/goal.md) |

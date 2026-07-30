@@ -1,0 +1,92 @@
+importa ex "triga:triga" privata triga
+
+genus CameraInput {
+    bivalens yaw_left = falsum
+    bivalens yaw_right = falsum
+    bivalens pitch_up = falsum
+    bivalens pitch_down = falsum
+    bivalens dolly_in = falsum
+    bivalens dolly_out = falsum
+    bivalens pan_left = falsum
+    bivalens pan_right = falsum
+    bivalens pan_forward = falsum
+    bivalens pan_back = falsum
+}
+
+genus OrbitCamera {
+    triga.Vector3 target
+    f32 yaw_degrees
+    f32 pitch_degrees
+    f32 distance
+    CameraInput input
+}
+
+functio spawn_camera() → OrbitCamera {
+    redde OrbitCamera { target = triga.vector3(0.0, 4.0, 0.0), yaw_degrees = -28.0 ∷ f32, pitch_degrees = -16.0 ∷ f32, distance = 54.0, input = CameraInput { } }
+}
+
+functio _clamp_distance(f32 distance) → f32 {
+    si distance < 12.0 ergo redde 12.0
+    si distance > 95.0 ergo redde 95.0
+    redde distance
+}
+
+functio _clamp_delta(f32 delta_seconds) → f32 {
+    si delta_seconds < 0.0 ergo redde 0.0
+    si delta_seconds > 0.050 ergo redde 0.050
+    redde delta_seconds
+}
+
+functio _input_axis(bivalens negative, bivalens positive) → f32 {
+    si negative et positive ergo redde 0.0
+    si negative ergo redde 0.0 - 1.0
+    si positive ergo redde 1.0
+    redde 0.0
+}
+
+functio set_key_by_code(de CameraInput input, textus code, bivalens pressed) → CameraInput {
+    varia CameraInput next ← CameraInput { yaw_left = input.yaw_left, yaw_right = input.yaw_right, pitch_up = input.pitch_up, pitch_down = input.pitch_down, dolly_in = input.dolly_in, dolly_out = input.dolly_out, pan_left = input.pan_left, pan_right = input.pan_right, pan_forward = input.pan_forward, pan_back = input.pan_back }
+
+    si code ≡ "ArrowLeft" ergo next ← CameraInput { yaw_left = pressed, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "ArrowRight" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = pressed, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "ArrowUp" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = pressed, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "ArrowDown" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = pressed, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "KeyW" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = pressed, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "KeyS" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = pressed, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "KeyA" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = pressed, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "KeyD" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = pressed, pan_forward = next.pan_forward, pan_back = next.pan_back }
+    si code ≡ "KeyQ" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = pressed, pan_back = next.pan_back }
+    si code ≡ "KeyE" ergo next ← CameraInput { yaw_left = next.yaw_left, yaw_right = next.yaw_right, pitch_up = next.pitch_up, pitch_down = next.pitch_down, dolly_in = next.dolly_in, dolly_out = next.dolly_out, pan_left = next.pan_left, pan_right = next.pan_right, pan_forward = next.pan_forward, pan_back = pressed }
+
+    redde next
+}
+
+functio step_camera(de OrbitCamera camera, f32 delta_seconds) → OrbitCamera {
+    fixum f32 safe_delta ← _clamp_delta(delta_seconds)
+    fixum f32 yaw_axis ← _input_axis(camera.input.yaw_left, camera.input.yaw_right)
+    fixum f32 pitch_axis ← _input_axis(camera.input.pitch_down, camera.input.pitch_up)
+    fixum f32 dolly_axis ← _input_axis(camera.input.dolly_in, camera.input.dolly_out)
+    fixum f32 pan_right_axis ← _input_axis(camera.input.pan_left, camera.input.pan_right)
+    fixum f32 pan_forward_axis ← _input_axis(camera.input.pan_back, camera.input.pan_forward)
+
+    fixum f32 next_yaw ← camera.yaw_degrees + yaw_axis * 55.0 * safe_delta
+    fixum f32 next_pitch ← triga.camera_pitch_coercita(camera.pitch_degrees + pitch_axis * 38.0 * safe_delta)
+    fixum f32 next_distance ← _clamp_distance(camera.distance + dolly_axis * 32.0 * safe_delta)
+    fixum triga.Vector3 pan ← triga.camera_motus_planus_ex_yaw(next_yaw, pan_forward_axis, pan_right_axis, 13.0, safe_delta)
+
+    redde OrbitCamera { target = camera.target.addita(pan), yaw_degrees = next_yaw, pitch_degrees = next_pitch, distance = next_distance, input = camera.input }
+}
+
+functio view_projection(de OrbitCamera camera, f32 aspect) → triga.Matrix4 ∪ nihil {
+    fixum triga.Vector3 direction ← triga.camera_directio_ex_yaw_pitch(camera.yaw_degrees, camera.pitch_degrees)
+    fixum triga.Vector3 eye ← camera.target.subtracta(direction.multiplicata(camera.distance))
+    fixum triga.PerspectiveCamera perspective ← triga.PerspectiveCamera { base = triga.Object3D { position = triga.vector3(0.0, 0.0, 0.0), rotation = triga.euler(0.0, 0.0, 0.0), quaternion = triga.quaternion(0.0, 0.0, 0.0, 1.0), scale = triga.vector3(1.0, 1.0, 1.0), matrix = triga.matrix4_identitas(), children = vacua, visible = verum, name = "budapest-orbit" }, fov = 45.0, aspect = aspect, near = 0.1, far = 300.0 }
+    redde perspective.visus_projectio(eye, camera.target, triga.vector3(0.0, 1.0, 0.0))
+}
+
+functio transform_payload(de OrbitCamera camera, f32 aspect) → triga.TransformPayload ∪ nihil {
+    fixum triga.Matrix4 ∪ nihil view_projection_result ← view_projection(camera, aspect)
+    si view_projection_result est nihil ergo redde nihil
+    fixum triga.Matrix4 view_projection_matrix ← triga.Matrix4 { elements = view_projection_result!.elements }
+    redde triga.transform_payload(triga.matrix4_identitas(), view_projection_matrix)
+}

@@ -1,0 +1,59 @@
+importa ex "triga:triga" privata triga
+importa ex "triga:geometry" privata geometry
+importa ex "./box_geom" privata box_geom
+importa ex "./bridge" privata bridge
+
+genus SceneObjectGeometry {
+    textus name
+    numerus vertex_count
+    numerus index_count
+    numerus vertex_byte_count
+    numerus index_byte_count
+    lista<f32> vertex_payload
+    lista<u32> index_payload
+    triga.Color color
+    triga.Box3 bounds
+}
+
+genus SceneGeometryManifest {
+    lista<SceneObjectGeometry> objects
+}
+
+functio _add_object(lista<SceneObjectGeometry> objects, de bridge.ScenePart part) → lista<SceneObjectGeometry> {
+    fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(part.bounds, part.red, part.green, part.blue)
+    si geo_result est nihil ergo redde objects
+
+    fixum lista<f32> ∪ nihil vp_result ← box_geom.box_vertex_payload(part.bounds, part.red, part.green, part.blue)
+    si vp_result est nihil ergo redde objects
+
+    fixum geometry.BufferGeometry gg ← geometry.BufferGeometry { topology = geo_result!.topology, vertex_count = geo_result!.vertex_count, attributes = geo_result!.attributes, indexed = geo_result!.indexed, indices = geo_result!.indices, draw_range = geo_result!.draw_range, groups = geo_result!.groups }
+
+    fixum numerus ∪ nihil vbc ← gg.vertex_payload_byte_count()
+    si vbc est nihil ergo redde objects
+
+    fixum numerus ∪ nihil ibc ← gg.index_payload_byte_count()
+    si ibc est nihil ergo redde objects
+
+    varia lista<f32> payload ← vacua
+    varia numerus k ← 0
+    dum k < 48 {
+        payload.appende(vp_result![k])
+        k ← k + 1
+    }
+
+    objects.appende(SceneObjectGeometry { name = part.name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = triga.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
+    redde objects
+}
+
+functio budapest_scene_geometry() → SceneGeometryManifest {
+    varia lista<SceneObjectGeometry> objects ← vacua
+    fixum lista<bridge.ScenePart> parts ← bridge.chain_bridge_parts()
+
+    varia numerus i ← 0
+    dum i < parts.longitudo() {
+        objects ← _add_object(objects, parts[i])
+        i ← i + 1
+    }
+
+    redde SceneGeometryManifest { objects = objects }
+}

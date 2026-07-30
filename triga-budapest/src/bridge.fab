@@ -1,0 +1,115 @@
+importa ex "triga:triga" privata triga
+
+genus ScenePart {
+    textus name
+    triga.Box3 bounds
+    f32 red
+    f32 green
+    f32 blue
+}
+
+genus BudapestSceneFacts {
+    numerus object_count
+    numerus tower_count
+    numerus chain_segment_count
+    numerus hanger_count
+    numerus lion_marker_count
+}
+
+functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) → triga.Box3 {
+    redde triga.Box3 { min = triga.vector3(min_x, min_y, min_z), max = triga.vector3(max_x, max_y, max_z) }
+}
+
+functio _add_part(lista<ScenePart> parts, textus name, de triga.Box3 bounds, f32 red, f32 green, f32 blue) → lista<ScenePart> {
+    parts.appende(ScenePart { name = name, bounds = bounds, red = red, green = green, blue = blue })
+    redde parts
+}
+
+functio _chain_y(f32 z) → f32 {
+    fixum f32 ratio ← (z / 34.0).absolutum()
+    redde 5.4 + ratio * ratio * 5.2
+}
+
+functio _add_tower(lista<ScenePart> parts, textus suffix, f32 z) → lista<ScenePart> {
+    varia lista<ScenePart> output ← parts
+    output ← _add_part(output, "tower-left-§"(suffix), box3(-6.2 ∷ f32, 1.4, z - 1.3, -4.6 ∷ f32, 11.8, z + 1.3), 0.64, 0.58, 0.47)
+    output ← _add_part(output, "tower-right-§"(suffix), box3(4.6, 1.4, z - 1.3, 6.2, 11.8, z + 1.3), 0.64, 0.58, 0.47)
+    output ← _add_part(output, "tower-crossbar-§"(suffix), box3(-6.4 ∷ f32, 10.4, z - 1.45, 6.4, 11.9, z + 1.45), 0.62, 0.55, 0.44)
+    output ← _add_part(output, "tower-plinth-§"(suffix), box3(-7.1 ∷ f32, 0.4, z - 2.0, 7.1, 1.4, z + 2.0), 0.50, 0.45, 0.36)
+    redde output
+}
+
+functio _add_lion_marker(lista<ScenePart> parts, textus suffix, f32 x_gate, f32 z_gate) → lista<ScenePart> {
+    varia lista<ScenePart> output ← parts
+    output ← _add_part(output, "lion-base-§"(suffix), box3(x_gate - 0.85, 0.25, z_gate - 0.70, x_gate + 0.85, 0.75, z_gate + 0.70), 0.52, 0.48, 0.40)
+    output ← _add_part(output, "lion-body-§"(suffix), box3(x_gate - 0.55, 0.75, z_gate - 0.45, x_gate + 0.55, 1.25, z_gate + 0.45), 0.72, 0.66, 0.54)
+    output ← _add_part(output, "lion-head-§"(suffix), box3(x_gate - 0.35, 1.08, z_gate - 0.82, x_gate + 0.35, 1.62, z_gate - 0.32), 0.75, 0.69, 0.56)
+    redde output
+}
+
+functio chain_bridge_parts() → lista<ScenePart> {
+    varia lista<ScenePart> parts ← vacua
+
+    # River, banks, and bridge deck.
+    parts ← _add_part(parts, "danube-river", box3(-34.0 ∷ f32, -0.12 ∷ f32, -45.0 ∷ f32, 34.0, 0.0, 45.0), 0.06, 0.20, 0.30)
+    parts ← _add_part(parts, "buda-bank", box3(-34.0 ∷ f32, 0.0, -48.0 ∷ f32, 34.0, 0.25, -38.0 ∷ f32), 0.30, 0.28, 0.21)
+    parts ← _add_part(parts, "pest-bank", box3(-34.0 ∷ f32, 0.0, 38.0, 34.0, 0.25, 48.0), 0.30, 0.28, 0.21)
+    parts ← _add_part(parts, "bridge-deck", box3(-4.2 ∷ f32, 1.15, -34.0 ∷ f32, 4.2, 1.55, 34.0), 0.17, 0.17, 0.18)
+    parts ← _add_part(parts, "left-sidewalk", box3(-5.5 ∷ f32, 1.56, -34.0 ∷ f32, -4.35 ∷ f32, 1.82, 34.0), 0.46, 0.42, 0.35)
+    parts ← _add_part(parts, "right-sidewalk", box3(4.35, 1.56, -34.0 ∷ f32, 5.5, 1.82, 34.0), 0.46, 0.42, 0.35)
+
+    # Two portal towers, each with two pylons and a crossbar.
+    parts ← _add_tower(parts, "buda", -20.0 ∷ f32)
+    parts ← _add_tower(parts, "pest", 20.0 ∷ f32)
+
+    # Suspension chains and vertical hangers.
+    varia numerus ci ← 0
+    dum ci < 25 {
+        fixum f32 z_mid ← -33.0 + (ci ↦ f32) * 2.75
+        fixum f32 y_mid ← _chain_y(z_mid)
+        parts ← _add_part(parts, "left-chain-§"(ci ↦ textus), box3(-5.95 ∷ f32, y_mid - 0.10, z_mid - 1.10, -5.55 ∷ f32, y_mid + 0.10, z_mid + 1.10), 0.08, 0.08, 0.09)
+        parts ← _add_part(parts, "right-chain-§"(ci ↦ textus), box3(5.55, y_mid - 0.10, z_mid - 1.10, 5.95, y_mid + 0.10, z_mid + 1.10), 0.08, 0.08, 0.09)
+        si ci % 2 ≡ 0 {
+            parts ← _add_part(parts, "left-hanger-§"(ci ↦ textus), box3(-5.78 ∷ f32, 1.82, z_mid - 0.06, -5.66 ∷ f32, y_mid, z_mid + 0.06), 0.11, 0.11, 0.12)
+            parts ← _add_part(parts, "right-hanger-§"(ci ↦ textus), box3(5.66, 1.82, z_mid - 0.06, 5.78, y_mid, z_mid + 0.06), 0.11, 0.11, 0.12)
+        }
+        ci ← ci + 1
+    }
+
+    # Rail posts and lamps make the static proof visibly more scene-like.
+    varia numerus ri ← 0
+    dum ri < 18 {
+        fixum f32 z ← -31.0 + (ri ↦ f32) * 3.65
+        parts ← _add_part(parts, "left-rail-post-§"(ri ↦ textus), box3(-5.32 ∷ f32, 1.82, z - 0.08, -5.12 ∷ f32, 2.75, z + 0.08), 0.12, 0.12, 0.13)
+        parts ← _add_part(parts, "right-rail-post-§"(ri ↦ textus), box3(5.12, 1.82, z - 0.08, 5.32, 2.75, z + 0.08), 0.12, 0.12, 0.13)
+        ri ← ri + 1
+    }
+
+    varia numerus li ← 0
+    dum li < 8 {
+        fixum f32 z_lamp ← -28.0 + (li ↦ f32) * 8.0
+        parts ← _add_part(parts, "lamp-post-left-§"(li ↦ textus), box3(-6.35 ∷ f32, 1.8, z_lamp - 0.08, -6.15 ∷ f32, 4.1, z_lamp + 0.08), 0.09, 0.09, 0.10)
+        parts ← _add_part(parts, "lamp-glow-left-§"(li ↦ textus), box3(-6.55 ∷ f32, 4.1, z_lamp - 0.28, -5.95 ∷ f32, 4.7, z_lamp + 0.28), 1.00, 0.78, 0.32)
+        parts ← _add_part(parts, "lamp-post-right-§"(li ↦ textus), box3(6.15, 1.8, z_lamp - 0.08, 6.35, 4.1, z_lamp + 0.08), 0.09, 0.09, 0.10)
+        parts ← _add_part(parts, "lamp-glow-right-§"(li ↦ textus), box3(5.95, 4.1, z_lamp - 0.28, 6.55, 4.7, z_lamp + 0.28), 1.00, 0.78, 0.32)
+        li ← li + 1
+    }
+
+    # Stylized lion markers: low detail by design, useful as imported-asset pressure later.
+    parts ← _add_lion_marker(parts, "buda-left", -3.1 ∷ f32, -37.0 ∷ f32)
+    parts ← _add_lion_marker(parts, "buda-right", 3.1, -37.0 ∷ f32)
+    parts ← _add_lion_marker(parts, "pest-left", -3.1 ∷ f32, 37.0)
+    parts ← _add_lion_marker(parts, "pest-right", 3.1, 37.0)
+
+    # Simple skyline blocks at both ends, deliberately static.
+    parts ← _add_part(parts, "buda-hill", box3(-24.0 ∷ f32, 0.25, -48.0 ∷ f32, -10.0 ∷ f32, 8.5, -40.0 ∷ f32), 0.18, 0.30, 0.20)
+    parts ← _add_part(parts, "pest-block-a", box3(10.0, 0.25, 40.0, 17.0, 7.0, 48.0), 0.36, 0.33, 0.30)
+    parts ← _add_part(parts, "pest-block-b", box3(18.0, 0.25, 40.0, 25.0, 10.0, 48.0), 0.32, 0.34, 0.38)
+
+    redde parts
+}
+
+functio scene_facts() → BudapestSceneFacts {
+    fixum lista<ScenePart> parts ← chain_bridge_parts()
+    redde BudapestSceneFacts { object_count = parts.longitudo(), tower_count = 2, chain_segment_count = 50, hanger_count = 26, lion_marker_count = 4 }
+}
