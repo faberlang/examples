@@ -48,7 +48,7 @@ importa ex "./voxel" privata voxel
 importa ex "./meshing" privata meshing
 importa ex "./application" privata application
 importa ex "triga:math" privata math
-importa ex "triga:scene/resource" privata resource
+importa ex "triga:resource" privata resource
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32

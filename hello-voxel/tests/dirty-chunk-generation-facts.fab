@@ -41,7 +41,7 @@
 
 importa ex "§src/voxel" privata voxel
 importa ex "§src/meshing" privata meshing
-importa ex "triga:scene/resource" privata resource
+importa ex "triga:resource" privata resource
 
 functio set_solid(
     de voxel.World world,

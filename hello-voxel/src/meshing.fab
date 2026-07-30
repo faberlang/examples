@@ -40,7 +40,7 @@ importa ex "./voxel" privata voxel
 importa ex "triga:geometry" privata geometry
 importa ex "triga:math" privata math
 importa ex "triga:face" privata face
-importa ex "triga:scene/resource" privata resource
+importa ex "triga:resource" privata resource
 
 # =========================================================================
 # TYPES
