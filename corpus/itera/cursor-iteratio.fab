@@ -14,11 +14,13 @@ related = ["ex", "de", "ab"]
 # =============================================================================
 #
 # What this teaches:
-#   • for-each iteration using cursor functions — consumes values yielded via `cede` from a `@cursor` function
-#   • sync and futura cursor modes — `@cursor` and `@futura @cursor` function signatures
+#   • for-each iteration using stream functions — consumes values yielded via
+#     `cede` from `fiunt` and `fient` functions
+#   • sync and async stream modes — `fiunt` and `fient` function signatures
 #
 # Common mistakes:
-#   • Forgetting that cursor functions must be marked @ cursor and use cede to yield values — itera ex only works with cursor-annotated functions.
+#   • Forgetting that stream functions must use `fiunt` or `fient` and yield
+#     values with `cede`.
 #
 # See also: ex, de, ab
 # =============================================================================
@@ -29,32 +31,30 @@ related = ["ex", "de", "ab"]
 #
 # GRAMMAR:
 #   forInStmt  :← 'itera' 'ex' callExpr 'fixum' ident block
-#   cursorDecl :← '@' 'cursor' funcDecl
+#   cursorDecl :← funcDecl 'fiunt' | funcDecl 'fient'
 #
 # EXPECTED OUTPUT:
 #   Sync cursor values and collected lista of doubled results.
 #
 # BACKEND:
-#   Go backend emits cursor generators as eager slices for e2e parity.
+#   Rust lowers `fient` through the async-cursor carrier. Go supports the
+#   `fiunt` half and reports `fient` as an explicit target gap.
 
-# Multi-value sync function that yields values via cede
-@ cursor
-functio grena(numerus n) → numerus {
+# Multi-value sync stream function that yields values via cede
+functio grena(numerus n) fiunt → numerus {
     itera ab 0‥n fixum i {
         cede i
     }
 }
 
-# Multi-value futura function that yields values via cede
-@ futura
-@ cursor
-functio grena_futurum(numerus n) → numerus {
+# Multi-value async stream function that yields values via cede
+functio grena_futurum(numerus n) fient → numerus {
     itera ab 0‥n fixum i {
         cede i
     }
 }
 
-incipit {
+incipiet {
     # Direct consumption of cursor yield stream
     nota "Sync cursor iteration:"
     itera ex grena(3) fixum num {
@@ -69,8 +69,8 @@ incipit {
     nota "Sync collected:"
     nota effecta
 
-    # Note: Futura iteration would require futura context
-    # itera ex grena_futurum(3) fixum num {
-    #     nota num
-    # }
+    nota "Async cursor iteration:"
+    itera ex grena_futurum(3) fixum num {
+        nota "  async numerus: §"(num)
+    }
 }

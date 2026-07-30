@@ -3,53 +3,47 @@ term = "cede"
 kind = "keyword"
 category = "async"
 canonical = true
-summary = "Awaits a promise or yields a value depending on context."
+summary = "Yields one value from a generator."
 syntax = "cede <expression>"
-aliases = ["await", "yield"]
-related = ["futura", "cursor"]
+aliases = ["yield"]
+related = ["cursor", "fiunt", "fient"]
 +++
 
 
 # =============================================================================
-# cede — Awaits a promise or yields a value depending on context.
+# cede — Yields one value from a generator.
 # =============================================================================
 #
 # What this teaches:
-#   • Async await — `cede <expression>` suspends execution until a `@ futura`
-#     function resolves
-#   • Async entry point — `incipiet { … }` is the async program entry that
-#     enables `cede` usage
-#   • Proof pair pattern — `cede` and `futura` work together for async
-#     function calls
+#   • Yield — `cede <expression>` emits one item from a `fiunt` or `fient`
+#     callable
+#   • Async values use `figendum`, `variandum`, `reddet`, or `tacebit`; `cede`
+#     is not an await form
 #
 # Common mistakes:
-#   • using `cede` outside an `incipiet` or `@ futura` function context — `cede` suspends only in async execution contexts
+#   • using `cede` outside a generator body
 #
-# See also: futura, cursor
+# See also: cursor, fiunt, fient
 # =============================================================================
 
-# cede — await a @ futura function inside incipiet
+# cede — yield from a stream function
 #
-# @ futura functio …   — declares an async-capable callee
-# incipiet { … }       — async program entry (required host for cede)
-# cede <vocatio>       — suspends until the promissum resolves
+# functio stream() fiunt → T { cede value }
 #
 # GRAMMAR:
-#   awaitStmt :← 'cede' callExpr
+#   yieldStmt :← 'cede' expr
 #
 # EXPECTED OUTPUT:
-#   none — compile-only in harness
+#   [1, 2]
 #
 # BACKEND:
-#   Rust async runtime whitelist (cede/cede.fab).
+#   Cursor stream materialization smoke.
 
-@ futura
-functio accipe() → textus {
-    redde "paratum"
+functio stream() fiunt → numerus {
+    cede 1
+    cede 2
 }
 
-incipiet {
-    # cede suspends until accipe() resolves
-    fixum _ condicio ← cede accipe()
-    nota condicio
+incipit {
+    nota stream()
 }

@@ -5,7 +5,7 @@ category = "entry"
 canonical = true
 summary = "Declares the asynchronous program entry point."
 syntax = "incipiet <block>"
-related = ["incipit", "cede"]
+related = ["incipit", "figendum", "tacebit"]
 +++
 # =============================================================================
 # incipiet — Declares the asynchronous program entry point
@@ -13,12 +13,13 @@ related = ["incipit", "cede"]
 #
 # What this teaches:
 #   • Declares the asynchronous program entry point.
-#   • Related keywords: incipit, cede
+#   • Related keywords: incipit, figendum, tacebit
 #
 # Common mistakes:
-#   • Calling a `@ futura` function without `cede` — async functions return a promissum; use `cede` to await the result inside an `incipiet`.
+#   • Calling a `fiet` function without consuming its promissum; use
+#     `figendum`, `variandum`, `reddet`, or `tacebit` inside an `incipiet`.
 #
-# See also: incipit, cede
+# See also: incipit, figendum, tacebit
 # =============================================================================
 
 # incipiet — async program entry point
@@ -32,17 +33,16 @@ related = ["incipit", "cede"]
 #   none — Rust async runtime whitelist (compile-only in harness)
 #
 # BACKEND:
-#   Pairs with @ futura and cede; contrast with incipit (synchronous entry).
+#   Pairs with `fiet` and awaited bindings; contrast with incipit
+#   (synchronous entry).
 
-# Helper futura function
-@ futura
-functio accipe() → textus {
-    # Simulates futura operation
+# Helper async finite function
+functio accipe() fiet → textus {
+    # Simulates async finite operation
     redde "datum paratum"
 }
 
-@ futura
-functio metire(textus datum) → numerus {
+functio metire(textus datum) fiet → numerus {
     redde datum.longitudo()
 }
 
@@ -50,11 +50,11 @@ functio metire(textus datum) → numerus {
 incipiet {
     nota "incipiet initium"
 
-    # Await futura functions with cede
-    fixum _ datum ← cede accipe()
+    # Await fiet functions with figendum
+    figendum _ datum ← accipe()
     nota "acceptum: §"(datum)
 
-    fixum _ longitudo ← cede metire(datum)
+    figendum _ longitudo ← metire(datum)
     nota "longitudo: §"(longitudo)
 
     nota "opus perfectum"

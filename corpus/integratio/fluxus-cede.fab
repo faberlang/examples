@@ -3,35 +3,34 @@ term = "integratio"
 kind = "concept"
 category = "integration"
 canonical = false
-summary = "Async futura and cursor cede in one program."
+summary = "Async await-bind and stream yield in one program."
 syntax = "integratio — multi-feature happy path"
-related = ["futura", "cursor", "cede", "incipiet"]
+related = ["fiet", "fiunt", "cede", "incipiet"]
 +++
 # =============================================================================
-# integratio — Async futura and cursor cede in one program
+# integratio — Async await-bind and stream yield in one program
 # =============================================================================
 #
 # What this teaches:
-#   • Async futura and cursor cede in one program.
-#   • Related keywords: futura, cursor, cede, incipiet
+#   • Async `fiet` await-bind and `fiunt` stream yield in one program.
+#   • Related keywords: fiet, fiunt, cede, incipiet
 #
 # Common mistakes:
-#   • Using `cede` without `@ futura` on the enclosing function — `cede` awaits a promissum and requires the async context of `incipiet` or `@ futura`.
+#   • Using `cede` outside a generator body; use `figendum`/`variandum` for
+#     await-bind in async contexts.
 #
-# See also: futura, cursor, cede, incipiet
+# See also: fiet, fiunt, cede, incipiet
 # =============================================================================
 
-# integratio — async futura and cursor cede in one program
+# integratio — async finite and stream yield in one program
 #
-# @ futura
-# functio f() → T { … }
-# @ cursor
-# functio g(n) → T { itera … { cede expr } }
-# incipiet { fixum _ x ← cede f(); … }
+# functio f() fiet → T { … }
+# functio g(n) fiunt → T { itera … { cede expr } }
+# incipiet { figendum _ x ← f(); … }
 #
 # GRAMMAR:
-#   annotatedFunc :← ('@' ('futura' | 'cursor'))* funcDecl
-#   awaitExpr     :← 'cede' callExpr
+#   postureFunc   :← funcDecl ('fiet' | 'fiunt' | 'fient')?
+#   awaitBind     :← 'figendum' type binding '←' callExpr
 #   asyncEntry    :← 'incipiet' block
 #
 # EXPECTED OUTPUT:
@@ -40,13 +39,11 @@ related = ["futura", "cursor", "cede", "incipiet"]
 # BACKEND:
 #   Rust/Go e2e whitelist — async/tokio runtime not linked in harness.
 
-@ futura
-functio accipe() → textus {
+functio accipe() fiet → textus {
     redde "Livia"
 }
 
-@ cursor
-functio paria(numerus finis) → numerus {
+functio paria(numerus finis) fiunt → numerus {
     itera ab 0 ante finis fixum i {
         si i % 2 ≡ 0 {
             cede i
@@ -55,7 +52,7 @@ functio paria(numerus finis) → numerus {
 }
 
 incipiet {
-    fixum _ nomen ← cede accipe()
+    figendum _ nomen ← accipe()
     nota "salve §"(nomen)
 
     itera ex paria(8) fixum n {

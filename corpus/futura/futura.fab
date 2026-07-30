@@ -3,31 +3,35 @@ term = "futura"
 kind = "annotation"
 category = "async"
 canonical = true
-summary = "Marks a function as asynchronous."
+summary = "Compatibility annotation for asynchronous posture."
 syntax = "@ futura"
-related = ["cursor", "cede"]
+related = ["cursor", "figendum", "tacebit"]
 +++
 # =============================================================================
-# futura — Marks a function as asynchronous
+# futura — Compatibility annotation for asynchronous posture
 # =============================================================================
 #
 # What this teaches:
-#   • Marks a function as asynchronous.
-#   • Related keywords: cursor, cede
+#   • Preferred async posture — write `fiet` for a finite async function.
+#   • Compatibility annotation — `@ futura` remains accepted and preserved as
+#     the legacy spelling for async posture.
+#   • Related keywords: cursor, figendum, tacebit
 #
 # Common mistakes:
-#   • Calling `cede` without `@ futura` on the enclosing function — `cede` awaits a promissum and requires the function to be async.
+#   • Calling an async function and forgetting to consume the promissum with
+#     `figendum`, `variandum`, `reddet`, or `tacebit`.
 #
-# See also: cursor, cede
+# See also: cursor, figendum, tacebit
 # =============================================================================
 
-# @ futura — async function annotation
+# @ futura — compatibility async function annotation
 #
 # @ futura
 # functio nomen(…) → typus { … }
 #
 # GRAMMAR:
 #   annotatedFunc :← '@' 'futura' funcDecl
+#   callablePosture :← 'fiet'
 #
 # EXPECTED OUTPUT:
 #   none — Rust async runtime whitelist (compile-only in harness)
@@ -41,7 +45,7 @@ functio responde() → numerus {
 }
 
 incipiet {
-    # cede awaits the promissum
-    fixum _ responsum ← cede responde()
+    # figendum awaits the promissum and binds the resolved value
+    figendum _ responsum ← responde()
     nota responsum
 }

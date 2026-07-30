@@ -3,29 +3,33 @@ term = "cursor"
 kind = "keyword"
 category = "async"
 canonical = true
-summary = "Marks a function as a generator."
+summary = "Compatibility annotation for stream/generator posture."
 syntax = "@ cursor"
-related = ["futura", "cede"]
+related = ["fiunt", "fient", "cede"]
 +++
 
 # =============================================================================
-# cursor — Marks a function as a generator.
+# cursor — Compatibility annotation for stream/generator posture.
 # =============================================================================
 #
 # What this teaches:
-#   • Generator annotation — `@ cursor` marks a function as a generator that yields values using `cede`.
-#   • Async iteration — cursor functions produce values on demand, enabling streaming iteration patterns.
+#   • Preferred stream posture — write `fiunt` for a synchronous stream or
+#     `fient` for an asynchronous stream.
+#   • Compatibility annotation — `@ cursor` remains accepted and preserved as
+#     the legacy spelling for stream/generator posture.
 #
 # Common mistakes:
-#   • Using `cede` outside a cursor function context — `cede` is only valid inside `@ cursor` or `@ futura` functions.
+#   • Using `cede` outside a stream body — `cede` is valid only inside `fiunt`
+#     or `fient` bodies, including compatible `@ cursor` declarations.
 #
-# See also: futura, cede
+# See also: fiunt, fient, cede
 # =============================================================================
 
-# cursor — async iteration annotation
+# cursor — compatibility stream annotation
 #
 # GRAMMAR:
 #   annotation :← '@' 'cursor'
+#   callablePosture :← 'fiunt' | 'fient'
 #
 # EXPECTED OUTPUT:
 #   Scalar stdout smoke (see body).
