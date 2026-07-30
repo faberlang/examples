@@ -42,6 +42,7 @@
 importa ex "./voxel" privata voxel
 importa ex "triga:triga" privata triga
 importa ex "triga:geometry" privata geometry
+importa ex "triga:primitives" privata primitives
 
 # =========================================================================
 # CONSTANTS
@@ -1254,11 +1255,11 @@ functio empty_selection_outline() → SelectionOutline {
 }
 
 # Unit box_wire corners (origin-centered, half-extent 0.5) translated to the
-# hit cell center. Shape matches geometry.box_wire_geometry(1,1,1); we call
+# hit cell center. Shape matches primitives.box_wire_geometry(1,1,1); we call
 # box_wire_geometry + box_wire_draw_batch_facts for admission evidence and emit
 # the deterministic translated payload for the browser proof path.
 functio _box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z) → lista<f32> ∪ nihil {
-    fixum geometry.BufferGeometry ∪ nihil wire_result ← geometry.box_wire_geometry(
+    fixum geometry.BufferGeometry ∪ nihil wire_result ← primitives.box_wire_geometry(
         1.0 ∷ f32,
         1.0 ∷ f32,
         1.0 ∷ f32
@@ -1273,7 +1274,7 @@ functio _box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z
     fixum f32 oy ← (cell_y ↦ f32) + 0.5 ∷ f32
     fixum f32 oz ← (cell_z ↦ f32) + 0.5 ∷ f32
     fixum f32 h ← 0.5 ∷ f32
-    # Corner order matches geometry.box_wire_geometry (min/max X/Y/Z of unit box).
+    # Corner order matches primitives.box_wire_geometry (min/max X/Y/Z of unit box).
     redde [
         ox - h, oy - h, oz - h,
         ox + h, oy - h, oz - h,
@@ -1296,7 +1297,7 @@ functio selection_outline_from_hit(de VoxelHit hit) → SelectionOutline {
         redde empty_selection_outline()
     }
     fixum geometry.LineGeometryDrawBatchFacts ∪ nihil batch_result ←
-        geometry.box_wire_draw_batch_facts(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32, 1)
+        primitives.box_wire_draw_batch_facts(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32, 1)
     si batch_result est nihil {
         redde empty_selection_outline()
     }

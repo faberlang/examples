@@ -1,4 +1,5 @@
 importa ex "triga:geometry" privata geometry
+importa ex "triga:primitives" privata primitives
 
 # ---------------------------------------------------------------------------
 # Greybox vertex shader
@@ -12,7 +13,7 @@ importa ex "triga:geometry" privata geometry
 # ---------------------------------------------------------------------------
 
 # Minimal sentinel BufferGeometry for triga API call resolution.
-fixum geometry.BufferGeometry ∪ nihil _g ← geometry.box_geometry(1.0, 1.0, 1.0)
+fixum geometry.BufferGeometry ∪ nihil _g ← primitives.box_geometry(1.0, 1.0, 1.0)
 
 # Vertex input 0: position at shader location 0, Float32x3 (code 3),
 # offset 0 bytes, stride 24 (6 floats × 4 B = position + color).
