@@ -1,11 +1,14 @@
 # Faber examples
 
-Public Faber language corpus, named tracks, and application packages.
+Public application packages, tracks, and package-shaped fixtures.
+
+Language keyword exempla live in the sibling private **`radix/corpus/`** tree
+(see `radix/docs/factory/corpus-split-radix-faber`).
 
 ## Layout
 
 ```text
-corpus/            Keyword / language reference (faber explain source)
+corpus/            Package fixtures only (tensor-*); language corpus → radix/corpus
 gpu-workload/      GPU systems workload rungs
 hello-voxel/       Direct WebGPU campaign application scaffold
 triga-budapest/    Static Chain Bridge renderer-completeness showcase
