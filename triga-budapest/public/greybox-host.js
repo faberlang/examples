@@ -403,6 +403,62 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
 
   let resources = createGraphicsResources(device, descriptor, payloads, canvasContext);
 
+  // If a lighting uniform buffer is provided, recreate the pipeline with a
+  // layout that includes both the transform storage (binding 0) and the
+  // lighting uniform (binding 1). The reflection descriptor only declares
+  // the transform binding so createGraphicsResources doesn't choke on the
+  // uniform buffer; we fix the pipeline layout here.
+  if (lightingBuffer) {
+    const litBindGroupLayout = device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: { type: "read-only-storage", hasDynamicOffset: false },
+        },
+        {
+          binding: 1,
+          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+          buffer: { type: "uniform", hasDynamicOffset: false },
+        },
+      ],
+    });
+    const litPipelineLayout = device.createPipelineLayout({
+      bindGroupLayouts: [litBindGroupLayout],
+    });
+
+    // Recreate the render pipeline with the lit layout.
+    const shaderModule = resources.shaderModule;
+    resources.pipeline.destroy();
+    resources.pipeline = device.createRenderPipeline({
+      layout: litPipelineLayout,
+      vertex: {
+        module: shaderModule,
+        entryPoint: descriptor.kernels[0].entryName,
+        buffers: descriptor.kernels[0].vertexBufferLayouts.map((layout) => ({
+          arrayStride: layout.arrayStride,
+          stepMode: layout.stepMode,
+          attributes: layout.attributes.map((attr) => ({
+            shaderLocation: attr.shaderLocation,
+            format: attr.format,
+            offset: attr.offset,
+          })),
+        })),
+      },
+      fragment: {
+        module: shaderModule,
+        entryPoint: descriptor.kernels[1].entryName,
+        targets: descriptor.pipeline.colorTargetFormats.map((fmt) => ({ format: fmt })),
+      },
+      primitive: { topology: descriptor.pipeline.primitiveTopology, cullMode: "none" },
+      depthStencil: {
+        depthWriteEnabled: descriptor.pipeline.depthStencil.depthWriteEnabled,
+        depthCompare: descriptor.pipeline.depthStencil.depthCompare,
+        format: "depth32float",
+      },
+    });
+  }
+
   const meshEntries = meshes.map((m, i) => {
     if (i === 0) {
       // Reuse buffers from createGraphicsResources for mesh 0.

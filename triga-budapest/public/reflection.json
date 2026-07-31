@@ -14,17 +14,6 @@
           "element_count": 64,
           "buffer_byte_len": 256,
           "source_name": "transform"
-        },
-        {
-          "group": 0,
-          "binding": 1,
-          "kind": "UniformBuffer",
-          "role": "Input",
-          "access": "Read",
-          "element_byte_width": 4,
-          "element_count": 12,
-          "buffer_byte_len": 48,
-          "source_name": "lighting"
         }
       ],
       "vertex_inputs": [
@@ -123,20 +112,9 @@
         "element_count": 64,
         "buffer_byte_len": 256,
         "source_name": "transform"
-      },
-      {
-        "group": 0,
-        "binding": 1,
-        "kind": "UniformBuffer",
-        "role": "Input",
-        "access": "Read",
-        "element_byte_width": 4,
-        "element_count": 12,
-        "buffer_byte_len": 48,
-        "source_name": "lighting"
       }
     ],
-    "vertex_resource_count": 2,
+    "vertex_resource_count": 1,
     "fragment_resources": [],
     "fragment_resource_count": 0,
     "depth_stencil": {
