@@ -23,7 +23,7 @@ genus OrbitCamera {
 }
 
 functio spawn_camera() → OrbitCamera {
-    redde OrbitCamera { target = math.vector3(0.0, 4.0, 0.0), yaw_degrees = -28.0 ∷ f32, pitch_degrees = -16.0 ∷ f32, distance = 54.0, input = CameraInput { } }
+    redde OrbitCamera { target = math.vector3(0.0, 4.0, 0.0), yaw_degrees = -28.0 ∷ f32, pitch_degrees = -17.0 ∷ f32, distance = 62.0, input = CameraInput { } }
 }
 
 functio _clamp_distance(f32 distance) → f32 {

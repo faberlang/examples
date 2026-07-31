@@ -185,27 +185,20 @@ export async function initHost() {
 
   let sceneState = null;
   let sceneMounted = false;
-  let lightingBuffer = null;
+
+  // Lighting data: warm afternoon sun from the Buda side (west, high angle).
+  // 48 bytes / 12 f32: sun_dir(3)+pad, sun_color(3)+pad, ambient(3)+pad
+  const lightingData = new Float32Array([
+    -0.45, 0.75, 0.35, 0.0,   // sun direction (normalized) + pad
+    1.0, 0.92, 0.78, 0.0,     // sun color (warm)
+    0.25, 0.28, 0.35, 0.0,    // ambient (cool sky fill)
+  ]);
 
   if (pipelineLoaded && pipelinePack) {
     try {
       const blob = await waitForSceneGeometry();
       const meshes = parseSceneGeometryBlob(blob);
-      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes, lightingBuffer);
-
-      // Create lighting uniform buffer (binding 1).
-      // 48 bytes: sun_dir(3)+pad, sun_color(3)+pad, ambient(3)+pad
-      lightingBuffer = device.createBuffer({
-        size: 48,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      // Warm afternoon sun from the Buda side (west, slightly south, high angle)
-      const lightingData = new Float32Array([
-        -0.45, 0.75, 0.35, 0.0,   // sun direction (normalized) + pad
-        1.0, 0.92, 0.78, 0.0,     // sun color (warm)
-        0.25, 0.28, 0.35, 0.0,    // ambient (cool sky fill)
-      ]);
-      device.queue.writeBuffer(lightingBuffer, 0, lightingData);
+      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes, lightingData);
 
       sceneMounted = true;
       setFact("data-scene-upload", "ok");

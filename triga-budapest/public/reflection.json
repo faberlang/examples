@@ -14,6 +14,17 @@
           "element_count": 64,
           "buffer_byte_len": 256,
           "source_name": "transform"
+        },
+        {
+          "group": 0,
+          "binding": 1,
+          "kind": "UniformBuffer",
+          "role": "Uniform",
+          "access": "Read",
+          "element_byte_width": 4,
+          "element_count": 12,
+          "buffer_byte_len": 48,
+          "source_name": "lighting"
         }
       ],
       "vertex_inputs": [
@@ -54,6 +65,12 @@
           "location": 1,
           "format": "float32x3",
           "interpolation": "perspective"
+        },
+        {
+          "source_name": "view_depth",
+          "location": 2,
+          "format": "float32",
+          "interpolation": "perspective"
         }
       ],
       "fragment_outputs": [],
@@ -80,6 +97,12 @@
           "location": 1,
           "format": "float32x3",
           "interpolation": "perspective"
+        },
+        {
+          "source_name": "view_depth",
+          "location": 2,
+          "format": "float32",
+          "interpolation": "perspective"
         }
       ],
       "fragment_outputs": [
@@ -100,7 +123,7 @@
     "primitive_topology": "triangle-list",
     "vertex_count": 36,
     "vertex_input_count": 3,
-    "varying_count": 2,
+    "varying_count": 3,
     "vertex_resources": [
       {
         "group": 0,
@@ -112,9 +135,20 @@
         "element_count": 64,
         "buffer_byte_len": 256,
         "source_name": "transform"
+      },
+      {
+        "group": 0,
+        "binding": 1,
+        "kind": "UniformBuffer",
+        "role": "Uniform",
+        "access": "Read",
+        "element_byte_width": 4,
+        "element_count": 12,
+        "buffer_byte_len": 48,
+        "source_name": "lighting"
       }
     ],
-    "vertex_resource_count": 1,
+    "vertex_resource_count": 2,
     "fragment_resources": [],
     "fragment_resource_count": 0,
     "depth_stencil": {

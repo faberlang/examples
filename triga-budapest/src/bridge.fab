@@ -36,6 +36,44 @@ functio _add_tower(lista<ScenePart> parts, textus suffix, f32 z) → lista<Scene
     output ← _add_part(output, "tower-right-§"(suffix), box3(4.6, 1.4, z - 1.3, 6.2, 11.8, z + 1.3), 0.64, 0.58, 0.47)
     output ← _add_part(output, "tower-crossbar-§"(suffix), box3(-6.4 ∷ f32, 10.4, z - 1.45, 6.4, 11.9, z + 1.45), 0.62, 0.55, 0.44)
     output ← _add_part(output, "tower-plinth-§"(suffix), box3(-7.1 ∷ f32, 0.4, z - 2.0, 7.1, 1.4, z + 2.0), 0.50, 0.45, 0.36)
+
+    # Cornice cap and plinth trim band give the portal a finished silhouette.
+    output ← _add_part(output, "tower-cornice-§"(suffix), box3(-6.7 ∷ f32, 11.9, z - 1.7, 6.7, 12.35, z + 1.7), 0.68, 0.62, 0.51)
+    output ← _add_part(output, "tower-plinth-trim-§"(suffix), box3(-7.3 ∷ f32, 0.9, z - 2.15, 7.3, 1.42, z + 2.15), 0.56, 0.50, 0.40)
+
+    # Stepped voussoirs under the crossbar suggest the masonry arch of the
+    # real Chain Bridge portals without leaving the box vocabulary.
+    output ← _add_part(output, "tower-arch-left-a-§"(suffix), box3(-4.6 ∷ f32, 9.55, z - 1.35, -2.9 ∷ f32, 10.4, z + 1.35), 0.58, 0.52, 0.42)
+    output ← _add_part(output, "tower-arch-left-b-§"(suffix), box3(-2.9 ∷ f32, 9.95, z - 1.35, -1.6 ∷ f32, 10.4, z + 1.35), 0.58, 0.52, 0.42)
+    output ← _add_part(output, "tower-arch-left-c-§"(suffix), box3(-1.6 ∷ f32, 10.2, z - 1.35, -0.6 ∷ f32, 10.4, z + 1.35), 0.58, 0.52, 0.42)
+    output ← _add_part(output, "tower-arch-right-a-§"(suffix), box3(2.9, 9.55, z - 1.35, 4.6, 10.4, z + 1.35), 0.58, 0.52, 0.42)
+    output ← _add_part(output, "tower-arch-right-b-§"(suffix), box3(1.6, 9.95, z - 1.35, 2.9, 10.4, z + 1.35), 0.58, 0.52, 0.42)
+    output ← _add_part(output, "tower-arch-right-c-§"(suffix), box3(0.6, 10.2, z - 1.35, 1.6, 10.4, z + 1.35), 0.58, 0.52, 0.42)
+    redde output
+}
+
+functio _add_anchor_block(lista<ScenePart> parts, textus suffix, f32 z) → lista<ScenePart> {
+    varia lista<ScenePart> output ← parts
+    output ← _add_part(output, "anchor-left-§"(suffix), box3(-6.7 ∷ f32, 0.25, z - 1.6, -4.9 ∷ f32, 3.3, z + 1.6), 0.46, 0.42, 0.34)
+    output ← _add_part(output, "anchor-right-§"(suffix), box3(4.9, 0.25, z - 1.6, 6.7, 3.3, z + 1.6), 0.46, 0.42, 0.34)
+    output ← _add_part(output, "anchor-cap-left-§"(suffix), box3(-6.9 ∷ f32, 3.3, z - 1.8, -4.7 ∷ f32, 3.7, z + 1.8), 0.54, 0.49, 0.40)
+    output ← _add_part(output, "anchor-cap-right-§"(suffix), box3(4.7, 3.3, z - 1.8, 6.9, 3.7, z + 1.8), 0.54, 0.49, 0.40)
+    redde output
+}
+
+# Back-stay chains: straight run from each tower top down to its anchor block.
+functio _add_backstay(lista<ScenePart> parts, textus suffix, f32 z_tower, f32 z_anchor) → lista<ScenePart> {
+    varia lista<ScenePart> output ← parts
+    varia numerus bi ← 0
+    dum bi < 6 {
+        fixum f32 t0 ← ((bi ↦ f32) + 0.5) / 6.0
+        fixum f32 z_mid ← z_tower + (z_anchor - z_tower) * t0
+        fixum f32 y_mid ← 10.6 - 7.6 * t0
+        fixum f32 z_half ← (z_anchor - z_tower).absolutum() / 12.0 + 0.25
+        output ← _add_part(output, "backstay-left-§-§"(suffix, bi ↦ textus), box3(-5.95 ∷ f32, y_mid - 0.09, z_mid - z_half, -5.55 ∷ f32, y_mid + 0.09, z_mid + z_half), 0.08, 0.08, 0.09)
+        output ← _add_part(output, "backstay-right-§-§"(suffix, bi ↦ textus), box3(5.55, y_mid - 0.09, z_mid - z_half, 5.95, y_mid + 0.09, z_mid + z_half), 0.08, 0.08, 0.09)
+        bi ← bi + 1
+    }
     redde output
 }
 
@@ -58,9 +96,36 @@ functio chain_bridge_parts() → lista<ScenePart> {
     parts ← _add_part(parts, "left-sidewalk", box3(-5.5 ∷ f32, 1.56, -34.0 ∷ f32, -4.35 ∷ f32, 1.82, 34.0), 0.46, 0.42, 0.35)
     parts ← _add_part(parts, "right-sidewalk", box3(4.35, 1.56, -34.0 ∷ f32, 5.5, 1.82, 34.0), 0.46, 0.42, 0.35)
 
+    # Iron side girders under the deck edges and continuous handrails along
+    # the rail-post line; both read clearly in silhouette.
+    parts ← _add_part(parts, "left-girder", box3(-5.7 ∷ f32, 0.9, -34.0 ∷ f32, -5.35 ∷ f32, 1.58, 34.0), 0.10, 0.10, 0.11)
+    parts ← _add_part(parts, "right-girder", box3(5.35, 0.9, -34.0 ∷ f32, 5.7, 1.58, 34.0), 0.10, 0.10, 0.11)
+    parts ← _add_part(parts, "left-handrail-top", box3(-5.30 ∷ f32, 2.58, -34.0 ∷ f32, -5.14 ∷ f32, 2.74, 34.0), 0.11, 0.11, 0.12)
+    parts ← _add_part(parts, "right-handrail-top", box3(5.14, 2.58, -34.0 ∷ f32, 5.30, 2.74, 34.0), 0.11, 0.11, 0.12)
+    parts ← _add_part(parts, "left-handrail-mid", box3(-5.26 ∷ f32, 2.18, -34.0 ∷ f32, -5.18 ∷ f32, 2.28, 34.0), 0.11, 0.11, 0.12)
+    parts ← _add_part(parts, "right-handrail-mid", box3(5.18, 2.18, -34.0 ∷ f32, 5.26, 2.28, 34.0), 0.11, 0.11, 0.12)
+
+    # Dashed center line on the roadway.
+    varia numerus di ← 0
+    dum di < 16 {
+        fixum f32 z_dash ← -30.0 + (di ↦ f32) * 4.0
+        parts ← _add_part(parts, "road-dash-§"(di ↦ textus), box3(-0.06 ∷ f32, 1.55, z_dash - 0.8, 0.06, 1.58, z_dash + 0.8), 0.72, 0.72, 0.68)
+        di ← di + 1
+    }
+
+    # Quay walls where the banks meet the water.
+    parts ← _add_part(parts, "buda-quay", box3(-34.0 ∷ f32, -0.10 ∷ f32, -38.7 ∷ f32, 34.0, 0.55, -38.0 ∷ f32), 0.42, 0.40, 0.34)
+    parts ← _add_part(parts, "pest-quay", box3(-34.0 ∷ f32, -0.10 ∷ f32, 38.0, 34.0, 0.55, 38.7), 0.42, 0.40, 0.34)
+
     # Two portal towers, each with two pylons and a crossbar.
     parts ← _add_tower(parts, "buda", -20.0 ∷ f32)
     parts ← _add_tower(parts, "pest", 20.0 ∷ f32)
+
+    # Chain anchorages behind each tower, with straight back-stay runs.
+    parts ← _add_anchor_block(parts, "buda", -36.5 ∷ f32)
+    parts ← _add_anchor_block(parts, "pest", 36.5)
+    parts ← _add_backstay(parts, "buda", -21.5 ∷ f32, -35.5 ∷ f32)
+    parts ← _add_backstay(parts, "pest", 21.5, 35.5)
 
     # Suspension chains and vertical hangers.
     varia numerus ci ← 0
@@ -105,6 +170,22 @@ functio chain_bridge_parts() → lista<ScenePart> {
     parts ← _add_part(parts, "buda-hill", box3(-24.0 ∷ f32, 0.25, -48.0 ∷ f32, -10.0 ∷ f32, 8.5, -40.0 ∷ f32), 0.18, 0.30, 0.20)
     parts ← _add_part(parts, "pest-block-a", box3(10.0, 0.25, 40.0, 17.0, 7.0, 48.0), 0.36, 0.33, 0.30)
     parts ← _add_part(parts, "pest-block-b", box3(18.0, 0.25, 40.0, 25.0, 10.0, 48.0), 0.32, 0.34, 0.38)
+
+    # Buda castle mass on the hill and a Pest church spire: stacked boxes
+    # give each bank a recognizable landmark.
+    parts ← _add_part(parts, "buda-castle", box3(-22.0 ∷ f32, 8.5, -46.0 ∷ f32, -12.0 ∷ f32, 12.0, -42.0 ∷ f32), 0.55, 0.48, 0.38)
+    parts ← _add_part(parts, "buda-castle-tower", box3(-19.0 ∷ f32, 12.0, -45.5 ∷ f32, -17.0 ∷ f32, 15.5, -43.5 ∷ f32), 0.50, 0.44, 0.35)
+    parts ← _add_part(parts, "buda-castle-dome", box3(-18.6 ∷ f32, 15.5, -45.1 ∷ f32, -17.4 ∷ f32, 17.2, -43.9 ∷ f32), 0.24, 0.38, 0.30)
+    parts ← _add_part(parts, "pest-block-c", box3(26.5, 0.25, 40.0, 32.0, 5.5, 48.0), 0.38, 0.35, 0.32)
+    parts ← _add_part(parts, "pest-church-base", box3(-14.0 ∷ f32, 0.25, 42.0, -10.0 ∷ f32, 9.0, 46.0), 0.40, 0.37, 0.33)
+    parts ← _add_part(parts, "pest-church-spire", box3(-12.9 ∷ f32, 9.0, 42.9, -11.1 ∷ f32, 15.0, 45.1), 0.30, 0.28, 0.26)
+    parts ← _add_part(parts, "pest-church-tip", box3(-12.45 ∷ f32, 15.0, 43.45, -11.55 ∷ f32, 17.5, 44.55), 0.26, 0.24, 0.22)
+
+    # River traffic: two low barges with cabin blocks.
+    parts ← _add_part(parts, "barge-a-hull", box3(-16.0 ∷ f32, -0.05 ∷ f32, -8.0 ∷ f32, -9.0 ∷ f32, 0.85, -2.0 ∷ f32), 0.22, 0.16, 0.12)
+    parts ← _add_part(parts, "barge-a-cabin", box3(-13.5 ∷ f32, 0.85, -6.5 ∷ f32, -10.5 ∷ f32, 1.75, -3.5 ∷ f32), 0.55, 0.52, 0.46)
+    parts ← _add_part(parts, "barge-b-hull", box3(10.0, -0.05 ∷ f32, 12.0, 17.0, 0.8, 18.0), 0.16, 0.18, 0.22)
+    parts ← _add_part(parts, "barge-b-cabin", box3(14.0, 0.8, 13.5, 16.0, 1.6, 16.5), 0.50, 0.48, 0.44)
 
     redde parts
 }

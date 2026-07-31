@@ -8,6 +8,10 @@
 // Bind group 0:
 //   binding 0 — transform storage buffer (64 f32: model 16 + view_proj 16 + padding 32)
 //   binding 1 — lighting uniform buffer (8 f32: sun_dir(3) + ambient(3) + sun_color(3) padded)
+//
+// Fragment path: hemisphere ambient + Lambert sun in linear space, then
+// ACES filmic tone mapping, sRGB encode, and exp2 distance fog mixed in
+// display space toward the sky clear color.
 
 @group(0) @binding(0) var<storage, read> transform: array<f32>;
 @group(0) @binding(1) var<uniform> lighting: LightingUniforms;
@@ -31,6 +35,7 @@ struct LitVertexOutput {
   @builtin(position) position: vec4<f32>,
   @location(0) @interpolate(perspective) world_normal: vec3<f32>,
   @location(1) @interpolate(perspective) base_color: vec3<f32>,
+  @location(2) @interpolate(perspective) view_depth: f32,
 }
 
 @vertex
@@ -53,16 +58,37 @@ fn greybox_vertex(input: LitVertexInput) -> LitVertexOutput {
   out.position = view_proj * world_pos;
   out.world_normal = normalize(input.normal);
   out.base_color = input.color;
+  // Clip-space w is the view-space distance in front of the camera; the
+  // fragment stage uses it for fog. abs() keeps it robust to projection
+  // conventions that flip the sign.
+  out.view_depth = abs(out.position.w);
   return out;
 }
 
 struct LitFragmentInput {
   @location(0) @interpolate(perspective) world_normal: vec3<f32>,
   @location(1) @interpolate(perspective) base_color: vec3<f32>,
+  @location(2) @interpolate(perspective) view_depth: f32,
 }
 
 struct LitFragmentOutput {
   @location(0) color: vec4<f32>,
+}
+
+// ACES filmic tone mapping (Narkowicz approximation), linear in/out 0..1+.
+fn aces_tonemap(x: vec3<f32>) -> vec3<f32> {
+  let a = 2.51;
+  let b = 0.03;
+  let c = 2.43;
+  let d = 0.59;
+  let e = 0.14;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), vec3<f32>(0.0), vec3<f32>(1.0));
+}
+
+fn linear_to_srgb(c: vec3<f32>) -> vec3<f32> {
+  let lo = c * 12.92;
+  let hi = 1.055 * pow(c, vec3<f32>(1.0 / 2.4)) - 0.055;
+  return select(hi, lo, c <= vec3<f32>(0.0031308));
 }
 
 @fragment
@@ -81,8 +107,20 @@ fn greybox_fragment(input: LitFragmentInput) -> LitFragmentOutput {
   let hemi_ambient = lighting.ambient_color + sky_tint * 0.3 + ground_tint * 0.2;
 
   let diffuse = lighting.sun_color * NdotL;
-  let lit_color = input.base_color * (hemi_ambient + diffuse);
+  // Exposure trim: keeps sun-lit stone from clipping to white after ACES.
+  let exposure = 0.75;
+  let lit_linear = input.base_color * (hemi_ambient + diffuse) * exposure;
 
-  out.color = vec4<f32>(lit_color, 1.0);
+  // Filmic tone map + display encode.
+  let lit_display = linear_to_srgb(aces_tonemap(lit_linear));
+
+  // Exp2 distance fog toward the sky clear color, mixed in display space so
+  // fully fogged geometry disappears seamlessly into the background.
+  let fog_color = vec3<f32>(0.451, 0.620, 0.800);
+  let fog_density = 0.010;
+  let fog_amount = 1.0 - exp2(-fog_density * fog_density * input.view_depth * input.view_depth * 1.442695);
+  let final_color = mix(lit_display, fog_color, clamp(fog_amount, 0.0, 1.0));
+
+  out.color = vec4<f32>(final_color, 1.0);
   return out;
 }

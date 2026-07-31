@@ -120,11 +120,11 @@ function buildDescriptorFromReflection(wgsl, reflection, indexCount = 3) {
     Object.freeze({
       bindGroupIndex: 0,
       entries: Object.freeze(
-        resources.map((r) =>
+        resources.map((r, i) =>
           Object.freeze({
             binding: r.binding,
-            resourceIndex: 0,
-            role: "input",
+            resourceIndex: i,
+            role: r.kind === "UniformBuffer" ? "uniform" : "input",
             access: "read",
             kind: r.kind === "UniformBuffer" ? "uniform-buffer" : "storage-buffer",
             bufferType: r.kind === "UniformBuffer" ? "uniform" : "read-only-storage",
@@ -350,6 +350,11 @@ export function initGreyboxRenderer(device, descriptor, canvasContext) {
     indexData: TRIANGLE_INDICES,
     storageData: {
       transform: IDENTITY_TRANSFORM,
+      lighting: new Float32Array([
+        -0.45, 0.75, 0.35, 0.0,
+        1.0, 0.92, 0.78, 0.0,
+        0.25, 0.28, 0.35, 0.0,
+      ]),
     },
   };
 
@@ -382,7 +387,7 @@ export function initGreyboxRenderer(device, descriptor, canvasContext) {
  * @param {Array<{ name: string, role: string, vertices: Float32Array, indices: Uint32Array }>} meshes
  * @returns {object} renderState (mutable resources holder for resize)
  */
-export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, meshes, lightingBuffer) {
+export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, meshes, lightingData) {
   if (!Array.isArray(meshes) || meshes.length === 0) {
     throw new Error("initGreyboxSceneRenderer: meshes required");
   }
@@ -398,66 +403,13 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
   const payloads = {
     vertexBuffers: [{ slot: 0, data: first.vertices }],
     indexData: first.indices,
-    storageData: { transform: IDENTITY_TRANSFORM },
+    storageData: {
+      transform: IDENTITY_TRANSFORM,
+      lighting: lightingData || new Float32Array(12),
+    },
   };
 
   let resources = createGraphicsResources(device, descriptor, payloads, canvasContext);
-
-  // If a lighting uniform buffer is provided, recreate the pipeline with a
-  // layout that includes both the transform storage (binding 0) and the
-  // lighting uniform (binding 1). The reflection descriptor only declares
-  // the transform binding so createGraphicsResources doesn't choke on the
-  // uniform buffer; we fix the pipeline layout here.
-  if (lightingBuffer) {
-    const litBindGroupLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX,
-          buffer: { type: "read-only-storage", hasDynamicOffset: false },
-        },
-        {
-          binding: 1,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: { type: "uniform", hasDynamicOffset: false },
-        },
-      ],
-    });
-    const litPipelineLayout = device.createPipelineLayout({
-      bindGroupLayouts: [litBindGroupLayout],
-    });
-
-    // Recreate the render pipeline with the lit layout.
-    const shaderModule = resources.shaderModule;
-    resources.pipeline.destroy();
-    resources.pipeline = device.createRenderPipeline({
-      layout: litPipelineLayout,
-      vertex: {
-        module: shaderModule,
-        entryPoint: descriptor.kernels[0].entryName,
-        buffers: descriptor.kernels[0].vertexBufferLayouts.map((layout) => ({
-          arrayStride: layout.arrayStride,
-          stepMode: layout.stepMode,
-          attributes: layout.attributes.map((attr) => ({
-            shaderLocation: attr.shaderLocation,
-            format: attr.format,
-            offset: attr.offset,
-          })),
-        })),
-      },
-      fragment: {
-        module: shaderModule,
-        entryPoint: descriptor.kernels[1].entryName,
-        targets: descriptor.pipeline.colorTargetFormats.map((fmt) => ({ format: fmt })),
-      },
-      primitive: { topology: descriptor.pipeline.primitiveTopology, cullMode: "none" },
-      depthStencil: {
-        depthWriteEnabled: descriptor.pipeline.depthStencil.depthWriteEnabled,
-        depthCompare: descriptor.pipeline.depthStencil.depthCompare,
-        format: "depth32float",
-      },
-    });
-  }
 
   const meshEntries = meshes.map((m, i) => {
     if (i === 0) {
@@ -475,19 +427,6 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
 
   const carIndex = meshEntries.findIndex((m) => m.role === "car");
 
-  // If a lighting uniform buffer is provided, create a combined bind group
-  // that includes both the transform storage (binding 0) and lighting (binding 1).
-  let litBindGroup = null;
-  if (lightingBuffer) {
-    litBindGroup = device.createBindGroup({
-      layout: resources.pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: resources.storageBuffers.get(0)?.buffer || resources.storageBuffers[0]?.buffer } },
-        { binding: 1, resource: { buffer: lightingBuffer } },
-      ],
-    });
-  }
-
   return {
     device,
     context: canvasContext,
@@ -497,23 +436,12 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
     },
     set resources(next) {
       resources = next;
-      // Recreate lit bind group if depth resize recreated storage buffers
-      if (lightingBuffer) {
-        litBindGroup = device.createBindGroup({
-          layout: resources.pipeline.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: { buffer: resources.storageBuffers.get(0)?.buffer || resources.storageBuffers[0]?.buffer } },
-            { binding: 1, resource: { buffer: lightingBuffer } },
-          ],
-        });
-      }
     },
     frameState: { submittedFrameCount: 0 },
     meshes: meshEntries,
     carIndex,
     mode: "scene",
     objectCount: meshEntries.length,
-    litBindGroup: () => litBindGroup,
   };
 }
 
@@ -559,10 +487,13 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
   carCombined.set(carModel, 0);
   carCombined.set(viewProj, 16);
 
-  // One canvas texture and one depth view for the whole frame; the passes
-  // differ only in load op and which mesh they draw.
+  // One canvas texture, one MSAA color view, and one depth view for the whole
+  // frame; the passes differ only in load op and which mesh they draw. Each
+  // pass resolves the multisampled target into the canvas texture.
   const textureView = context.getCurrentTexture().createView();
   const depthView = resources.depthTexture.createView();
+  const colorView = resources.msaaTexture ? resources.msaaTexture.createView() : textureView;
+  const resolveTarget = resources.msaaTexture ? textureView : undefined;
 
   for (let i = 0; i < meshes.length; i++) {
     const mesh = meshes[i];
@@ -579,7 +510,8 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
     const renderPass = commandEncoder.beginRenderPass({
       colorAttachments: [
         {
-          view: textureView,
+          view: colorView,
+          resolveTarget,
           clearValue,
           loadOp: i === 0 ? "clear" : "load",
           storeOp: "store",
@@ -594,13 +526,8 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
     });
 
     renderPass.setPipeline(resources.pipeline);
-    const litBg = renderState.litBindGroup ? renderState.litBindGroup() : null;
-    if (litBg) {
-      renderPass.setBindGroup(0, litBg);
-    } else {
-      for (const group of resources.bindGroups) {
-        renderPass.setBindGroup(group.bindGroupIndex, group.bindGroup);
-      }
+    for (const group of resources.bindGroups) {
+      renderPass.setBindGroup(group.bindGroupIndex, group.bindGroup);
     }
     renderPass.setVertexBuffer(0, mesh.vertexBuffer);
     renderPass.setIndexBuffer(mesh.indexBuffer, "uint32", 0);
