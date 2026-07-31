@@ -1,15 +1,7 @@
-# Package fixtures (language corpus moved)
+# Corpus relocated
 
-**Language keyword exempla** now live under **`radix/corpus/`**
-(see `radix/docs/factory/corpus-split-radix-faber/goal.md`).
+Language keyword exempla → **`radix/corpus/`**  
+Package fixtures → **`faber/corpus/`**
 
-This directory only retains **package-shaped** fixtures that still need a
-`faber.toml` layout. They move next to `faber/corpus/` in a follow-on slice.
-
-| Path | Role |
-| --- | --- |
-| `tensor-fragment/tiny-linear/` | Package MIR / tensor fragment |
-| `tensor-fragment/tiny-linear-dense/` | Dense device package fragment |
-| `tensor-package/fmir-matmul/` | Package FMIR matmul |
-
-Do not add single-file keyword programs here. Put those in `radix/corpus/`.
+This directory is a redirect stub only. Do not add language or package files
+here. Application demos live in sibling dirs under `examples/`.

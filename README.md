@@ -8,7 +8,7 @@ Language keyword exempla live in the sibling private **`radix/corpus/`** tree
 ## Layout
 
 ```text
-corpus/            Package fixtures only (tensor-*); language corpus → radix/corpus
+corpus/            Redirect stub only (language → radix/corpus; packages → faber/corpus)
 gpu-workload/      GPU systems workload rungs
 hello-voxel/       Direct WebGPU campaign application scaffold
 triga-budapest/    Static Chain Bridge renderer-completeness showcase
