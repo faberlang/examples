@@ -22,10 +22,10 @@ import { FaberKernelContractError } from "./faber-kernel.js";
 // ── Test geometry: one colored triangle (U2) ───────────────────────────────
 
 const TRIANGLE_VERTICES = new Float32Array([
-  // position (x,y,z)      // color (r,g,b)
-  -0.5, -0.5, 0.0,         1.0, 0.0, 0.0,
-   0.5, -0.5, 0.0,         0.0, 1.0, 0.0,
-   0.0,  0.5, 0.0,         0.0, 0.0, 1.0,
+  // position (x,y,z)      // normal (nx,ny,nz)    // color (r,g,b)
+  -0.5, -0.5, 0.0,          0.0, 0.0, 1.0,         1.0, 0.0, 0.0,
+   0.5, -0.5, 0.0,          0.0, 0.0, 1.0,         0.0, 1.0, 0.0,
+   0.0,  0.5, 0.0,          0.0, 0.0, 1.0,         0.0, 0.0, 1.0,
 ]);
 
 const TRIANGLE_INDICES = new Uint32Array([0, 1, 2]);
@@ -106,8 +106,8 @@ function buildDescriptorFromReflection(wgsl, reflection, indexCount = 3) {
         resources.map((r) =>
           Object.freeze({
             binding: r.binding,
-            visibility: "vertex",
-            bufferType: "read-only-storage",
+            visibility: r.kind === "UniformBuffer" ? "vertex" : "vertex",
+            bufferType: r.kind === "UniformBuffer" ? "uniform" : "read-only-storage",
             minBindingSize: r.buffer_byte_len,
             sourceName: r.source_name,
           }),
@@ -126,8 +126,8 @@ function buildDescriptorFromReflection(wgsl, reflection, indexCount = 3) {
             resourceIndex: 0,
             role: "input",
             access: "read",
-            kind: "storage-buffer",
-            bufferType: "read-only-storage",
+            kind: r.kind === "UniformBuffer" ? "uniform-buffer" : "storage-buffer",
+            bufferType: r.kind === "UniformBuffer" ? "uniform" : "read-only-storage",
             elementLayout: "f32",
             elementByteWidth: 4,
             elementCount: r.element_count,
@@ -271,9 +271,9 @@ export function parseSceneGeometryBlob(blob) {
     const indexCount = Number(fields[3]);
     const verts = fields[4].trim().split(/\s+/).map(Number);
     const idxs = fields[5].trim().split(/\s+/).map(Number);
-    if (verts.length !== vertexCount * 6) {
+    if (verts.length !== vertexCount * 9) {
       throw new Error(
-        `greybox-host: ${name} vertex float count ${verts.length} != ${vertexCount * 6}`,
+        `greybox-host: ${name} vertex float count ${verts.length} != ${vertexCount * 9} (expected 9 floats per vertex: pos3+normal3+color3)`,
       );
     }
     if (idxs.length !== indexCount) {
@@ -382,7 +382,7 @@ export function initGreyboxRenderer(device, descriptor, canvasContext) {
  * @param {Array<{ name: string, role: string, vertices: Float32Array, indices: Uint32Array }>} meshes
  * @returns {object} renderState (mutable resources holder for resize)
  */
-export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, meshes) {
+export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, meshes, lightingBuffer) {
   if (!Array.isArray(meshes) || meshes.length === 0) {
     throw new Error("initGreyboxSceneRenderer: meshes required");
   }
@@ -419,6 +419,19 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
 
   const carIndex = meshEntries.findIndex((m) => m.role === "car");
 
+  // If a lighting uniform buffer is provided, create a combined bind group
+  // that includes both the transform storage (binding 0) and lighting (binding 1).
+  let litBindGroup = null;
+  if (lightingBuffer) {
+    litBindGroup = device.createBindGroup({
+      layout: resources.pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: resources.storageBuffers.get(0)?.buffer || resources.storageBuffers[0]?.buffer } },
+        { binding: 1, resource: { buffer: lightingBuffer } },
+      ],
+    });
+  }
+
   return {
     device,
     context: canvasContext,
@@ -428,12 +441,23 @@ export function initGreyboxSceneRenderer(device, pipelinePack, canvasContext, me
     },
     set resources(next) {
       resources = next;
+      // Recreate lit bind group if depth resize recreated storage buffers
+      if (lightingBuffer) {
+        litBindGroup = device.createBindGroup({
+          layout: resources.pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: resources.storageBuffers.get(0)?.buffer || resources.storageBuffers[0]?.buffer } },
+            { binding: 1, resource: { buffer: lightingBuffer } },
+          ],
+        });
+      }
     },
     frameState: { submittedFrameCount: 0 },
     meshes: meshEntries,
     carIndex,
     mode: "scene",
     objectCount: meshEntries.length,
+    litBindGroup: () => litBindGroup,
   };
 }
 
@@ -462,7 +486,7 @@ export function renderGreyboxFrame(renderState, options = {}) {
 export function renderGreyboxSceneFrame(renderState, transform32, options = {}) {
   const { device, context, descriptor, meshes, carIndex } = renderState;
   const resources = renderState.resources;
-  const clearValue = options.clearValue ?? { r: 0.02, g: 0.06, b: 0.07, a: 1.0 };
+  const clearValue = options.clearValue ?? { r: 0.45, g: 0.62, b: 0.80, a: 1.0 };
 
   if (!(transform32 instanceof Float32Array) || transform32.length < 32) {
     throw new Error("renderGreyboxSceneFrame: transform32 must be Float32Array(32)");
@@ -514,8 +538,13 @@ export function renderGreyboxSceneFrame(renderState, transform32, options = {}) 
     });
 
     renderPass.setPipeline(resources.pipeline);
-    for (const group of resources.bindGroups) {
-      renderPass.setBindGroup(group.bindGroupIndex, group.bindGroup);
+    const litBg = renderState.litBindGroup ? renderState.litBindGroup() : null;
+    if (litBg) {
+      renderPass.setBindGroup(0, litBg);
+    } else {
+      for (const group of resources.bindGroups) {
+        renderPass.setBindGroup(group.bindGroupIndex, group.bindGroup);
+      }
     }
     renderPass.setVertexBuffer(0, mesh.vertexBuffer);
     renderPass.setIndexBuffer(mesh.indexBuffer, "uint32", 0);

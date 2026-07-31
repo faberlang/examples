@@ -1,4 +1,3 @@
-importa ex "triga:geometry" privata geometry
 importa ex "./box_geom" privata box_geom
 importa ex "./bridge" privata bridge
 importa ex "triga:math" privata math
@@ -20,28 +19,13 @@ genus SceneGeometryManifest {
 }
 
 functio _add_object(lista<SceneObjectGeometry> objects, de bridge.ScenePart part) → lista<SceneObjectGeometry> {
-    fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(part.bounds, part.red, part.green, part.blue)
-    si geo_result est nihil ergo redde objects
-
     fixum lista<f32> ∪ nihil vp_result ← box_geom.box_vertex_payload(part.bounds, part.red, part.green, part.blue)
     si vp_result est nihil ergo redde objects
 
-    fixum geometry.BufferGeometry gg ← geometry.BufferGeometry { topology = geo_result!.topology, vertex_count = geo_result!.vertex_count, attributes = geo_result!.attributes, indexed = geo_result!.indexed, indices = geo_result!.indices, draw_range = geo_result!.draw_range, groups = geo_result!.groups }
+    fixum lista<f32> payload ← vp_result vel ([] ∷ lista<f32>)
+    fixum lista<u32> indices ← box_geom.box_indices()
 
-    fixum numerus ∪ nihil vbc ← gg.vertex_payload_byte_count()
-    si vbc est nihil ergo redde objects
-
-    fixum numerus ∪ nihil ibc ← gg.index_payload_byte_count()
-    si ibc est nihil ergo redde objects
-
-    varia lista<f32> payload ← vacua
-    varia numerus k ← 0
-    dum k < 48 {
-        payload.appende(vp_result![k])
-        k ← k + 1
-    }
-
-    objects.appende(SceneObjectGeometry { name = part.name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = math.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
+    objects.appende(SceneObjectGeometry { name = part.name, vertex_count = 24, index_count = indices.longitudo(), vertex_byte_count = payload.longitudo() * 4, index_byte_count = indices.longitudo() * 4, vertex_payload = payload, index_payload = indices, color = math.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
     redde objects
 }
 

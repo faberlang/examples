@@ -14,6 +14,17 @@
           "element_count": 64,
           "buffer_byte_len": 256,
           "source_name": "transform"
+        },
+        {
+          "group": 0,
+          "binding": 1,
+          "kind": "UniformBuffer",
+          "role": "Input",
+          "access": "Read",
+          "element_byte_width": 4,
+          "element_count": 12,
+          "buffer_byte_len": 48,
+          "source_name": "lighting"
         }
       ],
       "vertex_inputs": [
@@ -22,7 +33,7 @@
           "format": "float32x3",
           "step_mode": "vertex",
           "offset_bytes": 0,
-          "stride_bytes": 24,
+          "stride_bytes": 36,
           "source_name": "position"
         },
         {
@@ -30,14 +41,28 @@
           "format": "float32x3",
           "step_mode": "vertex",
           "offset_bytes": 12,
-          "stride_bytes": 24,
+          "stride_bytes": 36,
+          "source_name": "normal"
+        },
+        {
+          "location": 2,
+          "format": "float32x3",
+          "step_mode": "vertex",
+          "offset_bytes": 24,
+          "stride_bytes": 36,
           "source_name": "color"
         }
       ],
       "varyings": [
         {
-          "source_name": "color",
+          "source_name": "world_normal",
           "location": 0,
+          "format": "float32x3",
+          "interpolation": "perspective"
+        },
+        {
+          "source_name": "base_color",
+          "location": 1,
           "format": "float32x3",
           "interpolation": "perspective"
         }
@@ -56,8 +81,14 @@
       "vertex_inputs": [],
       "varyings": [
         {
-          "source_name": "color",
+          "source_name": "world_normal",
           "location": 0,
+          "format": "float32x3",
+          "interpolation": "perspective"
+        },
+        {
+          "source_name": "base_color",
+          "location": 1,
           "format": "float32x3",
           "interpolation": "perspective"
         }
@@ -79,8 +110,8 @@
     "color_target_formats": ["bgra8unorm"],
     "primitive_topology": "triangle-list",
     "vertex_count": 36,
-    "vertex_input_count": 2,
-    "varying_count": 1,
+    "vertex_input_count": 3,
+    "varying_count": 2,
     "vertex_resources": [
       {
         "group": 0,
@@ -92,9 +123,20 @@
         "element_count": 64,
         "buffer_byte_len": 256,
         "source_name": "transform"
+      },
+      {
+        "group": 0,
+        "binding": 1,
+        "kind": "UniformBuffer",
+        "role": "Input",
+        "access": "Read",
+        "element_byte_width": 4,
+        "element_count": 12,
+        "buffer_byte_len": 48,
+        "source_name": "lighting"
       }
     ],
-    "vertex_resource_count": 1,
+    "vertex_resource_count": 2,
     "fragment_resources": [],
     "fragment_resource_count": 0,
     "depth_stencil": {

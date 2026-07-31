@@ -185,12 +185,28 @@ export async function initHost() {
 
   let sceneState = null;
   let sceneMounted = false;
+  let lightingBuffer = null;
 
   if (pipelineLoaded && pipelinePack) {
     try {
       const blob = await waitForSceneGeometry();
       const meshes = parseSceneGeometryBlob(blob);
-      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes);
+      sceneState = initGreyboxSceneRenderer(device, pipelinePack, context, meshes, lightingBuffer);
+
+      // Create lighting uniform buffer (binding 1).
+      // 48 bytes: sun_dir(3)+pad, sun_color(3)+pad, ambient(3)+pad
+      lightingBuffer = device.createBuffer({
+        size: 48,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      });
+      // Warm afternoon sun from the Buda side (west, slightly south, high angle)
+      const lightingData = new Float32Array([
+        -0.45, 0.75, 0.35, 0.0,   // sun direction (normalized) + pad
+        1.0, 0.92, 0.78, 0.0,     // sun color (warm)
+        0.25, 0.28, 0.35, 0.0,    // ambient (cool sky fill)
+      ]);
+      device.queue.writeBuffer(lightingBuffer, 0, lightingData);
+
       sceneMounted = true;
       setFact("data-scene-upload", "ok");
       setFact("data-scene-object-count", String(meshes.length));
@@ -354,7 +370,7 @@ export async function initHost() {
       } else if (triangleState) {
         // U2 path while the scene geometry has not mounted yet
         renderGreyboxFrame(triangleState, {
-          clearValue: { r: 0.02, g: 0.06, b: 0.07, a: 1.0 },
+          clearValue: { r: 0.45, g: 0.62, b: 0.80, a: 1.0 },
         });
         if (floats && !readbackBusy) {
           updateGraphicsStorage(device, storageResources, storageDescriptor, {
