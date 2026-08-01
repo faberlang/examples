@@ -29,5 +29,6 @@
 # Backend: Rust ✓, wasm-text ✓
 # =============================================================================
 incipit {
-    fixum _ r ← "\d+" ↦ regex
+    fixum textus pattern ← "\d+"
+    fixum _ r ← pattern ↦ regex
 }
