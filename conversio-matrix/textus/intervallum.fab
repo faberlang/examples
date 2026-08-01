@@ -9,5 +9,5 @@
 # =============================================================================
 incipit {
     fixum textus src ← "hi"
-    fixum _ r ← src ↦ intervallum<numerus>
+    fixum _ r ← src ↦ 0‥100
 }

@@ -9,5 +9,5 @@
 # =============================================================================
 incipit {
     fixum numerus src ← 42
-    fixum _ r ← src ↦ intervallum<numerus>
+    fixum _ r ← src ↦ 0‥100
 }

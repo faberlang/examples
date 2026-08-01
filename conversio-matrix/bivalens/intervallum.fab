@@ -9,5 +9,5 @@
 # =============================================================================
 incipit {
     fixum bivalens src ← verum
-    fixum _ r ← src ↦ intervallum<numerus>
+    fixum _ r ← src ↦ 0‥100
 }

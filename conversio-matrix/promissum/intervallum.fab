@@ -12,5 +12,5 @@ functio compute() fiet → numerus {
 }
 incipiet {
     fixum promissum<numerus> src ← compute()
-    fixum _ r ← src ↦ intervallum<numerus>
+    fixum _ r ← src ↦ 0‥100
 }

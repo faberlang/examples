@@ -9,5 +9,5 @@
 # =============================================================================
 incipit {
     fixum tensor<numerus, [3]> src ← [1, 2, 3] ↦ tensor<numerus, [3]>
-    fixum _ r ← src ↦ intervallum<numerus>
+    fixum _ r ← src ↦ 0‥100
 }
