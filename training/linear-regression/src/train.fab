@@ -63,6 +63,22 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
+# forward — factored tensor-returning forward pass, called inside the
+# training loop. Previously inlined because the then-current compiler
+# rejected tensor-returning function calls inside loop bodies (SEM010);
+# that restriction no longer exists.
+# -------------------------------------------------------------------------
+
+functio forward(
+    tensor<f32, [2,2]> input,
+    tensor<f32, [2,2]> weight,
+    tensor<f32, [2,2]> bias
+) → tensor<f32, [2,2]> {
+    fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
+    redde prediction.addita(bias)
+}
+
+# -------------------------------------------------------------------------
 # incipit — multi-step training loop: forward × 8 + backward + SGD
 # -------------------------------------------------------------------------
 
@@ -88,11 +104,9 @@ incipit {
     varia lista<f32> loss_trace ← vacua
 
     itera ab 0‥steps fixum step {
-        # Forward pass (inlined — function call inside loop triggers SEM010
-        # in current compiler for tensor-returning functions).
-        fixum tensor<f32, [2,2]> pred ← input.matmul(weight)
-        fixum tensor<f32, [2,2]> shft ← pred.addita(bias)
-        fixum tensor<f32, [2,2]> resd ← shft.subtrahe(target)
+        # Forward via factored tensor-returning functio.
+        fixum tensor<f32, [2,2]> pred ← forward(input, weight, bias)
+        fixum tensor<f32, [2,2]> resd ← pred.subtrahe(target)
         fixum tensor<f32, [2,2]> sqrd ← resd.multiplica(resd)
         fixum f32 loss ← sqrd.media()
         loss_trace.appende(loss)
