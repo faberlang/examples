@@ -21,7 +21,7 @@ air/               AIR lane demos
 script-kernel/     faber:* script-kernel demos
 coreutils/         GNU coreutils reimplementation (application campaign)
 automation/        automation sketch packages
-training/          Training and FMIR workload examples
+training/          Training and FMIR workload examples (incl. `training/device-summa/` — differentiable-GPU S1-6 vertical-slice proof: one tree-reduction kernel through Metal/CUDA device execution with pinned CPU oracle references)
 reader-locale/     Locale pack demos
 vivilite/          ViviLite mailspace application
 sqlite/            SQLite runtime bindings

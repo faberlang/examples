@@ -1,0 +1,27 @@
+{
+  "fixture": "device-summa",
+  "stage": "S1-6 vertical slice",
+  "kernel": "summa",
+  "recipe": "CollectionKernelPlan::TreeReduction",
+  "dtype": "f32",
+  "input_shape": [
+    256
+  ],
+  "output_shape": [
+    1
+  ],
+  "policy": "numeric-policy v1.0.0",
+  "family": "reduction sum",
+  "atol": 1e-06,
+  "rtol": 1e-06,
+  "expected_sum": 16576.0,
+  "capture_sha256": "bd04aff0d90e92c61c230ab40d8340d3609be012a4f146023e12f71148499ac0",
+  "input_formula": "a[i] = i * 0.5 + 1.0",
+  "input_sample": [
+    1.0,
+    1.5,
+    2.0,
+    2.5
+  ],
+  "input_count": 256
+}
