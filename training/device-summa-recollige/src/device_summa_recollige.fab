@@ -1,0 +1,52 @@
+# =============================================================================
+# device-summa-recollige — S2-5 ordinary two-kernel fixture (gpu-training-lowering)
+# =============================================================================
+#
+# What this proves:
+#   • Two dependent ordinary collection kernels — a tree reduction (`collige`,
+#     the proven `summa` recipe over a tf32[1024] buffer producing 4
+#     per-workgroup partials) and a second tree reduction (`recollige`, the
+#     same recipe over the tf32[4] intermediate) — with a device-resident
+#     intermediate (`medius`, tf32[4]) shared by data-flow identity: kernel 2
+#     consumes exactly what kernel 1 wrote on the device; nothing round-trips
+#     through the CPU between kernels (no intermediate CPU recomputation, no
+#     undeclared readback).
+#   • The ordinary command on both backends:
+#
+#       faber run --backend metal <package>    # Apple M5 Max (burgus)
+#       faber run --backend cuda  <package>    # NVIDIA RTX 5070 (pharos)
+#
+#   • The constructor unifies the cross-kernel buffer identity (S2-5):
+#     `medius` is ONE BufferId (InOut role, PerStep lifetime) across both
+#     kernels — the shared intermediate is identity-unified by name+shape,
+#     never aliased (N2.7 no-aliasing posture).
+#
+# Kernel 2 is a reduction rather than an elementwise kernel because the
+# Metal emitter's collection-op surface deliberately stops at Sum/Mean and
+# matmul (elementwise TensorAdd "waits for its own recipe" — D-W6-A1 U3);
+# the spec sanctions "reduction + elementwise, or two reductions" (N2.6).
+#
+# The host input values live in faber.toml `[device] inputs` (pinned with the
+# oracle); the CPU reference is pinned in oracle/ (numeric-policy v1.0.0,
+# reduction-sum row atol=1e-6/rtol=1e-6).
+#
+# See also: nucleum, tensor, cuda, device-summa
+# =============================================================================
+
+# Kernel 1 — reduction: sum the whole tf32[1024] tensor; the recipe writes
+# one per-workgroup partial per output slot (4 workgroups × 256 lanes → 4
+# partials). `id` is the workgroup index.
+@ nucleum
+functio collige(tf32[1024] a, tf32[4] medius, u32 id) → vacuum {
+    fixum f32 total ← a.summa()
+    medius[id] ← total
+}
+
+# Kernel 2 — reduction: sum the tf32[4] intermediate (the device-resident
+# partials written by kernel 1) into the final tf32[1] result. 4 lanes →
+# 1 workgroup → 1 partial.
+@ nucleum
+functio recollige(tf32[4] medius, tf32[1] result, u32 id) → vacuum {
+    fixum f32 total ← medius.summa()
+    result[id] ← total
+}

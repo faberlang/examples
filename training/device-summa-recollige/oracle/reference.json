@@ -1,0 +1,42 @@
+{
+  "fixture": "device-summa-recollige",
+  "stage": "S2-5 ordinary two-kernel fixture",
+  "kernels": [
+    "collige",
+    "recollige"
+  ],
+  "recipes": [
+    "CollectionKernelPlan::TreeReduction",
+    "CollectionKernelPlan::TreeReduction"
+  ],
+  "dtype": "f32",
+  "input_shape": [
+    1024
+  ],
+  "intermediate_shape": [
+    4
+  ],
+  "output_shape": [
+    1
+  ],
+  "policy": "numeric-policy v1.0.0",
+  "family": "reduction sum",
+  "atol": 1e-06,
+  "rtol": 1e-06,
+  "expected_medius": [
+    16576.0,
+    49344.0,
+    82112.0,
+    114880.0
+  ],
+  "expected_result": 262912.0,
+  "capture_sha256": "318f3683bfc5c7347a6116f4a5a9d1cb6e388f5eecf327fd05381e59cd229fce",
+  "input_formula": "a[i] = i * 0.5 + 1.0",
+  "input_sample": [
+    1.0,
+    1.5,
+    2.0,
+    2.5
+  ],
+  "input_count": 1024
+}
