@@ -52,7 +52,7 @@ value → FAIL (all pinned observations are finite).
 | reduction sum/mean (loss trace + this kernel) | 1e-6 | 1e-6 |
 
 The reference value is exact (16576.0): every input `i*0.5+1.0` is exactly
-representable in f32 (magnitude ≤ 127.5, half-integer), and every partial sum
+representable in f32 (magnitude ≤ 128.5, half-integer), and every partial sum
 is exactly representable up to the total (16576.0 ≤ 2^24), so the device tree
 reduction and the CPU reference agree bit-for-bit. The tolerance row is the
 policy backstop (R2 `summa` floor), not a ceiling the exact proof approaches.
