@@ -21,9 +21,9 @@ per element against these references using the frozen numeric policy in
 |---|---|
 | entry | `src/train.fab` |
 | model | single-layer BERT-tiny fragment: pre-LN → Q/K/V projections → scaled dot-product attention → output projection → residual → LN → FFN (linear→GELU→linear) → residual → LN → MSE; B=2, D=8, H=1; 8-step inline SGD (`lr = 0.01`) |
-| trainable | 22 params (528 floats): `wq,bq,wk,bk,wv,bv,wo,bo,wf1,bf1,wf2,bf2,ln1_s,ln1_o,ln2_s,ln2_o,ln3_s,ln3_o` |
+| trainable | 18 trainable tensors (528 floats): `wq,bq,wk,bk,wv,bv,wo,bo,wf1,bf1,wf2,bf2,ln1_s,ln1_o,ln2_s,ln2_o,ln3_s,ln3_o` |
 | frozen | `input` [2,8], `dk_scale` [2,2], `target` [2,8] |
-| companion | `@ radix backward "bert_tiny_backward"` (AIR-generated, CPU FMIR stepper), 22-slot gradient tuple |
+| companion | `@ radix backward "bert_tiny_backward"` (AIR-generated, CPU FMIR stepper), 21-slot gradient tuple (18 trainable + input, dk_scale, target) |
 | run | `faber run -t fmir .` from the package directory |
 
 ## File inventory
@@ -35,7 +35,7 @@ per element against these references using the frozen numeric policy in
 | `capture.sha256` | SHA-256 of `capture.txt`. |
 | `inputs.json` | Initial params/inputs (pinned oracle inputs). |
 | `loss-trace.json` | The 8-step loss trace. |
-| `gradients.json` | Per-step gradient tensors from the CPU companion (all 22 slots). |
+| `gradients.json` | Per-step gradient tensors from the CPU companion, **trainable slots only** (the 18 tensors above). Frozen-slot gradients (`grad_input`, `grad_dk_scale`, `grad_target`) exist only in `capture.txt`. |
 | `final-params.json` | Trainable params after the 8 SGD steps. |
 | `fd-validation.json` | Per-element finite-difference gradient validation results (N1.9 FD rule). |
 
@@ -76,10 +76,12 @@ is the flat row-major list of value strings):
 - `loss-trace.json` — `{"fixture", "steps": 8, "lr": "0.01", "losses": [8 strings],
   "rule"}`.
 - `gradients.json` — `{"fixture", "rule", "method", "steps": [{"step", "gradients":
-  [tensor...]}]}`. Gradient order per step matches the companion tuple order:
-  `(grad_input, grad_wq, grad_bq, grad_wk, grad_bk, grad_wv, grad_bv, grad_wo,
-  grad_bo, grad_wf1, grad_bf1, grad_wf2, grad_bf2, grad_ln1_s, grad_ln1_o,
-  grad_ln2_s, grad_ln2_o, grad_ln3_s, grad_ln3_o, grad_dk_scale, grad_target)`.
+  [tensor...]}]}`. Records the **trainable** tensors only; gradient order per
+  step is the trainable slot order `(grad_wq, grad_bq, grad_wk, grad_bk,
+  grad_wv, grad_bv, grad_wo, grad_bo, grad_wf1, grad_bf1, grad_wf2, grad_bf2,
+  grad_ln1_s, grad_ln1_o, grad_ln2_s, grad_ln2_o, grad_ln3_s, grad_ln3_o)`.
+  Frozen-slot gradients (`grad_input`, `grad_dk_scale`, `grad_target`) are
+  captured in `capture.txt` but not recorded here.
 - `final-params.json` — `{"fixture", "after_steps": 8, "final_params": [tensor...]}`.
 - `fd-validation.json` — per-element `{index, fd, companion, delta, tol, pass}`.
 
@@ -89,12 +91,17 @@ is the flat row-major list of value strings):
 cd examples/training/bert-tiny-fragment
 faber run -t fmir oracle/capture.fab > oracle/capture.txt   # regenerate capture
 shasum -a 256 oracle/capture.txt                            # must equal capture.sha256
+
+python3 oracle/tools/fd_probe.py        # regenerate oracle/fd-validation.json
+python3 oracle/tools/replay_loss.py     # independent f64 loss-trace replay
 ```
 
 The capture is byte-deterministic: two identical runs of the fixture
 (`faber run -t fmir .`) and of the capture runner produce byte-identical
 output. If `src/train.fab` changes, regenerate `capture.fab` (instrumented copy)
-and all reference files.
+and all reference files; the FD probe and replay scripts in `oracle/tools/`
+then regenerate `fd-validation.json` and the replay evidence (see
+`oracle/tools/README.md` for the `faber` prerequisite and exit codes).
 
 ## Validation rules (frozen N1.9)
 
