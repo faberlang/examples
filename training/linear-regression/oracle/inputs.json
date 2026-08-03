@@ -1,0 +1,58 @@
+{
+  "fixture": "linear-regression",
+  "source": "src/train.fab (pinned, read-only)",
+  "inputs": [
+    {
+      "name": "bias",
+      "shape": [
+        2,
+        2
+      ],
+      "values": [
+        "0.2",
+        "-0.3",
+        "0.2",
+        "-0.3"
+      ]
+    },
+    {
+      "name": "input",
+      "shape": [
+        2,
+        2
+      ],
+      "values": [
+        "0.5",
+        "-1.0",
+        "2.0",
+        "0.75"
+      ]
+    },
+    {
+      "name": "target",
+      "shape": [
+        2,
+        2
+      ],
+      "values": [
+        "0.25",
+        "-1.0",
+        "1.5",
+        "0.75"
+      ]
+    },
+    {
+      "name": "weight",
+      "shape": [
+        2,
+        2
+      ],
+      "values": [
+        "1.25",
+        "-0.5",
+        "0.8",
+        "1.1"
+      ]
+    }
+  ]
+}

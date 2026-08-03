@@ -1,0 +1,196 @@
+# =============================================================================
+# oracle/capture.fab — instrumented capture runner for mlp (S0-C)
+# =============================================================================
+#
+# Provenance: an exact copy of src/train.fab with ADDED `nota` statements so the
+# deterministic CPU/FMIR oracle reference can be captured in full:
+#   1. initial params/inputs          (nota "initial_*" before the loop)
+#   2. the 8-step loss trace          (nota step_loss per step, plus the
+#                                      fixture's trailing nota loss_trace)
+#   3. gradient tensors from the CPU companion
+#                                      (nota grad_* per step, all six slots:
+#                                      input, weight1, bias1, weight2, bias2,
+#                                      target)
+#   4. final params                   (nota "final_*" after the loop)
+#
+# The arithmetic below is byte-identical to src/train.fab; only `nota` lines
+# were added. Regenerate this file's captured output with:
+#   faber run -t fmir oracle/capture.fab
+# from the package directory (examples/training/mlp/).
+#
+# See oracle/README.md for the capture schema and validation rules.
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# Differentiable forward: mlp_loss
+# -------------------------------------------------------------------------
+# Params: input (4x4), weight1 (4x4), bias1 (4x4), weight2 (4x4),
+#         bias2 (4x4), target (4x4)
+# Returns: mean squared error (scalar f32)
+
+@ radix lane "air"
+@ radix backward "mlp_backward"
+functio mlp_loss(
+    tensor<f32, [4,4]> input,
+    tensor<f32, [4,4]> weight1,
+    tensor<f32, [4,4]> bias1,
+    tensor<f32, [4,4]> weight2,
+    tensor<f32, [4,4]> bias2,
+    tensor<f32, [4,4]> target
+) → fractus {
+    # Layer 1: linear → GELU
+    fixum tensor<f32, [4,4]> h1  ← input.matmul(weight1)
+    fixum tensor<f32, [4,4]> h1b ← h1.addita(bias1)
+    fixum tensor<f32, [4,4]> a1  ← h1b.gelu()
+
+    # Layer 2: linear
+    fixum tensor<f32, [4,4]> h2  ← a1.matmul(weight2)
+    fixum tensor<f32, [4,4]> h2b ← h2.addita(bias2)
+
+    # MSE loss
+    fixum tensor<f32, [4,4]> residual ← h2b.subtrahe(target)
+    fixum tensor<f32, [4,4]> squared  ← residual.multiplica(residual)
+    redde squared.media()
+}
+
+# -------------------------------------------------------------------------
+# nil() — vacuum residual for companion ABI
+# -------------------------------------------------------------------------
+
+functio nil() → vacuum {
+    tacet
+}
+
+# -------------------------------------------------------------------------
+# incipit — multi-step training loop: forward x8 + backward + SGD
+# (arithmetic identical to src/train.fab; nota lines added for capture)
+# -------------------------------------------------------------------------
+
+incipit {
+    # Fixed initial parameters (4x4 — 16 elements each).
+    # Target: ones matrix. Weights: small random-like, biases: near zero.
+    fixum lista<f32> data_input    ← [0.5,      0.0 - 0.3, 1.2,      0.0 - 0.7,
+                                       0.0 - 0.4, 0.8,      0.0 - 1.0, 0.3,
+                                       0.7,      0.0 - 0.2, 0.0 - 0.6, 1.0,
+                                       0.0 - 0.9, 1.3,      0.1,      0.0 - 0.5]
+    fixum lista<f32> data_weight1  ← [0.2,      0.0 - 0.4, 0.7,      0.0 - 0.2,
+                                       0.0 - 0.6, 0.3,      0.0 - 0.8, 0.5,
+                                       0.0 - 0.3, 0.9,      0.0 - 0.1, 0.0 - 0.5,
+                                       0.4,      0.0 - 0.7, 0.6,      0.0 - 0.9]
+    fixum lista<f32> data_bias1    ← [0.1,      0.0 - 0.1, 0.0,       0.1,
+                                       0.2,      0.0 - 0.2, 0.1,      0.0 - 0.1,
+                                       0.0,      0.1,      0.0 - 0.1, 0.2,
+                                       0.0 - 0.2, 0.0,      0.1,      0.0 - 0.1]
+    fixum lista<f32> data_weight2  ← [0.0 - 0.5, 0.4,      0.0 - 0.3, 0.8,
+                                       0.0 - 0.1, 0.0 - 0.7, 0.6,      0.0 - 0.4,
+                                       0.3,      0.0 - 0.8, 0.0 - 0.2, 0.5,
+                                       0.0 - 0.6, 0.2,      0.0 - 0.9, 0.1]
+    fixum lista<f32> data_bias2    ← [0.1,      0.0 - 0.2, 0.1,      0.0,
+                                       0.0,      0.1,      0.0 - 0.1, 0.2,
+                                       0.0 - 0.1, 0.0,      0.2,      0.0 - 0.1,
+                                       0.1,      0.0 - 0.1, 0.0,      0.1]
+    fixum lista<f32> data_target   ← [1.0, 1.0, 1.0, 1.0,
+                                       1.0, 1.0, 1.0, 1.0,
+                                       1.0, 1.0, 1.0, 1.0,
+                                       1.0, 1.0, 1.0, 1.0]
+
+    fixum tensor<f32, []> seed ← vacua
+
+    fixum tensor<f32, [4,4]> input   ← seed.strue(data_input,   [4, 4])
+    varia tensor<f32, [4,4]> weight1 ← seed.strue(data_weight1, [4, 4])
+    varia tensor<f32, [4,4]> bias1   ← seed.strue(data_bias1,   [4, 4])
+    varia tensor<f32, [4,4]> weight2 ← seed.strue(data_weight2, [4, 4])
+    varia tensor<f32, [4,4]> bias2   ← seed.strue(data_bias2,   [4, 4])
+    fixum tensor<f32, [4,4]> target  ← seed.strue(data_target,  [4, 4])
+
+    fixum f32 upstream ← 1.0
+    fixum f32 lr ← 0.01
+    fixum lista<numerus> shape_w1 ← weight1.magnitudines()
+    fixum lista<numerus> shape_b1 ← bias1.magnitudines()
+    fixum lista<numerus> shape_w2 ← weight2.magnitudines()
+    fixum lista<numerus> shape_b2 ← bias2.magnitudines()
+
+    fixum numerus steps ← 8
+    varia lista<f32> loss_trace ← vacua
+
+    # ---- CAPTURE: initial params/inputs ---------------------------------
+    nota "initial_input"
+    nota input
+    nota "initial_weight1"
+    nota weight1
+    nota "initial_bias1"
+    nota bias1
+    nota "initial_weight2"
+    nota weight2
+    nota "initial_bias2"
+    nota bias2
+    nota "initial_target"
+    nota target
+
+    itera ab 0‥steps fixum step {
+        # Forward pass (inlined — mirrors src/train.fab).
+        fixum tensor<f32, [4,4]> h1a  ← input.matmul(weight1)
+        fixum tensor<f32, [4,4]> h1b  ← h1a.addita(bias1)
+        fixum tensor<f32, [4,4]> a1   ← h1b.gelu()
+        fixum tensor<f32, [4,4]> h2a  ← a1.matmul(weight2)
+        fixum tensor<f32, [4,4]> h2b  ← h2a.addita(bias2)
+        fixum tensor<f32, [4,4]> resd ← h2b.subtrahe(target)
+        fixum tensor<f32, [4,4]> sqrd ← resd.multiplica(resd)
+        fixum f32 loss ← sqrd.media()
+        loss_trace.appende(loss)
+
+        # ---- CAPTURE: per-step loss -------------------------------------
+        nota "step_loss"
+        nota loss
+
+        # Backward pass via compiler-generated companion
+        fixum _ grads ← mlp_backward(input, weight1, bias1, weight2, bias2,
+                                     target, nil(), upstream)
+        fixum [gi, gw1, gb1, gw2, gb2, gt] ← grads
+
+        # ---- CAPTURE: gradient tensors from the CPU companion -----------
+        nota "grad_input"
+        nota gi
+        nota "grad_weight1"
+        nota gw1
+        nota "grad_bias1"
+        nota gb1
+        nota "grad_weight2"
+        nota gw2
+        nota "grad_bias2"
+        nota gb2
+        nota "grad_target"
+        nota gt
+
+        # SGD update for each trainable parameter
+        fixum tensor<f32, [4,4]> lr_fill_w1 ← seed.crea(lr, shape_w1)
+        fixum tensor<f32, [4,4]> scaled_w1  ← gw1.multiplica(lr_fill_w1)
+        weight1 ← weight1.subtrahe(scaled_w1)
+
+        fixum tensor<f32, [4,4]> lr_fill_b1 ← seed.crea(lr, shape_b1)
+        fixum tensor<f32, [4,4]> scaled_b1  ← gb1.multiplica(lr_fill_b1)
+        bias1 ← bias1.subtrahe(scaled_b1)
+
+        fixum tensor<f32, [4,4]> lr_fill_w2 ← seed.crea(lr, shape_w2)
+        fixum tensor<f32, [4,4]> scaled_w2  ← gw2.multiplica(lr_fill_w2)
+        weight2 ← weight2.subtrahe(scaled_w2)
+
+        fixum tensor<f32, [4,4]> lr_fill_b2 ← seed.crea(lr, shape_b2)
+        fixum tensor<f32, [4,4]> scaled_b2  ← gb2.multiplica(lr_fill_b2)
+        bias2 ← bias2.subtrahe(scaled_b2)
+    }
+
+    # ---- CAPTURE: final params ------------------------------------------
+    nota "final_weight1"
+    nota weight1
+    nota "final_bias1"
+    nota bias1
+    nota "final_weight2"
+    nota weight2
+    nota "final_bias2"
+    nota bias2
+
+    # Fixture's trailing output (loss trace aggregate) — kept so src/train.fab
+    # output is a byte-identical suffix of this capture.
+    nota loss_trace
+}

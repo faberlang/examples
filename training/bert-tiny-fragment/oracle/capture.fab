@@ -1,0 +1,556 @@
+# =============================================================================
+# oracle/capture.fab — instrumented capture runner for bert-tiny-fragment (S0-C)
+# =============================================================================
+#
+# Provenance: an exact copy of src/train.fab with ADDED `nota` statements so the
+# deterministic CPU/FMIR oracle reference can be captured in full:
+#   1. initial params/inputs          (nota "initial_*" before the loop)
+#   2. the 8-step loss trace          (nota step_loss per step, plus the
+#                                      fixture's trailing nota loss_trace)
+#   3. gradient tensors from the CPU companion
+#                                      (nota grad_* per step, all 22 slots)
+#   4. final params                   (nota "final_*" after the loop)
+#
+# The arithmetic below is byte-identical to src/train.fab; only `nota` lines
+# were added. Regenerate this file's captured output with:
+#   faber run -t fmir oracle/capture.fab
+# from the package directory (examples/training/bert-tiny-fragment/).
+#
+# See oracle/README.md for the capture schema and validation rules.
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# Differentiable forward: bert_tiny_loss
+# -------------------------------------------------------------------------
+# 25 tensor params: 22 trainable + 3 frozen (input, dk_scale, target).
+# Biases are [2, 8] (same-shape as addita target) to avoid rank-extension
+# broadcast unsupported by reverse AD.
+
+@ radix lane "air"
+@ radix backward "bert_tiny_backward"
+functio bert_tiny_loss(
+    tensor<f32, [2, 8]> input,
+    tensor<f32, [8, 8]> wq,   tensor<f32, [2, 8]> bq,
+    tensor<f32, [8, 8]> wk,   tensor<f32, [2, 8]> bk,
+    tensor<f32, [8, 8]> wv,   tensor<f32, [2, 8]> bv,
+    tensor<f32, [8, 8]> wo,   tensor<f32, [2, 8]> bo,
+    tensor<f32, [8, 8]> wf1,  tensor<f32, [2, 8]> bf1,
+    tensor<f32, [8, 8]> wf2,  tensor<f32, [2, 8]> bf2,
+    tensor<f32, [8]> ln1_s,   tensor<f32, [8]> ln1_o,
+    tensor<f32, [8]> ln2_s,   tensor<f32, [8]> ln2_o,
+    tensor<f32, [8]> ln3_s,   tensor<f32, [8]> ln3_o,
+    tensor<f32, [2, 2]> dk_scale,
+    tensor<f32, [2, 8]> target
+) → fractus {
+    fixum tensor<f32, [2, 8]> ln1 ← input.laminatio(1, 1.0e-5, ln1_s, ln1_o)
+
+    fixum tensor<f32, [2, 8]> q  ← ln1.matmul(wq)
+    fixum tensor<f32, [2, 8]> qb ← q.addita(bq)
+    fixum tensor<f32, [2, 8]> k  ← ln1.matmul(wk)
+    fixum tensor<f32, [2, 8]> kb ← k.addita(bk)
+    fixum tensor<f32, [2, 8]> v  ← ln1.matmul(wv)
+    fixum tensor<f32, [2, 8]> vb ← v.addita(bv)
+
+    fixum tensor<f32, [8, 2]> kt      ← kb.transpone()
+    fixum tensor<f32, [2, 2]> scores  ← qb.matmul(kt)
+
+    fixum tensor<f32, [2, 2]> scaled   ← scores.multiplica(dk_scale)
+
+    fixum tensor<f32, [2, 2]> attn_weights ← scaled.activatio_softmax()
+
+    fixum tensor<f32, [2, 8]> context  ← attn_weights.matmul(vb)
+
+    fixum tensor<f32, [2, 8]> attn_out  ← context.matmul(wo)
+    fixum tensor<f32, [2, 8]> attn_ob   ← attn_out.addita(bo)
+    fixum tensor<f32, [2, 8]> resid1    ← input.addita(attn_ob)
+
+    fixum tensor<f32, [2, 8]> ln2 ← resid1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
+
+    fixum tensor<f32, [2, 8]> h1   ← ln2.matmul(wf1)
+    fixum tensor<f32, [2, 8]> h1b  ← h1.addita(bf1)
+
+    fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
+
+    fixum tensor<f32, [2, 8]> h2   ← a1.matmul(wf2)
+    fixum tensor<f32, [2, 8]> h2b  ← h2.addita(bf2)
+
+    fixum tensor<f32, [2, 8]> resid2 ← ln2.addita(h2b)
+
+    fixum tensor<f32, [2, 8]> ln3 ← resid2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
+
+    fixum tensor<f32, [2, 8]> residual ← ln3.subtrahe(target)
+    fixum tensor<f32, [2, 8]> squared  ← residual.multiplica(residual)
+    redde squared.media()
+}
+
+# -------------------------------------------------------------------------
+# nil() — vacuum residual for companion ABI
+# -------------------------------------------------------------------------
+
+functio nil() → vacuum {
+    tacet
+}
+
+# -------------------------------------------------------------------------
+# incipit — multi-step training loop: forward ×8 + backward + inline SGD
+# (arithmetic identical to src/train.fab; nota lines added for capture)
+# -------------------------------------------------------------------------
+
+incipit {
+    # Fixed initial parameters
+    fixum lista<f32> data_input ← [
+        0.5,       0.0 - 0.3, 1.2,       0.0 - 0.7,
+        0.0 - 0.4, 0.8,       0.0 - 1.0, 0.3,
+        0.7,       0.0 - 0.2, 0.0 - 0.6, 1.0,
+        0.0 - 0.9, 1.3,       0.1,       0.0 - 0.5
+    ]
+
+    # Q projection weight (8×8)
+    fixum lista<f32> data_wq ← [
+         0.2,       0.0 - 0.4, 0.7,       0.0 - 0.2,
+         0.0 - 0.6, 0.3,       0.0 - 0.8, 0.5,
+         0.0 - 0.3, 0.9,       0.0 - 0.1, 0.0 - 0.5,
+         0.4,       0.0 - 0.7, 0.6,       0.0 - 0.9,
+         0.1,       0.0 - 0.2, 0.0 - 0.8, 0.6,
+         0.0 - 0.4, 0.5,       0.0 - 0.3, 0.7,
+         0.0,       0.0 - 0.6, 0.3,       0.0 - 0.9,
+         0.8,       0.0 - 0.1, 0.0 - 0.7, 0.2,
+         0.5,       0.0 - 0.5, 0.0,       0.4,
+         0.0 - 0.4, 0.0 - 0.2, 0.9,       0.0 - 0.8,
+         0.2,       0.1,       0.0 - 0.7, 0.0 - 0.3,
+         0.6,       0.0 - 0.5, 0.3,       0.0 - 0.1,
+         0.0 - 0.9, 0.4,       0.5,       0.0 - 0.6,
+         0.1,       0.8,       0.0 - 0.4, 0.0 - 0.3,
+         0.0 - 0.2, 0.7,       0.0 - 0.8, 0.3,
+         0.0 - 0.9, 0.0 - 0.5, 0.0,       0.6
+    ]
+    # Q bias [2, 8] — each row duplicates the per-dim bias
+    fixum lista<f32> data_bq ← [
+         0.1,       0.0 - 0.1, 0.0,       0.2,
+         0.0 - 0.2, 0.1,       0.0 - 0.1, 0.0,
+         0.1,       0.0 - 0.1, 0.0,       0.2,
+         0.0 - 0.2, 0.1,       0.0 - 0.1, 0.0
+    ]
+
+    # K projection weight (8×8)
+    fixum lista<f32> data_wk ← [
+         0.0 - 0.5, 0.4,       0.0 - 0.3, 0.8,
+         0.0 - 0.1, 0.0 - 0.7, 0.6,       0.0 - 0.4,
+         0.3,       0.0 - 0.8, 0.0 - 0.2, 0.5,
+         0.0 - 0.6, 0.2,       0.0 - 0.9, 0.1,
+         0.0 - 0.3, 0.6,       0.0 - 0.7, 0.0,
+         0.4,       0.0 - 0.5, 0.8,       0.0 - 0.2,
+         0.1,       0.0 - 0.4, 0.9,       0.0 - 0.6,
+         0.0 - 0.3, 0.7,       0.0 - 0.8, 0.5,
+         0.2,       0.0 - 0.9, 0.1,       0.0 - 0.5,
+         0.6,       0.0 - 0.2, 0.0,       0.0 - 0.7,
+         0.0 - 0.4, 0.8,       0.0 - 0.3, 0.4,
+         0.0 - 0.1, 0.5,       0.0 - 0.6, 0.0 - 0.0,
+         0.7,       0.0 - 0.2, 0.3,       0.0 - 0.8,
+         0.9,       0.0 - 0.4, 0.0 - 0.5, 0.1,
+         0.0 - 0.6, 0.0,       0.0 - 0.7, 0.2,
+         0.5,       0.0 - 0.3, 0.8,       0.0 - 0.9
+    ]
+    fixum lista<f32> data_bk ← [
+         0.0,       0.1,       0.0 - 0.1, 0.0,
+         0.2,       0.0 - 0.2, 0.1,       0.0 - 0.1,
+         0.0,       0.1,       0.0 - 0.1, 0.0,
+         0.2,       0.0 - 0.2, 0.1,       0.0 - 0.1
+    ]
+
+    # V projection weight (8×8)
+    fixum lista<f32> data_wv ← [
+         0.4,       0.0 - 0.6, 0.2,       0.0 - 0.8,
+         0.5,       0.0 - 0.3, 0.9,       0.0 - 0.1,
+         0.0 - 0.7, 0.1,       0.0 - 0.4, 0.6,
+         0.0 - 0.9, 0.0,       0.0 - 0.5, 0.3,
+         0.8,       0.0 - 0.2, 0.0 - 0.6, 0.1,
+         0.4,       0.0 - 0.7, 0.5,       0.0 - 0.3,
+         0.0 - 0.1, 0.9,       0.0 - 0.5, 0.2,
+         0.0 - 0.4, 0.8,       0.0 - 0.6, 0.0,
+         0.3,       0.0 - 0.8, 0.7,       0.0 - 0.1,
+         0.0 - 0.5, 0.6,       0.0 - 0.2, 0.4,
+         0.0 - 0.9, 0.5,       0.0 - 0.3, 0.1,
+         0.0,       0.0 - 0.6, 0.8,       0.0 - 0.7,
+         0.2,       0.0 - 0.4, 0.9,       0.0 - 0.8,
+         0.0 - 0.3, 0.7,       0.0 - 0.1, 0.6,
+         0.0 - 0.5, 0.0 - 0.6, 0.4,       0.0 - 0.2,
+         0.3,       0.0 - 0.9, 0.1,       0.0 - 0.8
+    ]
+    fixum lista<f32> data_bv ← [
+         0.0 - 0.1, 0.0,       0.1,       0.0 - 0.1,
+         0.0,       0.2,       0.0 - 0.2, 0.1,
+         0.0 - 0.1, 0.0,       0.1,       0.0 - 0.1,
+         0.0,       0.2,       0.0 - 0.2, 0.1
+    ]
+
+    # Output projection weight (8×8)
+    fixum lista<f32> data_wo ← [
+         0.0 - 0.3, 0.5,       0.0 - 0.7, 0.1,
+         0.0 - 0.9, 0.4,       0.0 - 0.2, 0.6,
+         0.0,       0.0 - 0.4, 0.8,       0.0 - 0.6,
+         0.2,       0.0 - 0.5, 0.9,       0.0 - 0.1,
+         0.7,       0.0 - 0.3, 0.0 - 0.1, 0.5,
+         0.0 - 0.8, 0.6,       0.0 - 0.4, 0.2,
+         0.0 - 0.9, 0.3,       0.0 - 0.6, 0.4,
+         0.0 - 0.7, 0.1,       0.8,       0.0 - 0.5,
+         0.2,       0.6,       0.0 - 0.2, 0.0 - 0.8,
+         0.4,       0.0 - 0.3, 0.0 - 0.5, 0.7,
+         0.0 - 0.1, 0.0 - 0.9, 0.5,       0.0 - 0.4,
+         0.6,       0.0,       0.0 - 0.7, 0.3,
+         0.8,       0.0 - 0.2, 0.1,       0.0 - 0.5,
+         0.0 - 0.6, 0.9,       0.0 - 0.3, 0.0 - 0.4,
+         0.0 - 0.8, 0.4,       0.0 - 0.9, 0.7,
+         0.0 - 0.1, 0.2,       0.5,       0.0 - 0.6
+    ]
+    fixum lista<f32> data_bo ← [
+         0.1,       0.0,       0.0 - 0.1, 0.1,
+         0.0,       0.0 - 0.1, 0.2,       0.0 - 0.2,
+         0.1,       0.0,       0.0 - 0.1, 0.1,
+         0.0,       0.0 - 0.1, 0.2,       0.0 - 0.2
+    ]
+
+    # FFN1 weight (8×8)
+    fixum lista<f32> data_wf1 ← [
+         0.6,       0.0 - 0.3, 0.9,       0.0 - 0.5,
+         0.1,       0.0 - 0.8, 0.4,       0.0 - 0.2,
+         0.0 - 0.7, 0.2,       0.0 - 0.4, 0.8,
+         0.0 - 0.6, 0.0,       0.0 - 0.9, 0.5,
+         0.3,       0.0 - 0.1, 0.5,       0.0 - 0.7,
+         0.2,       0.0 - 0.5, 0.8,       0.0 - 0.4,
+         0.0 - 0.6, 0.9,       0.0 - 0.2, 0.0,
+         0.0 - 0.3, 0.7,       0.0 - 0.8, 0.1,
+         0.4,       0.0 - 0.6, 0.3,       0.0 - 0.9,
+         0.5,       0.0 - 0.1, 0.0 - 0.4, 0.7,
+         0.0 - 0.2, 0.8,       0.0 - 0.5, 0.6,
+         0.0 - 0.7, 0.0 - 0.3, 0.9,       0.0 - 0.1,
+         0.0,       0.0 - 0.4, 0.7,       0.0 - 0.2,
+         0.0 - 0.8, 0.6,       0.0 - 0.5, 0.3,
+         0.1,       0.0 - 0.9, 0.0 - 0.6, 0.4,
+         0.0 - 0.2, 0.8,       0.0 - 0.3, 0.5
+    ]
+    fixum lista<f32> data_bf1 ← [
+         0.0,       0.1,       0.0 - 0.1, 0.0,
+         0.1,       0.0 - 0.1, 0.0,       0.1,
+         0.0,       0.1,       0.0 - 0.1, 0.0,
+         0.1,       0.0 - 0.1, 0.0,       0.1
+    ]
+
+    # FFN2 weight (8×8)
+    fixum lista<f32> data_wf2 ← [
+         0.0 - 0.4, 0.7,       0.0 - 0.2, 0.5,
+         0.0 - 0.9, 0.3,       0.0 - 0.6, 0.1,
+         0.8,       0.0 - 0.5, 0.0,       0.0 - 0.3,
+         0.6,       0.0 - 0.1, 0.7,       0.0 - 0.4,
+         0.0 - 0.2, 0.9,       0.0 - 0.8, 0.4,
+         0.0 - 0.5, 0.1,       0.0 - 0.7, 0.6,
+         0.3,       0.0 - 0.6, 0.2,       0.0 - 0.1,
+         0.8,       0.0 - 0.4, 0.5,       0.0 - 0.9,
+         0.1,       0.0 - 0.3, 0.6,       0.0 - 0.7,
+         0.0 - 0.2, 0.9,       0.0 - 0.5, 0.4,
+         0.0 - 0.8, 0.5,       0.0 - 0.1, 0.3,
+         0.0 - 0.6, 0.0,       0.0 - 0.4, 0.7,
+         0.2,       0.0 - 0.9, 0.8,       0.0 - 0.5,
+         0.4,       0.0 - 0.7, 0.0 - 0.3, 0.6,
+         0.0 - 0.1, 0.4,       0.0 - 0.6, 0.9,
+         0.0 - 0.3, 0.2,       0.0 - 0.8, 0.5
+    ]
+    fixum lista<f32> data_bf2 ← [
+         0.0 - 0.1, 0.1,       0.0,       0.0 - 0.1,
+         0.1,       0.0,       0.0 - 0.1, 0.1,
+         0.0 - 0.1, 0.1,       0.0,       0.0 - 0.1,
+         0.1,       0.0,       0.0 - 0.1, 0.1
+    ]
+
+    # LayerNorm scale params
+    fixum lista<f32> data_ln1_s ← [
+         1.0,       0.9,       1.1,       0.8,
+         1.0,       1.2,       0.9,       1.1
+    ]
+    fixum lista<f32> data_ln1_o ← [
+         0.0,       0.1,       0.0 - 0.1, 0.0,
+         0.1,       0.0 - 0.1, 0.0,       0.1
+    ]
+    fixum lista<f32> data_ln2_s ← [
+         0.9,       1.0,       1.1,       0.8,
+         1.2,       0.9,       1.0,       1.1
+    ]
+    fixum lista<f32> data_ln2_o ← [
+         0.0 - 0.1, 0.0,       0.1,       0.0 - 0.1,
+         0.0,       0.1,       0.0 - 0.1, 0.0
+    ]
+    fixum lista<f32> data_ln3_s ← [
+         1.1,       0.9,       1.0,       1.2,
+         0.8,       1.0,       1.1,       0.9
+    ]
+    fixum lista<f32> data_ln3_o ← [
+         0.1,       0.0 - 0.1, 0.0,       0.1,
+         0.0 - 0.1, 0.0,       0.1,       0.0 - 0.1
+    ]
+
+    # Target
+    fixum lista<f32> data_target ← [
+         1.0,       0.5,       0.0,       0.8,
+         1.0,       0.2,       0.7,       0.5,
+         1.0,       0.8,       0.3,       0.6,
+         0.9,       0.2,       0.5,       0.7
+    ]
+
+    # Scale factor: 1/sqrt(8) in a 2×2 Fill
+    fixum lista<f32> data_scale ← [
+         0.35355339, 0.35355339,
+         0.35355339, 0.35355339
+    ]
+
+    # Tensor construction
+    fixum tensor<f32, []> seed ← vacua
+
+    fixum tensor<f32, [2, 8]> input   ← seed.strue(data_input,   [2, 8])
+    varia tensor<f32, [8, 8]> wq      ← seed.strue(data_wq,      [8, 8])
+    varia tensor<f32, [2, 8]> bq      ← seed.strue(data_bq,      [2, 8])
+    varia tensor<f32, [8, 8]> wk      ← seed.strue(data_wk,      [8, 8])
+    varia tensor<f32, [2, 8]> bk      ← seed.strue(data_bk,      [2, 8])
+    varia tensor<f32, [8, 8]> wv      ← seed.strue(data_wv,      [8, 8])
+    varia tensor<f32, [2, 8]> bv      ← seed.strue(data_bv,      [2, 8])
+    varia tensor<f32, [8, 8]> wo      ← seed.strue(data_wo,      [8, 8])
+    varia tensor<f32, [2, 8]> bo      ← seed.strue(data_bo,      [2, 8])
+    varia tensor<f32, [8, 8]> wf1     ← seed.strue(data_wf1,     [8, 8])
+    varia tensor<f32, [2, 8]> bf1     ← seed.strue(data_bf1,     [2, 8])
+    varia tensor<f32, [8, 8]> wf2     ← seed.strue(data_wf2,     [8, 8])
+    varia tensor<f32, [2, 8]> bf2     ← seed.strue(data_bf2,     [2, 8])
+    varia tensor<f32, [8]>    ln1_s   ← seed.strue(data_ln1_s,   [8])
+    varia tensor<f32, [8]>    ln1_o   ← seed.strue(data_ln1_o,   [8])
+    varia tensor<f32, [8]>    ln2_s   ← seed.strue(data_ln2_s,   [8])
+    varia tensor<f32, [8]>    ln2_o   ← seed.strue(data_ln2_o,   [8])
+    varia tensor<f32, [8]>    ln3_s   ← seed.strue(data_ln3_s,   [8])
+    varia tensor<f32, [8]>    ln3_o   ← seed.strue(data_ln3_o,   [8])
+    fixum tensor<f32, [2, 2]> dk_scale ← seed.strue(data_scale, [2, 2])
+    fixum tensor<f32, [2, 8]> target  ← seed.strue(data_target,  [2, 8])
+
+    # Training constants
+    fixum f32 upstream ← 1.0
+    fixum f32 lr ← 0.01
+
+    # Shape bindings for SGD Fill creation
+    fixum lista<numerus> shape_w   ← wq.magnitudines()
+    fixum lista<numerus> shape_b   ← bq.magnitudines()
+    fixum lista<numerus> shape_ln  ← ln1_s.magnitudines()
+
+    fixum numerus steps ← 8
+    varia lista<f32> loss_trace ← vacua
+
+    # ---- CAPTURE: initial params/inputs ---------------------------------
+    nota "initial_input"
+    nota input
+    nota "initial_wq"
+    nota wq
+    nota "initial_bq"
+    nota bq
+    nota "initial_wk"
+    nota wk
+    nota "initial_bk"
+    nota bk
+    nota "initial_wv"
+    nota wv
+    nota "initial_bv"
+    nota bv
+    nota "initial_wo"
+    nota wo
+    nota "initial_bo"
+    nota bo
+    nota "initial_wf1"
+    nota wf1
+    nota "initial_bf1"
+    nota bf1
+    nota "initial_wf2"
+    nota wf2
+    nota "initial_bf2"
+    nota bf2
+    nota "initial_ln1_s"
+    nota ln1_s
+    nota "initial_ln1_o"
+    nota ln1_o
+    nota "initial_ln2_s"
+    nota ln2_s
+    nota "initial_ln2_o"
+    nota ln2_o
+    nota "initial_ln3_s"
+    nota ln3_s
+    nota "initial_ln3_o"
+    nota ln3_o
+    nota "initial_dk_scale"
+    nota dk_scale
+    nota "initial_target"
+    nota target
+
+    itera ab 0‥steps fixum step {
+        # Forward pass (inlined — mirrors src/train.fab)
+        fixum tensor<f32, [2, 8]> ln1 ← input.laminatio(1, 1.0e-5, ln1_s, ln1_o)
+
+        fixum tensor<f32, [2, 8]> q   ← ln1.matmul(wq)
+        fixum tensor<f32, [2, 8]> qb  ← q.addita(bq)
+        fixum tensor<f32, [2, 8]> k   ← ln1.matmul(wk)
+        fixum tensor<f32, [2, 8]> kb  ← k.addita(bk)
+        fixum tensor<f32, [2, 8]> v   ← ln1.matmul(wv)
+        fixum tensor<f32, [2, 8]> vb  ← v.addita(bv)
+
+        fixum tensor<f32, [8, 2]> kt        ← kb.transpone()
+        fixum tensor<f32, [2, 2]> scores    ← qb.matmul(kt)
+        fixum tensor<f32, [2, 2]> scaled    ← scores.multiplica(dk_scale)
+        fixum tensor<f32, [2, 2]> attn      ← scaled.activatio_softmax()
+        fixum tensor<f32, [2, 8]> context   ← attn.matmul(vb)
+
+        fixum tensor<f32, [2, 8]> ao  ← context.matmul(wo)
+        fixum tensor<f32, [2, 8]> aob ← ao.addita(bo)
+        fixum tensor<f32, [2, 8]> r1  ← input.addita(aob)
+
+        fixum tensor<f32, [2, 8]> ln2 ← r1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
+
+        fixum tensor<f32, [2, 8]> h1   ← ln2.matmul(wf1)
+        fixum tensor<f32, [2, 8]> h1b  ← h1.addita(bf1)
+        fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
+        fixum tensor<f32, [2, 8]> h2   ← a1.matmul(wf2)
+        fixum tensor<f32, [2, 8]> h2b  ← h2.addita(bf2)
+        fixum tensor<f32, [2, 8]> r2   ← ln2.addita(h2b)
+
+        fixum tensor<f32, [2, 8]> ln3 ← r2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
+
+        fixum tensor<f32, [2, 8]> resd ← ln3.subtrahe(target)
+        fixum tensor<f32, [2, 8]> sqrd ← resd.multiplica(resd)
+        fixum f32 loss ← sqrd.media()
+        loss_trace.appende(loss)
+
+        # ---- CAPTURE: per-step loss -------------------------------------
+        nota "step_loss"
+        nota loss
+
+        # Backward pass
+        fixum _ grads ← bert_tiny_backward(
+            input, wq, bq, wk, bk, wv, bv, wo, bo,
+            wf1, bf1, wf2, bf2,
+            ln1_s, ln1_o, ln2_s, ln2_o, ln3_s, ln3_o,
+            dk_scale, target,
+            nil(), upstream
+        )
+        # Tuple destructure: 22 gradient elements, all bound for capture.
+        fixum [
+            gi,
+            gwq, gbq, gwk, gbk, gwv, gbv, gwo, gbo,
+            gwf1, gbf1, gwf2, gbf2,
+            gln1s, gln1o, gln2s, gln2o, gln3s, gln3o,
+            gdk,
+            gt
+        ] ← grads
+
+        # ---- CAPTURE: gradient tensors from the CPU companion -----------
+        nota "grad_input"
+        nota gi
+        nota "grad_wq"
+        nota gwq
+        nota "grad_bq"
+        nota gbq
+        nota "grad_wk"
+        nota gwk
+        nota "grad_bk"
+        nota gbk
+        nota "grad_wv"
+        nota gwv
+        nota "grad_bv"
+        nota gbv
+        nota "grad_wo"
+        nota gwo
+        nota "grad_bo"
+        nota gbo
+        nota "grad_wf1"
+        nota gwf1
+        nota "grad_bf1"
+        nota gbf1
+        nota "grad_wf2"
+        nota gwf2
+        nota "grad_bf2"
+        nota gbf2
+        nota "grad_ln1_s"
+        nota gln1s
+        nota "grad_ln1_o"
+        nota gln1o
+        nota "grad_ln2_s"
+        nota gln2s
+        nota "grad_ln2_o"
+        nota gln2o
+        nota "grad_ln3_s"
+        nota gln3s
+        nota "grad_ln3_o"
+        nota gln3o
+        nota "grad_dk_scale"
+        nota gdk
+        nota "grad_target"
+        nota gt
+
+        # Inline SGD updates (22 trainable params)
+        fixum tensor<f32, [8, 8]> lr_w ← seed.crea(lr, shape_w)
+        fixum tensor<f32, [2, 8]> lr_b ← seed.crea(lr, shape_b)
+        fixum tensor<f32, [8]>    lr_ln ← seed.crea(lr, shape_ln)
+
+        wq  ← wq.subtrahe(gwq.multiplica(lr_w))
+        bq  ← bq.subtrahe(gbq.multiplica(lr_b))
+        wk  ← wk.subtrahe(gwk.multiplica(lr_w))
+        bk  ← bk.subtrahe(gbk.multiplica(lr_b))
+        wv  ← wv.subtrahe(gwv.multiplica(lr_w))
+        bv  ← bv.subtrahe(gbv.multiplica(lr_b))
+        wo  ← wo.subtrahe(gwo.multiplica(lr_w))
+        bo  ← bo.subtrahe(gbo.multiplica(lr_b))
+        wf1 ← wf1.subtrahe(gwf1.multiplica(lr_w))
+        bf1 ← bf1.subtrahe(gbf1.multiplica(lr_b))
+        wf2 ← wf2.subtrahe(gwf2.multiplica(lr_w))
+        bf2 ← bf2.subtrahe(gbf2.multiplica(lr_b))
+
+        ln1_s ← ln1_s.subtrahe(gln1s.multiplica(lr_ln))
+        ln1_o ← ln1_o.subtrahe(gln1o.multiplica(lr_ln))
+        ln2_s ← ln2_s.subtrahe(gln2s.multiplica(lr_ln))
+        ln2_o ← ln2_o.subtrahe(gln2o.multiplica(lr_ln))
+        ln3_s ← ln3_s.subtrahe(gln3s.multiplica(lr_ln))
+        ln3_o ← ln3_o.subtrahe(gln3o.multiplica(lr_ln))
+    }
+
+    # ---- CAPTURE: final params ------------------------------------------
+    nota "final_wq"
+    nota wq
+    nota "final_bq"
+    nota bq
+    nota "final_wk"
+    nota wk
+    nota "final_bk"
+    nota bk
+    nota "final_wv"
+    nota wv
+    nota "final_bv"
+    nota bv
+    nota "final_wo"
+    nota wo
+    nota "final_bo"
+    nota bo
+    nota "final_wf1"
+    nota wf1
+    nota "final_bf1"
+    nota bf1
+    nota "final_wf2"
+    nota wf2
+    nota "final_bf2"
+    nota bf2
+    nota "final_ln1_s"
+    nota ln1_s
+    nota "final_ln1_o"
+    nota ln1_o
+    nota "final_ln2_s"
+    nota ln2_s
+    nota "final_ln2_o"
+    nota ln2_o
+    nota "final_ln3_s"
+    nota ln3_s
+    nota "final_ln3_o"
+    nota ln3_o
+
+    # Fixture's trailing output (loss trace aggregate) — kept so src/train.fab
+    # output is a byte-identical suffix of this capture.
+    nota loss_trace
+}

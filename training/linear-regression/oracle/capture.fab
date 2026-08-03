@@ -1,0 +1,149 @@
+# =============================================================================
+# oracle/capture.fab — instrumented capture runner for linear-regression (S0-C)
+# =============================================================================
+#
+# Provenance: an exact copy of src/train.fab with ADDED `nota` statements so the
+# deterministic CPU/FMIR oracle reference can be captured in full:
+#   1. initial params/inputs          (nota "initial_*" before the loop)
+#   2. the 8-step loss trace          (nota loss per step, plus the fixture's
+#                                      trailing nota loss_trace for cross-check)
+#   3. gradient tensors from the CPU companion
+#                                      (nota grad_* per step, all four slots:
+#                                      input, weight, bias, target)
+#   4. final params                   (nota "final_*" after the loop)
+#
+# The arithmetic below is byte-identical to src/train.fab; only `nota` lines
+# were added. Regenerate this file's captured output with:
+#   faber run -t fmir oracle/capture.fab
+# from the package directory (examples/training/linear-regression/).
+#
+# See oracle/README.md for the capture schema and validation rules.
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# Differentiable forward: loss = mean((input·weight + bias − target)²)
+# -------------------------------------------------------------------------
+
+@ radix lane "air"
+@ radix backward "linear_backward"
+functio linear_loss(
+    tensor<f32, [2,2]> input,
+    tensor<f32, [2,2]> weight,
+    tensor<f32, [2,2]> bias,
+    tensor<f32, [2,2]> target
+) → fractus {
+    fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
+    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
+    fixum tensor<f32, [2,2]> residual   ← shifted.subtrahe(target)
+    fixum tensor<f32, [2,2]> squared    ← residual.multiplica(residual)
+    redde squared.media()
+}
+
+# -------------------------------------------------------------------------
+# nil() — vacuum residual for companion ABI
+# -------------------------------------------------------------------------
+
+functio nil() → vacuum {
+    tacet
+}
+
+# -------------------------------------------------------------------------
+# forward — factored tensor-returning forward pass, called inside the
+# training loop (mirrors src/train.fab).
+# -------------------------------------------------------------------------
+
+functio forward(
+    tensor<f32, [2,2]> input,
+    tensor<f32, [2,2]> weight,
+    tensor<f32, [2,2]> bias
+) → tensor<f32, [2,2]> {
+    fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
+    redde prediction.addita(bias)
+}
+
+# -------------------------------------------------------------------------
+# incipit — multi-step training loop: forward × 8 + backward + SGD
+# (arithmetic identical to src/train.fab; nota lines added for capture)
+# -------------------------------------------------------------------------
+
+incipit {
+    # Match tape oracle initial params exactly.
+    # Negative values computed as 0.0 - v to avoid fractus coercion.
+    fixum lista<f32> data_input  ← [0.5,      0.0 - 1.0, 2.0,   0.75]
+    fixum lista<f32> data_weight ← [1.25,     0.0 - 0.5, 0.8,   1.1]
+    fixum lista<f32> data_bias   ← [0.2,      0.0 - 0.3, 0.2, 0.0 - 0.3]
+    fixum lista<f32> data_target ← [0.25,     0.0 - 1.0, 1.5,   0.75]
+    fixum tensor<f32, []> seed ← vacua
+
+    fixum tensor<f32, [2,2]> input  ← seed.strue(data_input,  [2, 2])
+    varia tensor<f32, [2,2]> weight ← seed.strue(data_weight, [2, 2])
+    varia tensor<f32, [2,2]> bias   ← seed.strue(data_bias,   [2, 2])
+    fixum tensor<f32, [2,2]> target ← seed.strue(data_target, [2, 2])
+
+    fixum f32 lr ← 0.01
+    fixum lista<numerus> shape_w ← weight.magnitudines()
+    fixum lista<numerus> shape_b ← bias.magnitudines()
+
+    fixum numerus steps ← 8
+    varia lista<f32> loss_trace ← vacua
+
+    # ---- CAPTURE: initial params/inputs ---------------------------------
+    nota "initial_input"
+    nota input
+    nota "initial_weight"
+    nota weight
+    nota "initial_bias"
+    nota bias
+    nota "initial_target"
+    nota target
+
+    itera ab 0‥steps fixum step {
+        # Forward via factored tensor-returning functio.
+        fixum tensor<f32, [2,2]> pred ← forward(input, weight, bias)
+        fixum tensor<f32, [2,2]> resd ← pred.subtrahe(target)
+        fixum tensor<f32, [2,2]> sqrd ← resd.multiplica(resd)
+        fixum f32 loss ← sqrd.media()
+        loss_trace.appende(loss)
+
+        # ---- CAPTURE: per-step loss -------------------------------------
+        nota "step_loss"
+        nota loss
+
+        # Backward pass via compiler-generated companion
+        fixum f32 upstream ← 1.0
+        fixum _ grads ← linear_backward(input, weight, bias, target, nil(), upstream)
+        fixum [gi, gw, gb, gt] ← grads
+
+        # ---- CAPTURE: gradient tensors from the CPU companion -----------
+        nota "grad_input"
+        nota gi
+        nota "grad_weight"
+        nota gw
+        nota "grad_bias"
+        nota gb
+        nota "grad_target"
+        nota gt
+
+        # SGD update: weight -= lr * gw, bias -= lr * gb
+        fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
+        fixum tensor<f32, [2,2]> scaled_w ← gw.multiplica(lr_fill_w)
+        weight ← weight.subtrahe(scaled_w)
+
+        fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
+        fixum tensor<f32, [2,2]> scaled_b ← gb.multiplica(lr_fill_b)
+        bias ← bias.subtrahe(scaled_b)
+    }
+
+    # ---- CAPTURE: final params ------------------------------------------
+    nota "final_weight"
+    nota weight
+    nota "final_bias"
+    nota bias
+
+    # Fixture's trailing output (loss trace aggregate, final weight, final
+    # bias) — kept so src/train.fab output is a byte-identical suffix of this
+    # capture.
+    nota loss_trace
+    nota weight
+    nota bias
+}
