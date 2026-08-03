@@ -11,6 +11,7 @@ source = "src"
 
 [build]
 kind = "lib"
+target = "rust"
 targets = ["rust"]
 
 [target.rust]
