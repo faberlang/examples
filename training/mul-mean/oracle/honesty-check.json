@@ -1,0 +1,40 @@
+{
+  "policy": "numeric-policy v1.0.0",
+  "rule": "|a-b| <= 1e-4 + 1e-4*|b| (numeric-policy v1.0.0 gradient row)",
+  "atol": 0.0001,
+  "rtol": 0.0001,
+  "n_min": 512,
+  "N": 1000,
+  "N_wide": true,
+  "N_power_of_two": false,
+  "input_representable_elements": 0,
+  "input_elements": 2000,
+  "grad_x_representable_elements": 0,
+  "grad_w_representable_elements": 0,
+  "gradient_elements": 2000,
+  "representability_proof": "gradient elements are exact Fractions; representable iff reduced denominator is a power of two and magnitude is in the f32 range",
+  "forward_mean_f32": 3343.336669921875,
+  "forward_mean_exact": "33433421/10000",
+  "forward_rounding_delta": 0.00543007812484575,
+  "oracle_self_check": {
+    "method": "pinned CPU companion vs independent exact-analytic reference (f64/exact rational)",
+    "checked": 2000,
+    "non_zero_deltas": 544,
+    "worst_delta": 1.3877787807814457e-17,
+    "finite": true,
+    "pass": true,
+    "per_slot": {
+      "grad_x": {
+        "checked": 1000,
+        "fail": 0,
+        "worst_delta": 1.3877787807814457e-17
+      },
+      "grad_w": {
+        "checked": 1000,
+        "fail": 0,
+        "worst_delta": 1.3877787807814457e-17
+      }
+    }
+  },
+  "accepted": true
+}

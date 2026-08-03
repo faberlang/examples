@@ -1,0 +1,44 @@
+# =============================================================================
+# mul-mean — S3-B1 non-exact Mul+Mean device fixture (gpu-training-lowering)
+# =============================================================================
+#
+# What this is: the differentiable device workload `loss = mean(x · w)` over
+# N = 1000 elements — a device-resident forward kernel (elementwise mul +
+# tree-reduction mean) with the AIR-generated backward companion
+# `loss_backward` (scalar 1/N division, fill/broadcast, elementwise gradient
+# accumulation, (grad_x, grad_w) tuple outputs). This is the shape precedent
+# admitted to the AIR lane by the SEM059 relaxation (@ nucleum + @ radix
+# lane "air" + @ radix backward).
+#
+# This file is READ-ONLY: it is the pinned oracle input (S2-5 convention).
+# The host input values live in faber.toml `[device] inputs`; the CPU
+# reference is pinned in oracle/ under numeric-policy v1.0.0 gradient row
+# (atol = rtol = 1e-4; FD central eps = 1e-3, numeric-policy §4).
+#
+# Honesty gate (C3, stage-3-delivery.md N3.7): inputs are NON-half-integer /
+# NON-structurally-exact. N = 1000 (not a power of two) and
+# x[i] = (10·(i+1)+3)/100, w[i] = (10·(i+1)+7)/100. The analytic gradients
+# x[i]/N and w[i]/N reduce to fractions whose denominator keeps a factor
+# 5^4/5^5 (numerators ≡ 3 / 7 mod 5, never divisible by 5), so NO gradient
+# element is exactly representable in f32 — the device's f32 results round
+# and the 1e-4 floor is exercised with honest non-zero deltas, never the
+# S0-D delta-0 backstop. oracle/tools/honesty_check.py proves this and
+# REJECTS structurally-exact alternatives (oracle/tools/exact-alt.fab).
+#
+# See also: gradus/exempla/gradient-seam (shape precedent),
+# examples/training/device-summa-recollige (S2-5 fixture convention),
+# stage-3-delivery.md §4 S3-B1.
+# =============================================================================
+
+# nil() — vacuum residual for the companion backward ABI.
+functio nil() → vacuum {
+    tacet
+}
+
+@ nucleum
+@ radix lane "air"
+@ radix backward "loss_backward"
+functio simple_loss(tf32[1000] x, tf32[1000] w) → f32 {
+    fixum tensor<f32, [1000]> product ← x.multiplica(w)
+    redde product.media()
+}
