@@ -21,7 +21,7 @@ input (S2-5 convention). All oracle content was captured by running the CPU
 variant (`oracle/capture.fab`, no `@ nucleum`) through the FMIR stepper on
 CPU (burgus, macOS) **before any device result was observed** (S0-C
 convention; numeric-policy v1.0.0 immutability). Determinism was verified by
-capturing **three times**; all captures are byte-identical (same
+capturing **twice**; both captures are byte-identical (same
 `capture.sha256`).
 
 ## Fixture
@@ -76,7 +76,7 @@ reduction's accumulation rounds — the floor is exercised, delta is never 0).
 | `src/mul_mean.fab` | The read-only device fixture (pinned oracle input). |
 | `capture.fab` | CPU-only capture runner (no `@ nucleum`); same arithmetic + companion call, `nota` markers `loss` / `grad_x` / `grad_w`. |
 | `capture.txt` | Raw byte-deterministic capture (marker/value stream; the f64 stepper's shortest-round-trip Display strings). |
-| `capture.sha256` | SHA-256 of `capture.txt` (three captures, identical). |
+| `capture.sha256` | SHA-256 of `capture.txt` (two captures, identical). |
 | `gradients.json` | Pinned companion gradients, both slots (`grad_x`, `grad_w`), S0-C schema. |
 | `reference.json` | Machine-readable fixture metadata: formulas, non-exactness counts, policy citation, expected values, capture hash. |
 | `honesty-check.json` | Honesty-gate verdict for the real fixture (regenerate with `honesty_check.py`). |
@@ -87,8 +87,8 @@ reduction's accumulation rounds — the floor is exercised, delta is never 0).
 
 ## Determinism evidence
 
-`capture.txt` was generated **three times** with the pinned binary; all three
-runs produced byte-identical output and the same SHA-256:
+`capture.txt` was generated **twice** with the pinned binary; both runs
+produced byte-identical output and the same SHA-256:
 
 ```
 d7896537693a1a2d50097a5cfc8bba05a9273932e4dae6c4e02ceb3809e691df  oracle/capture.txt
