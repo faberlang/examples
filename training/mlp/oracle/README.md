@@ -7,8 +7,8 @@ Gradus surface at Stage 4 (**S4-B**), and to the Stage 5 device product
 fixture at **S5-U7** (100 steps, `[device]` section, device marking).
 
 The fixture `src/train.fab` is **read-only**; it is the pinned oracle input. All
-oracle content below was captured by running the fixture through the FMIR stepper
-on CPU (burgus, macOS). No device run was involved.
+oracle content below was captured by running the fixture through the FMIR
+stepper on CPU (burgus, macOS). No device run was involved.
 
 ## Purpose
 
@@ -29,7 +29,7 @@ files are that reference.
 | lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "mlp_backward"` (S5-U7 device marking; SEM059 shape) |
 | companion | `@ radix backward "mlp_backward"` (AIR-generated, CPU FMIR stepper) |
 | manifest | `[device] backend = "auto"`, `steps = 100`, host inputs for all six buffers (faber.toml) |
-| run | `faber run -t fmir oracle/capture.fab` from the package directory |
+| run (CPU oracle) | `faber run -t fmir oracle/capture.fab` from the package directory |
 
 S4-B (Stage 4, `stage-4-delivery.md` unit S4-B) migrated this fixture from
 inline layer/loss/SGD expressions onto the Gradus surface, proving the API for
@@ -58,7 +58,7 @@ and the pinned host inputs). The initial params and all arithmetic are
 | `final-params.json` | Trainable params after the 100 SGD steps. |
 | `fd-validation.json` | Per-element finite-difference gradient validation results (N1.9 FD rule). |
 | `reference.json` | Machine-readable fixture metadata (S2-5 convention): shapes, trainable/frozen sets, policy citation, capture hash, replay/FD verdicts, device-image status. |
-| `tools/extract_reference.py` | Rebuilds `inputs.json` / `loss-trace.json` / `gradients.json` / `final-params.json` verbatim from a fresh `capture.txt` (S5-U7). |
+| `tools/extract_reference.py` | Rebuilds `inputs.json` / `loss-trace.json` / `gradients.json` / `final-params.json` verbatim from a fresh `capture.txt` (S5-U7; replaces the ad-hoc 8-step generation). |
 | `tools/fd_probe.py` | Regenerates `fd-validation.json` (central difference, ε = 1e-3, N1.9). |
 | `tools/replay_loss.py` | Independent f64 loss-trace replay. |
 | `tools/replay_f32.py` | Independent strict-f32 trajectory replay. |
@@ -184,26 +184,26 @@ as the instrumented copy of the migrated source. The captured oracle is
   param delta ~8.8e-8 — the executed contract is the f32-typed program.
 - All captured values finite.
 
-### S5-U7 extension (2026-08-04, 100 steps — workspace faber @ faber `a384ff1`)
+### S5-U7 re-capture (2026-08-04, 100-step Gradus surface — workspace faber @ faber `a384ff1`)
 
-The S5-U7 extension changed `src/train.fab` (100-step loop + `@ nucleum` lane
-marking) and `faber.toml` (`[device]` section) and regenerated the full oracle.
-The initial params, the Gradus surface, and the arithmetic are unchanged; the
-pinned reference is now the 100-step trajectory.
+S5-U7 (`stage-5-delivery.md` unit S5-U7) evolved the fixture to the device
+product fixture: `src/train.fab` now runs the deterministic 100-step loop and
+carries the `@ nucleum` device marking on `mlp_loss`; `faber.toml` declares the
+`[device]` section. The oracle was re-captured at 100 steps. The capture runner
+(`oracle/capture.fab`) deliberately omits the `@ nucleum` marking (see its
+header NOTE): a CPU oracle capture runner is expected to have no device kernel,
+and the arithmetic is otherwise identical to `src/train.fab` (modulo the
+`nota` instrumentation, including the named-slot destructuring that lets the
+frozen-slot gradients be captured).
 
-- source sha256 (`src/train.fab`): `0e235dfbd50cf24f58b0d4d13f1b4ed57889d5c904a7945cbd41b80ad2b2f29d5`
-- capture runner sha256 (`oracle/capture.fab`): `0d14e09e8ec4f7bca5385e880afcbceac071bdc8a476362e6afbe87a34f8ab42`
-- capture.txt sha256 (two runs identical): `c275463879bba4356741dd8fe711ec33f35d4f9472f7da929d5340ea9203e168`
-  (`shasum -a 256 oracle/capture.txt` matches `capture.sha256`)
-- Loss trace replay (independent f64): all 100 steps pass, worst delta
-  ~2.2e-16 (rule tol ~2.6e-6).
-- Strict-f32 trajectory replay (`tools/replay_f32.py`): all 100 loss steps +
-  final params pass under the N1.9 rules, worst loss delta ~3.5e-7, worst
-  param delta ~3.4e-7 — the executed contract is the f32-typed program.
-- FD gradient validation (step-0 companion vs central-difference probe):
-  64/64 elements pass, worst delta ~4.3e-8 (rule tol ~1e-4).
-- All captured values finite. Loss0 = 1.576448169383708, final loss (step 99)
-  = 0.7941141822864916.
+- source sha256 (`src/train.fab`): `58e2c01b8305b0726a54fc116376e5469febf59ce0426511fb5237ddfb1c6859` (Gradus arithmetic identical to the S4-B source, plus the `@ nucleum` device marking and the `steps ← 100` loop bound); capture runner sha256 (`oracle/capture.fab`): `8c1c9e02ac84eadf5ed5b04a8f89e6ee5007596d7ce44f3497e451f5fe071c73`.
+- capture.txt sha256 (new, 100 steps): `c275463879bba4356741dd8fe711ec33f35d4f9472f7da929d5340ea9203e168`
+  (`shasum -a 256 oracle/capture.txt` matches `capture.sha256`; verified by three independent runs — two fresh re-captures plus the committed file — all byte-identical).
+- `loss-trace.json`: 100 steps, monotone from `1.576448169383708` (step 0) to `0.7941141822864916` (step 99), all finite.
+- Loss trace replay (independent f64): all 100 steps pass, worst delta ~2.2e-16 (rule tol ~2.6e-6).
+- Strict-f32 trajectory replay (`tools/replay_f32.py`): all 100 loss steps + final params pass under the N1.9 rules, worst loss delta ~3.5e-7, worst param delta ~3.4e-7 — the executed contract is the f32-typed program.
+- FD gradient validation (step-0 companion vs central-difference probe): 64/64 elements pass, worst delta ~4.3e-8 (rule tol ~1e-4) — unchanged from S4-B, as expected: FD validates step-0 gradients against the identical initial params.
+- All captured values finite.
 - The 100-step trajectory at the pinned `lr = 0.01` does **not** reach the
   Stage 5 exit-gate convergence bound (final < 0.1 × initial): 0.794 vs the
   0.158 bound. The fixture's initial params and lr are frozen oracle inputs
@@ -212,10 +212,11 @@ pinned reference is now the 100-step trajectory.
 
 ## Device image build (S5-U7)
 
-The package declares a `[device]` surface and the lane carries the `@ nucleum`
-marking, so the ordinary route builds the device program into the FMIR image.
-Attempted on burgus (2026-08-04) with the workspace faber (`faber` @
-`a384ff1`, built with the S5-U1..U5c substrate):
+The S5-U7 `done_when` requires the device image to build for Metal and CUDA
+through the ordinary product route (`faber run --backend <backend> .`) with
+fail-closed diagnostics if any emitter surface is missing. Attempted on burgus
+(2026-08-04) with the workspace faber (`faber` @ `a384ff1`, built with the
+S5-U1..U5c substrate):
 
 ```text
 $ faber run --backend metal .   → error: E_DEVICE_DESCRIPTOR: device program
@@ -229,18 +230,28 @@ $ faber run -t fmir oracle/capture.fab  → ok (exit 0) — CPU oracle unaffecte
 This is a **fail-closed missing-surface result**, not a package defect: the
 MLP lane returns a scalar (`fractus` — the MSE), and the S5-U1 training-path
 decomposition requires tensor-typed data-flow params in the subchain
-signatures (`radix-mir` `subchain_signature_for_emission`). A scalar-return
-primal's generated companion carries a non-tensor upstream seed, which the
-decomposition seam rejects with `recipe operand requires a tensor type`. The
-U5 constructor tests use a tensor-return forward for exactly this reason. A
-relowering probe (lane returning the squared-residual tensor) progresses past
-the signature stage but then hits the next missing surface — the Metal emitter
-rejects a kernel runtime call (`MIR-to-Metal unsupported: kernel runtime
-call`) — so the full MLP device image needs both (a) scalar-return-lane
-companion decomposition and (b) the remaining Metal/CUDA emitter arms.
+signatures (`radix-mir` `device_program_plans.rs`, `tensor_element_ty`, line
+~551 — "recipe operand requires a tensor type"). A scalar-return primal's
+generated companion carries a non-tensor upstream seed, which the
+decomposition seam rejects with `recipe operand requires a tensor type`; the
+diagnostic is backend-independent and fires before any backend-specific
+emitter surface is reached. The U5 constructor tests use a tensor-return
+forward for exactly this reason. A relowering probe (lane returning the
+squared-residual tensor) progresses past the signature stage but then hits the
+next missing surface — the Metal emitter rejects a kernel runtime call
+(`MIR-to-Metal unsupported: kernel runtime call`) — so the full MLP device
+image needs both (a) scalar-return-lane companion decomposition and (b) the
+remaining Metal/CUDA emitter arms.
 
 `reference.json` records the exact device-image status. The `[device] inputs`
 keys in `faber.toml` follow the documented convention (kernel parameter
-names); the decomposed training-program buffer naming (e.g. synthesized
-`input_0`-style names observed in the tensor-return probe) must be reconciled
-when the surface lands (U8).
+names); the decomposed training-program buffer naming must be reconciled when
+the surface lands (U8).
+
+This is the documented residual for S5-U7: the package/oracle CPU side is
+complete and pinned (this README), but the device image build is blocked on a
+radix-mir device-signature gap (scalar-returning lane admission), not on the
+Metal/CUDA emitters. It is `FAIL` (fail-closed), never a skipped pass; the
+real-device proofs (S5-U8/U9) and cross-backend acceptance (S5-U10) wait on a
+further substrate unit that admits scalar-return lanes (or a fixture
+restructure). See the U7 closeout mail for the exact diagnostic and code path.
