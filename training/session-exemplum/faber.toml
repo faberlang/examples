@@ -10,3 +10,6 @@ entry = "train.fab"
 [build]
 target = "fmir"
 kind = "bin"
+
+[reader]
+locale = "la"

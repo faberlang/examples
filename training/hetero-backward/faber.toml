@@ -32,3 +32,6 @@ inputs = { x = [
 ], w = [
     5.0, 6.0
 ] }
+
+[reader]
+locale = "la"

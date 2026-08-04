@@ -21,3 +21,6 @@ controllers_json = "controllers.json"
 
 [dependencies]
 web = "0.1.0"
+
+[reader]
+locale = "la"
