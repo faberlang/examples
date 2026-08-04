@@ -1,12 +1,12 @@
 # =============================================================================
-# oracle/capture.fab — instrumented capture runner for mlp (S0-C / S4-B)
+# oracle/capture.fab — instrumented capture runner for mlp (S0-C / S4-B / S5-U7)
 # =============================================================================
 #
-# Provenance: an exact copy of src/train.fab (S4-B Gradus surface) with ADDED
-# `nota` statements so the deterministic CPU/FMIR oracle reference can be
-# captured in full:
+# Provenance: an exact copy of src/train.fab (S5-U7 Gradus surface, 100 steps,
+# @ nucleum device marking) with ADDED `nota` statements so the deterministic
+# CPU/FMIR oracle reference can be captured in full:
 #   1. initial params/inputs          (nota "initial_*" before the loop)
-#   2. the 8-step loss trace          (nota step_loss per step, plus the
+#   2. the 100-step loss trace        (nota step_loss per step, plus the
 #                                      fixture's trailing nota loss_trace)
 #   3. gradient tensors from the CPU companion
 #                                      (nota grad_* per step, all six slots:
@@ -18,6 +18,16 @@
 # were added. Regenerate this file's captured output with:
 #   faber run -t fmir oracle/capture.fab
 # from the package directory (examples/training/mlp/).
+#
+# NOTE (S5-U7): this runner deliberately omits the `@ nucleum` device marking
+# that `src/train.fab` carries. The package manifest now declares a `[device]`
+# surface, so the FMIR image build constructs the device program from the
+# entry's `@ nucleum` compute lane — and the MLP's scalar-return lane fails
+# closed there today (see oracle/README.md "Device image build (S5-U7)"). A
+# CPU oracle capture runner is expected to have no device kernel (the faber
+# constructor's documented exemption: "a `faber script` capture runner in the
+# same package — e.g. a CPU oracle — legitimately has no kernel"); the
+# arithmetic is otherwise identical to src/train.fab.
 #
 # See oracle/README.md for the capture schema and validation rules.
 # =============================================================================
@@ -71,7 +81,7 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# incipit — multi-step training loop: forward x8 + backward + gradus step
+# incipit — multi-step training loop: forward x100 + backward + gradus step
 # (arithmetic identical to src/train.fab; nota lines added for capture)
 # -------------------------------------------------------------------------
 
@@ -115,7 +125,7 @@ incipit {
     fixum f32 upstream ← 1.0
     fixum f32 lr ← 0.01
 
-    fixum numerus steps ← 8
+    fixum numerus steps ← 100
     varia lista<f32> loss_trace ← vacua
 
     # ---- CAPTURE: initial params/inputs ---------------------------------

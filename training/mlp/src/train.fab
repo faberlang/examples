@@ -1,10 +1,11 @@
 # =============================================================================
-# train.fab — S4-B: two-layer MLP (linear + GELU + linear + MSE) on the Gradus
-# static-shape surface
+# train.fab — S5-U7: two-layer MLP (linear + GELU + linear + MSE) on the Gradus
+# static-shape surface, 100-step device product fixture
 # =============================================================================
 #
 # Migrated from inline layer/loss/SGD expressions to Gradus (S4-B,
-# radix/docs/factory/gpu-training-lowering/stage-4-delivery.md):
+# radix/docs/factory/gpu-training-lowering/stage-4-delivery.md); evolved to the
+# Stage 5 device product fixture (S5-U7, stage-5-delivery.md):
 #   nn.linear_4x4          forward linear layer     y = x·W + b
 #   nn.gelu_4x4            GELU activation
 #   loss.mse_4x4           mean squared error       mean((pred − target)²)
@@ -14,6 +15,13 @@
 # The package-owned differentiated function retains its ONE explicit
 # @ radix backward annotation; the training loop owns no inline learning-rate
 # fill, gradient scaling, or parameter subtraction.
+#
+# Device marking: the lane function carries @ nucleum (SEM059, @ nucleum +
+# @ radix lane "air" + @ radix backward), so the device constructor admits it
+# as the compute lane alongside its generated companion and the Gradus
+# train_step the loop calls. The manifest [device] section declares the
+# backend selection ("auto"), the trainable/frozen host inputs, and the step
+# count (steps = 100) — validated against the source loop bound below.
 #
 # Inventory Rank 8 — proves GELU activation VJP in a composed training loop.
 #
@@ -27,7 +35,7 @@
 # returning gradients for all six params (input, w1, b1, w2, b2, target).
 # Trainable: weight1, bias1, weight2, bias2. Frozen: input, target.
 #
-# Multi-step: iterates 8 steps with backward pass + Gradus training step,
+# Multi-step: iterates 100 steps with backward pass + Gradus training step,
 # records loss trace, notas the trace.
 #
 # Ops exercised (8 of 15 AIR tensor ops):
@@ -56,6 +64,7 @@ importa ex "gradus:train" privata train
 # this function; the Gradus calls above are exercised by the training loop.
 # -------------------------------------------------------------------------
 
+@ nucleum
 @ radix lane "air"
 @ radix backward "mlp_backward"
 functio mlp_loss(
@@ -90,7 +99,7 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# incipit — multi-step training loop: forward x8 + backward + gradus step
+# incipit — multi-step training loop: forward x100 + backward + gradus step
 # -------------------------------------------------------------------------
 
 incipit {
@@ -133,7 +142,7 @@ incipit {
     fixum f32 upstream ← 1.0
     fixum f32 lr ← 0.01
 
-    fixum numerus steps ← 8
+    fixum numerus steps ← 100
     varia lista<f32> loss_trace ← vacua
 
     itera ab 0‥steps fixum step {
