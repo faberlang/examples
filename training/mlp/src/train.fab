@@ -74,7 +74,7 @@ functio mlp_loss(
     tensor<f32, [4,4]> weight2,
     tensor<f32, [4,4]> bias2,
     tensor<f32, [4,4]> target
-) → fractus {
+) → f32 {
     # Layer 1: linear → GELU
     fixum tensor<f32, [4,4]> h1  ← input.matmul(weight1)
     fixum tensor<f32, [4,4]> h1b ← h1.addita(bias1)
@@ -140,7 +140,7 @@ incipit {
     fixum tensor<f32, [4,4]> target  ← seed.strue(data_target,  [4, 4])
 
     fixum f32 upstream ← 1.0
-    fixum f32 lr ← 0.01
+    fixum f32 lr ← 0.1
 
     fixum numerus steps ← 100
     varia lista<f32> loss_trace ← vacua

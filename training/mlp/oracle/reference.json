@@ -1,7 +1,7 @@
 {
   "fixture": "mlp",
-  "stage": "S5-U7 device product fixture (stage-5-delivery.md S5-U7); CPU/FMIR oracle extended from S4-B (8 steps) to 100 steps",
-  "workload": "two-layer MLP: linear(4x4->4x4) + GELU + linear(4x4->4x4) + MSE; 100-step SGD (lr = 0.01) via the Gradus static-shape surface (nn.linear_4x4 / nn.gelu_4x4 / loss.mse_4x4 / train.train_step_4x4); lane mlp_loss with @ nucleum + @ radix lane \"air\" + @ radix backward \"mlp_backward\"",
+  "stage": "S5-U7 device product fixture (stage-5-delivery.md S5-U7); CPU/FMIR oracle extended from S4-B (8 steps) to 100 steps; Wave A5 re-capture (P0-1 step 2 f32 loss contract + P0-2 convergent lr)",
+  "workload": "two-layer MLP: linear(4x4->4x4) + GELU + linear(4x4->4x4) + MSE; 100-step SGD (lr = 0.1) via the Gradus static-shape surface (nn.linear_4x4 / nn.gelu_4x4 / loss.mse_4x4 / train.train_step_4x4); lane mlp_loss with @ nucleum + @ radix lane \"air\" + @ radix backward \"mlp_backward\"",
   "dtype": "f32",
   "input_shapes": {
     "input": [4, 4],
@@ -14,7 +14,7 @@
   "trainable": ["weight1", "bias1", "weight2", "bias2"],
   "frozen": ["input", "target"],
   "steps": 100,
-  "lr": "0.01",
+  "lr": "0.1",
   "policy": "numeric-policy v1.0.0",
   "family": {
     "loss": "reduction scalar (mean of squares): atol 1e-6, rtol 1e-6",
@@ -23,9 +23,9 @@
   },
   "fd_eps": 0.001,
   "fd_method": "central difference (numeric-policy v1.0.0 \u00a74), per-element over the 4 trainable tensors (64 elements), comparing step-0 companion gradients",
-  "capture_sha256": "c275463879bba4356741dd8fe711ec33f35d4f9472f7da929d5340ea9203e168",
+  "capture_sha256": "b0ad783243162d6f53e97c7d1c2af4e42ab8a722d7044826bb54aa950b1b3e0f",
   "loss0": "1.576448169383708",
-  "loss_final": "0.7941141822864916",
+  "loss_final": "0.017928625511508454",
   "loss_trace_replay": {
     "method": "independent f64 replay (tools/replay_loss.py)",
     "steps": 100,
@@ -36,12 +36,12 @@
     "method": "independent strict-f32 trajectory replay (tools/replay_f32.py)",
     "steps": 100,
     "all_pass": true,
-    "worst_loss_delta": "3.48169e-07",
-    "worst_param_delta": "3.43945e-07"
+    "worst_loss_delta": "2.1965887064823164e-07",
+    "worst_param_delta": "2.7430891735846785e-07"
   },
   "device_image": {
     "metal": "FAIL (fail-closed E_DEVICE_DESCRIPTOR: recipe operand requires a tensor type)",
     "cuda": "FAIL (fail-closed, identical E_DEVICE_DESCRIPTOR: recipe operand requires a tensor type)",
-    "note": "both backends fail at the device-program signature stage (radix-mir device_program_plans.rs tensor_element_ty) before any backend emitter surface is reached: the MLP lane returns a scalar (fractus), and the device-program signature requires tensor-typed recipe operands. Residual documented for the surface-landing unit."
+    "note": "both backends fail at the device-program signature stage (radix-mir device_program_plans.rs tensor_element_ty) before any backend emitter surface is reached: the MLP lane returns a scalar (f32, previously fractus), and the device-program signature requires tensor-typed recipe operands. Residual documented for the surface-landing unit. Re-verified after the Wave A5 f32 typing change (2026-08-04): the diagnostic is unchanged."
   }
 }

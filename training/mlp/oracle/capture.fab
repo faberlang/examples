@@ -14,6 +14,11 @@
 #                                      target)
 #   4. final params                   (nota "final_*" after the loop)
 #
+# Wave A5 (Stage 5 P0-1 step 2 + P0-2): re-captured after `mlp_loss` return
+# type fractus → f32 (explicit f32 loss contract — the companion upstream is
+# now f32) and the pinned lr 0.01 → 0.1 (convergent trajectory under the
+# Stage 5 exit-gate bound). Initial params, step count, and target unchanged.
+#
 # The arithmetic below is byte-identical to src/train.fab; only `nota` lines
 # were added. Regenerate this file's captured output with:
 #   faber run -t fmir oracle/capture.fab
@@ -56,7 +61,7 @@ functio mlp_loss(
     tensor<f32, [4,4]> weight2,
     tensor<f32, [4,4]> bias2,
     tensor<f32, [4,4]> target
-) → fractus {
+) → f32 {
     # Layer 1: linear → GELU
     fixum tensor<f32, [4,4]> h1  ← input.matmul(weight1)
     fixum tensor<f32, [4,4]> h1b ← h1.addita(bias1)
@@ -123,7 +128,7 @@ incipit {
     fixum tensor<f32, [4,4]> target  ← seed.strue(data_target,  [4, 4])
 
     fixum f32 upstream ← 1.0
-    fixum f32 lr ← 0.01
+    fixum f32 lr ← 0.1
 
     fixum numerus steps ← 100
     varia lista<f32> loss_trace ← vacua

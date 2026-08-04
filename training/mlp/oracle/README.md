@@ -23,7 +23,7 @@ files are that reference.
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-B/S5-U7): `nn.linear_4x4` forward, `nn.gelu_4x4`, `loss.mse_4x4`, `train.train_step_4x4` update |
+| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.1`, Wave A5; `mlp_loss` returns `f32` — explicit f32 loss contract) via the Gradus static-shape surface (S4-B/S5-U7): `nn.linear_4x4` forward, `nn.gelu_4x4`, `loss.mse_4x4`, `train.train_step_4x4` update |
 | trainable | `weight1` [4,4], `bias1` [4,4], `weight2` [4,4], `bias2` [4,4] |
 | frozen | `input` [4,4], `target` [4,4] |
 | lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "mlp_backward"` (S5-U7 device marking; SEM059 shape) |
@@ -101,7 +101,7 @@ is the flat row-major list of value strings):
 
 - `inputs.json` — `{"fixture", "source", "inputs": [tensor...]}`; all initial
   params/inputs as constructed by `seed.strue(...)` in the fixture.
-- `loss-trace.json` — `{"fixture", "steps": 100, "lr": "0.01", "losses": [100
+- `loss-trace.json` — `{"fixture", "steps": 100, "lr": "0.1", "losses": [100
   strings], "rule"}`.
 - `gradients.json` — `{"fixture", "rule", "method", "steps": [{"step",
   "gradients": [tensor...]}]}`. Records the **trainable** tensors only;
@@ -204,11 +204,38 @@ frozen-slot gradients be captured).
 - Strict-f32 trajectory replay (`tools/replay_f32.py`): all 100 loss steps + final params pass under the N1.9 rules, worst loss delta ~3.5e-7, worst param delta ~3.4e-7 — the executed contract is the f32-typed program.
 - FD gradient validation (step-0 companion vs central-difference probe): 64/64 elements pass, worst delta ~4.3e-8 (rule tol ~1e-4) — unchanged from S4-B, as expected: FD validates step-0 gradients against the identical initial params.
 - All captured values finite.
-- The 100-step trajectory at the pinned `lr = 0.01` does **not** reach the
+- The 100-step trajectory at the pinned `lr = 0.01` did **not** reach the
   Stage 5 exit-gate convergence bound (final < 0.1 × initial): 0.794 vs the
-  0.158 bound. The fixture's initial params and lr are frozen oracle inputs
-  (S0-C); whether the device exit gate needs a different step/lr negotiation is
-  a Stage 5 acceptance question (U8/U9/U10), not an oracle change.
+  0.158 bound. **Superseded by the Wave A5 re-capture below** (lr `0.1`),
+  which resolves the convergence disclosure: the S5-U7 numbers above are the
+  historical record for the pre-A5 capture.
+
+### Wave A5 re-capture (2026-08-04, explicit f32 loss contract + convergent lr)
+
+Wave A5 (Stage 5 findings P0-1 step 2 + P0-2) changed `src/train.fab` in two
+places and re-captured the oracle once:
+1. **P0-1 step 2** — `mlp_loss` return type `fractus` → `f32`: the arithmetic
+   was already f32 (`loss.mse_4x4` returns f32; the strict-f32 replay passed),
+   so the declared `fractus` (f64) return hid a latent f64 ABI reject. The
+   declared return type now matches the executed contract, so the generated
+   companion's upstream is f32. The typing change does **not** alter the
+   arithmetic: the initial params, step-0 loss (`1.576448169383708`), and
+   step-0 gradients are byte-identical to the pre-change capture.
+2. **P0-2** — pinned lr `0.01` → `0.1` (steps stays 100; initial params,
+   target, and the gate unchanged). The trajectory now converges under the
+   Stage 5 exit-gate bound: final/initial ≈ 0.0114 < 0.1 (8.8× margin), all
+   finite, monotone non-increasing.
+
+- source sha256 (`src/train.fab`): `a9367f3b1a7e0ab402f95184809c9017b7f72b51304c4fe1a4c2010366e22c46`; capture runner sha256 (`oracle/capture.fab`): `f17d8197f68914e3afda80025b950d7f16c90399d08b9b90c77eb92a968c3d68`.
+- capture.txt sha256 (new): `b0ad783243162d6f53e97c7d1c2af4e42ab8a722d7044826bb54aa950b1b3e0f`
+  (`shasum -a 256 oracle/capture.txt` matches `capture.sha256`; verified by two independent fresh re-captures plus the committed file — all byte-identical).
+- `loss-trace.json`: 100 steps, monotone from `1.576448169383708` (step 0) to
+  `0.017928625511508454` (step 99), all finite. Convergence bound met:
+  `0.017928625511508454 / 1.576448169383708 = 0.0114` (< 0.1).
+- Loss trace replay (independent f64): all 100 steps pass, worst delta ~2.2e-16 (rule tol ~2.6e-6).
+- Strict-f32 trajectory replay (`tools/replay_f32.py`): all 100 loss steps + final params pass under the N1.9 rules, worst loss delta ~2.2e-7, worst param delta ~2.7e-7 — the executed contract is the f32-typed program.
+- FD gradient validation: unchanged (lr-independent — validates step-0 gradients of the unchanged initial params): 64/64 elements pass; `fd-validation.json` untouched.
+- Device image: still `FAIL` at the device-program signature stage with the same `E_DEVICE_DESCRIPTOR: recipe operand requires a tensor type` diagnostic (re-verified 2026-08-04 — the f32 scalar return is still a scalar; see "Device image build (S5-U7)" below).
 
 ## Device image build (S5-U7)
 
@@ -228,7 +255,8 @@ $ faber run -t fmir oracle/capture.fab  → ok (exit 0) — CPU oracle unaffecte
 ```
 
 This is a **fail-closed missing-surface result**, not a package defect: the
-MLP lane returns a scalar (`fractus` — the MSE), and the S5-U1 training-path
+MLP lane returns a scalar (`f32` — the MSE; the Wave A5 typing change from
+`fractus` to `f32` does not alter this), and the S5-U1 training-path
 decomposition requires tensor-typed data-flow params in the subchain
 signatures (`radix-mir` `device_program_plans.rs`, `tensor_element_ty`, line
 ~551 — "recipe operand requires a tensor type"). A scalar-return primal's
@@ -241,7 +269,8 @@ squared-residual tensor) progresses past the signature stage but then hits the
 next missing surface — the Metal emitter rejects a kernel runtime call
 (`MIR-to-Metal unsupported: kernel runtime call`) — so the full MLP device
 image needs both (a) scalar-return-lane companion decomposition and (b) the
-remaining Metal/CUDA emitter arms.
+remaining Metal/CUDA emitter arms. The build was re-verified on 2026-08-04
+after the Wave A5 f32 typing change: same fail-closed diagnostic, exit 1.
 
 `reference.json` records the exact device-image status. The `[device] inputs`
 keys in `faber.toml` follow the documented convention (kernel parameter

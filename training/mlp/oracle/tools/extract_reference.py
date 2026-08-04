@@ -161,7 +161,7 @@ def main() -> int:
     write_json(out_dir, "loss-trace.json", {
         "fixture": "mlp",
         "steps": len(losses),
-        "lr": "0.01",
+        "lr": "0.1",
         "losses": losses,
         "rule": RULE_LOSS,
     })
