@@ -20,11 +20,18 @@ per element against these references using the frozen numeric policy in
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | 2×2 linear + bias + MSE, 8-step inline SGD (`lr = 0.01`) |
+| model | 2×2 linear + bias + MSE, 8-step SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-A): `nn.linear_2x2` forward, `loss.mse_2x2`, `train.train_step_2x2` update |
 | trainable | `weight` [2,2], `bias` [2,2] |
 | frozen | `input` [2,2], `target` [2,2] |
 | companion | `@ radix backward "linear_backward"` (AIR-generated, CPU FMIR stepper) |
 | run | `faber run -t fmir .` from the package directory |
+
+S4-A (Stage 4, `gpu-training-lowering` stage-4-delivery.md unit S4-A) migrated
+this fixture from inline layer/loss/SGD expressions onto the Gradus surface.
+The model function still carries the ONE explicit `@ radix backward`
+annotation; the loop owns no inline learning-rate fill, gradient scaling, or
+parameter subtraction. The migration preserves the captured oracle
+byte-for-byte (see Determinism evidence below).
 
 ## File inventory
 
@@ -92,6 +99,7 @@ shasum -a 256 oracle/capture.txt                            # must equal capture
 
 python3 oracle/tools/fd_probe.py        # regenerate oracle/fd-validation.json
 python3 oracle/tools/replay_loss.py     # independent f64 loss-trace replay
+python3 oracle/tools/replay_f32.py      # independent strict-f32 trajectory replay
 ```
 
 The capture is byte-deterministic: two identical runs of the fixture
@@ -116,7 +124,9 @@ Finite-difference validation: central difference, `ε = 1.0e-3`, per-element
 perturbation of the actual faber computation (capture runner reused as the
 probe); acceptance per element via the gradient rule.
 
-## Determinism evidence (2026-08-03)
+## Determinism evidence
+
+### Original capture (2026-08-03, S0-C — inline SGD fixture)
 
 - capture.txt sha256: `2ddbdc75e2cbc6fe8eb6c1feb3fdb312f17ed21540f39347f8c1c6dc1320a740`
 - fixture run output sha256 (two runs identical): `e2b258ee97ee8252d910ae2fb059b2793bd3d4667447f60713284db411d3c450`
@@ -124,4 +134,24 @@ probe); acceptance per element via the gradient rule.
 - Loss trace replay (independent f64 replay of the trajectory from captured
   gradients): all 8 steps match, worst delta ~1.1e-16 (rule tol ~2e-6).
 - FD gradient validation: 8/8 elements pass, worst delta ~1.8e-13 (rule tol ~1e-4).
+- All captured values finite.
+
+### S4-A migration (2026-08-04, Gradus surface — pinned release faber v1.4.0)
+
+The S4-A migration changed `src/train.fab` (inline SGD → `gradus:nn` /
+`gradus:loss` / `gradus:train`) and regenerated `oracle/capture.fab` as the
+instrumented copy of the migrated source. The captured oracle is **unchanged
+byte-for-byte**; no oracle assertion was weakened.
+
+- migrated source sha256 (`src/train.fab`): `dda6dc85eee141d296fbc97492477f605ce1cdfa6aa46c4bc2a813f733688997`
+- capture runner sha256 (`oracle/capture.fab`): `f79494659b6bcc0f5a4f2c57026500269a8d5694c6680c9c91e08d03a7630c36`
+- capture.txt sha256 (unchanged): `2ddbdc75e2cbc6fe8eb6c1feb3fdb312f17ed21540f39347f8c1c6dc1320a740`
+  (`shasum -a 256 oracle/capture.txt` matches `capture.sha256`)
+- fixture run output sha256 (unchanged): `e2b258ee97ee8252d910ae2fb059b2793bd3d4667447f60713284db411d3c450`
+- FD gradient validation: 8/8 elements pass, worst delta ~1.8e-13 (rule tol ~1e-4).
+- Loss trace replay (independent f64): all 8 steps pass, worst delta ~1.1e-16.
+- Strict-f32 trajectory replay (`tools/replay_f32.py`, independent f32
+  implementation of the same forward/update): all 8 loss steps + final params
+  pass under the N1.9 rules, worst loss delta ~2.2e-7, worst param delta
+  ~5.4e-8 — the executed contract is the f32-typed program.
 - All captured values finite.

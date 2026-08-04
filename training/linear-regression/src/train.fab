@@ -1,14 +1,16 @@
 # =============================================================================
-# train.fab — Stage E3: multi-step linear+MSE training exemplum
+# train.fab — S4-A: linear+MSE training via the Gradus static-shape surface
 # =============================================================================
 #
-# Extends Stage E2 single-step to iterate 8 SGD steps, record a loss trace,
-# and output the full trace. Uses all five ops required for honest linear+MSE:
-#   MatMul (true linear layer)        — F2 landed  e7210ff5e
-#   Add    (broadcast bias)           — Stage A    a459c2cdd
-#   Sub    (MSE residual)             — F1 landed  bf3282bbf
-#   Mul    (square error)             — Stage A    a459c2cdd
-#   Mean   (reduce to scalar loss)    — Stage A    a459c2cdd
+# Migrated from inline layer/loss/SGD expressions to Gradus (S4-A,
+# radix/docs/factory/gpu-training-lowering/stage-4-delivery.md):
+#   nn.linear_2x2          forward linear layer     y = input·weight + bias
+#   loss.mse_2x2           mean squared error       mean((pred − target)²)
+#   train.train_step_2x2   SGD update of weight+bias from explicit gradients
+#
+# The package-owned differentiated function retains its ONE explicit
+# @ radix backward annotation; the training loop owns no inline learning-rate
+# fill, gradient scaling, or parameter subtraction.
 #
 # Parameter layout (matches tape oracle flat slice):
 #   Input:  [0.5, -1.0, 2.0, 0.75]          2×2  frozen
@@ -24,16 +26,17 @@
 # Companion ABI: linear_backward(input, weight, bias, target, nil(), 1.0)
 #   → iuncta(grad_input, grad_weight, grad_bias, grad_target)
 #   Discard frozen: grad_input, grad_target.
-#   Update trainable: weight, bias via inline SGD step.
+#   Update trainable: weight, bias via gradus:train train_step_2x2.
 #
-# SGD update is inlined (param -= lr * grad) because MIR-backed targets
-# cannot yet import library modules like norma:optimizer.
-#
-# Multi-step: iterates 8 SGD steps with backward pass + inline SGD update,
+# Multi-step: iterates 8 SGD steps with backward pass + gradus training step,
 # records loss trace, notas the trace, weight, and bias.
 #
 # Build: faber run -t fmir examples/training/linear-regression/
 # =============================================================================
+
+importa ex "gradus:nn" privata nn
+importa ex "gradus:loss" privata loss
+importa ex "gradus:train" privata train
 
 # -------------------------------------------------------------------------
 # Differentiable forward: loss = mean((input·weight + bias − target)²)
@@ -63,23 +66,7 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# forward — factored tensor-returning forward pass, called inside the
-# training loop. Previously inlined because the then-current compiler
-# rejected tensor-returning function calls inside loop bodies (SEM010);
-# that restriction no longer exists.
-# -------------------------------------------------------------------------
-
-functio forward(
-    tensor<f32, [2,2]> input,
-    tensor<f32, [2,2]> weight,
-    tensor<f32, [2,2]> bias
-) → tensor<f32, [2,2]> {
-    fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
-    redde prediction.addita(bias)
-}
-
-# -------------------------------------------------------------------------
-# incipit — multi-step training loop: forward × 8 + backward + SGD
+# incipit — multi-step training loop: forward × 8 + backward + gradus step
 # -------------------------------------------------------------------------
 
 incipit {
@@ -97,33 +84,25 @@ incipit {
     fixum tensor<f32, [2,2]> target ← seed.strue(data_target, [2, 2])
 
     fixum f32 lr ← 0.01
-    fixum lista<numerus> shape_w ← weight.magnitudines()
-    fixum lista<numerus> shape_b ← bias.magnitudines()
 
     fixum numerus steps ← 8
     varia lista<f32> loss_trace ← vacua
 
     itera ab 0‥steps fixum step {
-        # Forward via factored tensor-returning functio.
-        fixum tensor<f32, [2,2]> pred ← forward(input, weight, bias)
-        fixum tensor<f32, [2,2]> resd ← pred.subtrahe(target)
-        fixum tensor<f32, [2,2]> sqrd ← resd.multiplica(resd)
-        fixum f32 loss ← sqrd.media()
-        loss_trace.appende(loss)
+        # Forward + loss via the Gradus surface.
+        fixum tensor<f32, [2,2]> pred ← nn.linear_2x2(input, weight, bias)
+        fixum f32 loss_val ← loss.mse_2x2(pred, target)
+        loss_trace.appende(loss_val)
 
         # Backward pass via compiler-generated companion
         fixum f32 upstream ← 1.0
         fixum _ grads ← linear_backward(input, weight, bias, target, nil(), upstream)
         fixum [_, gw, gb, _] ← grads
 
-        # SGD update: weight -= lr * gw, bias -= lr * gb
-        fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
-        fixum tensor<f32, [2,2]> scaled_w ← gw.multiplica(lr_fill_w)
-        weight ← weight.subtrahe(scaled_w)
-
-        fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
-        fixum tensor<f32, [2,2]> scaled_b ← gb.multiplica(lr_fill_b)
-        bias ← bias.subtrahe(scaled_b)
+        # Update via Gradus training step (explicit params + gradients + lr).
+        fixum [nw, nb] ← train.train_step_2x2(weight, bias, gw, gb, lr)
+        weight ← nw
+        bias ← nb
     }
 
     nota loss_trace
