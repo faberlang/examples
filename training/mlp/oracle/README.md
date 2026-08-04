@@ -1,8 +1,10 @@
-# mlp — CPU/FMIR Oracle Reference (S0-C)
+# mlp — CPU/FMIR Oracle Reference (S0-C / S4-B / S5-U7)
 
 Pinned deterministic CPU/FMIR oracle references for `examples/training/mlp/`.
-Part of Stage 0 (`stage-0-delivery.md`, unit **S0-C**) of the `gpu-training-lowering`
-campaign: exit-gate bullet 5 — "CPU oracle inputs + expected traces pinned".
+Part of the `gpu-training-lowering` campaign: Stage 0 exit-gate bullet 5
+("CPU oracle inputs + expected traces pinned", unit **S0-C**), extended to the
+Gradus surface at Stage 4 (**S4-B**), and to the Stage 5 device product
+fixture at **S5-U7** (100 steps, `[device]` section, device marking).
 
 The fixture `src/train.fab` is **read-only**; it is the pinned oracle input. All
 oracle content below was captured by running the fixture through the FMIR stepper
@@ -13,39 +15,53 @@ on CPU (burgus, macOS). No device run was involved.
 When a later stage (Stage 1+) executes the same training program on Metal/CUDA,
 its observed loss trace, gradient tensors, and final parameters are compared
 per element against these references using the frozen numeric policy in
-`stage-0-delivery.md` §2 (N1.9). These files are that reference.
+`numeric-policy.md` (v1.0.0, formerly `stage-0-delivery.md` §2 N1.9). These
+files are that reference.
 
 ## Fixture
 
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, 8-step SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-B): `nn.linear_4x4` forward, `nn.gelu_4x4`, `loss.mse_4x4`, `train.train_step_4x4` update |
+| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-B/S5-U7): `nn.linear_4x4` forward, `nn.gelu_4x4`, `loss.mse_4x4`, `train.train_step_4x4` update |
 | trainable | `weight1` [4,4], `bias1` [4,4], `weight2` [4,4], `bias2` [4,4] |
 | frozen | `input` [4,4], `target` [4,4] |
+| lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "mlp_backward"` (S5-U7 device marking; SEM059 shape) |
 | companion | `@ radix backward "mlp_backward"` (AIR-generated, CPU FMIR stepper) |
-| run | `faber run -t fmir .` from the package directory |
+| manifest | `[device] backend = "auto"`, `steps = 100`, host inputs for all six buffers (faber.toml) |
+| run | `faber run -t fmir oracle/capture.fab` from the package directory |
 
-S4-B (Stage 4, `gpu-training-lowering` stage-4-delivery.md unit S4-B) migrated
-this fixture from inline layer/loss/SGD expressions onto the Gradus surface,
-proving the API for a second caller with four trainable
-gradient/update tensors. The model function still carries the ONE explicit
-`@ radix backward` annotation; the loop owns no inline learning-rate fill,
-gradient scaling, or parameter subtraction. The migration preserves the
-captured oracle byte-for-byte (see Determinism evidence below).
+S4-B (Stage 4, `stage-4-delivery.md` unit S4-B) migrated this fixture from
+inline layer/loss/SGD expressions onto the Gradus surface, proving the API for
+a second caller with four trainable gradient/update tensors. The model function
+still carries the ONE explicit `@ radix backward` annotation; the loop owns no
+inline learning-rate fill, gradient scaling, or parameter subtraction.
+
+S5-U7 (Stage 5, `stage-5-delivery.md` unit S5-U7) evolved the fixture to the
+device product shape: the lane gained the `@ nucleum` device marking, the loop
+grew to 100 steps, and `faber.toml` gained the `[device]` section (backend
+`auto`, declared step count `100` — validated against the source loop bound —
+and the pinned host inputs). The initial params and all arithmetic are
+**unchanged**; only the step count and the device surface changed. See
+"Device image build (S5-U7)" below for the on-device status of this package.
 
 ## File inventory
 
 | File | Content |
 |---|---|
-| `capture.fab` | Instrumented capture runner: an exact copy of `src/train.fab` with added `nota` statements (provenance documented in its header). |
+| `capture.fab` | Instrumented capture runner: an exact copy of `src/train.fab` with added `nota` statements (provenance documented in its header). **Deliberately omits the `@ nucleum` device marking** so the CPU oracle stays regenerable while the manifest declares a `[device]` surface (the faber constructor's documented "CPU oracle capture runner has no kernel" exemption). |
 | `capture.txt` | Raw, byte-deterministic capture output (marker/value stream, see schema below). |
 | `capture.sha256` | SHA-256 of `capture.txt`. |
 | `inputs.json` | Initial params/inputs (pinned oracle inputs). |
-| `loss-trace.json` | The 8-step loss trace. |
+| `loss-trace.json` | The 100-step loss trace. |
 | `gradients.json` | Per-step gradient tensors from the CPU companion, **trainable slots only** (`weight1`, `bias1`, `weight2`, `bias2`). Frozen-slot gradients (`grad_input`, `grad_target`) exist only in `capture.txt`. |
-| `final-params.json` | Trainable params after the 8 SGD steps. |
+| `final-params.json` | Trainable params after the 100 SGD steps. |
 | `fd-validation.json` | Per-element finite-difference gradient validation results (N1.9 FD rule). |
+| `reference.json` | Machine-readable fixture metadata (S2-5 convention): shapes, trainable/frozen sets, policy citation, capture hash, replay/FD verdicts, device-image status. |
+| `tools/extract_reference.py` | Rebuilds `inputs.json` / `loss-trace.json` / `gradients.json` / `final-params.json` verbatim from a fresh `capture.txt` (S5-U7). |
+| `tools/fd_probe.py` | Regenerates `fd-validation.json` (central difference, ε = 1e-3, N1.9). |
+| `tools/replay_loss.py` | Independent f64 loss-trace replay. |
+| `tools/replay_f32.py` | Independent strict-f32 trajectory replay. |
 
 ## Capture schema
 
@@ -68,7 +84,11 @@ final_weight1
 Markers are bare lowercase identifiers; the value line that follows is the
 stepper `nota` output: a flat, row-major list `[...]` for tensors or a bare
 decimal for scalars. Markers repeat per training step (`step_loss`, `grad_*`
-appear 8 times, in step order).
+appear 100 times, in step order). The fixture's trailing `nota loss_trace`
+prints the aggregate loss list with no marker prefix (kept so the legacy
+"fixture output is a byte-identical suffix" cross-check held for the 8-step
+capture; it is inert for the reference files — `extract_reference.py` skips
+stray value lines).
 
 Value encoding: every number is the verbatim stepper Display string. The FMIR
 stepper computes float math in f64 (`radix-mir-stepper`), and `nota` emits the
@@ -81,36 +101,45 @@ is the flat row-major list of value strings):
 
 - `inputs.json` — `{"fixture", "source", "inputs": [tensor...]}`; all initial
   params/inputs as constructed by `seed.strue(...)` in the fixture.
-- `loss-trace.json` — `{"fixture", "steps": 8, "lr": "0.01", "losses": [8 strings],
-  "rule"}`.
-- `gradients.json` — `{"fixture", "rule", "method", "steps": [{"step", "gradients":
-  [tensor...]}]}`. Records the **trainable** tensors only; gradient order per
-  step is the trainable slot order `(grad_weight1, grad_bias1, grad_weight2,
-  grad_bias2)`. Frozen-slot gradients (`grad_input`, `grad_target`) are captured
-  in `capture.txt` but not recorded here.
-- `final-params.json` — `{"fixture", "after_steps": 8, "final_params": [tensor...]}`.
+- `loss-trace.json` — `{"fixture", "steps": 100, "lr": "0.01", "losses": [100
+  strings], "rule"}`.
+- `gradients.json` — `{"fixture", "rule", "method", "steps": [{"step",
+  "gradients": [tensor...]}]}`. Records the **trainable** tensors only;
+  gradient order per step is the trainable slot order `(grad_weight1,
+  grad_bias1, grad_weight2, grad_bias2)`. Frozen-slot gradients
+  (`grad_input`, `grad_target`) are captured in `capture.txt` but not recorded
+  here.
+- `final-params.json` — `{"fixture", "after_steps": 100, "final_params":
+  [tensor...]}`.
 - `fd-validation.json` — per-element `{index, fd, companion, delta, tol, pass}`.
 
 ## Regeneration
 
 ```bash
 cd examples/training/mlp
-faber run -t fmir oracle/capture.fab > oracle/capture.txt   # regenerate capture
+export FABER_LIBRARY_HOME=/Users/ianzepp/work/faberlang   # gradus/norma providers
+FABER=/path/to/faber                                       # workspace faber (S5-U5..U5c)
+$FABER run -t fmir oracle/capture.fab > oracle/capture.txt   # regenerate capture
 shasum -a 256 oracle/capture.txt                            # must equal capture.sha256
 
-python3 oracle/tools/fd_probe.py        # regenerate oracle/fd-validation.json
+python3 oracle/tools/extract_reference.py  # rebuild the four JSON reference files
+python3 oracle/tools/fd_probe.py --faber "$FABER"        # regenerate fd-validation.json
 python3 oracle/tools/replay_loss.py     # independent f64 loss-trace replay
 python3 oracle/tools/replay_f32.py      # independent strict-f32 trajectory replay
 ```
 
-The capture is byte-deterministic: two identical runs of the fixture
-(`faber run -t fmir .`) and of the capture runner produce byte-identical
-output. If `src/train.fab` changes, regenerate `capture.fab` (instrumented copy)
-and all reference files; the FD probe and replay scripts in `oracle/tools/`
-then regenerate `fd-validation.json` and the replay evidence (see
-`oracle/tools/README.md` for the `faber` prerequisite and exit codes).
+The capture is byte-deterministic: two identical runs of the capture runner
+produce byte-identical output (verified at 100 steps). If `src/train.fab`
+changes, regenerate `capture.fab` (instrumented copy) and all reference files.
 
-## Validation rules (frozen N1.9)
+Note: with the S5-U7 `[device]` section declared, `faber run -t fmir .` on the
+package entry fails closed (the entry carries the `@ nucleum` lane and device
+construction runs during the FMIR image build — see below). The CPU oracle is
+therefore captured through `oracle/capture.fab`, which carries no `@ nucleum`
+marking; the 8-step "fixture output is a byte-identical suffix of capture.txt"
+cross-check is historical (S0-C evidence) and is not reproducible at 100 steps.
+
+## Validation rules (frozen N1.9 / numeric-policy v1.0.0)
 
 Applies elementwise; `b` = reference (these files). Shapes must match.
 `|a_i − b_i| ≤ atol + rtol·|b_i|`. Any NaN or ±Inf in observed or reference
@@ -127,7 +156,7 @@ probe); acceptance per element via the gradient rule.
 
 ## Determinism evidence
 
-### Original capture (2026-08-03, S0-C — inline SGD fixture)
+### Original capture (2026-08-03, S0-C — inline SGD fixture, 8 steps)
 
 - capture.txt sha256: `cb922eb0b6b95c72ea6a5ea7502447537addabfc24c8f7a9f0ab2cc18cd28c8e`
 - fixture run output sha256 (two runs identical): `be0b5280a07db413b112b82d5551956631237f9ff8d1eb1af1b7a159e810aadd`
@@ -147,8 +176,6 @@ as the instrumented copy of the migrated source. The captured oracle is
 - migrated source sha256 (`src/train.fab`): `698334c504ffe0d7f52dd93a298a4d4797843863ab1cb5101e485a2d2f857f32`
 - capture runner sha256 (`oracle/capture.fab`): `fe685f0706547e3c1815dbfd56d596ae65b6da7a5c01049ee724053250fa9d4a`
 - capture.txt sha256 (unchanged): `cb922eb0b6b95c72ea6a5ea7502447537addabfc24c8f7a9f0ab2cc18cd28c8e`
-  (`shasum -a 256 oracle/capture.txt` matches `capture.sha256`)
-- fixture run output sha256 (unchanged): `be0b5280a07db413b112b82d5551956631237f9ff8d1eb1af1b7a159e810aadd`
 - FD gradient validation: 64/64 elements pass, worst delta ~4.3e-8 (rule tol ~1e-4).
 - Loss trace replay (independent f64): all 8 steps pass, worst delta ~2.2e-16.
 - Strict-f32 trajectory replay (`tools/replay_f32.py`, independent f32
@@ -156,3 +183,64 @@ as the instrumented copy of the migrated source. The captured oracle is
   + final params pass under the N1.9 rules, worst loss delta ~1.5e-7, worst
   param delta ~8.8e-8 — the executed contract is the f32-typed program.
 - All captured values finite.
+
+### S5-U7 extension (2026-08-04, 100 steps — workspace faber @ faber `a384ff1`)
+
+The S5-U7 extension changed `src/train.fab` (100-step loop + `@ nucleum` lane
+marking) and `faber.toml` (`[device]` section) and regenerated the full oracle.
+The initial params, the Gradus surface, and the arithmetic are unchanged; the
+pinned reference is now the 100-step trajectory.
+
+- source sha256 (`src/train.fab`): `0e235dfbd50cf24f58b0d4d13f1b4ed57889d5c904a7945cbd41b80ad2b2f29d5`
+- capture runner sha256 (`oracle/capture.fab`): `0d14e09e8ec4f7bca5385e880afcbceac071bdc8a476362e6afbe87a34f8ab42`
+- capture.txt sha256 (two runs identical): `c275463879bba4356741dd8fe711ec33f35d4f9472f7da929d5340ea9203e168`
+  (`shasum -a 256 oracle/capture.txt` matches `capture.sha256`)
+- Loss trace replay (independent f64): all 100 steps pass, worst delta
+  ~2.2e-16 (rule tol ~2.6e-6).
+- Strict-f32 trajectory replay (`tools/replay_f32.py`): all 100 loss steps +
+  final params pass under the N1.9 rules, worst loss delta ~3.5e-7, worst
+  param delta ~3.4e-7 — the executed contract is the f32-typed program.
+- FD gradient validation (step-0 companion vs central-difference probe):
+  64/64 elements pass, worst delta ~4.3e-8 (rule tol ~1e-4).
+- All captured values finite. Loss0 = 1.576448169383708, final loss (step 99)
+  = 0.7941141822864916.
+- The 100-step trajectory at the pinned `lr = 0.01` does **not** reach the
+  Stage 5 exit-gate convergence bound (final < 0.1 × initial): 0.794 vs the
+  0.158 bound. The fixture's initial params and lr are frozen oracle inputs
+  (S0-C); whether the device exit gate needs a different step/lr negotiation is
+  a Stage 5 acceptance question (U8/U9/U10), not an oracle change.
+
+## Device image build (S5-U7)
+
+The package declares a `[device]` surface and the lane carries the `@ nucleum`
+marking, so the ordinary route builds the device program into the FMIR image.
+Attempted on burgus (2026-08-04) with the workspace faber (`faber` @
+`a384ff1`, built with the S5-U1..U5c substrate):
+
+```text
+$ faber run --backend metal .   → error: E_DEVICE_DESCRIPTOR: device program
+                                  signature: recipe operand requires a tensor type
+                                  (fmir image build failed, exit 1)
+$ faber run --backend cuda .    → same fail-closed diagnostic (exit 1)
+$ faber run -t fmir .           → same fail-closed diagnostic (exit 1)
+$ faber run -t fmir oracle/capture.fab  → ok (exit 0) — CPU oracle unaffected
+```
+
+This is a **fail-closed missing-surface result**, not a package defect: the
+MLP lane returns a scalar (`fractus` — the MSE), and the S5-U1 training-path
+decomposition requires tensor-typed data-flow params in the subchain
+signatures (`radix-mir` `subchain_signature_for_emission`). A scalar-return
+primal's generated companion carries a non-tensor upstream seed, which the
+decomposition seam rejects with `recipe operand requires a tensor type`. The
+U5 constructor tests use a tensor-return forward for exactly this reason. A
+relowering probe (lane returning the squared-residual tensor) progresses past
+the signature stage but then hits the next missing surface — the Metal emitter
+rejects a kernel runtime call (`MIR-to-Metal unsupported: kernel runtime
+call`) — so the full MLP device image needs both (a) scalar-return-lane
+companion decomposition and (b) the remaining Metal/CUDA emitter arms.
+
+`reference.json` records the exact device-image status. The `[device] inputs`
+keys in `faber.toml` follow the documented convention (kernel parameter
+names); the decomposed training-program buffer naming (e.g. synthesized
+`input_0`-style names observed in the tensor-return probe) must be reconciled
+when the surface lands (U8).

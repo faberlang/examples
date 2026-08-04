@@ -3,10 +3,13 @@
 # oracle/tools/replay_loss.py — independent f64 loss-trace replay (S0-C)
 # =============================================================================
 #
-# Re-derives the 8-step loss trace from the captured initial values
+# Re-derives the loss trace from the captured initial values
 # (oracle/capture.txt, initial_* markers) and the captured per-step gradients
-# (oracle/gradients.json), using pure Python f64 arithmetic. The FMIR stepper
-# computes float math in f64 (radix-mir-stepper), so an f64 replay is an
+# (oracle/gradients.json), using pure Python f64 arithmetic. The step count is
+# auto-detected from the capture (gradients.json steps vs loss-trace.json), so
+# the replay validates an 8-step capture and a 100-step capture identically.
+# The FMIR stepper computes float math in f64 (radix-mir-stepper), so an f64
+# replay is an
 # independent re-derivation of the trajectory:
 #
 #   for step s:  loss_s = forward(params)            # current params
@@ -21,8 +24,10 @@
 # MLP forward: mean((gelu(input·weight1 + bias1)·weight2 + bias2 − target)²)
 #
 # Usage:
-#   python3 tools/replay_loss.py [oracle_dir]
-#   oracle_dir  defaults to the parent of the tools/ directory.
+#   python3 tools/replay_loss.py [oracle_dir] [--max-steps N]
+#   oracle_dir   defaults to the parent of the tools/ directory.
+#   --max-steps  validate/print only the first N steps (all updates are still
+#                applied for the full trajectory); 0 = all steps (default).
 #
 # Exit codes: 0 = all steps within rule; 1 = error or out-of-tolerance step.
 # =============================================================================
@@ -112,7 +117,37 @@ def load_gradients(path: str):
 
 def load_losses(path: str):
     d = json.load(open(path))
-    return [float(v) for v in d["losses"]], float(d["lr"])
+    return [float(v) for v in d["losses"]], float(d["lr"]), d.get("steps")
+
+
+def check_step_count(steps, losses, declared, capture_txt):
+    """Auto-detect the trajectory length and cross-check every source agrees.
+
+    The gradient step list in gradients.json is the replay source of truth.
+    loss-trace.json must agree (its declared 'steps' field, when present, and
+    its losses array length). capture.txt step_loss markers are a regeneration
+    artifact: a count mismatch there is a warning, not a hard error, so an
+    older capture.txt never blocks a JSON-only replay.
+
+    Returns the step count, or None when a hard check fails."""
+    n = len(steps)
+    problems = []
+    if len(losses) != n:
+        problems.append(f"loss-trace.json has {len(losses)} losses, "
+                        f"gradients.json has {n} steps")
+    if declared is not None and declared != n:
+        problems.append(f"loss-trace.json declares {declared} steps, "
+                        f"gradients.json has {n}")
+    if problems:
+        for p in problems:
+            print(f"error: {p}", file=sys.stderr)
+        return None
+    with open(capture_txt) as fh:
+        n_cap = sum(1 for line in fh if line.strip() == "step_loss")
+    if n_cap != n:
+        print(f"warning: capture.txt has {n_cap} step_loss markers, "
+              f"expected {n}", file=sys.stderr)
+    return n
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +155,9 @@ def main() -> int:
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser(description="Independent f64 loss-trace replay (S0-C)")
     ap.add_argument("oracle_dir", nargs="?", default=here)
+    ap.add_argument("--max-steps", type=int, default=0, metavar="N",
+                    help="validate/print only the first N steps (all updates are "
+                         "still applied for the full trajectory); 0 = all steps (default)")
     args = ap.parse_args()
 
     oracle_dir = os.path.abspath(args.oracle_dir)
@@ -133,21 +171,29 @@ def main() -> int:
 
     params = load_initial(capture_txt)
     steps, fixture = load_gradients(gradients_json)
-    losses, lr = load_losses(loss_trace_json)
+    losses, lr, declared = load_losses(loss_trace_json)
+
+    n = check_step_count(steps, losses, declared, capture_txt)
+    if n is None:
+        return 1
+    limit = n if args.max_steps <= 0 else min(args.max_steps, n)
 
     worst = 0.0
     all_pass = True
-    print(f"fixture: {fixture}   lr: {lr}   steps: {len(steps)}")
+    print(f"fixture: {fixture}   lr: {lr}   steps: {n}")
+    if limit < n:
+        print(f"  (validating first {limit} of {n} steps; updates applied for all {n})")
     for s, step in enumerate(steps):
         loss = forward(params)
-        expected = losses[s]
-        delta = abs(loss - expected)
-        tol = ATOL + RTOL * abs(expected)
-        ok = delta <= tol and math.isfinite(loss) and math.isfinite(expected)
-        all_pass = all_pass and ok
-        worst = max(worst, delta)
-        print(f"  step {s}: replay={loss!r} trace={expected!r} "
-              f"delta={delta:.6g} tol={tol:.6g} {'PASS' if ok else 'FAIL'}")
+        if s < limit:
+            expected = losses[s]
+            delta = abs(loss - expected)
+            tol = ATOL + RTOL * abs(expected)
+            ok = delta <= tol and math.isfinite(loss) and math.isfinite(expected)
+            all_pass = all_pass and ok
+            worst = max(worst, delta)
+            print(f"  step {s}: replay={loss!r} trace={expected!r} "
+                  f"delta={delta:.6g} tol={tol:.6g} {'PASS' if ok else 'FAIL'}")
         # SGD update of the trainable params (frozen tensors untouched)
         for tensor in step["gradients"]:
             g = [float(v) for v in tensor["values"]]
@@ -155,7 +201,7 @@ def main() -> int:
             for i in range(len(p)):
                 p[i] -= lr * g[i]
 
-    print(f"loss replay: {'all ' + str(len(steps)) + ' steps pass' if all_pass else 'FAILURES'}, "
+    print(f"loss replay: {'all ' + str(limit) + ' steps (of ' + str(n) + ') pass' if all_pass else 'FAILURES'}, "
           f"worst delta {worst:.6g} (rule tol ~{ATOL + RTOL * max(losses):.6g})")
     return 0 if all_pass else 1
 

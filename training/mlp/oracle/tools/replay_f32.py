@@ -3,9 +3,12 @@
 # oracle/tools/replay_f32.py — independent strict-f32 trajectory replay (S4-B)
 # =============================================================================
 #
-# Re-derives the 8-step training trajectory with STRICT f32 arithmetic and
-# checks it against the captured oracle. The FMIR stepper computes float math
-# in f64 (radix-mir-stepper); this replay instead rounds every op to f32
+# Re-derives the training trajectory with STRICT f32 arithmetic and checks it
+# against the captured oracle. The step count is auto-detected from the
+# capture (gradients.json steps vs loss-trace.json), so the replay validates
+# an 8-step capture and a 100-step capture identically. The FMIR stepper
+# computes float math in f64 (radix-mir-stepper); this replay instead rounds
+# every op to f32
 # (numpy float32) to verify that the *executed contract* is the f32-typed
 # program the fixture declares — i.e. an independent implementation of the
 # same forward/update semantics:
@@ -27,8 +30,11 @@
 # margin. All compared values must be finite.
 #
 # Usage:
-#   python3 tools/replay_f32.py [oracle_dir]
-#   oracle_dir  defaults to the parent of the tools/ directory.
+#   python3 tools/replay_f32.py [oracle_dir] [--max-steps N]
+#   oracle_dir   defaults to the parent of the tools/ directory.
+#   --max-steps  validate/print only the first N steps (all updates are still
+#                applied, so the final-params check covers the full trajectory);
+#                0 = all steps (default).
 #
 # Exit codes: 0 = all checks within rule; 1 = error or out-of-tolerance value.
 # =============================================================================
@@ -47,7 +53,6 @@ ATOL_PARAM = 1.0e-4
 RTOL_PARAM = 1.0e-4
 RULE_LOSS = "|a-b| <= 1e-6 + 1e-6*|b| (N1.9 reduction scalar)"
 RULE_PARAM = "|a-b| <= 1e-4 + 1e-4*|b| (N1.9 gradient tolerances)"
-STEPS = 8
 
 F32 = np.float32
 
@@ -127,10 +132,44 @@ def load_initial(capture_txt):
     return params
 
 
+def check_step_count(steps, losses, declared, capture_txt):
+    """Auto-detect the trajectory length and cross-check every source agrees.
+
+    The gradient step list in gradients.json is the replay source of truth.
+    loss-trace.json must agree (its declared 'steps' field, when present, and
+    its losses array length). capture.txt step_loss markers are a regeneration
+    artifact: a count mismatch there is a warning, not a hard error, so an
+    older capture.txt never blocks a JSON-only replay.
+
+    Returns the step count, or None when a hard check fails."""
+    n = len(steps)
+    problems = []
+    if len(losses) != n:
+        problems.append(f"loss-trace.json has {len(losses)} losses, "
+                        f"gradients.json has {n} steps")
+    if declared is not None and declared != n:
+        problems.append(f"loss-trace.json declares {declared} steps, "
+                        f"gradients.json has {n}")
+    if problems:
+        for p in problems:
+            print(f"error: {p}", file=sys.stderr)
+        return None
+    with open(capture_txt) as fh:
+        n_cap = sum(1 for line in fh if line.strip() == "step_loss")
+    if n_cap != n:
+        print(f"warning: capture.txt has {n_cap} step_loss markers, "
+              f"expected {n}", file=sys.stderr)
+    return n
+
+
 def main() -> int:
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser(description="Independent strict-f32 trajectory replay (S4-B)")
     ap.add_argument("oracle_dir", nargs="?", default=here)
+    ap.add_argument("--max-steps", type=int, default=0, metavar="N",
+                    help="validate/print only the first N steps (all updates are "
+                         "still applied, so the final-params check stays valid for "
+                         "the full trajectory); 0 = all steps (default)")
     args = ap.parse_args()
 
     oracle_dir = os.path.abspath(args.oracle_dir)
@@ -151,20 +190,28 @@ def main() -> int:
     losses = [float(v) for v in loss_trace["losses"]]
     lr = F32(float(loss_trace["lr"]))
 
+    n = check_step_count(steps, losses, loss_trace.get("steps"), capture_txt)
+    if n is None:
+        return 1
+    limit = n if args.max_steps <= 0 else min(args.max_steps, n)
+
     worst_loss = 0.0
     worst_param = 0.0
     all_pass = True
-    print(f"fixture: {fixture}   lr: {float(lr)}   steps: {len(steps)}   precision: strict f32")
+    print(f"fixture: {fixture}   lr: {float(lr)}   steps: {n}   precision: strict f32")
+    if limit < n:
+        print(f"  (validating first {limit} of {n} steps; updates applied for all {n})")
     for s, step in enumerate(steps):
         loss = f32_forward(params)
-        expected = losses[s]
-        delta = abs(float(loss) - expected)
-        tol = ATOL_LOSS + RTOL_LOSS * abs(expected)
-        ok = delta <= tol and math.isfinite(float(loss)) and math.isfinite(expected)
-        all_pass = all_pass and ok
-        worst_loss = max(worst_loss, delta)
-        print(f"  step {s}: f32={float(loss)!r} trace={expected!r} "
-              f"delta={delta:.6g} tol={tol:.6g} {'PASS' if ok else 'FAIL'}")
+        if s < limit:
+            expected = losses[s]
+            delta = abs(float(loss) - expected)
+            tol = ATOL_LOSS + RTOL_LOSS * abs(expected)
+            ok = delta <= tol and math.isfinite(float(loss)) and math.isfinite(expected)
+            all_pass = all_pass and ok
+            worst_loss = max(worst_loss, delta)
+            print(f"  step {s}: f32={float(loss)!r} trace={expected!r} "
+                  f"delta={delta:.6g} tol={tol:.6g} {'PASS' if ok else 'FAIL'}")
         # SGD update of the trainable params (strict f32; frozen untouched)
         for tensor in step["gradients"]:
             g = [F32(v) for v in tensor["values"]]
@@ -186,7 +233,7 @@ def main() -> int:
             print(f"  final {name}[{idx}]: f32={g!r} ref={r!r} "
                   f"delta={delta:.6g} tol={tol:.6g} {'PASS' if ok else 'FAIL'}")
 
-    print(f"f32 replay: {'all ' + str(len(steps)) + ' loss steps + final params pass' if all_pass else 'FAILURES'}, "
+    print(f"f32 replay: {'all ' + str(limit) + ' loss steps (of ' + str(n) + ') + final params pass' if all_pass else 'FAILURES'}, "
           f"worst loss delta {worst_loss:.6g} (rule tol ~{ATOL_LOSS + RTOL_LOSS * max(losses):.6g}), "
           f"worst param delta {worst_param:.6g} (rule {RULE_PARAM})")
     return 0 if all_pass else 1
