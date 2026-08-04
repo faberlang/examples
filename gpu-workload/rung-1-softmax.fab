@@ -4,6 +4,7 @@ kind = "workload"
 category = "gpu"
 summary = "Softmax-forward workload floor probe."
 related = ["tensor", "softmax", "reduction", "broadcast", "nucleum"]
+locale = "la"
 +++
 
 # =============================================================================

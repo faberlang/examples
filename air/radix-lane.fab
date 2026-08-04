@@ -7,6 +7,7 @@ summary = "Compiler-owned @ radix lane metadata for HIR-direct, MIR, and AIR rou
 syntax = "@ radix lane \"air\" | \"mir\" | \"hir-direct\""
 aliases = ["@ radix", "lane", "air"]
 related = ["functio", "mir", "air"]
+locale = "la"
 +++
 
 # =============================================================================

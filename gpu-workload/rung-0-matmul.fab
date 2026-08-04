@@ -4,6 +4,7 @@ kind = "workload"
 category = "gpu"
 summary = "On-device matmul workload floor probe with host-side reference."
 related = ["tensor", "matmul", "nucleum", "cuda"]
+locale = "la"
 +++
 
 # =============================================================================

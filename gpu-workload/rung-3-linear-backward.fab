@@ -4,6 +4,7 @@ kind = "workload"
 category = "gpu"
 summary = "Linear backward-pass workload floor probe for the AIR gate."
 related = ["air", "gradient", "tensor", "nucleum"]
+locale = "la"
 +++
 
 # =============================================================================

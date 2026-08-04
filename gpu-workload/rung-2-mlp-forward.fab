@@ -4,6 +4,7 @@ kind = "workload"
 category = "gpu"
 summary = "Two-layer MLP forward workload floor probe."
 related = ["tensor", "matmul", "mlp", "nucleum"]
+locale = "la"
 +++
 
 # =============================================================================

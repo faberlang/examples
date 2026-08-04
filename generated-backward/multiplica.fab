@@ -4,6 +4,7 @@ kind = "exemplum"
 category = "air"
 summary = "Stage 2 end-to-end exemplum: multiplica with generated backward companion."
 related = ["air lane", "backward", "generated gradient"]
+locale = "la"
 +++
 
 # =============================================================================

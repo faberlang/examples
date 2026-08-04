@@ -4,6 +4,7 @@ kind = "workload"
 category = "gpu"
 summary = "Toy training-loop workload floor probe for placement and iterated launch."
 related = ["training", "placement", "tensor", "nucleum"]
+locale = "la"
 +++
 
 # =============================================================================
