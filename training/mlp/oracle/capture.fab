@@ -1,9 +1,10 @@
 # =============================================================================
-# oracle/capture.fab — instrumented capture runner for mlp (S0-C)
+# oracle/capture.fab — instrumented capture runner for mlp (S0-C / S4-B)
 # =============================================================================
 #
-# Provenance: an exact copy of src/train.fab with ADDED `nota` statements so the
-# deterministic CPU/FMIR oracle reference can be captured in full:
+# Provenance: an exact copy of src/train.fab (S4-B Gradus surface) with ADDED
+# `nota` statements so the deterministic CPU/FMIR oracle reference can be
+# captured in full:
 #   1. initial params/inputs          (nota "initial_*" before the loop)
 #   2. the 8-step loss trace          (nota step_loss per step, plus the
 #                                      fixture's trailing nota loss_trace)
@@ -21,12 +22,20 @@
 # See oracle/README.md for the capture schema and validation rules.
 # =============================================================================
 
+importa ex "gradus:nn" privata nn
+importa ex "gradus:loss" privata loss
+importa ex "gradus:train" privata train
+
 # -------------------------------------------------------------------------
 # Differentiable forward: mlp_loss
 # -------------------------------------------------------------------------
 # Params: input (4x4), weight1 (4x4), bias1 (4x4), weight2 (4x4),
 #         bias2 (4x4), target (4x4)
 # Returns: mean squared error (scalar f32)
+#
+# Math stays inline here — the @ radix backward companion is generated from
+# this function; the Gradus calls above are exercised by the training loop.
+# -------------------------------------------------------------------------
 
 @ radix lane "air"
 @ radix backward "mlp_backward"
@@ -62,7 +71,7 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# incipit — multi-step training loop: forward x8 + backward + SGD
+# incipit — multi-step training loop: forward x8 + backward + gradus step
 # (arithmetic identical to src/train.fab; nota lines added for capture)
 # -------------------------------------------------------------------------
 
@@ -105,10 +114,6 @@ incipit {
 
     fixum f32 upstream ← 1.0
     fixum f32 lr ← 0.01
-    fixum lista<numerus> shape_w1 ← weight1.magnitudines()
-    fixum lista<numerus> shape_b1 ← bias1.magnitudines()
-    fixum lista<numerus> shape_w2 ← weight2.magnitudines()
-    fixum lista<numerus> shape_b2 ← bias2.magnitudines()
 
     fixum numerus steps ← 8
     varia lista<f32> loss_trace ← vacua
@@ -128,20 +133,16 @@ incipit {
     nota target
 
     itera ab 0‥steps fixum step {
-        # Forward pass (inlined — mirrors src/train.fab).
-        fixum tensor<f32, [4,4]> h1a  ← input.matmul(weight1)
-        fixum tensor<f32, [4,4]> h1b  ← h1a.addita(bias1)
-        fixum tensor<f32, [4,4]> a1   ← h1b.gelu()
-        fixum tensor<f32, [4,4]> h2a  ← a1.matmul(weight2)
-        fixum tensor<f32, [4,4]> h2b  ← h2a.addita(bias2)
-        fixum tensor<f32, [4,4]> resd ← h2b.subtrahe(target)
-        fixum tensor<f32, [4,4]> sqrd ← resd.multiplica(resd)
-        fixum f32 loss ← sqrd.media()
-        loss_trace.appende(loss)
+        # Forward + loss via the Gradus surface (mirrors src/train.fab).
+        fixum tensor<f32, [4,4]> h1b ← nn.linear_4x4(input, weight1, bias1)
+        fixum tensor<f32, [4,4]> a1  ← nn.gelu_4x4(h1b)
+        fixum tensor<f32, [4,4]> h2b ← nn.linear_4x4(a1, weight2, bias2)
+        fixum f32 loss_val ← loss.mse_4x4(h2b, target)
+        loss_trace.appende(loss_val)
 
         # ---- CAPTURE: per-step loss -------------------------------------
         nota "step_loss"
-        nota loss
+        nota loss_val
 
         # Backward pass via compiler-generated companion
         fixum _ grads ← mlp_backward(input, weight1, bias1, weight2, bias2,
@@ -162,22 +163,14 @@ incipit {
         nota "grad_target"
         nota gt
 
-        # SGD update for each trainable parameter
-        fixum tensor<f32, [4,4]> lr_fill_w1 ← seed.crea(lr, shape_w1)
-        fixum tensor<f32, [4,4]> scaled_w1  ← gw1.multiplica(lr_fill_w1)
-        weight1 ← weight1.subtrahe(scaled_w1)
-
-        fixum tensor<f32, [4,4]> lr_fill_b1 ← seed.crea(lr, shape_b1)
-        fixum tensor<f32, [4,4]> scaled_b1  ← gb1.multiplica(lr_fill_b1)
-        bias1 ← bias1.subtrahe(scaled_b1)
-
-        fixum tensor<f32, [4,4]> lr_fill_w2 ← seed.crea(lr, shape_w2)
-        fixum tensor<f32, [4,4]> scaled_w2  ← gw2.multiplica(lr_fill_w2)
-        weight2 ← weight2.subtrahe(scaled_w2)
-
-        fixum tensor<f32, [4,4]> lr_fill_b2 ← seed.crea(lr, shape_b2)
-        fixum tensor<f32, [4,4]> scaled_b2  ← gb2.multiplica(lr_fill_b2)
-        bias2 ← bias2.subtrahe(scaled_b2)
+        # Update via Gradus training step (explicit params + gradients + lr).
+        fixum [nw1, nb1, nw2, nb2] ← train.train_step_4x4(
+            weight1, bias1, weight2, bias2,
+            gw1, gb1, gw2, gb2, lr)
+        weight1 ← nw1
+        bias1 ← nb1
+        weight2 ← nw2
+        bias2 ← nb2
     }
 
     # ---- CAPTURE: final params ------------------------------------------

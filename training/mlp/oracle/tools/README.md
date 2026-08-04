@@ -8,6 +8,7 @@ determinism-evidence replay must be reproducible from the repo alone).
 |---|---|---|
 | `fd_probe.py` | Regenerates `fd-validation.json` by running the actual faber computation with each trainable element perturbed ±ε (central difference, ε = 1e-3, N1.9), comparing against the companion gradients in `gradients.json` step 0. | `oracle/fd-validation.json` |
 | `replay_loss.py` | Independent f64 replay of the 8-step loss trajectory from the captured initial values (`capture.txt`) and per-step gradients (`gradients.json`), checked against `loss-trace.json` under the N1.9 reduction-scalar rule. | stdout report |
+| `replay_f32.py` | Independent strict-f32 replay (every op rounded to f32, including GELU) of the same trajectory, checked against `loss-trace.json` and `final-params.json` under the N1.9 rules. Proves the executed contract is the f32-typed program (the FMIR stepper computes f64; f32 rounding bounds the deviation). | stdout report |
 
 ## Usage
 
@@ -18,6 +19,7 @@ shasum -a 256 oracle/capture.txt                            # must equal capture
 
 python3 oracle/tools/fd_probe.py            # writes oracle/fd-validation.json
 python3 oracle/tools/replay_loss.py         # prints the per-step replay deltas
+python3 oracle/tools/replay_f32.py          # strict-f32 trajectory replay
 ```
 
 `fd_probe.py` accepts `--faber PATH` (if faber is not on PATH), `--eps` (default
