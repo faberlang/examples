@@ -1,5 +1,5 @@
 # =============================================================================
-# device-summa-recollige — S2-5 ordinary two-kernel fixture (gpu-training-lowering)
+# device-summa-recollige — ordinary two-kernel fixture (3R U7 G5)
 # =============================================================================
 #
 # What this proves:
@@ -16,15 +16,19 @@
 #       faber run --backend metal <package>    # Apple M5 Max (burgus)
 #       faber run --backend cuda  <package>    # NVIDIA RTX 5070 (pharos)
 #
-#   • The constructor unifies the cross-kernel buffer identity (S2-5):
-#     `medius` is ONE BufferId (InOut role, PerStep lifetime) across both
-#     kernels — the shared intermediate is identity-unified by name+shape,
-#     never aliased (N2.7 no-aliasing posture).
+#   • The Stage 3 `E_DEVICE_DESCRIPTOR` contradiction is gone (3R U4/U5):
+#     compiler construction and host admission agree on the result/lifetime
+#     contract, and the ordinary two-kernel chain executes without any
+#     intermediate CPU readback. `medius` is ONE BufferId (InOut role, PerStep
+#     lifetime) across both kernels; execution order follows the carried
+#     producer/consumer dependency graph, never kernel declaration order (F3).
+#     The receipt carries the semantic graph hash, completion boundary, launch
+#     order, and the declared resource graph (R9/F6).
 #
 # Kernel 2 is a reduction rather than an elementwise kernel because the
 # Metal emitter's collection-op surface deliberately stops at Sum/Mean and
-# matmul (elementwise TensorAdd "waits for its own recipe" — D-W6-A1 U3);
-# the spec sanctions "reduction + elementwise, or two reductions" (N2.6).
+# matmul (elementwise TensorAdd "waits for its own recipe"); the spec
+# sanctions "reduction + elementwise, or two reductions".
 #
 # The host input values live in faber.toml `[device] inputs` (pinned with the
 # oracle); the CPU reference is pinned in oracle/ (numeric-policy v1.0.0,

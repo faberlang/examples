@@ -1,0 +1,55 @@
+{
+  "fixture": "hetero-backward",
+  "stage": "3R U7 G3 heterogeneous-output fixture",
+  "kernels": [
+    "hetero_loss",
+    "hetero_backward"
+  ],
+  "recipes": [
+    "CollectionKernelPlan::TreeReduction",
+    "CollectionKernelPlan::Elementwise"
+  ],
+  "dtype": "f32",
+  "input_shapes": {
+    "x": [
+      4
+    ],
+    "w": [
+      2
+    ]
+  },
+  "gradient_shapes": {
+    "grad_x": [
+      4
+    ],
+    "grad_w": [
+      2
+    ]
+  },
+  "heterogeneous_extents": true,
+  "policy": "numeric-policy v1.0.0",
+  "family": "reduction sum",
+  "atol": 1e-06,
+  "rtol": 1e-06,
+  "loss": 10.0,
+  "expected_grad_x": [
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "expected_grad_w": [
+    0.0,
+    0.0
+  ],
+  "capture_sha256": "bd1ffee7a70ba3ba94647b0fb4a7ba7d358e68fd19ba9421b4ff354c30e7df49",
+  "input_formula": "x[i] = i + 1.0 (i in 0..4); w[j] = j + 5.0 (j in 0..2); loss = sum(x); w is a selected-but-unused parameter",
+  "input_sample": [
+    1.0,
+    2.0,
+    3.0,
+    4.0
+  ],
+  "input_count": 6,
+  "note": "grad_w is exactly 0.0 because w does not affect loss = sum(x); the G3 substance is the heterogeneous [4]/[2] output bounds on real devices (union dispatch 4 must not overrun the [2] buffer)."
+}

@@ -1,0 +1,54 @@
+# =============================================================================
+# hetero-backward — G3 heterogeneous-output fixture (gpu-training stage-3r)
+# =============================================================================
+#
+# What this proves (G3):
+#   • An AIR-generated backward fixture whose gradient tuple has genuinely
+#     unequal output extents — grad_x: tf32[4] and grad_w: tf32[2] — executes
+#     safely on Metal and CUDA. Each output receives exactly its declared
+#     element count, with per-output dispatch extent and bounds (R6/P1); no
+#     shared extent overruns the smaller buffer or leaves the larger one
+#     partial.
+#   • Both outputs match an independent analytic oracle under
+#     numeric-policy v1.0.0 (reduction-sum row; values are exactly
+#     representable, so the policy floor is a backstop, not a rounding claim).
+#
+# The workload: loss = sum(x) with x: tf32[4]. The function signature also
+# selects a second parameter w: tf32[2] which is unused in the body, so the
+# AIR-generated companion `hetero_backward` returns a genuinely heterogeneous
+# tuple:
+#   forward  sx = sum(x) = 10.0
+#   backward grad_x[i] = upstream = 1.0  (4 elements)
+#           grad_w[j] = 0.0              (2 elements — d loss/d w = 0)
+#
+# Why this shape: the current device substrate combines different-shaped
+# parameters only through broadcast or matmul, and the elementwise device
+# kernel ABI accepts only same-element-count kernels; an unused selected
+# parameter is the source-expressible route to a second, smaller gradient
+# extent. The mathematical values are exact; the G3 substance is the
+# heterogeneous output BOUNDS on real devices (the [2] buffer must never be
+# overrun by the union [4] dispatch, and the [4] buffer must never be left
+# partial).
+#
+# This file is READ-ONLY: it is the pinned oracle input (S2-5 convention).
+# The host input values live in faber.toml `[device] inputs`; the CPU
+# reference is pinned in oracle/ under numeric-policy v1.0.0.
+#
+# See also: examples/training/mul-mean (S3-B1 fixture convention),
+# examples/training/device-summa-recollige (S2-5 fixture convention),
+# crates/radix-mir-llvm/tests/device_mode.rs + crates/radix-mir-metal
+# (U3 heterogeneous multi-output emitter proofs, [4]/[2] MIR fixtures).
+# =============================================================================
+
+# nil() — vacuum residual for the companion backward ABI.
+functio nil() → vacuum {
+    tacet
+}
+
+@ nucleum
+@ radix lane "air"
+@ radix backward "hetero_backward"
+functio hetero_loss(tf32[4] x, tf32[2] w) → f32 {
+    fixum f32 sx ← x.summa()
+    redde sx
+}

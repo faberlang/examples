@@ -1,0 +1,59 @@
+# =============================================================================
+# oracle/capture.fab — CPU/FMIR-stepper capture runner for hetero-backward
+# =============================================================================
+#
+# Provenance: a CPU-only variant of the device fixture (`src/hetero_backward.fab`,
+# minus the `@ nucleum` annotation) so the deterministic CPU oracle reference
+# can be captured by the MIR stepper — pinned BEFORE any device result is
+# observed (S0-C convention; numeric-policy v1.0.0). The arithmetic matches
+# the device chain exactly:
+#   forward:  loss = sum(x) over x: tf32[4]
+#   backward: (grad_x, grad_w) from the AIR-generated companion
+#             hetero_backward(x, w, nil(), upstream)
+#             grad_x[i] = 1 (d sum(x)/dx_i), grad_w[j] = 0 (w is a
+#             selected-but-unused parameter).
+# The stepper computes float math in f64; the capture is byte-deterministic
+# (captured twice, identical SHA-256 — see capture.sha256 and README.md).
+#
+# Regenerate with the pinned binary:
+#   faber script oracle/capture.fab
+# from the package directory (examples/training/hetero-backward/).
+# =============================================================================
+
+functio nil() → vacuum {
+    tacet
+}
+
+@ radix lane "air"
+@ radix backward "hetero_backward"
+functio hetero_loss(tensor<f32, [4]> x, tensor<f32, [2]> w) → f32 {
+    fixum f32 sx ← x.summa()
+    redde sx
+}
+
+incipit {
+    fixum lista<f32> data_x ← [1.0, 2.0, 3.0, 4.0]
+    fixum lista<f32> data_w ← [5.0, 6.0]
+    fixum tensor<f32, []> seed ← vacua
+    fixum lista<numerus> shape_x ← [4]
+    fixum lista<numerus> shape_w ← [2]
+
+    fixum tensor<f32, [4]> x ← seed.strue(data_x, shape_x)
+    fixum tensor<f32, [2]> w ← seed.strue(data_w, shape_w)
+
+    # Forward.
+    fixum f32 loss ← hetero_loss(x, w)
+    nota "loss"
+    nota loss
+
+    # Backward via the generated companion.
+    fixum f32 upstream ← 1.0
+    fixum _ grads ← hetero_backward(x, w, nil(), upstream)
+    fixum [gx, gw] ← grads
+    fixum lista<f32> flat_gx ← gx ↦ lista<f32>
+    fixum lista<f32> flat_gw ← gw ↦ lista<f32>
+    nota "grad_x"
+    nota flat_gx
+    nota "grad_w"
+    nota flat_gw
+}
