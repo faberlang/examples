@@ -5,8 +5,8 @@
 # What this example teaches:
 #   • Locale keyword translation — Faber keywords using Thai script
 #     (ฟังก์ชัน=functio, คงที่=fixum, แปร=varia, คืน=redde, เริ่ม=incipit,
-#      แสดง=nota, ถ้า=si, ถ้าไม่ก็=sin, มิฉะนั้น=secus, ขณะ=dum, วน=itera,
-#      จาก=ex, ข้าม=perge, หยุด=rumpe, จริง=verum, เท็จ=falsum,
+#      บันทึก=nota, ถ้า=si, ถ้าไม่ก็=sin, มิฉะนั้น=secus, ขณะ=dum, วน=itera,
+#      จาก=ex, ไปต่อ=perge, หยุด=rumpe, จริง=verum, เท็จ=falsum,
 #      ข้อความ=textus, จำนวน=numerus, ตรรกะ=bivalens, รายการ=lista)
 #   • Full program with loops, conditionals, early exit, and skip
 #
@@ -23,9 +23,9 @@
 #   • ขณะ (dum) — while loop (line 36)
 #   • วน (itera) — for-each loop (line 21)
 #   • จาก (ex) — source keyword in loop (line 21)
-#   • ข้าม (perge) — continue/skip (line 23)
+#   • ไปต่อ (perge) — continue/skip (line 23)
 #   • หยุด (rumpe) — break (line 28)
-#   • แสดง (nota) — print to stdout (lines 48-51)
+#   • บันทึก (nota) — print to stdout (lines 48-51)
 #   • ≥ (greater-or-equal) — comparison (lines 7, 9, 25, 29)
 #   • > (greater-than) — numeric comparison (line 37)
 #   • จริง (verum) — true (line 8)
@@ -67,7 +67,7 @@
   แปร จำนวน total ← 0
   วน จาก scores คงที่ score {
     ถ้า score < 0 {
-      ข้าม
+      ไปต่อ
     }
     ถ้า score ≥ 50 {
       total ← total + 1
@@ -91,8 +91,8 @@
   คงที่ ข้อความ message ← ทักทาย("โลก")
   คงที่ จำนวน score ← 82
   คงที่ รายการ<จำนวน> scores ← [-1, 82, 41, 60]
-  แสดง message
-  แสดง ผ่าน(score)
-  แสดง นับผ่าน(scores)
-  แสดง นับถอยหลัง(3)
+  บันทึก message
+  บันทึก ผ่าน(score)
+  บันทึก นับผ่าน(scores)
+  บันทึก นับถอยหลัง(3)
 }

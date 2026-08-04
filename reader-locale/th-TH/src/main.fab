@@ -4,7 +4,7 @@
 #
 # What this example teaches:
 #   • Locale keyword translation — Thai keyword set: ฟังก์ชัน, คงที่, แปร,
-#     คืน, เริ่ม, แสดง, ถ้า, ถ้าไม่ก็, มิฉะนั้น, ขณะ, วน, ข้าม, หยุด
+#     คืน, เริ่ม, บันทึก, ถ้า, ถ้าไม่ก็, มิฉะนั้น, ขณะ, วน, ไปต่อ, หยุด
 #   • Full program with loops, conditionals, early exit, and skip
 #
 # Syntaxes used:
@@ -16,9 +16,9 @@
 #   • ถ้า / ถ้าไม่ก็ / มิฉะนั้น (si/sin/secus) — conditionals (lines 7, 9, 12)
 #   • ขณะ (dum) — while loop (line 36)
 #   • วน (itera) — for-each loop (line 21)
-#   • ข้าม (perge) — continue (line 23)
+#   • ไปต่อ (perge) — continue (line 23)
 #   • หยุด (rumpe) — break (line 28)
-#   • แสดง (nota) — print (lines 48-51)
+#   • บันทึก (nota) — print (lines 48-51)
 #   • เริ่ม (incipit) — entry point (line 43)
 #
 # Alternate approaches (not shown):
@@ -56,7 +56,7 @@
   แปร จำนวน total ← 0
   วน จาก scores คงที่ score {
     ถ้า score < 0 {
-      ข้าม
+      ไปต่อ
     }
     ถ้า score ≥ 50 {
       total ← total + 1
@@ -80,8 +80,8 @@
   คงที่ ข้อความ message ← ทักทาย("โลก")
   คงที่ จำนวน score ← 82
   คงที่ รายการ<จำนวน> scores ← [-1, 82, 41, 60]
-  แสดง message
-  แสดง ผ่าน(score)
-  แสดง นับผ่าน(scores)
-  แสดง นับถอยหลัง(3)
+  บันทึก message
+  บันทึก ผ่าน(score)
+  บันทึก นับผ่าน(scores)
+  บันทึก นับถอยหลัง(3)
 }

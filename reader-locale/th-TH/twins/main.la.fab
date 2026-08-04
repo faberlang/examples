@@ -29,7 +29,7 @@
 #   • ≥ / > — comparisons (lines 7, 9, 25, 29, 37)
 #
 # Alternate approaches (not shown):
-#   • Full Thai keyword set: ฟังก์ชัน, คงที่, แปร, คืน, เริ่ม, แสดง, ถ้า, etc. — see salve-munde.th-TH.fab for native-language coding
+#   • Full Thai keyword set: ฟังก์ชัน, คงที่, แปร, คืน, เริ่ม, บันทึก, ถ้า, etc. — see salve-munde.th-TH.fab for native-language coding
 #
 # Anti-patterns (avoid these):
 #   • Mixing Latin and Thai keywords in the same file — pick one keyword set per file for consistency; "twins" mode uses Latin keywords only
