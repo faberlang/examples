@@ -1,0 +1,18 @@
+[package]
+name = "bert-gradus-probe"
+version = "0.1.0"
+edition = "2026"
+
+[paths]
+source = "src"
+entry = "train.fab"
+
+[build]
+target = "fmir"
+kind = "bin"
+
+# CPU-only probe — no [device] section (the S6-G1 validation probe runs
+# through the ordinary `faber run -t fmir` CPU route, like the fragment).
+
+[reader]
+locale = "la"
