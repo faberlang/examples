@@ -40,8 +40,8 @@
     "worst_param_delta": "2.7430891735846785e-07"
   },
   "device_image": {
-    "metal": "FAIL (fail-closed E_DEVICE_DESCRIPTOR: recipe operand requires a tensor type)",
-    "cuda": "FAIL (fail-closed, identical E_DEVICE_DESCRIPTOR: recipe operand requires a tensor type)",
-    "note": "both backends fail at the device-program signature stage (radix-mir device_program_plans.rs tensor_element_ty) before any backend emitter surface is reached: the MLP lane returns a scalar (f32, previously fractus), and the device-program signature requires tensor-typed recipe operands. Residual documented for the surface-landing unit. Re-verified after the Wave A5 f32 typing change (2026-08-04): the diagnostic is unchanged."
+    "metal": "PASS (S5-U8 evidence packet stage-5-evidence-burgus-metal.md: device image builds and runs end-to-end on the burgus Metal backend)",
+    "cuda": "PASS (S5-U9 evidence packet stage-5-evidence-pharos-cuda.md: device image builds and runs end-to-end on the pharos CUDA backend, RTX 5070)",
+    "note": "supersedes the S5-U7-era FAIL note (fail-closed E_DEVICE_DESCRIPTOR: recipe operand requires a tensor type). Current state cited from stage-5-acceptance-receipt.md + the U8/U9 evidence packets: both backends build and run the device image - exit 0, 100 deterministic steps on one session, all values finite, and the loss trace / forward / gradients / final params match the pinned oracle in this file within numeric-policy v1.0.0."
   }
 }
