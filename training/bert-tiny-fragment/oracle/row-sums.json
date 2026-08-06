@@ -1,0 +1,63 @@
+{
+  "fixture": "bert-tiny-fragment",
+  "steps": 8,
+  "rule": "softmax row sum = sum of the captured intermediate_attn row; derived reference",
+  "row_sums": [
+    {
+      "step": 0,
+      "row_sums": [
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "step": 1,
+      "row_sums": [
+        "1.0",
+        "1.0000000000000002"
+      ]
+    },
+    {
+      "step": 2,
+      "row_sums": [
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "step": 3,
+      "row_sums": [
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "step": 4,
+      "row_sums": [
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "step": 5,
+      "row_sums": [
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "step": 6,
+      "row_sums": [
+        "1.0",
+        "0.9999999999999999"
+      ]
+    },
+    {
+      "step": 7,
+      "row_sums": [
+        "1.0",
+        "1.0"
+      ]
+    }
+  ]
+}

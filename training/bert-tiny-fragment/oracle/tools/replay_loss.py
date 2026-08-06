@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
-# oracle/tools/replay_loss.py — independent f64 loss-trace replay (S0-C)
+# oracle/tools/replay_loss.py — independent f64 loss-trace replay (S0-C,
+# S6-U8 [8]-bias shape)
 # =============================================================================
 #
 # Re-derives the 8-step loss trace from the captured initial values
@@ -23,6 +24,10 @@
 # BERT-tiny forward (B=2, D=8, H=1): pre-LN → Q/K/V → scaled dot-product
 # attention → output projection → residual → LN → FFN (linear→GELU→linear) →
 # residual → LN → MSE.
+#
+# S6-U8 bias contract: biases are per-channel [8] and broadcast across the
+# batch axis (the S6-C2 addita_bias rank-extension add) — `vadd_bias` adds
+# bias[d] to every row d. The [2,8] duplicated-row workaround is gone.
 #
 # Usage:
 #   python3 tools/replay_loss.py [oracle_dir]
@@ -111,6 +116,17 @@ def vadd(A, B):
     return [a + b for a, b in zip(A, B)]
 
 
+def vadd_bias(A, b):
+    """Per-channel [D] bias broadcast across the batch axis of a row-major
+    [B,D] tensor (the S6-C2 addita_bias rank-extension add): bias[d] is added
+    to every row's channel d."""
+    dim = len(b)
+    out = []
+    for i, a in enumerate(A):
+        out.append(a + b[i % dim])
+    return out
+
+
 def vsub(A, B):
     return [a - b for a, b in zip(A, B)]
 
@@ -137,9 +153,9 @@ def forward(params):
     T = params["target"]
 
     ln1 = layernorm(I, 8, ln1_s, ln1_o, 1e-5)
-    q = vadd(matmul(ln1, wq, 2, 8, 8), bq)
-    k = vadd(matmul(ln1, wk, 2, 8, 8), bk)
-    v = vadd(matmul(ln1, wv, 2, 8, 8), bv)
+    q = vadd_bias(matmul(ln1, wq, 2, 8, 8), bq)
+    k = vadd_bias(matmul(ln1, wk, 2, 8, 8), bk)
+    v = vadd_bias(matmul(ln1, wv, 2, 8, 8), bv)
 
     kt = transpose(k, 2, 8)                      # [8,2]
     scores = matmul(q, kt, 2, 8, 2)              # [2,2]
@@ -147,12 +163,12 @@ def forward(params):
     attn = softmax_rows(scaled, 2)               # [2,2]
     context = matmul(attn, v, 2, 2, 8)           # [2,8]
 
-    attn_ob = vadd(matmul(context, wo, 2, 8, 8), bo)   # [2,8]
+    attn_ob = vadd_bias(matmul(context, wo, 2, 8, 8), bo)   # [2,8]
     resid1 = vadd(I, attn_ob)
     ln2 = layernorm(resid1, 8, ln2_s, ln2_o, 1e-5)
-    h1b = vadd(matmul(ln2, wf1, 2, 8, 8), bf1)
+    h1b = vadd_bias(matmul(ln2, wf1, 2, 8, 8), bf1)
     a1 = [gelu(x) for x in h1b]
-    h2b = vadd(matmul(a1, wf2, 2, 8, 8), bf2)
+    h2b = vadd_bias(matmul(a1, wf2, 2, 8, 8), bf2)
     resid2 = vadd(ln2, h2b)
     ln3 = layernorm(resid2, 8, ln3_s, ln3_o, 1e-5)
 

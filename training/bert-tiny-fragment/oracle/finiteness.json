@@ -1,0 +1,17 @@
+{
+  "fixture": "bert-tiny-fragment",
+  "checked": 23948,
+  "non_finite": 0,
+  "pass": true,
+  "by_file": {
+    "capture.txt": [],
+    "inputs.json": [],
+    "loss-trace.json": [],
+    "gradients.json": [],
+    "gradients-full.json": [],
+    "final-params.json": [],
+    "intermediates.json": [],
+    "update-states.json": [],
+    "row-sums.json": []
+  }
+}

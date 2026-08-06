@@ -1,10 +1,15 @@
 # =============================================================================
-# train.fab — single-layer BERT-tiny training fragment
+# train.fab — S6-U8: single-layer BERT-tiny training fragment on the Gradus
+# surface + Stage 5 MLP device route
 # =============================================================================
 #
-# Inventory Rank 9 — north-star proof exercising all 16 differentiable AIR ops
-# in a composed training loop: 25-param forward, fused backward companion,
-# 8-step inline SGD with LayerNorm, Softmax, GELU, and self-attention.
+# S6-U8 (radix/docs/factory/gpu-training-lowering/stage-6-delivery.md §S6-U8):
+# the consumer migrates to the Stage 5 MLP route and the correct bias
+# broadcasting. The loss lane gains `@ nucleum` (alongside the existing
+# `@ radix lane "air"` + `@ radix backward "bert_tiny_backward"`), the loop
+# calls the S6-G1 Gradus surface, and biases become [8] (per-channel) using
+# the S6-C2 addita_bias rank-extension contract — the fragment's [2,8]
+# same-shape workaround is gone.
 #
 # Architecture (B=2, D=8, H=1):
 #   Pre-LN 1 → Q/K/V projections → attention scores (Q@K^T) → scale →
@@ -13,88 +18,103 @@
 #   Pre-loss LN 3 → MSE loss
 #
 # Backward companion: @ radix backward "bert_tiny_backward" — fused companion
-# returning gradients for all 22 trainable params.
-# Trainable: wq,bq,wk,bk,wv,bv,wo,bo,wf1,bf1,wf2,bf2,
-#   ln1_s,ln1_o,ln2_s,ln2_o,ln3_s,ln3_o (22 tensors).
+# returning gradients for all 21 slots (18 trainable + input + dk_scale +
+# target).
+# Trainable: wq,bq,wk,bk,wv,bv,wo,bo,wf1,bf1,wf2,bf2 (12 linear) +
+#   ln1_s,ln1_o,ln2_s,ln2_o,ln3_s,ln3_o (6 LayerNorm) — 18 tensors, 480 floats.
 # Frozen: input, dk_scale, target.
 #
-# NOTE: Biases use shape [2, 8] (not [8]) to avoid rank-extension
-# broadcast (reverse AD transforms [8]→[2,8] as unsupported).
-# LN params stay [8] (per-channel affine within laminatio VJP).
-# Trainable float count: 528 (was 480 in delivery).
+# Gradus surface exercised from the loop (package→library calls, the S6-G1
+# surface as validated by the bert-gradus-probe):
+#   nn.layernorm_2x8 / nn.linear_2x8 / nn.gelu_2x8   leaf primitives
+#   attention.scaled_dot_product_2x8  scaled dot-product attention
+#   loss.mse_2x8                      MSE loss
+#   train.train_step_bert_linear / _layernorm
+#                                     SGD update of the 18-trainable set
+#                                     (two calls — the source-level iuncta
+#                                     tuple arity cap is 16)
+#
+# The package-owned differentiated function (bert_tiny_loss) keeps its ONE
+# explicit @ radix backward annotation; the generated companion supplies the
+# 21 gradient slots/step. The loop owns no inline learning-rate fill,
+# gradient scaling, or parameter subtraction (the Stage 5 MLP route).
+#
+# [device] manifest: faber.toml declares backend = "auto", steps = 8
+# (validated against the source loop bound below), and host inputs for all
+# 21 tensors with the new [8] bias shapes.
 #
 # Ops exercised (16 of 18 differentiable variants):
 #   MatMul (×7), Add (×12), Sub, Mul (×3), Mean, Transpose, Softmax,
 #   Sqrt (LayerNorm VJP), GELU (with Tanh sub-unit in VJP),
-#   LayerNorm (×3 affine), Fill (×3), Div (LayerNorm VJP), Exp (Softmax VJP)
+#   LayerNorm (×3 affine), Fill (×3), Div (LayerNorm VJP), Exp (Softmax VJP),
+#   addita_bias (S6-C2 rank-extension broadcast ×6)
 #
 # Negative f32 literals use 0.0 - value (fractus negation lexical limitation).
 #
 # Build: faber run -t fmir examples/training/bert-tiny-fragment/
 # =============================================================================
 
+importa ex "gradus:nn" privata nn
+importa ex "gradus:loss" privata loss
+importa ex "gradus:train" privata train
+importa ex "gradus:attention" privata attention
+
 # -------------------------------------------------------------------------
 # Differentiable forward: bert_tiny_loss
 # -------------------------------------------------------------------------
-# 25 tensor params: 22 trainable + 3 frozen (input, dk_scale, target).
-# Biases are [2, 8] (same-shape as addita target) to avoid rank-extension
-# broadcast unsupported by reverse AD.
+# 21 tensor params: 18 trainable + 3 frozen (input, dk_scale, target).
+# Biases are [8] per-channel; bias adds use addita_bias (S6-C2).
 
+@ nucleum
 @ radix lane "air"
 @ radix backward "bert_tiny_backward"
 functio bert_tiny_loss(
     tensor<f32, [2, 8]> input,
-    tensor<f32, [8, 8]> wq,   tensor<f32, [2, 8]> bq,
-    tensor<f32, [8, 8]> wk,   tensor<f32, [2, 8]> bk,
-    tensor<f32, [8, 8]> wv,   tensor<f32, [2, 8]> bv,
-    tensor<f32, [8, 8]> wo,   tensor<f32, [2, 8]> bo,
-    tensor<f32, [8, 8]> wf1,  tensor<f32, [2, 8]> bf1,
-    tensor<f32, [8, 8]> wf2,  tensor<f32, [2, 8]> bf2,
+    tensor<f32, [8, 8]> wq,   tensor<f32, [8]> bq,
+    tensor<f32, [8, 8]> wk,   tensor<f32, [8]> bk,
+    tensor<f32, [8, 8]> wv,   tensor<f32, [8]> bv,
+    tensor<f32, [8, 8]> wo,   tensor<f32, [8]> bo,
+    tensor<f32, [8, 8]> wf1,  tensor<f32, [8]> bf1,
+    tensor<f32, [8, 8]> wf2,  tensor<f32, [8]> bf2,
     tensor<f32, [8]> ln1_s,   tensor<f32, [8]> ln1_o,
     tensor<f32, [8]> ln2_s,   tensor<f32, [8]> ln2_o,
     tensor<f32, [8]> ln3_s,   tensor<f32, [8]> ln3_o,
     tensor<f32, [2, 2]> dk_scale,
     tensor<f32, [2, 8]> target
-) → fractus {
+) → f32 {
     fixum tensor<f32, [2, 8]> ln1 ← input.laminatio(1, 1.0e-5, ln1_s, ln1_o)
 
     fixum tensor<f32, [2, 8]> q  ← ln1.matmul(wq)
-    fixum tensor<f32, [2, 8]> qb ← q.addita(bq)
+    fixum tensor<f32, [2, 8]> qb ← q.addita_bias(bq)
     fixum tensor<f32, [2, 8]> k  ← ln1.matmul(wk)
-    fixum tensor<f32, [2, 8]> kb ← k.addita(bk)
+    fixum tensor<f32, [2, 8]> kb ← k.addita_bias(bk)
     fixum tensor<f32, [2, 8]> v  ← ln1.matmul(wv)
-    fixum tensor<f32, [2, 8]> vb ← v.addita(bv)
+    fixum tensor<f32, [2, 8]> vb ← v.addita_bias(bv)
 
     fixum tensor<f32, [8, 2]> kt      ← kb.transpone()
     fixum tensor<f32, [2, 2]> scores  ← qb.matmul(kt)
+    fixum tensor<f32, [2, 2]> scaled  ← scores.multiplica(dk_scale)
+    fixum tensor<f32, [2, 2]> attn    ← scaled.activatio_softmax()
+    fixum tensor<f32, [2, 8]> context ← attn.matmul(vb)
 
-    fixum tensor<f32, [2, 2]> scaled   ← scores.multiplica(dk_scale)
+    fixum tensor<f32, [2, 8]> ao   ← context.matmul(wo)
+    fixum tensor<f32, [2, 8]> aob  ← ao.addita_bias(bo)
+    fixum tensor<f32, [2, 8]> r1   ← input.addita(aob)
 
-    fixum tensor<f32, [2, 2]> attn_weights ← scaled.activatio_softmax()
-
-    fixum tensor<f32, [2, 8]> context  ← attn_weights.matmul(vb)
-
-    fixum tensor<f32, [2, 8]> attn_out  ← context.matmul(wo)
-    fixum tensor<f32, [2, 8]> attn_ob   ← attn_out.addita(bo)
-    fixum tensor<f32, [2, 8]> resid1    ← input.addita(attn_ob)
-
-    fixum tensor<f32, [2, 8]> ln2 ← resid1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
+    fixum tensor<f32, [2, 8]> ln2 ← r1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
 
     fixum tensor<f32, [2, 8]> h1   ← ln2.matmul(wf1)
-    fixum tensor<f32, [2, 8]> h1b  ← h1.addita(bf1)
-
+    fixum tensor<f32, [2, 8]> h1b  ← h1.addita_bias(bf1)
     fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
-
     fixum tensor<f32, [2, 8]> h2   ← a1.matmul(wf2)
-    fixum tensor<f32, [2, 8]> h2b  ← h2.addita(bf2)
+    fixum tensor<f32, [2, 8]> h2b  ← h2.addita_bias(bf2)
+    fixum tensor<f32, [2, 8]> r2   ← ln2.addita(h2b)
 
-    fixum tensor<f32, [2, 8]> resid2 ← ln2.addita(h2b)
+    fixum tensor<f32, [2, 8]> ln3 ← r2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
 
-    fixum tensor<f32, [2, 8]> ln3 ← resid2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
-
-    fixum tensor<f32, [2, 8]> residual ← ln3.subtrahe(target)
-    fixum tensor<f32, [2, 8]> squared  ← residual.multiplica(residual)
-    redde squared.media()
+    fixum tensor<f32, [2, 8]> resd ← ln3.subtrahe(target)
+    fixum tensor<f32, [2, 8]> sqrd ← resd.multiplica(resd)
+    redde sqrd.media()
 }
 
 # -------------------------------------------------------------------------
@@ -106,11 +126,13 @@ functio nil() → vacuum {
 }
 
 # -------------------------------------------------------------------------
-# incipit — multi-step training loop: forward ×8 + backward + inline SGD
+# incipit — multi-step training loop: forward ×8 (Gradus surface) + backward
+# + Gradus training step
 # -------------------------------------------------------------------------
 
 incipit {
-    # Fixed initial parameters
+    # Fixed initial parameters — pinned oracle values (S0-C capture,
+    # oracle/capture.txt), with biases in their per-channel [8] form.
     fixum lista<f32> data_input ← [
         0.5,       0.0 - 0.3, 1.2,       0.0 - 0.7,
         0.0 - 0.4, 0.8,       0.0 - 1.0, 0.3,
@@ -137,10 +159,8 @@ incipit {
          0.0 - 0.2, 0.7,       0.0 - 0.8, 0.3,
          0.0 - 0.9, 0.0 - 0.5, 0.0,       0.6
     ]
-    # Q bias [2, 8] — each row duplicates the per-dim bias
+    # Q bias [8] — per-channel (row 0 of the fragment's old duplicated [2,8])
     fixum lista<f32> data_bq ← [
-         0.1,       0.0 - 0.1, 0.0,       0.2,
-         0.0 - 0.2, 0.1,       0.0 - 0.1, 0.0,
          0.1,       0.0 - 0.1, 0.0,       0.2,
          0.0 - 0.2, 0.1,       0.0 - 0.1, 0.0
     ]
@@ -166,8 +186,6 @@ incipit {
     ]
     fixum lista<f32> data_bk ← [
          0.0,       0.1,       0.0 - 0.1, 0.0,
-         0.2,       0.0 - 0.2, 0.1,       0.0 - 0.1,
-         0.0,       0.1,       0.0 - 0.1, 0.0,
          0.2,       0.0 - 0.2, 0.1,       0.0 - 0.1
     ]
 
@@ -191,8 +209,6 @@ incipit {
          0.3,       0.0 - 0.9, 0.1,       0.0 - 0.8
     ]
     fixum lista<f32> data_bv ← [
-         0.0 - 0.1, 0.0,       0.1,       0.0 - 0.1,
-         0.0,       0.2,       0.0 - 0.2, 0.1,
          0.0 - 0.1, 0.0,       0.1,       0.0 - 0.1,
          0.0,       0.2,       0.0 - 0.2, 0.1
     ]
@@ -218,8 +234,6 @@ incipit {
     ]
     fixum lista<f32> data_bo ← [
          0.1,       0.0,       0.0 - 0.1, 0.1,
-         0.0,       0.0 - 0.1, 0.2,       0.0 - 0.2,
-         0.1,       0.0,       0.0 - 0.1, 0.1,
          0.0,       0.0 - 0.1, 0.2,       0.0 - 0.2
     ]
 
@@ -244,8 +258,6 @@ incipit {
     ]
     fixum lista<f32> data_bf1 ← [
          0.0,       0.1,       0.0 - 0.1, 0.0,
-         0.1,       0.0 - 0.1, 0.0,       0.1,
-         0.0,       0.1,       0.0 - 0.1, 0.0,
          0.1,       0.0 - 0.1, 0.0,       0.1
     ]
 
@@ -269,8 +281,6 @@ incipit {
          0.0 - 0.3, 0.2,       0.0 - 0.8, 0.5
     ]
     fixum lista<f32> data_bf2 ← [
-         0.0 - 0.1, 0.1,       0.0,       0.0 - 0.1,
-         0.1,       0.0,       0.0 - 0.1, 0.1,
          0.0 - 0.1, 0.1,       0.0,       0.0 - 0.1,
          0.1,       0.0,       0.0 - 0.1, 0.1
     ]
@@ -318,25 +328,25 @@ incipit {
     # Tensor construction
     fixum tensor<f32, []> seed ← vacua
 
-    fixum tensor<f32, [2, 8]> input   ← seed.strue(data_input,   [2, 8])
-    varia tensor<f32, [8, 8]> wq      ← seed.strue(data_wq,      [8, 8])
-    varia tensor<f32, [2, 8]> bq      ← seed.strue(data_bq,      [2, 8])
-    varia tensor<f32, [8, 8]> wk      ← seed.strue(data_wk,      [8, 8])
-    varia tensor<f32, [2, 8]> bk      ← seed.strue(data_bk,      [2, 8])
-    varia tensor<f32, [8, 8]> wv      ← seed.strue(data_wv,      [8, 8])
-    varia tensor<f32, [2, 8]> bv      ← seed.strue(data_bv,      [2, 8])
-    varia tensor<f32, [8, 8]> wo      ← seed.strue(data_wo,      [8, 8])
-    varia tensor<f32, [2, 8]> bo      ← seed.strue(data_bo,      [2, 8])
-    varia tensor<f32, [8, 8]> wf1     ← seed.strue(data_wf1,     [8, 8])
-    varia tensor<f32, [2, 8]> bf1     ← seed.strue(data_bf1,     [2, 8])
-    varia tensor<f32, [8, 8]> wf2     ← seed.strue(data_wf2,     [8, 8])
-    varia tensor<f32, [2, 8]> bf2     ← seed.strue(data_bf2,     [2, 8])
-    varia tensor<f32, [8]>    ln1_s   ← seed.strue(data_ln1_s,   [8])
-    varia tensor<f32, [8]>    ln1_o   ← seed.strue(data_ln1_o,   [8])
-    varia tensor<f32, [8]>    ln2_s   ← seed.strue(data_ln2_s,   [8])
-    varia tensor<f32, [8]>    ln2_o   ← seed.strue(data_ln2_o,   [8])
-    varia tensor<f32, [8]>    ln3_s   ← seed.strue(data_ln3_s,   [8])
-    varia tensor<f32, [8]>    ln3_o   ← seed.strue(data_ln3_o,   [8])
+    fixum tensor<f32, [2, 8]> input  ← seed.strue(data_input,   [2, 8])
+    varia tensor<f32, [8, 8]> wq     ← seed.strue(data_wq,      [8, 8])
+    varia tensor<f32, [8]>    bq     ← seed.strue(data_bq,      [8])
+    varia tensor<f32, [8, 8]> wk     ← seed.strue(data_wk,      [8, 8])
+    varia tensor<f32, [8]>    bk     ← seed.strue(data_bk,      [8])
+    varia tensor<f32, [8, 8]> wv     ← seed.strue(data_wv,      [8, 8])
+    varia tensor<f32, [8]>    bv     ← seed.strue(data_bv,      [8])
+    varia tensor<f32, [8, 8]> wo     ← seed.strue(data_wo,      [8, 8])
+    varia tensor<f32, [8]>    bo     ← seed.strue(data_bo,      [8])
+    varia tensor<f32, [8, 8]> wf1    ← seed.strue(data_wf1,     [8, 8])
+    varia tensor<f32, [8]>    bf1    ← seed.strue(data_bf1,     [8])
+    varia tensor<f32, [8, 8]> wf2    ← seed.strue(data_wf2,     [8, 8])
+    varia tensor<f32, [8]>    bf2    ← seed.strue(data_bf2,     [8])
+    varia tensor<f32, [8]>    ln1_s  ← seed.strue(data_ln1_s,   [8])
+    varia tensor<f32, [8]>    ln1_o  ← seed.strue(data_ln1_o,   [8])
+    varia tensor<f32, [8]>    ln2_s  ← seed.strue(data_ln2_s,   [8])
+    varia tensor<f32, [8]>    ln2_o  ← seed.strue(data_ln2_o,   [8])
+    varia tensor<f32, [8]>    ln3_s  ← seed.strue(data_ln3_s,   [8])
+    varia tensor<f32, [8]>    ln3_o  ← seed.strue(data_ln3_o,   [8])
     fixum tensor<f32, [2, 2]> dk_scale ← seed.strue(data_scale, [2, 2])
     fixum tensor<f32, [2, 8]> target  ← seed.strue(data_target,  [2, 8])
 
@@ -344,52 +354,28 @@ incipit {
     fixum f32 upstream ← 1.0
     fixum f32 lr ← 0.01
 
-    # Shape bindings for SGD Fill creation
-    fixum lista<numerus> shape_w   ← wq.magnitudines()
-    fixum lista<numerus> shape_b   ← bq.magnitudines()
-    fixum lista<numerus> shape_ln  ← ln1_s.magnitudines()
-
     fixum numerus steps ← 8
     varia lista<f32> loss_trace ← vacua
 
     itera ab 0‥steps fixum step {
-        # Forward pass (inlined)
-        fixum tensor<f32, [2, 8]> ln1 ← input.laminatio(1, 1.0e-5, ln1_s, ln1_o)
-
-        fixum tensor<f32, [2, 8]> q   ← ln1.matmul(wq)
-        fixum tensor<f32, [2, 8]> qb  ← q.addita(bq)
-        fixum tensor<f32, [2, 8]> k   ← ln1.matmul(wk)
-        fixum tensor<f32, [2, 8]> kb  ← k.addita(bk)
-        fixum tensor<f32, [2, 8]> v   ← ln1.matmul(wv)
-        fixum tensor<f32, [2, 8]> vb  ← v.addita(bv)
-
-        fixum tensor<f32, [8, 2]> kt        ← kb.transpone()
-        fixum tensor<f32, [2, 2]> scores    ← qb.matmul(kt)
-        fixum tensor<f32, [2, 2]> scaled    ← scores.multiplica(dk_scale)
-        fixum tensor<f32, [2, 2]> attn      ← scaled.activatio_softmax()
-        fixum tensor<f32, [2, 8]> context   ← attn.matmul(vb)
-
-        fixum tensor<f32, [2, 8]> ao  ← context.matmul(wo)
-        fixum tensor<f32, [2, 8]> aob ← ao.addita(bo)
+        # Forward via the Gradus composed leaf surface (S6-G1).
+        fixum tensor<f32, [2, 8]> ln1 ← nn.layernorm_2x8(input, ln1_s, ln1_o)
+        fixum tensor<f32, [2, 8]> qb  ← nn.linear_2x8(ln1, wq, bq)
+        fixum tensor<f32, [2, 8]> kb  ← nn.linear_2x8(ln1, wk, bk)
+        fixum tensor<f32, [2, 8]> vb  ← nn.linear_2x8(ln1, wv, bv)
+        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_2x8(qb, kb, vb, dk_scale)
+        fixum tensor<f32, [2, 8]> aob ← nn.linear_2x8(ctx, wo, bo)
         fixum tensor<f32, [2, 8]> r1  ← input.addita(aob)
+        fixum tensor<f32, [2, 8]> ln2 ← nn.layernorm_2x8(r1, ln2_s, ln2_o)
+        fixum tensor<f32, [2, 8]> h1b ← nn.linear_2x8(ln2, wf1, bf1)
+        fixum tensor<f32, [2, 8]> a1  ← nn.gelu_2x8(h1b)
+        fixum tensor<f32, [2, 8]> h2b ← nn.linear_2x8(a1, wf2, bf2)
+        fixum tensor<f32, [2, 8]> r2  ← ln2.addita(h2b)
+        fixum tensor<f32, [2, 8]> ln3 ← nn.layernorm_2x8(r2, ln3_s, ln3_o)
+        fixum f32 loss_val ← loss.mse_2x8(ln3, target)
+        loss_trace.appende(loss_val)
 
-        fixum tensor<f32, [2, 8]> ln2 ← r1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
-
-        fixum tensor<f32, [2, 8]> h1   ← ln2.matmul(wf1)
-        fixum tensor<f32, [2, 8]> h1b  ← h1.addita(bf1)
-        fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
-        fixum tensor<f32, [2, 8]> h2   ← a1.matmul(wf2)
-        fixum tensor<f32, [2, 8]> h2b  ← h2.addita(bf2)
-        fixum tensor<f32, [2, 8]> r2   ← ln2.addita(h2b)
-
-        fixum tensor<f32, [2, 8]> ln3 ← r2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
-
-        fixum tensor<f32, [2, 8]> resd ← ln3.subtrahe(target)
-        fixum tensor<f32, [2, 8]> sqrd ← resd.multiplica(resd)
-        fixum f32 loss ← sqrd.media()
-        loss_trace.appende(loss)
-
-        # Backward pass
+        # Backward pass via the compiler-generated companion.
         fixum _ grads ← bert_tiny_backward(
             input, wq, bq, wk, bk, wv, bv, wo, bo,
             wf1, bf1, wf2, bf2,
@@ -397,8 +383,7 @@ incipit {
             dk_scale, target,
             nil(), upstream
         )
-        # Tuple destructure: 22 gradient elements.
-        # Discard: grad_input (0), grad_dk_scale (19), grad_target (20).
+        # 21 gradient slots: 18 trainable + input + dk_scale + target.
         fixum [
             _,
             gwq, gbq, gwk, gbk, gwv, gbv, gwo, gbo,
@@ -408,30 +393,40 @@ incipit {
             _
         ] ← grads
 
-        # Inline SGD updates (22 trainable params)
-        fixum tensor<f32, [8, 8]> lr_w ← seed.crea(lr, shape_w)
-        fixum tensor<f32, [2, 8]> lr_b ← seed.crea(lr, shape_b)
-        fixum tensor<f32, [8]>    lr_ln ← seed.crea(lr, shape_ln)
-
-        wq  ← wq.subtrahe(gwq.multiplica(lr_w))
-        bq  ← bq.subtrahe(gbq.multiplica(lr_b))
-        wk  ← wk.subtrahe(gwk.multiplica(lr_w))
-        bk  ← bk.subtrahe(gbk.multiplica(lr_b))
-        wv  ← wv.subtrahe(gwv.multiplica(lr_w))
-        bv  ← bv.subtrahe(gbv.multiplica(lr_b))
-        wo  ← wo.subtrahe(gwo.multiplica(lr_w))
-        bo  ← bo.subtrahe(gbo.multiplica(lr_b))
-        wf1 ← wf1.subtrahe(gwf1.multiplica(lr_w))
-        bf1 ← bf1.subtrahe(gbf1.multiplica(lr_b))
-        wf2 ← wf2.subtrahe(gwf2.multiplica(lr_w))
-        bf2 ← bf2.subtrahe(gbf2.multiplica(lr_b))
-
-        ln1_s ← ln1_s.subtrahe(gln1s.multiplica(lr_ln))
-        ln1_o ← ln1_o.subtrahe(gln1o.multiplica(lr_ln))
-        ln2_s ← ln2_s.subtrahe(gln2s.multiplica(lr_ln))
-        ln2_o ← ln2_o.subtrahe(gln2o.multiplica(lr_ln))
-        ln3_s ← ln3_s.subtrahe(gln3s.multiplica(lr_ln))
-        ln3_o ← ln3_o.subtrahe(gln3o.multiplica(lr_ln))
+        # Update via the Gradus training step (18-trainable set: the linear
+        # 12 + the LayerNorm 6 — the source-level iuncta arity cap forces the
+        # two-call split, see gradus/src/train.fab).
+        fixum [
+            nwq, nbq, nwk, nbk, nwv, nbv, nwo, nbo,
+            nwf1, nbf1, nwf2, nbf2
+        ] ← train.train_step_bert_linear(
+            wq, bq, wk, bk, wv, bv, wo, bo, wf1, bf1, wf2, bf2,
+            gwq, gbq, gwk, gbk, gwv, gbv, gwo, gbo, gwf1, gbf1, gwf2, gbf2,
+            lr)
+        fixum [
+            nln1s, nln1o, nln2s, nln2o, nln3s, nln3o
+        ] ← train.train_step_bert_layernorm(
+            ln1_s, ln1_o, ln2_s, ln2_o, ln3_s, ln3_o,
+            gln1s, gln1o, gln2s, gln2o, gln3s, gln3o,
+            lr)
+        wq    ← nwq
+        bq    ← nbq
+        wk    ← nwk
+        bk    ← nbk
+        wv    ← nwv
+        bv    ← nbv
+        wo    ← nwo
+        bo    ← nbo
+        wf1   ← nwf1
+        bf1   ← nbf1
+        wf2   ← nwf2
+        bf2   ← nbf2
+        ln1_s ← nln1s
+        ln1_o ← nln1o
+        ln2_s ← nln2s
+        ln2_o ← nln2o
+        ln3_s ← nln3s
+        ln3_o ← nln3o
     }
 
     nota loss_trace
