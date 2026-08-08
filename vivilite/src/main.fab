@@ -62,6 +62,7 @@
 # Backend: both (stepper via incipit CLI, Rust via compiler backend)
 # =============================================================================
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 importa ex "sqlite:sqlite" privata sqlite
 
@@ -275,11 +276,11 @@ functio list_work_json(de Store s, de textus kind, de textus who) → lista<Boar
     redde items
 }
 
-functio print_status(de Store s, bivalens json) → vacuum {
+functio print_status(de Store s, bivalens jsonne) → vacuum {
     ensure_store(store(s.root ↦ textus))
     fixum numerus identities ← count_identities(store(s.root ↦ textus))
-    si json {
-        nota (StatusJson { status = "ok", lane = "file", identities = identities } ↦ json) ↦ textus
+    si jsonne {
+        nota json.pange(StatusJson { status = "ok", lane = "file", identities = identities } ↦ json)
     }
     secus {
         nota "lane: file"
@@ -400,7 +401,7 @@ functio board_json(de Store s, de textus who) → textus {
     fixum lista<BoardItemJson> task_items ← list_work_json(store(s.root ↦ textus), "task", who)
     fixum lista<BoardItemJson> need_items ← list_work_json(store(s.root ↦ textus), "need", who)
     fixum lista<BoardItemJson> want_items ← list_work_json(store(s.root ↦ textus), "want", who)
-    redde (BoardJson { mailspace = "vivilite", lane = "file", who = who ↦ textus, actionable = tasks + needs, tasks = tasks, needs = needs, wants = wants, task_items = task_items, need_items = need_items, want_items = want_items } ↦ json) ↦ textus
+    redde json.pange(BoardJson { mailspace = "vivilite", lane = "file", who = who ↦ textus, actionable = tasks + needs, tasks = tasks, needs = needs, wants = wants, task_items = task_items, need_items = need_items, want_items = want_items } ↦ json)
 }
 
 functio sqlite_count(de textus database, de textus who, de textus role) → numerus ⇥ textus {
@@ -562,7 +563,7 @@ functio sqlite_status_json(de Store s) → textus ⇥ textus {
         wants_total ← wants_total + wants
         i ← i + 1
     }
-    redde (ViviMailspaceStatusJson { found = verum, name = mailspace, root = s.root ↦ textus, store = database, identities = identities, totals = ViviStatusTotalsJson { actionable_open = actionable_total, inbox_unread = unread_total, tasks_open = tasks_total, needs_open = needs_total, wants_open = wants_total } } ↦ json) ↦ textus
+    redde json.pange(ViviMailspaceStatusJson { found = verum, name = mailspace, root = s.root ↦ textus, store = database, identities = identities, totals = ViviStatusTotalsJson { actionable_open = actionable_total, inbox_unread = unread_total, tasks_open = tasks_total, needs_open = needs_total, wants_open = wants_total } } ↦ json)
 }
 
 functio print_vivi_status(de Store s) → vacuum {
@@ -597,7 +598,7 @@ functio sqlite_board_json(de Store s, de textus who) → textus ⇥ textus {
     fixum lista<BoardItemJson> task_items ← sqlite_items(database, who, "tasks")
     fixum lista<BoardItemJson> need_items ← sqlite_items(database, who, "needs")
     fixum lista<BoardItemJson> want_items ← sqlite_items(database, who, "wants")
-    redde (BoardJson { mailspace = "vivi", lane = "sqlite-read", who = who ↦ textus, actionable = tasks + needs, tasks = tasks, needs = needs, wants = wants, task_items = task_items, need_items = need_items, want_items = want_items } ↦ json) ↦ textus
+    redde json.pange(BoardJson { mailspace = "vivi", lane = "sqlite-read", who = who ↦ textus, actionable = tasks + needs, tasks = tasks, needs = needs, wants = wants, task_items = task_items, need_items = need_items, want_items = want_items } ↦ json)
 }
 
 functio print_board(de Store s, de textus who) → vacuum {
