@@ -1,5 +1,6 @@
 # Qwen3 FP8 generative command contract for Stage 6.
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
 
@@ -137,7 +138,7 @@ functio blocked_diagnostic(textus target) → textus {
 @ privata
 functio render_generate_metadata(GenerateEventMetadata eventum) → textus {
     fac {
-        redde (eventum ↦ json) ↦ textus
+        redde json.pange(eventum ↦ json)
     }
     cape err {
         redde "{\"event\":\"metadata\",\"max_new_tokens\":0,\"model\":\"\",\"runtime\":\"\",\"seed\":0,\"source\":\"\",\"status\":\"error\",\"temperature\":\"0\"}"
@@ -147,7 +148,7 @@ functio render_generate_metadata(GenerateEventMetadata eventum) → textus {
 @ privata
 functio render_diagnostic_event(DiagnosticEvent eventum) → textus {
     fac {
-        redde (eventum ↦ json) ↦ textus
+        redde json.pange(eventum ↦ json)
     }
     cape err {
         redde "{\"event\":\"diagnostic\",\"message\":\"json render failed\"}"
@@ -157,7 +158,7 @@ functio render_diagnostic_event(DiagnosticEvent eventum) → textus {
 @ privata
 functio render_generate_summary(GenerateSummary summarium) → textus {
     fac {
-        redde (summarium ↦ json) ↦ textus
+        redde json.pange(summarium ↦ json)
     }
     cape err {
         redde "{\"diagnostics\":[\"json render failed\"],\"max_new_tokens\":0,\"model\":\"\",\"oracle\":\"\",\"output_path\":\"\",\"prompt_path\":\"\",\"seed\":0,\"source\":\"\",\"status\":\"error\",\"streaming\":false,\"temperature\":\"0\"}"

@@ -1,5 +1,6 @@
 # Stage 3 vector index command contract.
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 
 @ json
@@ -67,19 +68,19 @@ functio format_jsonne(textus formatum) → bivalens {
 
 @ privata
 functio parse_stage2(textus wire) → Stage2Document ⇥ textus {
-    fixum json documentum ← wire ↦ json
+    fixum json documentum ← json.solve(wire)
     redde documentum ↦ Stage2Document
 }
 
 @ privata
 functio render_stage3_index(Stage3Index documentum) → textus ⇥ textus {
-    redde (documentum ↦ json) ↦ textus
+    redde json.pange(documentum ↦ json)
 }
 
 @ privata
 functio render_index_response(IndexCommandResponse response) → textus {
     fac {
-        redde (response ↦ json) ↦ textus
+        redde json.pange(response ↦ json)
     }
     cape err {
         redde "{\"diagnostics\":[\"json render failed\"],\"dimensions\":0,\"index_path\":\"\",\"input_vectors\":0,\"metric\":\"\",\"model\":\"\",\"source\":\"\",\"status\":\"error\"}"

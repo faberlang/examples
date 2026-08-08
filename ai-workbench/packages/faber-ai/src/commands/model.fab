@@ -1,5 +1,6 @@
 # Model inventory and metadata commands for the Faber AI workbench.
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 importa ex "norma:model" privata model
 
@@ -254,7 +255,7 @@ functio figura_textus(lista<numerus> items) → textus {
 @ privata
 functio render_model_response(ModelInspectResponse response) → textus {
     fac {
-        redde (response ↦ json) ↦ textus
+        redde json.pange(response ↦ json)
     }
     cape err {
         redde "{\"alias\":\"\",\"diagnostics\":[\"json render failed\"],\"estimated_bytes\":0,\"files\":[],\"format\":\"unknown\",\"local_path\":\"\",\"quantization\":\"\",\"router_model_id\":\"\",\"shards\":[],\"source\":\"\",\"status\":\"error\",\"tensor_count\":0,\"tensors\":[]}"

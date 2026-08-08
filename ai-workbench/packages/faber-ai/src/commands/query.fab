@@ -1,5 +1,6 @@
 # Stage 3 vector query command contract.
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 
 @ json
@@ -68,20 +69,20 @@ functio format_jsonne(textus formatum) → bivalens {
 
 @ privata
 functio parse_stage3_index(textus wire) → Stage3Index ⇥ textus {
-    fixum json documentum ← wire ↦ json
+    fixum json documentum ← json.solve(wire)
     redde documentum ↦ Stage3Index
 }
 
 @ privata
 functio parse_query_vector(textus wire) → QueryVector ⇥ textus {
-    fixum json documentum ← wire ↦ json
+    fixum json documentum ← json.solve(wire)
     redde documentum ↦ QueryVector
 }
 
 @ privata
 functio render_query_response(QueryCommandResponse response) → textus {
     fac {
-        redde (response ↦ json) ↦ textus
+        redde json.pange(response ↦ json)
     }
     cape err {
         redde "{\"diagnostics\":[\"json render failed\"],\"metric\":\"\",\"query\":\"\",\"results\":[],\"status\":\"error\",\"top\":0}"

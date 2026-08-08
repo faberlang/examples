@@ -1,5 +1,6 @@
 # GGUF router-backed chat command contract for Stage 7.
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
 
@@ -140,7 +141,7 @@ functio blocked_diagnostic(textus target) → textus {
 @ privata
 functio render_chat_metadata(ChatEventMetadata eventum) → textus {
     fac {
-        redde (eventum ↦ json) ↦ textus
+        redde json.pange(eventum ↦ json)
     }
     cape err {
         redde "{\"event\":\"metadata\",\"model\":\"\",\"router_model_id\":\"\",\"router_url\":\"\",\"runtime\":\"\",\"source\":\"\",\"status\":\"error\"}"
@@ -150,7 +151,7 @@ functio render_chat_metadata(ChatEventMetadata eventum) → textus {
 @ privata
 functio render_diagnostic_event(DiagnosticEvent eventum) → textus {
     fac {
-        redde (eventum ↦ json) ↦ textus
+        redde json.pange(eventum ↦ json)
     }
     cape err {
         redde "{\"event\":\"diagnostic\",\"message\":\"json render failed\"}"
@@ -160,7 +161,7 @@ functio render_diagnostic_event(DiagnosticEvent eventum) → textus {
 @ privata
 functio render_chat_summary(ChatSummary summarium) → textus {
     fac {
-        redde (summarium ↦ json) ↦ textus
+        redde json.pange(summarium ↦ json)
     }
     cape err {
         redde "{\"diagnostics\":[\"json render failed\"],\"model\":\"\",\"output_path\":\"\",\"prompt_path\":\"\",\"router_model_id\":\"\",\"router_url\":\"\",\"runtime\":\"\",\"source\":\"\",\"status\":\"error\"}"

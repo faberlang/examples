@@ -1,5 +1,6 @@
 # MiniLM embedding command contract for Stage 2.
 
+importa ex "norma:json" privata json
 importa ex "norma:solum" privata solum
 importa ex "norma:processus" privata processus
 
@@ -154,7 +155,7 @@ functio blocked_diagnostic(textus target) → textus {
 @ privata
 functio render_stage2_artifact(Stage2Artifact artifact) → textus {
     fac {
-        redde (artifact ↦ json) ↦ textus
+        redde json.pange(artifact ↦ json)
     }
     cape err {
         redde "{\"diagnostics\":[\"json render failed\"],\"dimensions\":0,\"format\":\"fvi-stage2\",\"input_count\":0,\"model\":\"\",\"normalization\":\"\",\"source\":\"\",\"status\":\"error\",\"vectors\":[]}"
@@ -164,7 +165,7 @@ functio render_stage2_artifact(Stage2Artifact artifact) → textus {
 @ privata
 functio render_embed_response(EmbedResponse response) → textus {
     fac {
-        redde (response ↦ json) ↦ textus
+        redde json.pange(response ↦ json)
     }
     cape err {
         redde "{\"diagnostics\":[\"json render failed\"],\"dimensions\":0,\"input_count\":0,\"model\":\"\",\"normalization\":\"\",\"oracle\":\"\",\"source\":\"\",\"status\":\"error\",\"vectors_path\":\"\"}"
