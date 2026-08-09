@@ -1,0 +1,17 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of ai-workbench/harness/fixtures/embed/failing_oracle.py
+# (NSM-E2). Negative oracle fixture: prints the dependency-failure message to
+# stderr (norma:consolum.mone) and exits 2 (norma:processus.exi), matching the
+# Python reference's argv contract (argv accepted and ignored). Validated on the
+# released binary (faber 1.6.0-rc.1): `faber script` exits 2, `faber check` exit 0.
+
+import from "norma:consolum" private consolum
+import from "norma:processus" private processus
+
+main {
+    consolum.mone("simulated oracle dependency failure")
+    processus.exi(2)
+}
