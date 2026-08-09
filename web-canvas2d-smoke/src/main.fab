@@ -1,0 +1,63 @@
+# =============================================================================
+# web-canvas2d-smoke — Unit 1 smoke fixture (canvas2d-u1-core-draw)
+# =============================================================================
+#
+# Draws a colored, rotated rectangle in a browser canvas through the
+# web:canvas2d binding:
+#
+#   • white background fill               — set_fill_style + fill_rect
+#   • blue filled rect (top-left)         — set_fill_style + fill_rect
+#   • translate to center + rotate 45°    — translate + rotate
+#   • green filled diamond                — fill_rect under transform
+#   • red stroked diamond                 — set_stroke_style + stroke_rect
+#   • cleared patch                       — clear_rect
+#   • 1×1 probe canvas filled blue        — pixel readback target
+#
+# The assertions run in the browser harness page (tests/page.html): it reads
+# back pixels via getImageData from the probe canvas (center must be
+# non-white) and from the stage canvas, and reports the result on
+# window.__smokeResult. tests/smoke-test.mjs drives the page with Playwright
+# Chromium and fails on a non-pass result.
+
+importa ex "web:web" privata web
+importa ex "web:dom" privata dom
+importa ex "web:canvas2d" privata canvas2d
+
+functio quarter_turn() → f64 {
+    redde 0.7853981633974483
+}
+
+@ WebController { selector = "#stage" }
+functio draw_controller(dom.Scope scope) → vacuum {
+    fixum dom.Element stage ← dom.require(scope, "canvas#stage")
+    fixum dom.Element probe ← dom.require(scope, "canvas#probe")
+    fixum canvas2d.Canvas2dContext stage_ctx ← canvas2d.canvas2d_context(stage)
+    fixum canvas2d.Canvas2dContext probe_ctx ← canvas2d.canvas2d_context(probe)
+
+    # White background across the whole stage.
+    canvas2d.canvas2d_set_fill_style(stage_ctx, "white")
+    canvas2d.canvas2d_fill_rect(stage_ctx, 0.0, 0.0, 320.0, 240.0)
+
+    # Blue filled rectangle in the top-left corner.
+    canvas2d.canvas2d_set_fill_style(stage_ctx, "blue")
+    canvas2d.canvas2d_fill_rect(stage_ctx, 10.0, 10.0, 100.0, 100.0)
+
+    # Green filled diamond around the center (translate + rotate).
+    canvas2d.canvas2d_translate(stage_ctx, 160.0, 120.0)
+    canvas2d.canvas2d_rotate(stage_ctx, quarter_turn())
+    canvas2d.canvas2d_set_fill_style(stage_ctx, "green")
+    canvas2d.canvas2d_fill_rect(stage_ctx, -40.0, -40.0, 80.0, 80.0)
+
+    # Red stroked diamond around the green one (set_stroke_style + stroke_rect).
+    canvas2d.canvas2d_set_stroke_style(stage_ctx, "red")
+    canvas2d.canvas2d_stroke_rect(stage_ctx, -60.0, -60.0, 120.0, 120.0)
+
+    # Reset the transform to identity and clear a small patch in the
+    # bottom-right corner (set_transform + clear_rect).
+    canvas2d.canvas2d_set_transform(stage_ctx, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    canvas2d.canvas2d_clear_rect(stage_ctx, 200.0, 200.0, 20.0, 20.0)
+
+    # 1x1 probe canvas: filled blue so a center-pixel readback is non-white.
+    canvas2d.canvas2d_set_fill_style(probe_ctx, "blue")
+    canvas2d.canvas2d_fill_rect(probe_ctx, 0.0, 0.0, 1.0, 1.0)
+}

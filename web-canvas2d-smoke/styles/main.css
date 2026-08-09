@@ -1,0 +1,12 @@
+/* web:canvas2d smoke — minimal styling for the fixture page. */
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+canvas {
+  border: 1px solid #ccc;
+}
