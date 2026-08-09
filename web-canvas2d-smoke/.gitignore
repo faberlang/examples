@@ -1,1 +1,3 @@
 .dist.faber.tmp-*
+dist/
+faber.lock
