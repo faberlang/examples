@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# NSM-E7: native-Faber launcher for check-gpu-workload-contracts. The gate
+# logic lives entirely in check-gpu-workload-contracts.fab; this entrypoint
+# only runs it on the released faber binary (faber/target/debug/faber,
+# 1.6.0-rc.1). The PATH `faber` (1.3.0) is never a valid execution surface.
+# FABER_BIN overrides the binary.
+#
+# `faber script` interprets a single source only when the path is not covered
+# by a faber.toml (package routing rejects kernel imports with PKG001), so the
+# gate source is staged outside any package before interpretation. The gate is
+# location-independent: the launcher passes the examples repo root as argv[0]
+# (the Python reference self-locates, which a staged source cannot).
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FABER_BIN="${FABER_BIN:-$(cd "$HERE/../.." && pwd)/faber/target/debug/faber}"
+export FABER_BIN
+if [[ ! -x "$FABER_BIN" ]]; then
+    echo "check-gpu-workload-contracts: released faber binary not found: $FABER_BIN (set FABER_BIN)" >&2
+    exit 1
+fi
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/check-gpu-workload-contracts.XXXXXX")"
+trap 'rm -rf "$TMP"' EXIT
+cp "$HERE/check-gpu-workload-contracts.fab" "$TMP/check-gpu-workload-contracts.fab"
+REPO_ROOT="$(cd "$HERE/.." && pwd)"
+if "$FABER_BIN" script "$TMP/check-gpu-workload-contracts.fab" -- "$REPO_ROOT" "$@"; then
+    exit 0
+else
+    exit $?
+fi

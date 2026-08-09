@@ -1,0 +1,163 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of scripta/check-gpu-workload-contracts.py (NSM-E7).
+# Gate: validates the examples-owned GPU workload oracle contracts. Derives
+# the rung-4 SGD trajectory (scalar linear regression — gradus math) and
+# compares it to the session events and the JSON reference sidecar under the
+# declared tolerance.
+#
+# Same decisions and exit-code contract as the Python reference: exit 0 on ok
+# ("gpu workload contracts ok" to stdout), exit 1 on any validation failure
+# (failure lines printed to stderr). The tolerance is validated first; a
+# non-finite or negative tolerance is a single failure and the rest of the
+# rung-4 checks are skipped, exactly like the Python reference.
+#
+# The gate reads gpu-workload/rung-4-toy-train.ref.json and
+# gpu-workload/rung-4-toy-train.expected under the repository root passed as
+# the first argument. The Python reference resolves these from its own
+# location; the staged kernel-import source cannot self-locate, so the
+# launcher carries the repo root in the argv contract instead (the same
+# convention as the E5/E6 fixture launchers).
+#
+# Run surface (pinned): the released faber binary via `faber script`, launched
+# through the check-gpu-workload-contracts launcher (FABER_BIN override).
+
+import from "faber:json" private json
+import from "faber:solum" private solum
+import from "faber:processus" private processus
+import from "faber:consolum" private consolum
+
+fn close(fractus left, fractus right, fractus tolerance) → bool {
+    return (left - right).absolutum() ≤ tolerance
+}
+
+fn check_rung4(string repo_root) → list<string> {
+    var list<string> failures ← vacua
+    const string ref_path ← repo_root + "/gpu-workload/rung-4-toy-train.ref.json"
+    const string expected_path ← repo_root + "/gpu-workload/rung-4-toy-train.expected"
+    const map<string, valor> ref ← json.solve(solum.lege(ref_path) ↦ string) ↦ map<string, valor>
+
+    const valor tolerance_value ← ref["tolerance"]
+    if tolerance_value is null {
+        failures.appende("rung4 tolerance must be a finite non-negative number")
+        return failures
+    }
+    const fractus tolerance ← tolerance_value ↦ fractus
+    # The JSON parser rejects NaN/Infinity literals, so the self-inequality
+    # arm is defensive parity for math.isfinite.
+    if tolerance < 0.0 or tolerance ≠ tolerance {
+        failures.appende("rung4 tolerance must be a finite non-negative number")
+        return failures
+    }
+
+    const map<string, valor> expected ← json.solve(solum.lege(expected_path) ↦ string) ↦ map<string, valor>
+    const map<string, valor> inputs ← ref["inputs"] ↦ map<string, valor>
+    const map<string, valor> session ← ref["session_contract"] ↦ map<string, valor>
+    const list<valor> events ← session["events"] ↦ list<valor>
+
+    const fractus x ← inputs["x"] ↦ fractus
+    const fractus y ← inputs["y"] ↦ fractus
+    const fractus rate ← inputs["rate"] ↦ fractus
+    var list<fractus> losses ← vacua
+    var list<fractus> weights ← vacua
+    var fractus weight ← inputs["initial_weight"] ↦ fractus
+
+    var numerus index ← 0
+    dum index < events.longitudo() {
+        const map<string, valor> event ← events[index] ↦ map<string, valor>
+        const numerus step ← event["step"] ↦ numerus
+        if step ≠ index {
+            failures.appende("rung4 event " + (index ↦ textus) + ": step=" + (step ↦ textus))
+        }
+        const valor launch_value ← event["launch"]
+        if launch_value is null {
+            failures.appende("rung4 event " + (index ↦ textus) + ": unexpected launch None")
+        } else {
+            const string launch ← launch_value ↦ string
+            if launch ≠ "rung4_step_kernel" {
+                failures.appende("rung4 event " + (index ↦ textus) + ": unexpected launch '" + launch + "'")
+            }
+        }
+        if not close(event["previous_weight"] ↦ fractus, weight, tolerance) {
+            failures.appende("rung4 event " + (index ↦ textus) + ": previous_weight mismatch")
+        }
+
+        const fractus err ← weight * x - y
+        const fractus loss ← err * err
+        const fractus next_weight ← weight - rate * err * x
+        losses.appende(loss)
+        weights.appende(next_weight)
+
+        if not close(event["loss"] ↦ fractus, loss, tolerance) {
+            failures.appende("rung4 event " + (index ↦ textus) + ": loss mismatch")
+        }
+        if not close(event["next_weight"] ↦ fractus, next_weight, tolerance) {
+            failures.appende("rung4 event " + (index ↦ textus) + ": next_weight mismatch")
+        }
+        weight ← next_weight
+        index ← index + 1
+    }
+
+    if (inputs["steps"] ↦ numerus) ≠ events.longitudo() {
+        failures.appende("rung4 inputs.steps does not match session event count")
+    }
+    const map<string, valor> reference ← ref["reference"] ↦ map<string, valor>
+    if reference ≠ expected {
+        failures.appende("rung4 .expected sidecar must mirror reference oracle")
+    }
+    const list<valor> reference_losses ← reference["losses"] ↦ list<valor>
+    if reference_losses.longitudo() ≠ losses.longitudo() {
+        failures.appende("rung4 reference loss count does not match session event count")
+    }
+    const list<valor> reference_weights ← reference["weights"] ↦ list<valor>
+    if reference_weights.longitudo() ≠ weights.longitudo() {
+        failures.appende("rung4 reference weight count does not match session event count")
+    }
+    var numerus k ← 0
+    dum k < reference_losses.longitudo() and k < losses.longitudo() {
+        if not close(reference_losses[k] ↦ fractus, losses[k], tolerance) {
+            failures.appende("rung4 reference losses do not match derived oracle")
+        }
+        k ← k + 1
+    }
+    var numerus j ← 0
+    dum j < reference_weights.longitudo() and j < weights.longitudo() {
+        if not close(reference_weights[j] ↦ fractus, weights[j], tolerance) {
+            failures.appende("rung4 reference weights do not match derived oracle")
+        }
+        j ← j + 1
+    }
+
+    const map<string, valor> floor ← ref["current_output_checked_floor"] ↦ map<string, valor>
+    const list<string> floor_claims ← ["device_training", "session_lifecycle", "optimizer_workflow", "pytorch_equivalence"]
+    for from floor_claims const claim {
+        if (floor[claim] ↦ numerus) ≠ 0 {
+            failures.appende("rung4 " + claim + " must remain a non-claim")
+        }
+    }
+    const string contract ← ref["contract"] ↦ string
+    if not contract.continet("PyTorch equivalence") {
+        failures.appende("rung4 contract must explicitly reject PyTorch equivalence")
+    }
+    return failures
+}
+
+main {
+    const list<string> av ← processus.argumenta() ↦ list<string>
+    if av.longitudo() ≡ 0 {
+        consolum.mone("usage: check-gpu-workload-contracts <repo-root>")
+        processus.exi(1)
+    }
+    const string repo_root ← av[0] ↦ string
+    const list<string> failures ← check_rung4(repo_root)
+    if failures.longitudo() ≠ 0 {
+        consolum.mone("gpu workload contract failures:")
+        for from failures const failure {
+            consolum.mone("  - " + failure)
+        }
+        processus.exi(1)
+    }
+    print "gpu workload contracts ok"
+}

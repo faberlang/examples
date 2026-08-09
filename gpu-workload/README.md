@@ -57,8 +57,13 @@ PyTorch equivalence, or executable CUDA training support.
 Validate the examples-owned oracle packet with:
 
 ```bash
-python3 scripta/check-gpu-workload-contracts.py
+scripta/check-gpu-workload-contracts
 ```
+
+(The native-Faber gate is the canonical entrypoint; it runs the converted
+`scripta/check-gpu-workload-contracts.fab` on the released faber binary via
+the NSM launcher pattern. `python3 scripta/check-gpu-workload-contracts.py`
+remains as the reference implementation.)
 
 ## AI Workbench Logits Bridge
 
