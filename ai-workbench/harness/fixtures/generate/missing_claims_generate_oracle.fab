@@ -1,0 +1,84 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of
+# ai-workbench/harness/fixtures/generate/missing_claims_generate_oracle.py
+# (NSM-E5). Hermetic generate oracle without claims: the metadata event has no
+# claims key at all, keeping the same JSON shape as the positive fixture minus
+# the claims object (the claim gate then reports the object error). Exit 0 (the
+# fixture is still generated; the badness is in the content, matching the
+# Python reference).
+#
+# Same argv contract as the Python oracle: --prompt, --out, --model-dir,
+# --model-alias, --source, --oracle-label, --max-new-tokens, --temperature,
+# --seed.
+#
+# Run surface (pinned): the released faber binary via `faber script`, launched
+# through the missing_claims_generate_oracle launcher (FABER_BIN override).
+
+import from "faber:json" private json
+import from "faber:solum" private solum
+import from "faber:processus" private processus
+import from "faber:consolum" private consolum
+
+fn value_for(list<string> args, string flag, string fallback) → string {
+    const numerus n ← args.longitudo()
+    var numerus i ← 0
+    dum i < n {
+        const string tok ← args[i] ↦ string
+        if tok ≡ flag {
+            if i + 1 < n {
+                return args[i + 1] ↦ string
+            }
+            return fallback
+        }
+        i ← i + 1
+    }
+    return fallback
+}
+
+fn trim(string s) → string {
+    var numerus start ← 0
+    var numerus end ← s.longitudo()
+    dum start < end {
+        const string ch ← s.sectio(start, start + 1)
+        if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+            start ← start + 1
+        } else {
+            break
+        }
+    }
+    dum end > start {
+        const string ch ← s.sectio(end - 1, end)
+        if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+            end ← end - 1
+        } else {
+            break
+        }
+    }
+    return s.sectio(start, end)
+}
+
+main {
+    const list<string> av ← processus.argumenta() ↦ list<string>
+    const string prompt_path ← value_for(av, "--prompt", "")
+    const string out_path ← value_for(av, "--out", "")
+    const string model_alias ← value_for(av, "--model-alias", "")
+    const string source ← value_for(av, "--source", "")
+    const string oracle_label ← value_for(av, "--oracle-label", "")
+    const string max_tokens_arg ← value_for(av, "--max-new-tokens", "")
+    const string temperature ← value_for(av, "--temperature", "")
+    const string seed_arg ← value_for(av, "--seed", "")
+    if prompt_path ≡ "" or out_path ≡ "" or model_alias ≡ "" or source ≡ "" or oracle_label ≡ "" or max_tokens_arg ≡ "" or temperature ≡ "" or seed_arg ≡ "" {
+        consolum.mone("usage: missing_claims_generate_oracle --prompt <file> --out <file> --model-dir <dir> --model-alias <name> --source <name> --oracle-label <name> --max-new-tokens <n> --temperature <t> --seed <n>")
+        processus.exi(2)
+    }
+    const numerus max_new_tokens ← max_tokens_arg ↦ numerus
+    const numerus seed ← seed_arg ↦ numerus
+
+    const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
+    const string metadata ← "{\"event\":\"metadata\",\"model\":" + (json.pange(model_alias) ↦ string) + ",\"source\":" + (json.pange(source) ↦ string) + ",\"status\":\"oracle-backed\",\"runtime\":" + (json.pange(oracle_label) ↦ string) + ",\"prompt\":" + (json.pange(prompt) ↦ string) + ",\"max_new_tokens\":" + (json.pange(max_new_tokens) ↦ string) + ",\"temperature\":" + (json.pange(temperature) ↦ string) + ",\"seed\":" + (json.pange(seed) ↦ string) + "}"
+    solum.scribe(out_path, metadata + "\n{\"event\":\"token\",\"text\":\"Local\"}\n{\"event\":\"final\",\"text\":\"Local inventory.\"}\n")
+    print "wrote §"(out_path)
+}

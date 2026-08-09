@@ -1,0 +1,122 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of ai-workbench/harness/check-artifact-metadata-claims
+# companion (NSM-E4 gate wiring). Pure-logic EN-locale unit test for
+# artifact_metadata_claims. Same decisions as the Python reference behavior:
+# gated statuses are checked, non-gated statuses and non-metadata events are
+# skipped, per-index labels are applied, and null claims produce the
+# "<label> claims must be an object" failure. Prints "ok: artifact metadata
+# claims" and exits 0 on pass; prints FAIL lines and aborts (exit 1) on any
+# failure.
+
+import from "./artifact_metadata_claims" private artifact_metadata_claims
+import from "./claim_gates" private claim_gates
+
+fn build_full_false(list<string> forbidden) → map<string, bool> {
+    var map<string, bool> full ← vacua
+    for from forbidden const key {
+        full.pone(key, false)
+    }
+    return full
+}
+
+fn contains_substring(list<string> issues, string needle) → bool {
+    for from issues const issue {
+        if issue.continet(needle) {
+            return true
+        }
+    }
+    return false
+}
+
+fn make_event(string kind, string status, map<string, bool> claims) → map<string, any> {
+    var map<string, any> event ← vacua
+    event.pone("event", kind)
+    event.pone("status", status)
+    event.pone("claims", claims)
+    return event
+}
+
+fn make_metadata_without_claims(string status) → map<string, any> {
+    var map<string, any> event ← vacua
+    event.pone("event", "metadata")
+    event.pone("status", status)
+    return event
+}
+
+fn claims_of(list<map<string, any>> events) → list<map<string, bool> ∪ null> {
+    var list<map<string, bool> ∪ null> claims ← vacua
+    const numerus n ← events.longitudo()
+    var numerus i ← 0
+    dum i < n {
+        const map<string, any> event ← events[i]
+        if event["claims"] is null {
+            claims.appende(null)
+        } else {
+            claims.appende(event["claims"] ↦ map<string, bool>)
+        }
+        i ← i + 1
+    }
+    return claims
+}
+
+fn check_failures(list<map<string, any>> events, string label) → list<string> {
+    const list<map<string, bool> ∪ null> claims ← claims_of(events)
+    return artifact_metadata_claims.metadata_claim_failures(events, claims, label)
+}
+
+main {
+    var list<string> failures ← vacua
+    const list<string> forbidden ← claim_gates.forbidden_inference_claims()
+    const map<string, bool> full_false ← build_full_false(forbidden)
+
+    var list<map<string, any>> clean ← vacua
+    clean.appende(make_event("metadata", "oracle-backed", full_false))
+    clean.appende(make_event("metadata", "router-backed", full_false))
+    clean.appende(make_event("token", "oracle-backed", full_false))
+    if check_failures(clean, "artifact").longitudo() ≠ 0 {
+        failures.appende("clean artifact with gated statuses must pass")
+    }
+
+    var map<string, bool> bad_claims ← build_full_false(forbidden)
+    bad_claims.pone("public_inference", true)
+    var list<map<string, any>> bad ← vacua
+    bad.appende(make_event("metadata", "oracle-backed", bad_claims))
+    const list<string> bad_failures ← check_failures(bad, "artifact")
+    if not contains_substring(bad_failures, "public_inference") {
+        failures.appende("gated metadata with a true forbidden claim must fail")
+    }
+
+    var map<string, bool> local_ops_claims ← build_full_false(forbidden)
+    local_ops_claims.pone("public_inference", true)
+    var list<map<string, any>> ungated ← vacua
+    ungated.appende(make_event("metadata", "local-ops", local_ops_claims))
+    if check_failures(ungated, "artifact").longitudo() ≠ 0 {
+        failures.appende("non-gated metadata status must be skipped")
+    }
+
+    var list<map<string, any>> no_claims ← vacua
+    no_claims.appende(make_metadata_without_claims("oracle-backed"))
+    const list<string> null_failures ← check_failures(no_claims, "artifact")
+    if not contains_substring(null_failures, "claims must be an object") {
+        failures.appende("missing claims must fail with the object error")
+    }
+
+    var list<map<string, any>> indexed ← vacua
+    indexed.appende(make_event("token", "oracle-backed", full_false))
+    indexed.appende(make_event("metadata", "oracle-backed", bad_claims))
+    const list<string> index_failures ← check_failures(indexed, "artifact")
+    if not contains_substring(index_failures, "artifact metadata[1]") {
+        failures.appende("per-index metadata label must be applied")
+    }
+
+    if failures.longitudo() ≠ 0 {
+        for from failures const failure {
+            print "FAIL §"(failure)
+        }
+        mori "artifact metadata claims assertion failed"
+    }
+    print "ok: artifact metadata claims"
+}

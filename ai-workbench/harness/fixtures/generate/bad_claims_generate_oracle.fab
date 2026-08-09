@@ -1,0 +1,133 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of
+# ai-workbench/harness/fixtures/generate/bad_claims_generate_oracle.py (NSM-E5).
+# Hermetic generate oracle with intentionally bad claims: the metadata event's
+# claim gates are all false except public_inference (true), so the artifact
+# fails the shared claim gates while keeping the same JSON shape as the
+# positive fixture. Exit 0 (the fixture is still generated; the badness is in
+# the content, matching the Python reference).
+#
+# Same argv contract as the Python oracle: --prompt, --out, --model-dir,
+# --model-alias, --source, --oracle-label, --max-new-tokens, --temperature,
+# --seed.
+#
+# The released binary's script surface routes files with non-kernel imports to
+# package mode (PKG001), so the forbidden-claims vocabulary is inlined here
+# (verbatim from claim_gates.py).
+#
+# Run surface (pinned): the released faber binary via `faber script`, launched
+# through the bad_claims_generate_oracle launcher (FABER_BIN override).
+
+import from "faber:json" private json
+import from "faber:solum" private solum
+import from "faber:processus" private processus
+import from "faber:consolum" private consolum
+
+const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
+    "faber_owned_inference",
+    "owned_model_runtime",
+    "general_inference",
+    "llama_cpp_parity",
+    "llama_cpp_equivalence",
+    "llama_cpp_runtime",
+    "gguf_runtime",
+    "transformer_execution",
+    "transformer_runtime",
+    "quantized_kernel_support",
+    "gpu_execution",
+    "gpu_runtime",
+    "gpu_runtime_claims",
+    "device_logits_execution",
+    "device_softmax_execution",
+    "device_training",
+    "public_inference",
+    "public_product_release",
+    "model_downloads",
+    "model_blobs_in_git",
+    "implicit_model_downloads",
+    "implicit_model_blobs",
+    "pytorch_equivalence",
+]
+
+fn value_for(list<string> args, string flag, string fallback) → string {
+    const numerus n ← args.longitudo()
+    var numerus i ← 0
+    dum i < n {
+        const string tok ← args[i] ↦ string
+        if tok ≡ flag {
+            if i + 1 < n {
+                return args[i + 1] ↦ string
+            }
+            return fallback
+        }
+        i ← i + 1
+    }
+    return fallback
+}
+
+fn trim(string s) → string {
+    var numerus start ← 0
+    var numerus end ← s.longitudo()
+    dum start < end {
+        const string ch ← s.sectio(start, start + 1)
+        if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+            start ← start + 1
+        } else {
+            break
+        }
+    }
+    dum end > start {
+        const string ch ← s.sectio(end - 1, end)
+        if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+            end ← end - 1
+        } else {
+            break
+        }
+    }
+    return s.sectio(start, end)
+}
+
+fn bad_claims(list<string> forbidden) → string {
+    var string out ← ""
+    var numerus i ← 0
+    dum i < forbidden.longitudo() {
+        if i > 0 {
+            out ← out + ","
+        }
+        out ← out + "\"" + forbidden[i] + "\":"
+        if forbidden[i] ≡ "public_inference" {
+            out ← out + "true"
+        } else {
+            out ← out + "false"
+        }
+        i ← i + 1
+    }
+    return "{" + out + "}"
+}
+
+main {
+    const list<string> av ← processus.argumenta() ↦ list<string>
+    const string prompt_path ← value_for(av, "--prompt", "")
+    const string out_path ← value_for(av, "--out", "")
+    const string model_alias ← value_for(av, "--model-alias", "")
+    const string source ← value_for(av, "--source", "")
+    const string oracle_label ← value_for(av, "--oracle-label", "")
+    const string max_tokens_arg ← value_for(av, "--max-new-tokens", "")
+    const string temperature ← value_for(av, "--temperature", "")
+    const string seed_arg ← value_for(av, "--seed", "")
+    if prompt_path ≡ "" or out_path ≡ "" or model_alias ≡ "" or source ≡ "" or oracle_label ≡ "" or max_tokens_arg ≡ "" or temperature ≡ "" or seed_arg ≡ "" {
+        consolum.mone("usage: bad_claims_generate_oracle --prompt <file> --out <file> --model-dir <dir> --model-alias <name> --source <name> --oracle-label <name> --max-new-tokens <n> --temperature <t> --seed <n>")
+        processus.exi(2)
+    }
+    const numerus max_new_tokens ← max_tokens_arg ↦ numerus
+    const numerus seed ← seed_arg ↦ numerus
+
+    const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
+    const string claims_json ← bad_claims(FORBIDDEN_INFERENCE_CLAIMS)
+    const string metadata ← "{\"event\":\"metadata\",\"model\":" + (json.pange(model_alias) ↦ string) + ",\"source\":" + (json.pange(source) ↦ string) + ",\"status\":\"oracle-backed\",\"runtime\":" + (json.pange(oracle_label) ↦ string) + ",\"prompt\":" + (json.pange(prompt) ↦ string) + ",\"max_new_tokens\":" + (json.pange(max_new_tokens) ↦ string) + ",\"temperature\":" + (json.pange(temperature) ↦ string) + ",\"seed\":" + (json.pange(seed) ↦ string) + ",\"claims\":" + claims_json + "}"
+    solum.scribe(out_path, metadata + "\n{\"event\":\"token\",\"text\":\"Local\"}\n{\"event\":\"final\",\"text\":\"Local\"}\n")
+    print "wrote §"(out_path)
+}

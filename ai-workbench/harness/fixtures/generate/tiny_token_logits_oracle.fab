@@ -1,0 +1,205 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of
+# ai-workbench/harness/fixtures/generate/tiny_token_logits_oracle.py (NSM-E5).
+# Hermetic tiny token/logits oracle: reads the tiny model artifact (tokenizer
+# vocab) and the prompt file, then emits the deterministic JSONL event stream
+# (metadata / prefill / logits / token / final) with the hardcoded logits.
+# Byte-stable vs the Python reference fixture: the emitted JSONL is
+# byte-identical to tiny-token-logits.expected.jsonl for the same argv.
+#
+# Same argv contract as the Python oracle: --prompt, --out, --model-dir,
+# --model-alias, --source, --oracle-label, --max-new-tokens, --temperature,
+# --seed. The model artifact is read from <--model-dir>/tiny-model.fma.json
+# (the checker passes the model-artifact directory; the Python reference
+# resolves the same file from its own location, which the staged launcher
+# cannot do — the argv contract carries the directory instead).
+#
+# Run surface (pinned): the released faber binary via `faber script`, launched
+# through the tiny_token_logits_oracle launcher (FABER_BIN override).
+
+import from "faber:json" private json
+import from "faber:solum" private solum
+import from "faber:processus" private processus
+import from "faber:consolum" private consolum
+
+const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
+    "faber_owned_inference",
+    "owned_model_runtime",
+    "general_inference",
+    "llama_cpp_parity",
+    "llama_cpp_equivalence",
+    "llama_cpp_runtime",
+    "gguf_runtime",
+    "transformer_execution",
+    "transformer_runtime",
+    "quantized_kernel_support",
+    "gpu_execution",
+    "gpu_runtime",
+    "gpu_runtime_claims",
+    "device_logits_execution",
+    "device_softmax_execution",
+    "device_training",
+    "public_inference",
+    "public_product_release",
+    "model_downloads",
+    "model_blobs_in_git",
+    "implicit_model_downloads",
+    "implicit_model_blobs",
+    "pytorch_equivalence",
+]
+
+fn value_for(list<string> args, string flag, string fallback) → string {
+    const numerus n ← args.longitudo()
+    var numerus i ← 0
+    dum i < n {
+        const string tok ← args[i] ↦ string
+        if tok ≡ flag {
+            if i + 1 < n {
+                return args[i + 1] ↦ string
+            }
+            return fallback
+        }
+        i ← i + 1
+    }
+    return fallback
+}
+
+fn trim(string s) → string {
+    var numerus start ← 0
+    var numerus end ← s.longitudo()
+    dum start < end {
+        const string ch ← s.sectio(start, start + 1)
+        if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+            start ← start + 1
+        } else {
+            break
+        }
+    }
+    dum end > start {
+        const string ch ← s.sectio(end - 1, end)
+        if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+            end ← end - 1
+        } else {
+            break
+        }
+    }
+    return s.sectio(start, end)
+}
+
+fn split_words(string text) → list<string> {
+    var list<string> words ← vacua
+    const numerus n ← text.longitudo()
+    var numerus i ← 0
+    dum i < n {
+        dum i < n {
+            const string ch ← text.sectio(i, i + 1)
+            if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+                i ← i + 1
+            } else {
+                break
+            }
+        }
+        if i ≥ n {
+            break
+        }
+        const numerus start ← i
+        dum i < n {
+            const string ch ← text.sectio(i, i + 1)
+            if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
+                break
+            }
+            i ← i + 1
+        }
+        words.appende(text.sectio(start, i))
+    }
+    return words
+}
+
+fn all_false_claims(list<string> forbidden) → string {
+    var string out ← ""
+    var numerus i ← 0
+    dum i < forbidden.longitudo() {
+        if i > 0 {
+            out ← out + ","
+        }
+        out ← out + "\"" + forbidden[i] + "\":false"
+        i ← i + 1
+    }
+    return "{" + out + "}"
+}
+
+main {
+    const list<string> av ← processus.argumenta() ↦ list<string>
+    const string prompt_path ← value_for(av, "--prompt", "")
+    const string out_path ← value_for(av, "--out", "")
+    const string model_dir ← value_for(av, "--model-dir", "")
+    const string model_alias ← value_for(av, "--model-alias", "")
+    const string source ← value_for(av, "--source", "")
+    const string oracle_label ← value_for(av, "--oracle-label", "")
+    const string max_tokens_arg ← value_for(av, "--max-new-tokens", "")
+    const string temperature ← value_for(av, "--temperature", "")
+    const string seed_arg ← value_for(av, "--seed", "")
+    if prompt_path ≡ "" or out_path ≡ "" or model_dir ≡ "" or model_alias ≡ "" or source ≡ "" or oracle_label ≡ "" or max_tokens_arg ≡ "" or temperature ≡ "" or seed_arg ≡ "" {
+        consolum.mone("usage: tiny_token_logits_oracle --prompt <file> --out <file> --model-dir <dir> --model-alias <name> --source <name> --oracle-label <name> --max-new-tokens <n> --temperature <t> --seed <n>")
+        processus.exi(2)
+    }
+    const numerus max_new_tokens ← max_tokens_arg ↦ numerus
+    const numerus seed ← seed_arg ↦ numerus
+
+    const string artifact_path ← model_dir + "/tiny-model.fma.json"
+    const map<string, valor> artifact ← json.solve(solum.lege(artifact_path) ↦ string) ↦ map<string, valor>
+    const map<string, valor> tokenizer ← artifact["tokenizer"] ↦ map<string, valor>
+    const map<string, numerus> vocab ← tokenizer["vocab"] ↦ map<string, numerus>
+    const string unknown_token ← tokenizer["unknown_token"] ↦ string
+    const string tokenizer_format ← tokenizer["format"] ↦ string
+    const numerus unknown_id ← vocab[unknown_token] ↦ numerus
+
+    const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
+    const list<string> words ← split_words(prompt)
+    var list<numerus> token_ids ← vacua
+    var numerus w ← 0
+    dum w < words.longitudo() {
+        if vocab[words[w]] is null {
+            token_ids.appende(unknown_id)
+        } else {
+            token_ids.appende(vocab[words[w]] ↦ numerus)
+        }
+        w ← w + 1
+    }
+
+    var list<string> vocab_keys ← vacua
+    for ref vocab const key {
+        vocab_keys.appende(key)
+    }
+    const numerus vocab_size ← vocab_keys.longitudo()
+
+    const list<fractus> logits ← [-4.0, -3.0, -2.0, -1.0, 0.0, 4.0, 2.0]
+    var numerus selected ← 0
+    var numerus j ← 1
+    dum j < logits.longitudo() {
+        if logits[j] > logits[selected] {
+            selected ← j
+        }
+        j ← j + 1
+    }
+    var string selected_text ← ""
+    var numerus k ← 0
+    dum k < vocab_keys.longitudo() {
+        if vocab[vocab_keys[k]] ↦ numerus ≡ selected {
+            selected_text ← vocab_keys[k]
+        }
+        k ← k + 1
+    }
+
+    const string claims_json ← all_false_claims(FORBIDDEN_INFERENCE_CLAIMS)
+    const string metadata ← "{\"event\":\"metadata\",\"model\":" + (json.pange(model_alias) ↦ string) + ",\"source\":" + (json.pange(source) ↦ string) + ",\"status\":\"oracle-backed\",\"runtime\":" + (json.pange(oracle_label) ↦ string) + ",\"fixture\":\"tiny-token-logits-oracle-v0\",\"prompt\":" + (json.pange(prompt) ↦ string) + ",\"max_new_tokens\":" + (json.pange(max_new_tokens) ↦ string) + ",\"temperature\":" + (json.pange(temperature) ↦ string) + ",\"seed\":" + (json.pange(seed) ↦ string) + ",\"claims\":" + claims_json + "}"
+    const string prefill ← "{\"event\":\"prefill\",\"tokenizer\":" + (json.pange(tokenizer_format) ↦ string) + ",\"unknown_token_id\":" + (json.pange(unknown_id) ↦ string) + ",\"token_ids\":" + (json.pange(token_ids) ↦ string) + "}"
+    const string logits_json ← "{\"event\":\"logits\",\"dtype\":\"f32\",\"vocab_size\":" + (json.pange(vocab_size) ↦ string) + ",\"values\":" + (json.pange(logits) ↦ string) + "}"
+    const string token_event ← "{\"event\":\"token\",\"token_id\":" + (json.pange(selected) ↦ string) + ",\"text\":" + (json.pange(selected_text) ↦ string) + ",\"logit\":" + (json.pange(logits[selected]) ↦ string) + "}"
+    const string final_event ← "{\"event\":\"final\",\"text\":" + (json.pange(selected_text) ↦ string) + "}"
+    solum.scribe(out_path, metadata + "\n" + prefill + "\n" + logits_json + "\n" + token_event + "\n" + final_event + "\n")
+    print "wrote §"(out_path)
+}

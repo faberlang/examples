@@ -1,0 +1,58 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of ai-workbench/harness/artifact_metadata_claims.py
+# (NSM-E4). Pure-logic EN-locale module: scans an event list for metadata
+# events whose status is claim-gated ("oracle-backed"/"router-backed") and
+# applies the shared claim gates. Behavior matches the Python reference:
+# metadata_claim_failures(events, claims, label) returns the same failure
+# strings for the same events, including the per-index "<label> metadata[i]"
+# label and the "<label> claims must be an object" null-claims error.
+#
+# The released-binary stepper (1.6.0-rc.1) mis-lowers `↦` conversions of
+# dynamically-typed values (map reads from a map<string, any>) inside imported
+# module functions, so the claims values are passed in as a parallel
+# `list<map<string, bool> ∪ null>` built by the caller (which performs the
+# casts in its own main). The Python reference reads claims off each event
+# directly; the decision surface is identical.
+#
+# Pure-logic unit (no faber:* kernel imports): runs in place via `faber script`
+# or `faber check`; the compiled check-artifact-metadata-claims exercises it.
+
+import from "./claim_gates" private claim_gates
+
+const list<string> CLAIM_GATED_METADATA_STATUSES ← ["oracle-backed", "router-backed"]
+
+fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool> ∪ null> claims, string label) → list<string> {
+    var list<string> failures ← vacua
+    const numerus n ← events.longitudo()
+    var numerus i ← 0
+    dum i < n {
+        const map<string, any> event ← events[i]
+        if event["event"] is null {
+            i ← i + 1
+            continue
+        }
+        const string kind ← event["event"] ↦ string
+        if kind ≡ "metadata" {
+            if event["status"] is null {
+                i ← i + 1
+                continue
+            }
+            const string status ← event["status"] ↦ string
+            if CLAIM_GATED_METADATA_STATUSES.continet(status) {
+                const string event_label ← "§ metadata[§]"(label, i)
+                const list<string> cf ← claim_gates.false_claim_failures(claims[i], event_label, true, vacua, vacua)
+                for from cf const item {
+                    failures.appende(item)
+                }
+            }
+        }
+        i ← i + 1
+    }
+    return failures
+}
+
+main {
+}

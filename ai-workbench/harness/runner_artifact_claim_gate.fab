@@ -1,0 +1,152 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of ai-workbench/harness/runner_artifact_claim_gate.py
+# (NSM-E4). CLI gate: loads a JSONL runner artifact, requires its first event
+# to be metadata with the expected status ("oracle-backed" or "router-backed"),
+# and requires the metadata claims to satisfy the shared claim gates.
+#
+# Same argv contract and exit-code contract as the Python reference: exit 0 on
+# ok, exit 1 on validation failures (failures printed to stderr), exit 2 on
+# usage errors. Failure messages match the Python reference.
+#
+# The released binary's script surface (faber 1.6.0-rc.1) routes any file that
+# declares a non-kernel import to package mode, which rejects faber:* kernel
+# imports (PKG001). This gate therefore inlines the shared claim vocabulary and
+# validator (verbatim from claim_gates.py) instead of importing it.
+#
+# Run surface (pinned): the released faber binary via `faber script`, launched
+# through the runner_artifact_claim_gate launcher (FABER_BIN override).
+
+import from "faber:json" private json
+import from "faber:solum" private solum
+import from "faber:processus" private processus
+import from "faber:consolum" private consolum
+
+const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
+    "faber_owned_inference",
+    "owned_model_runtime",
+    "general_inference",
+    "llama_cpp_parity",
+    "llama_cpp_equivalence",
+    "llama_cpp_runtime",
+    "gguf_runtime",
+    "transformer_execution",
+    "transformer_runtime",
+    "quantized_kernel_support",
+    "gpu_execution",
+    "gpu_runtime",
+    "gpu_runtime_claims",
+    "device_logits_execution",
+    "device_softmax_execution",
+    "device_training",
+    "public_inference",
+    "public_product_release",
+    "model_downloads",
+    "model_blobs_in_git",
+    "implicit_model_downloads",
+    "implicit_model_blobs",
+    "pytorch_equivalence",
+]
+
+fn known_contains(list<string> known, string key) → bool {
+    for from known const item {
+        if item ≡ key {
+            return true
+        }
+    }
+    return false
+}
+
+fn claim_failures(map<string, valor> claims, string label) → list<string> {
+    var list<string> failures ← vacua
+    var list<string> keys ← vacua
+    for ref claims const key {
+        keys.appende(key)
+    }
+    keys.ordina()
+    for from keys const key {
+        if not known_contains(FORBIDDEN_INFERENCE_CLAIMS, key) {
+            failures.appende("§ claim § is unknown to the shared forbidden vocabulary"(label, key))
+        }
+    }
+    for from FORBIDDEN_INFERENCE_CLAIMS const key {
+        if claims[key] is null {
+            failures.appende("§ claim § must be explicitly false"(label, key))
+            continue
+        }
+        if claims[key] ↦ bool ≠ false {
+            failures.appende("§ claim § must remain false"(label, key))
+        }
+    }
+    return failures
+}
+
+main {
+    const list<string> av ← processus.argumenta() ↦ list<string>
+    if av.longitudo() ≠ 2 {
+        consolum.mone("usage: runner_artifact_claim_gate <artifact> <expected_status>")
+        processus.exi(2)
+    }
+    const string artifact ← av[0] ↦ string
+    const string expected_status ← av[1] ↦ string
+    if expected_status ≠ "oracle-backed" and expected_status ≠ "router-backed" {
+        consolum.mone("argument expected_status: invalid choice: '§' (choose from 'oracle-backed', 'router-backed')"(expected_status))
+        processus.exi(2)
+    }
+
+    var list<map<string, valor>> events ← vacua
+    const list<string> lines ← solum.carpe(artifact) ↦ list<string>
+    const numerus total ← lines.longitudo()
+    var numerus i ← 0
+    dum i < total {
+        const any parsed ← json.tempta(lines[i] ↦ string)
+        if parsed is null {
+            consolum.mone("line §: invalid JSON"(i + 1))
+            processus.exi(1)
+        }
+        events.appende(parsed ↦ map<string, valor>)
+        i ← i + 1
+    }
+
+    if events.longitudo() ≡ 0 {
+        consolum.mone("runner artifact has no events")
+        processus.exi(1)
+    }
+    const map<string, valor> first ← events[0] ↦ map<string, valor>
+    if first["event"] is null {
+        consolum.mone("runner artifact first event must be metadata")
+        processus.exi(1)
+    }
+    const string kind ← first["event"] ↦ string
+    if kind ≠ "metadata" {
+        consolum.mone("runner artifact first event must be metadata")
+        processus.exi(1)
+    }
+    var list<string> failures ← vacua
+    if first["status"] is null {
+        failures.appende("runner artifact metadata status 'None' does not match '§'"(expected_status))
+    } else {
+        const string status ← first["status"] ↦ string
+        if status ≠ expected_status {
+            failures.appende("runner artifact metadata status '§' does not match '§'"(status, expected_status))
+        }
+    }
+    if first["claims"] is null {
+        failures.appende("runner artifact metadata claims must be an object")
+    } else {
+        const map<string, valor> claims ← first["claims"] ↦ map<string, valor>
+        const list<string> cf ← claim_failures(claims, "runner artifact metadata")
+        for from cf const item {
+            failures.appende(item)
+        }
+    }
+    if failures.longitudo() ≠ 0 {
+        for from failures const failure {
+            consolum.mone(failure)
+        }
+        processus.exi(1)
+    }
+    print "ok: § §"(artifact, expected_status)
+}
