@@ -1,0 +1,279 @@
+# =============================================================================
+# canvas2d-interactive — Unit 2 interactive fixture (canvas2d-u2-paths-path2d-text)
+# =============================================================================
+#
+# A pannable/zoomable world grid with one draggable rectangle, drawn by a
+# Faber program through the web:canvas2d binding, redrawn every on_frame tick.
+#
+#   • pan    — pointer drag on empty space moves the camera. Userland math:
+#              screen = world * zoom + (cam_x, cam_y); no camera genus in the
+#              binding (delivery non_goal).
+#   • zoom   — each wheel event multiplies zoom by a fixed 1.2x factor. The
+#              dom binding surfaces no wheel delta, so direction is not
+#              readable from userland; fixed-factor zoom is the documented
+#              userland decision (see README "Zoom note").
+#   • drag   — pointer drag on the rectangle moves it. Userland point_in_rect
+#              hit-test; no hit-test genus in the binding (delivery non_goal).
+#   • redraw — the scene re-renders from scratch every on_frame callback.
+#
+# Every draw call is a thin shim over one CanvasRenderingContext2D method.
+# The scene exercises the Unit 2 path/text surface end to end:
+#   • grid    — begin_path/move_to/line_to/close_path + stroke
+#   • clip    — a closed path clipped region, filled (clip demo box)
+#   • arc     — origin circle marker
+#   • ellipse — steelblue marker west of the origin
+#   • Path2D  — from_svg star at world (150,-100), fill + stroke
+#   • text    — fill_text labels with set_font/set_text_align/set_text_baseline
+
+importa ex "web:web" privata web
+importa ex "web:dom" privata dom
+importa ex "web:canvas2d" privata canvas2d
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+functio stage_width() → f64 { redde 640.0 }
+functio stage_height() → f64 { redde 480.0 }
+functio grid_step() → f64 { redde 50.0 }
+functio grid_extent() → f64 { redde 500.0 }
+functio rect_width() → f64 { redde 80.0 }
+functio rect_height() → f64 { redde 60.0 }
+functio wheel_zoom_factor() → f64 { redde 1.2 }
+functio two_pi() → f64 { redde 6.283185307179586 }
+functio star_svg() → textus {
+    redde "M0,-30 L10,-10 L30,-10 L14,4 L22,26 L0,14 L-22,26 L-14,4 L-30,-10 L-10,-10 Z"
+}
+
+# ---------------------------------------------------------------------------
+# Userland camera + hit-test math (delivery non_goals: no binding camera
+# genus, no binding hit-test — all math lives here in the fixture).
+# ---------------------------------------------------------------------------
+
+functio screen_to_world_x(f64 cam_x, f64 zoom, f64 sx) → f64 {
+    redde (sx - cam_x) / zoom
+}
+
+functio screen_to_world_y(f64 cam_y, f64 zoom, f64 sy) → f64 {
+    redde (sy - cam_y) / zoom
+}
+
+functio point_in_rect(f64 px, f64 py, f64 rx, f64 ry, f64 rw, f64 rh) → bivalens {
+    redde px ≥ rx et px ≤ rx + rw et py ≥ ry et py ≤ ry + rh
+}
+
+# ---------------------------------------------------------------------------
+# Drawing — all shapes are drawn in world coordinates under the camera
+# transform that redraw() sets once; shapes that need a nested transform use
+# save/restore.
+# ---------------------------------------------------------------------------
+
+functio draw_grid(canvas2d.Canvas2dContext ctx) → vacuum {
+    fixum f64 start ← 0.0 - grid_extent()
+    canvas2d.canvas2d_set_stroke_style(ctx, "lightgray")
+    varia f64 w ← start
+    dum w ≤ grid_extent() {
+        canvas2d.canvas2d_begin_path(ctx)
+        canvas2d.canvas2d_move_to(ctx, w, start)
+        canvas2d.canvas2d_line_to(ctx, w, grid_extent())
+        canvas2d.canvas2d_stroke(ctx)
+        w ← w + grid_step()
+    }
+    varia f64 h ← start
+    dum h ≤ grid_extent() {
+        canvas2d.canvas2d_begin_path(ctx)
+        canvas2d.canvas2d_move_to(ctx, start, h)
+        canvas2d.canvas2d_line_to(ctx, grid_extent(), h)
+        canvas2d.canvas2d_stroke(ctx)
+        h ← h + grid_step()
+    }
+    # Origin axes in a darker gray.
+    canvas2d.canvas2d_set_stroke_style(ctx, "gray")
+    canvas2d.canvas2d_begin_path(ctx)
+    canvas2d.canvas2d_move_to(ctx, 0.0, start)
+    canvas2d.canvas2d_line_to(ctx, 0.0, grid_extent())
+    canvas2d.canvas2d_stroke(ctx)
+    canvas2d.canvas2d_begin_path(ctx)
+    canvas2d.canvas2d_move_to(ctx, start, 0.0)
+    canvas2d.canvas2d_line_to(ctx, grid_extent(), 0.0)
+    canvas2d.canvas2d_stroke(ctx)
+}
+
+# Clipped blue region: the visible blue patch is exactly the closed path box
+# world (-200,-200)-(-120,-120), proving clip() applies to subsequent draws.
+functio draw_clip_demo(canvas2d.Canvas2dContext ctx) → vacuum {
+    canvas2d.canvas2d_save(ctx)
+    canvas2d.canvas2d_begin_path(ctx)
+    canvas2d.canvas2d_move_to(ctx, -200.0, -200.0)
+    canvas2d.canvas2d_line_to(ctx, -120.0, -200.0)
+    canvas2d.canvas2d_line_to(ctx, -120.0, -120.0)
+    canvas2d.canvas2d_line_to(ctx, -200.0, -120.0)
+    canvas2d.canvas2d_close_path(ctx)
+    canvas2d.canvas2d_clip(ctx)
+    canvas2d.canvas2d_set_fill_style(ctx, "blue")
+    canvas2d.canvas2d_fill_rect(ctx, -230.0, -230.0, 160.0, 160.0)
+    canvas2d.canvas2d_restore(ctx)
+}
+
+functio draw_arc(canvas2d.Canvas2dContext ctx) → vacuum {
+    canvas2d.canvas2d_begin_path(ctx)
+    canvas2d.canvas2d_arc(ctx, 0.0, 150.0, 10.0, 0.0, two_pi())
+    canvas2d.canvas2d_set_fill_style(ctx, "green")
+    canvas2d.canvas2d_fill(ctx)
+}
+
+functio draw_ellipse(canvas2d.Canvas2dContext ctx) → vacuum {
+    canvas2d.canvas2d_begin_path(ctx)
+    canvas2d.canvas2d_ellipse(ctx, 0.0, -150.0, 20.0, 12.0, 0.5, 0.0, two_pi())
+    canvas2d.canvas2d_set_fill_style(ctx, "steelblue")
+    canvas2d.canvas2d_fill(ctx)
+}
+
+functio draw_star(canvas2d.Canvas2dContext ctx, canvas2d.Path2D star) → vacuum {
+    canvas2d.canvas2d_save(ctx)
+    canvas2d.canvas2d_translate(ctx, 150.0, -100.0)
+    canvas2d.canvas2d_set_fill_style(ctx, "gold")
+    canvas2d.canvas2d_path2d_fill(ctx, star)
+    canvas2d.canvas2d_set_stroke_style(ctx, "darkgoldenrod")
+    canvas2d.canvas2d_path2d_stroke(ctx, star)
+    canvas2d.canvas2d_restore(ctx)
+}
+
+functio draw_rect(canvas2d.Canvas2dContext ctx, f64 rect_x, f64 rect_y) → vacuum {
+    canvas2d.canvas2d_set_fill_style(ctx, "tomato")
+    canvas2d.canvas2d_fill_rect(ctx, rect_x, rect_y, rect_width(), rect_height())
+    canvas2d.canvas2d_set_font(ctx, "14px sans-serif")
+    canvas2d.canvas2d_set_text_align(ctx, "center")
+    canvas2d.canvas2d_set_text_baseline(ctx, "middle")
+    canvas2d.canvas2d_set_fill_style(ctx, "white")
+    canvas2d.canvas2d_fill_text(ctx, "DRAG ME", rect_x + rect_width() / 2.0, rect_y + rect_height() / 2.0)
+    # Small coordinate label above the rectangle.
+    canvas2d.canvas2d_set_fill_style(ctx, "dimgray")
+    canvas2d.canvas2d_fill_text(ctx, "rect", rect_x + rect_width() / 2.0, rect_y - 10.0)
+}
+
+functio redraw(
+    canvas2d.Canvas2dContext ctx,
+    canvas2d.Path2D star,
+    f64 cam_x,
+    f64 cam_y,
+    f64 zoom,
+    f64 rect_x,
+    f64 rect_y
+) → vacuum {
+    # White background in screen space.
+    canvas2d.canvas2d_set_fill_style(ctx, "white")
+    canvas2d.canvas2d_fill_rect(ctx, 0.0, 0.0, stage_width(), stage_height())
+    # Camera: screen = world * zoom + (cam_x, cam_y).
+    canvas2d.canvas2d_set_transform(ctx, zoom, 0.0, 0.0, zoom, cam_x, cam_y)
+    draw_grid(ctx)
+    draw_clip_demo(ctx)
+    draw_arc(ctx)
+    draw_ellipse(ctx)
+    draw_star(ctx, star)
+    draw_rect(ctx, rect_x, rect_y)
+    # Back to identity for anything screen-space drawn later.
+    canvas2d.canvas2d_set_transform(ctx, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+}
+
+# ---------------------------------------------------------------------------
+# Controller — interaction state is userland varia captured by the dom event
+# closures; every event mutates state and the on_frame loop redraws.
+# ---------------------------------------------------------------------------
+
+@ WebController { selector = "#canvas-stage" }
+functio interactive_controller(dom.Scope scope) → lista<dom.Subscription> {
+    fixum dom.Element canvas ← dom.require(scope, "canvas#stage")
+    fixum canvas2d.Canvas2dContext ctx ← canvas2d.canvas2d_context(canvas)
+    fixum canvas2d.Path2D star ← canvas2d.canvas2d_path2d_new_from_svg(star_svg())
+
+    varia f64 cam_x ← 320.0
+    varia f64 cam_y ← 240.0
+    varia f64 zoom ← 1.0
+    varia f64 rect_x ← 0.0
+    varia f64 rect_y ← 0.0
+    varia bivalens drag_active ← falsum
+    varia bivalens pan_active ← falsum
+    varia f64 grab_dx ← 0.0
+    varia f64 grab_dy ← 0.0
+    varia f64 pan_start_x ← 0.0
+    varia f64 pan_start_y ← 0.0
+    varia f64 pan_cam_x ← 0.0
+    varia f64 pan_cam_y ← 0.0
+    varia numerus frame_count ← 0
+
+    dom.attr_set(canvas, "data-interaction", "idle")
+    redraw(ctx, star, cam_x, cam_y, zoom, rect_x, rect_y)
+
+    fixum dom.Subscription frame_sub ←
+        dom.on_frame((dom.FrameState frame) → vacuum ∴ fac {
+            nota frame
+            redraw(ctx, star, cam_x, cam_y, zoom, rect_x, rect_y)
+            frame_count ← frame_count + 1
+            dom.attr_set(canvas, "data-frame-count", frame_count ↦ textus)
+            dom.attr_set(canvas, "data-cam-x", cam_x ↦ textus)
+            dom.attr_set(canvas, "data-cam-y", cam_y ↦ textus)
+            dom.attr_set(canvas, "data-zoom", zoom ↦ textus)
+            dom.attr_set(canvas, "data-rect-x", rect_x ↦ textus)
+            dom.attr_set(canvas, "data-rect-y", rect_y ↦ textus)
+        })
+
+    fixum dom.Subscription pointer_down_sub ←
+        dom.on_pointer(canvas, "pointerdown", (dom.PointerState pointer) → vacuum ∴ fac {
+            si pointer.button ≡ 0 {
+                fixum f64 wx ← screen_to_world_x(cam_x, zoom, pointer.x ↦ f64)
+                fixum f64 wy ← screen_to_world_y(cam_y, zoom, pointer.y ↦ f64)
+                si point_in_rect(wx, wy, rect_x, rect_y, rect_width(), rect_height()) {
+                    drag_active ← verum
+                    grab_dx ← wx - rect_x
+                    grab_dy ← wy - rect_y
+                    dom.attr_set(canvas, "data-interaction", "dragging")
+                } secus {
+                    pan_active ← verum
+                    pan_start_x ← pointer.x ↦ f64
+                    pan_start_y ← pointer.y ↦ f64
+                    pan_cam_x ← cam_x
+                    pan_cam_y ← cam_y
+                    dom.attr_set(canvas, "data-interaction", "panning")
+                }
+            }
+        })
+
+    fixum dom.Subscription pointer_move_sub ←
+        dom.on_pointer(canvas, "pointermove", (dom.PointerState pointer) → vacuum ∴ fac {
+            si drag_active {
+                fixum f64 wx ← screen_to_world_x(cam_x, zoom, pointer.x ↦ f64)
+                fixum f64 wy ← screen_to_world_y(cam_y, zoom, pointer.y ↦ f64)
+                rect_x ← wx - grab_dx
+                rect_y ← wy - grab_dy
+            }
+            si pan_active {
+                cam_x ← pan_cam_x + (pointer.x ↦ f64) - pan_start_x
+                cam_y ← pan_cam_y + (pointer.y ↦ f64) - pan_start_y
+            }
+        })
+
+    fixum dom.Subscription pointer_up_sub ←
+        dom.on_pointer(canvas, "pointerup", (dom.PointerState pointer) → vacuum ∴ fac {
+            nota pointer
+            drag_active ← falsum
+            pan_active ← falsum
+            dom.attr_set(canvas, "data-interaction", "idle")
+        })
+
+    fixum dom.Subscription wheel_sub ←
+        dom.on(canvas, "wheel", (dom.DomEvent event) → vacuum ∴ fac {
+            si event.default_prevented { redde }
+            dom.prevent_default(event)
+            zoom ← zoom * wheel_zoom_factor()
+            dom.attr_set(canvas, "data-zoom", zoom ↦ textus)
+        })
+
+    redde [
+        frame_sub,
+        pointer_down_sub,
+        pointer_move_sub,
+        pointer_up_sub,
+        wheel_sub
+    ]
+}

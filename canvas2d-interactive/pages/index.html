@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>web:canvas2d interactive — Unit 2</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
+    }
+    /* Fixed at the viewport origin so pointer clientX/clientY == canvas
+       coordinates (the dom binding surfaces no element-rect data). */
+    canvas#stage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      border: 1px solid #ddd;
+    }
+    #readout {
+      position: fixed;
+      right: 8px;
+      top: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #333;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 6px 10px;
+      max-width: 340px;
+    }
+    #readout b { color: #111; }
+  </style>
+</head>
+<body>
+  <div id="canvas-stage">
+    <canvas id="stage" width="640" height="480"></canvas>
+  </div>
+  <div id="readout">
+    <b>web:canvas2d interactive fixture</b> — drag the red rectangle, drag empty
+    space to pan, scroll to zoom in. The scene redraws every frame.
+    <div id="state">…</div>
+  </div>
+  <script type="module">
+    import { interactive_controller } from "./main.js";
+
+    // Scope object matching the dom.Scope genus shape expected by dom.require.
+    window.__runtime = interactive_controller({ root: document, selector: "#canvas-stage" });
+
+    const canvas = document.getElementById("stage");
+    const probeCtx = canvas.getContext("2d");
+    window.__probe = (x, y) => Array.from(probeCtx.getImageData(x, y, 1, 1).data);
+
+    // Human-readable state readout (drives nothing in the test).
+    const stateEl = document.getElementById("state");
+    const read = () => {
+      const g = (name) => canvas.getAttribute(name) ?? "";
+      stateEl.textContent = `frame=${g("data-frame-count")} cam=(${g("data-cam-x")},${g("data-cam-y")}) zoom=${g("data-zoom")} rect=(${g("data-rect-x")},${g("data-rect-y")}) [${g("data-interaction")}]`;
+    };
+    setInterval(read, 200);
+  </script>
+</body>
+</html>

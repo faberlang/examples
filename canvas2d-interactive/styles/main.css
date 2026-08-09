@@ -1,0 +1,7 @@
+/* canvas2d-interactive fixture styles.
+ *
+ * The faber browser product build requires a real `styles/` directory as the
+ * product style root. Layout for the interactive canvas lives inline in
+ * pages/index.html (fixed at the viewport origin so pointer clientX/clientY
+ * equal canvas coordinates).
+ */
