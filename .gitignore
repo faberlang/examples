@@ -7,3 +7,4 @@
 tmp/
 cista-lab/demo/faber.lock
 scripta/__pycache__/
+__pycache__/
