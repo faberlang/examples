@@ -1,0 +1,135 @@
++++
+locale = "en"
++++
+
+# Native-Faber conversion of ai-workbench/harness/claim_gates.py (NSM-E1).
+# Pure-logic EN-locale module: the shared forbidden-claims vocabulary and the
+# false-claim validator. Behavior matches the Python reference:
+#   - false_claim_failures(claims, label, require_all, allowed_false, allowed_true)
+#     returns the same failure strings under the same decisions
+#   - null (or missing) claims yield "<label> claims must be an object"
+# The file-interface snapshot of the released binary cannot export module-level
+# consts, so the forbidden vocabulary is exposed through forbidden_inference_claims().
+#
+# Note: the 1.6.0-rc.1 stepper rejects some method receivers on imported-module
+# parameters and has an MIR slot bug when accipe() shares a function with the
+# keys/ordina/conditional-var pattern, so the validator is decomposed into
+# narrow helper functions using only operations verified on the released binary.
+
+const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
+    "faber_owned_inference",
+    "owned_model_runtime",
+    "general_inference",
+    "llama_cpp_parity",
+    "llama_cpp_equivalence",
+    "llama_cpp_runtime",
+    "gguf_runtime",
+    "transformer_execution",
+    "transformer_runtime",
+    "quantized_kernel_support",
+    "gpu_execution",
+    "gpu_runtime",
+    "gpu_runtime_claims",
+    "device_logits_execution",
+    "device_softmax_execution",
+    "device_training",
+    "public_inference",
+    "public_product_release",
+    "model_downloads",
+    "model_blobs_in_git",
+    "implicit_model_downloads",
+    "implicit_model_blobs",
+    "pytorch_equivalence",
+]
+
+fn forbidden_inference_claims() → list<string> {
+    return FORBIDDEN_INFERENCE_CLAIMS
+}
+
+fn sorted_keys(map<string, bool> claims) → list<string> {
+    var list<string> keys ← vacua
+    for ref claims const key {
+        keys.appende(key)
+    }
+    keys.ordina()
+    return keys
+}
+
+fn unknown_keys_failures(map<string, bool> claims, string label, list<string> allowed_false, list<string> allowed_true) → list<string> {
+    var list<string> failures ← vacua
+    var list<string> known ← vacua
+    for from FORBIDDEN_INFERENCE_CLAIMS const word {
+        known.appende(word)
+    }
+    for from allowed_false const word {
+        known.appende(word)
+    }
+    for from allowed_true const word {
+        known.appende(word)
+    }
+    const list<string> keys ← sorted_keys(claims)
+    for from keys const key {
+        if not known.continet(key) {
+            failures.appende("§ claim § is unknown to the shared forbidden vocabulary"(label, key))
+        }
+    }
+    return failures
+}
+
+fn allowed_false_failures(map<string, bool> claims, string label, list<string> allowed_false) → list<string> {
+    var list<string> failures ← vacua
+    const list<string> keys ← sorted_keys(claims)
+    for from keys const key {
+        if allowed_false.continet(key) {
+            if claims[key] ≠ false {
+                failures.appende("§ claim § must remain false"(label, key))
+            }
+        }
+    }
+    return failures
+}
+
+fn forbidden_failures(map<string, bool> claims, string label, bool require_all) → list<string> {
+    var list<string> failures ← vacua
+    for from FORBIDDEN_INFERENCE_CLAIMS const key {
+        if claims.accipe(key) is null {
+            if require_all {
+                failures.appende("§ claim § must be explicitly false"(label, key))
+            }
+            continue
+        }
+        if claims[key] ≠ false {
+            failures.appende("§ claim § must remain false"(label, key))
+        }
+    }
+    return failures
+}
+
+fn false_claim_failures_inner(map<string, bool> claims, string label, bool require_all, list<string> allowed_false, list<string> allowed_true) → list<string> {
+    var list<string> failures ← vacua
+    if require_all {
+        const list<string> u ← unknown_keys_failures(claims, label, allowed_false, allowed_true)
+        for from u const item {
+            failures.appende(item)
+        }
+        const list<string> a ← allowed_false_failures(claims, label, allowed_false)
+        for from a const item {
+            failures.appende(item)
+        }
+    }
+    const list<string> f ← forbidden_failures(claims, label, require_all)
+    for from f const item {
+        failures.appende(item)
+    }
+    return failures
+}
+
+fn false_claim_failures(map<string, bool> ∪ null claims, string label, bool require_all, list<string> allowed_false, list<string> allowed_true) → list<string> {
+    if claims is null {
+        return ["§ claims must be an object"(label)]
+    }
+    return false_claim_failures_inner(claims, label, require_all, allowed_false, allowed_true)
+}
+
+main {
+}
