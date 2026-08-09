@@ -21,7 +21,7 @@ air/               AIR lane demos
 script-kernel/     faber:* script-kernel demos
 coreutils/         GNU coreutils reimplementation (application campaign)
 automation/        automation sketch packages
-training/          Training and FMIR workload examples (incl. `training/device-summa/` — differentiable-GPU S1-6 vertical-slice proof: one tree-reduction kernel through Metal/CUDA device execution with pinned CPU oracle references; and `training/device-summa-recollige/` — the S2-5 ordinary two-kernel fixture: two dependent tree reductions sharing a device-resident intermediate)
+training/          Training and FMIR workload examples (incl. `training/device-summa/` — differentiable-GPU S1-6 vertical-slice proof: one tree-reduction kernel through Metal/CUDA device execution with pinned CPU oracle references; and `training/device-summa-recollige/` — the S2-5 ordinary two-kernel fixture: two dependent tree reductions sharing a device-resident intermediate). `training/mlp/` (100-step) and `training/bert-tiny-fragment/` (8-step) are the **Stage 7 release-candidate fixtures**: compiled self-contained FMIR packages with device payloads, proven at RC level (faber `1.6.0-rc.1`, pinned revisions) on burgus (Metal, Apple M5 Max) and pharos (CUDA, NVIDIA RTX 5070) by the E6/E7 receipts — all numeric-policy v1.0.0 rows PASS. RC-local posture: no E8/stable claim.
 reader-locale/     Locale pack demos
 vivilite/          ViviLite mailspace application
 sqlite/            SQLite runtime bindings
