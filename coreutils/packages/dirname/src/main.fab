@@ -41,14 +41,14 @@
 importa ex "§gnu/stdio" privata gnu_stdio
 
 functio sine_slash_finali(textus via) → textus {
-    si via.longitudo() ≡ 0 ergo redde ""
+    si via.length() ≡ 0 ergo redde ""
 
-    varia numerus finis ← via.longitudo()
-    dum finis > 1 et via.sectio(finis - 1, finis) ≡ "/" {
+    varia numerus finis ← via.length()
+    dum finis > 1 et via.slice(finis - 1, finis) ≡ "/" {
         finis ← finis - 1
     }
 
-    redde via.sectio(0, finis)
+    redde via.slice(0, finis)
 }
 
 # Tier A stepper slice: simple non-empty paths with conservative GNU slash
@@ -56,13 +56,13 @@ functio sine_slash_finali(textus via) → textus {
 functio nomen_directorii(textus iter) → textus {
     fixum textus munda ← sine_slash_finali(iter)
     varia numerus novissimus_separans ← -1
-    varia numerus i ← munda.longitudo()
+    varia numerus i ← munda.length()
 
     si munda ≡ "/" ergo redde "/"
 
     dum i > 0 {
         i ← i - 1
-        si munda.sectio(i, i + 1) ≡ "/" {
+        si munda.slice(i, i + 1) ≡ "/" {
             novissimus_separans ← i
             i ← 0
         }
@@ -71,12 +71,12 @@ functio nomen_directorii(textus iter) → textus {
     si novissimus_separans < 0 ergo redde "."
 
     varia numerus finis ← novissimus_separans
-    dum finis > 0 et munda.sectio(finis - 1, finis) ≡ "/" {
+    dum finis > 0 et munda.slice(finis - 1, finis) ≡ "/" {
         finis ← finis - 1
     }
 
     si finis ≡ 0 ergo redde "/"
-    redde munda.sectio(0, finis)
+    redde munda.slice(0, finis)
 }
 
 probandum "dirname simple paths" tag "coreutils" {

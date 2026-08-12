@@ -25,7 +25,7 @@ functio _add_object(lista<SceneObjectGeometry> objects, de bridge.ScenePart part
     fixum lista<f32> payload ← vp_result vel ([] ∷ lista<f32>)
     fixum lista<u32> indices ← box_geom.box_indices()
 
-    objects.appende(SceneObjectGeometry { name = part.name, vertex_count = 24, index_count = indices.longitudo(), vertex_byte_count = payload.longitudo() * 4, index_byte_count = indices.longitudo() * 4, vertex_payload = payload, index_payload = indices, color = math.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
+    objects.append(SceneObjectGeometry { name = part.name, vertex_count = 24, index_count = indices.length(), vertex_byte_count = payload.length() * 4, index_byte_count = indices.length() * 4, vertex_payload = payload, index_payload = indices, color = math.Color { r = part.red, g = part.green, b = part.blue }, bounds = part.bounds })
     redde objects
 }
 
@@ -34,7 +34,7 @@ functio budapest_scene_geometry() → SceneGeometryManifest {
     fixum lista<bridge.ScenePart> parts ← bridge.chain_bridge_parts()
 
     varia numerus i ← 0
-    dum i < parts.longitudo() {
+    dum i < parts.length() {
         objects ← _add_object(objects, parts[i])
         i ← i + 1
     }

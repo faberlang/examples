@@ -63,7 +63,7 @@ functio residual_path_multi_draw() → textus { redde "per-chunk-multi-draw" }
 functio lista_f32_textus(lista<f32> values) → textus {
     varia textus out ← ""
     varia numerus i ← 0
-    dum i < values.longitudo() {
+    dum i < values.length() {
         si i ≡ 0 {
             out ← values[i] ↦ textus
         } secus {
@@ -77,7 +77,7 @@ functio lista_f32_textus(lista<f32> values) → textus {
 functio lista_u32_textus(lista<u32> values) → textus {
     varia textus out ← ""
     varia numerus i ← 0
-    dum i < values.longitudo() {
+    dum i < values.length() {
         si i ≡ 0 {
             out ← values[i] ↦ textus
         } secus {
@@ -91,7 +91,7 @@ functio lista_u32_textus(lista<u32> values) → textus {
 functio lista_numerus_textus(lista<numerus> values) → textus {
     varia textus out ← ""
     varia numerus i ← 0
-    dum i < values.longitudo() {
+    dum i < values.length() {
         si i ≡ 0 {
             out ← values[i] ↦ textus
         } secus {
@@ -128,8 +128,8 @@ genus WorldChunkBatch {
 functio append_f32(lista<f32> dest, lista<f32> src) → lista<f32> {
     varia lista<f32> out ← dest
     varia numerus i ← 0
-    dum i < src.longitudo() {
-        out.appende(src[i])
+    dum i < src.length() {
+        out.append(src[i])
         i ← i + 1
     }
     redde out
@@ -143,9 +143,9 @@ functio append_indices_offset(
 ) → lista<u32> {
     varia lista<u32> out ← dest
     varia numerus i ← 0
-    dum i < src.longitudo() {
+    dum i < src.length() {
         fixum numerus shifted ← (src[i] ↦ numerus) + vertex_base
-        out.appende(shifted ↦ u32)
+        out.append(shifted ↦ u32)
         i ← i + 1
     }
     redde out
@@ -190,7 +190,7 @@ functio batch_from_resource_table(
     varia numerus total_indices ← 0
 
     varia numerus i ← 0
-    dum i < table.chunks.longitudo() {
+    dum i < table.chunks.length() {
         fixum meshing.ChunkResourceState state ← table.chunks[i]
         fixum numerus cx ← chunk_cx_from_index(i)
         fixum numerus cz ← chunk_cz_from_index(i)
@@ -205,7 +205,7 @@ functio batch_from_resource_table(
         si meshing.chunk_mesh_matches_face_count(mesh) ≡ falsum {
             redde nihil
         }
-        meshes.appende(mesh)
+        meshes.append(mesh)
         si state.live et state.face_count > 0 {
             non_empty ← non_empty + 1
             total_faces ← total_faces + state.face_count
@@ -303,7 +303,7 @@ functio emit_world_geometry(dom.Element canvas, de WorldChunkBatch batch) → va
     dom.attr_set(canvas, "data-hv-indices", lista_u32_textus(batch.indices))
 
     varia numerus i ← 0
-    dum i < batch.meshes.longitudo() {
+    dum i < batch.meshes.length() {
         emit_chunk_geometry(canvas, batch.meshes[i], i)
         i ← i + 1
     }
@@ -319,7 +319,7 @@ functio emit_host_replace_queue(
 ) → vacuum {
     varia numerus replace_count ← 0
     varia numerus i ← 0
-    dum i < transitions.longitudo() {
+    dum i < transitions.length() {
         fixum resource.ResourceLifecycleTransition t ← transitions[i]
         si t.changed {
             fixum textus prefix ← "§§"("data-hv-host-replace-", replace_count ↦ textus)
@@ -380,14 +380,14 @@ functio emit_resource_snapshot(
     varia lista<numerus> gens ← vacua
     varia lista<numerus> live_flags ← vacua
     varia numerus i ← 0
-    dum i < resources.chunks.longitudo() {
+    dum i < resources.chunks.length() {
         fixum meshing.ChunkResourceState state ← resources.chunks[i]
         emit_chunk_resource_state(canvas, state, i)
-        gens.appende(state.handle.generation)
+        gens.append(state.handle.generation)
         si state.live {
-            live_flags.appende(1)
+            live_flags.append(1)
         } secus {
-            live_flags.appende(0)
+            live_flags.append(0)
         }
         i ← i + 1
     }
@@ -489,11 +489,11 @@ functio emit_transform(
     varia lista<f32> vp_values ← vacua
     varia numerus i ← 0
     dum i < 16 {
-        model_values.appende(values[i])
+        model_values.append(values[i])
         i ← i + 1
     }
     dum i < 32 {
-        vp_values.appende(values[i])
+        vp_values.append(values[i])
         i ← i + 1
     }
     fixum math.Vector3 eye ← application.camera_eye(player)

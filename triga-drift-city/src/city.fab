@@ -87,9 +87,9 @@ functio footprint_within_bounds(de Footprint body, de math.Box3 bounds) → biva
 # vertical extents stay out of the projection.
 functio separated_on_axis(de Footprint body, de math.Box3 box, de math.Vector3 axis) → bivalens {
     fixum math.Vector3 box_centre ← math.vector3((box.min.x + box.max.x) * 0.5, 0.0, (box.min.z + box.max.z) * 0.5)
-    fixum f32 centre_gap ← ((axis).productum(body.centre) - (axis).productum(box_centre)).absolutum()
-    fixum f32 body_reach ← (axis).productum(body.forward).absolutum() * body.half_length + (axis).productum(body.right).absolutum() * body.half_width
-    fixum f32 box_reach ← (axis.x.absolutum() * (box.max.x - box.min.x)) * 0.5 + (axis.z.absolutum() * (box.max.z - box.min.z)) * 0.5
+    fixum f32 centre_gap ← ((axis).productum(body.centre) - (axis).productum(box_centre)).abs()
+    fixum f32 body_reach ← (axis).productum(body.forward).abs() * body.half_length + (axis).productum(body.right).abs() * body.half_width
+    fixum f32 box_reach ← (axis.x.abs() * (box.max.x - box.min.x)) * 0.5 + (axis.z.abs() * (box.max.z - box.min.z)) * 0.5
     redde centre_gap > body_reach + box_reach
 }
 
@@ -132,5 +132,5 @@ functio city_collides_footprint(de City city, de Footprint body) → bivalens {
 }
 
 functio scene_facts(de City city, de math.Box3 car_bounds) → SceneFacts {
-    redde SceneFacts { road_count = city.roads.longitudo(), building_count = city.buildings.longitudo(), car_count = 1, road_bounds = city.roads, building_bounds = city.buildings, car_bounds = car_bounds }
+    redde SceneFacts { road_count = city.roads.length(), building_count = city.buildings.length(), car_count = 1, road_bounds = city.roads, building_bounds = city.buildings, car_bounds = car_bounds }
 }

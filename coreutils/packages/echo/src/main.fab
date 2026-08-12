@@ -90,7 +90,7 @@ functio echo_operanda(lista<textus> args) → EchoOperanda {
         }
         secus {
             pars ← 1
-            operanda.appende(arg)
+            operanda.append(arg)
         }
     }
 
@@ -101,10 +101,10 @@ functio echo_effugia(textus s) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < s.longitudo() {
-        fixum textus ch ← s.sectio(i, i + 1)
-        si ch ≡ "\\" et i + 1 < s.longitudo() {
-            fixum textus next ← s.sectio(i + 1, i + 2)
+    dum i < s.length() {
+        fixum textus ch ← s.slice(i, i + 1)
+        si ch ≡ "\\" et i + 1 < s.length() {
+            fixum textus next ← s.slice(i + 1, i + 2)
             si next ≡ "n" {
                 out ← out + "\n"
             }

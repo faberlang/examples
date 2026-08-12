@@ -53,10 +53,10 @@ functio tabulator() → textus {
 }
 
 functio delim_scala(textus delimiters, numerus separator_index) → textus {
-    si delimiters.longitudo() ≡ 0 ergo redde ""
+    si delimiters.length() ≡ 0 ergo redde ""
 
-    fixum numerus scalar_index ← separator_index % delimiters.longitudo()
-    redde delimiters.sectio(scalar_index, scalar_index + 1)
+    fixum numerus scalar_index ← separator_index % delimiters.length()
+    redde delimiters.slice(scalar_index, scalar_index + 1)
 }
 
 functio delimiters_activi(textus ∪ nihil delimiter) → textus {
@@ -97,18 +97,18 @@ functio paste_serial_stdin(textus delimiter) → vacuum {
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil {
-            si lineae.longitudo() > 0 {
+            si lineae.length() > 0 {
                 gnu_stdio.scribe_linea(iunge_serialiter(lineae, delimiter))
             }
             redde
         }
 
-        lineae.appende(linea vel "")
+        lineae.append(linea vel "")
     }
 }
 
 functio modus_stdin(lista<textus> operands) → bivalens {
-    redde operands.longitudo() ≡ 0
+    redde operands.length() ≡ 0
 }
 
 probandum "paste stdin helper subset" tag "coreutils" {

@@ -93,12 +93,12 @@ functio area_inserit(Area area, textus valor) → AreaCumManus {
     # old handle generation remains invalid; reuse is optional for this proof.
     varia lista<Loculus> out ← vacua
     varia numerus i ← 0
-    dum i < area.loculi.longitudo() {
-        out.appende(area.loculi[i])
+    dum i < area.loculi.length() {
+        out.append(area.loculi[i])
         i ← i + 1
     }
-    fixum numerus index ← out.longitudo()
-    out.appende(Loculus { generatio = 0, vivus = verum, valor = valor })
+    fixum numerus index ← out.length()
+    out.append(Loculus { generatio = 0, vivus = verum, valor = valor })
     redde AreaCumManus {
         area = Area { loculi = out },
         manus = Manus { index = index, generatio = 0 }
@@ -108,7 +108,7 @@ functio area_inserit(Area area, textus valor) → AreaCumManus {
 # Lookup returns the payload, or "" when the handle is stale / out of range.
 # Proof resources never use empty text, so "" is the explicit reject signal.
 functio area_accipe(de Area area, de Manus manus) → textus {
-    si manus.index ≥ area.loculi.longitudo() {
+    si manus.index ≥ area.loculi.length() {
         redde ""
     }
     fixum Loculus slot ← area.loculi[manus.index]
@@ -128,17 +128,17 @@ functio area_continet(de Area area, de Manus manus) → bivalens {
 functio area_tollit(Area area, de Manus manus) → Area {
     varia lista<Loculus> out ← vacua
     varia numerus i ← 0
-    dum i < area.loculi.longitudo() {
+    dum i < area.loculi.length() {
         fixum Loculus slot ← area.loculi[i]
         si i ≡ manus.index et slot.vivus ≡ verum et slot.generatio ≡ manus.generatio {
-            out.appende(Loculus {
+            out.append(Loculus {
                 generatio = slot.generatio + 1,
                 vivus = falsum,
                 valor = ""
             })
         }
         secus {
-            out.appende(slot)
+            out.append(slot)
         }
         i ← i + 1
     }
@@ -174,7 +174,7 @@ probandum "arena-handle contract" tag "identity" {
                 adfirma manus_aequat(geometria, left_geo)
             }
             casu Groupus fixum filii {
-                adfirma filii.longitudo() ≡ 0
+                adfirma filii.length() ≡ 0
             }
         }
         discerne right {
@@ -182,7 +182,7 @@ probandum "arena-handle contract" tag "identity" {
                 adfirma manus_aequat(geometria, right_geo)
             }
             casu Groupus fixum filii {
-                adfirma filii.longitudo() ≡ 0
+                adfirma filii.length() ≡ 0
             }
         }
     }
@@ -194,14 +194,14 @@ probandum "arena-handle contract" tag "identity" {
         fixum Manus a ← s0.manus
         fixum Manus b ← s1.manus
         varia lista<Manus> filii ← vacua
-        filii.appende(Manus { index = a.index, generatio = a.generatio })
-        filii.appende(Manus { index = b.index, generatio = b.generatio })
+        filii.append(Manus { index = a.index, generatio = a.generatio })
+        filii.append(Manus { index = b.index, generatio = b.generatio })
         # swap order without changing handle identities
         fixum Manus first ← filii[0]
         fixum Manus second ← filii[1]
         varia lista<Manus> reord ← vacua
-        reord.appende(Manus { index = second.index, generatio = second.generatio })
-        reord.appende(Manus { index = first.index, generatio = first.generatio })
+        reord.append(Manus { index = second.index, generatio = second.generatio })
+        reord.append(Manus { index = first.index, generatio = first.generatio })
         adfirma area_accipe(nodi, reord[0]) ≡ "child-b"
         adfirma area_accipe(nodi, reord[1]) ≡ "child-a"
         adfirma area_accipe(nodi, a) ≡ "child-a"

@@ -61,8 +61,8 @@ functio verba_lineae(textus linea) → numerus {
     varia bivalens in_verbo ← falsum
     varia numerus i ← 0
 
-    dum i < linea.longitudo() {
-        fixum textus c ← linea.sectio(i, i + 1)
+    dum i < linea.length() {
+        fixum textus c ← linea.slice(i, i + 1)
         si spatiumne(c) {
             in_verbo ← falsum
         }
@@ -82,7 +82,7 @@ functio verba_lineae(textus linea) → numerus {
 # lege returns line text without the delimiter; GNU parity fixtures are
 # newline-terminated, so the stepper slice counts one delimiter byte per line.
 functio octeti_lineae(textus linea) → numerus {
-    redde linea.longitudo() + 1
+    redde linea.length() + 1
 }
 
 functio forma_comitis(numerus n) → textus {
@@ -122,13 +122,13 @@ functio forma_wc(numerus lineae, numerus verba, numerus octeti, bivalens ostende
 
     varia lista<textus> partes ← vacua
     si ostende_lineas {
-        partes.appende(forma_comitis(lineae))
+        partes.append(forma_comitis(lineae))
     }
     si ostende_verba {
-        partes.appende(forma_comitis(verba))
+        partes.append(forma_comitis(verba))
     }
     si ostende_octeti {
-        partes.appende(forma_comitis(octeti))
+        partes.append(forma_comitis(octeti))
     }
     redde gnu_format.inter_spatia(partes)
 }

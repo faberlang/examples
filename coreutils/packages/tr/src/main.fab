@@ -69,20 +69,20 @@ functio expande_set(textus spec) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < spec.longitudo() {
-        si i + 2 < spec.longitudo() {
-            fixum textus triplet ← spec.sectio(i, i + 3)
+    dum i < spec.length() {
+        si i + 2 < spec.length() {
+            fixum textus triplet ← spec.slice(i, i + 3)
             si range_declaratumne(triplet) {
                 out ← out + range_fragment(triplet)
                 i ← i + 3
             }
             secus {
-                out ← out + spec.sectio(i, i + 1)
+                out ← out + spec.slice(i, i + 1)
                 i ← i + 1
             }
         }
         secus {
-            out ← out + spec.sectio(i, i + 1)
+            out ← out + spec.slice(i, i + 1)
             i ← i + 1
         }
     }
@@ -93,8 +93,8 @@ functio expande_set(textus spec) → textus {
 functio index_in_set(textus set, textus c) → numerus {
     varia numerus i ← 0
 
-    dum i < set.longitudo() {
-        si set.sectio(i, i + 1) ≡ c ergo redde i
+    dum i < set.length() {
+        si set.slice(i, i + 1) ≡ c ergo redde i
         i ← i + 1
     }
 
@@ -105,8 +105,8 @@ functio index_in_set(textus set, textus c) → numerus {
 functio set1_transliterationis(textus set1_spec, textus set2, bivalens truncat) → textus {
     fixum textus set1 ← expande_set(set1_spec)
 
-    si truncat et set2.longitudo() < set1.longitudo() {
-        redde set1.sectio(0, set2.longitudo())
+    si truncat et set2.length() < set1.length() {
+        redde set1.slice(0, set2.length())
     }
 
     redde set1
@@ -118,23 +118,23 @@ functio translitera_lineam(textus linea, textus set1_spec, textus set2_spec, biv
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < linea.longitudo() {
-        fixum textus c ← linea.sectio(i, i + 1)
+    dum i < linea.length() {
+        fixum textus c ← linea.slice(i, i + 1)
         fixum numerus idx ← index_in_set(set1, c)
 
         si idx < 0 {
             out ← out + c
         }
         secus {
-            si set2.longitudo() ≡ 0 {
+            si set2.length() ≡ 0 {
                 out ← out + c
             }
             secus {
-                si idx < set2.longitudo() {
-                    out ← out + set2.sectio(idx, idx + 1)
+                si idx < set2.length() {
+                    out ← out + set2.slice(idx, idx + 1)
                 }
                 secus {
-                    out ← out + set2.sectio(set2.longitudo() - 1, set2.longitudo())
+                    out ← out + set2.slice(set2.length() - 1, set2.length())
                 }
             }
         }
@@ -150,8 +150,8 @@ functio dele_lineam(textus linea, textus set_spec) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < linea.longitudo() {
-        fixum textus c ← linea.sectio(i, i + 1)
+    dum i < linea.length() {
+        fixum textus c ← linea.slice(i, i + 1)
         si index_in_set(set, c) < 0 {
             out ← out + c
         }
@@ -167,8 +167,8 @@ functio comprime_lineam(textus linea, textus set_spec) → textus {
     varia textus prior ← ""
     varia numerus i ← 0
 
-    dum i < linea.longitudo() {
-        fixum textus c ← linea.sectio(i, i + 1)
+    dum i < linea.length() {
+        fixum textus c ← linea.slice(i, i + 1)
         fixum bivalens comprimitur ← index_in_set(set, c) ≥ 0 et c ≡ prior
 
         si comprimitur ≡ falsum {
@@ -183,7 +183,7 @@ functio comprime_lineam(textus linea, textus set_spec) → textus {
 }
 
 functio operandum(lista<textus> operands, numerus index) → textus {
-    redde operands.accipe(index) vel ""
+    redde operands.get(index) vel ""
 }
 
 functio tr_lineam(lista<textus> operands, textus linea) → textus {

@@ -61,19 +61,19 @@ functio plica_lineam(textus linea, numerus latitudo) → lista<textus> {
     varia lista<textus> lineae ← vacua
     fixum numerus finis ← latitudo_activa(latitudo)
 
-    si linea.longitudo() ≡ 0 {
-        lineae.appende("")
+    si linea.length() ≡ 0 {
+        lineae.append("")
         redde lineae
     }
 
     varia numerus initium ← 0
-    dum initium < linea.longitudo() {
+    dum initium < linea.length() {
         varia numerus terminus ← initium + finis
-        si terminus > linea.longitudo() {
-            terminus ← linea.longitudo()
+        si terminus > linea.length() {
+            terminus ← linea.length()
         }
 
-        lineae.appende(linea.sectio(initium, terminus))
+        lineae.append(linea.slice(initium, terminus))
         initium ← terminus
     }
 
@@ -85,7 +85,7 @@ functio spatium_fractus(textus linea, numerus initium, numerus terminus) → num
     varia numerus fractus ← -1
 
     dum i < terminus {
-        si linea.sectio(i, i + 1) ≡ " " {
+        si linea.slice(i, i + 1) ≡ " " {
             fractus ← i + 1
         }
         i ← i + 1
@@ -98,30 +98,30 @@ functio plica_lineam_spatiis(textus linea, numerus latitudo) → lista<textus> {
     varia lista<textus> lineae ← vacua
     fixum numerus finis ← latitudo_activa(latitudo)
 
-    si linea.longitudo() ≡ 0 {
-        lineae.appende("")
+    si linea.length() ≡ 0 {
+        lineae.append("")
         redde lineae
     }
 
     varia numerus initium ← 0
-    dum initium < linea.longitudo() {
+    dum initium < linea.length() {
         varia numerus terminus ← initium + finis
-        si terminus > linea.longitudo() {
-            terminus ← linea.longitudo()
+        si terminus > linea.length() {
+            terminus ← linea.length()
         }
 
-        si terminus ≡ linea.longitudo() {
-            lineae.appende(linea.sectio(initium, terminus))
+        si terminus ≡ linea.length() {
+            lineae.append(linea.slice(initium, terminus))
             initium ← terminus
         }
         secus {
             fixum numerus fractus ← spatium_fractus(linea, initium, terminus)
             si fractus > initium {
-                lineae.appende(linea.sectio(initium, fractus))
+                lineae.append(linea.slice(initium, fractus))
                 initium ← fractus
             }
             secus {
-                lineae.appende(linea.sectio(initium, terminus))
+                lineae.append(linea.slice(initium, terminus))
                 initium ← terminus
             }
         }

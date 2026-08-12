@@ -8,7 +8,7 @@ importa ex "triga:math" privata math
 functio floats_textus(de lista<f32> values) → textus {
     varia textus output ← ""
     varia numerus i ← 0
-    dum i < values.longitudo() {
+    dum i < values.length() {
         si i ≡ 0 {
             output ← values[i] ↦ textus
         }
@@ -23,7 +23,7 @@ functio floats_textus(de lista<f32> values) → textus {
 functio indices_textus(de lista<u32> values) → textus {
     varia textus output ← ""
     varia numerus i ← 0
-    dum i < values.longitudo() {
+    dum i < values.length() {
         si i ≡ 0 {
             output ← values[i] ↦ textus
         }
@@ -42,7 +42,7 @@ functio object_geometry_textus(de scene.SceneObjectGeometry obj) → textus {
 functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus {
     varia textus output ← ""
     varia numerus i ← 0
-    dum i < manifest.objects.longitudo() {
+    dum i < manifest.objects.length() {
         fixum textus piece ← object_geometry_textus((manifest.objects)[i])
         si i ≡ 0 {
             output ← piece
@@ -59,7 +59,7 @@ functio publish_scene_geometry(dom.Element facts_element) → vacuum {
     fixum scene.SceneGeometryManifest manifest ← scene.budapest_scene_geometry()
     fixum bridge.BudapestSceneFacts facts ← bridge.scene_facts()
     dom.attr_set(facts_element, "data-scene-geometry", scene_geometry_blob(manifest))
-    dom.attr_set(facts_element, "data-scene-object-count", manifest.objects.longitudo() ↦ textus)
+    dom.attr_set(facts_element, "data-scene-object-count", manifest.objects.length() ↦ textus)
     dom.attr_set(facts_element, "data-budapest-towers", facts.tower_count ↦ textus)
     dom.attr_set(facts_element, "data-budapest-chain-segments", facts.chain_segment_count ↦ textus)
     dom.attr_set(facts_element, "data-budapest-lion-markers", facts.lion_marker_count ↦ textus)

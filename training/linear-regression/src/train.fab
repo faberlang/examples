@@ -51,10 +51,10 @@ functio linear_loss(
     tensor<f32, [2,2]> target
 ) → fractus {
     fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
-    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
-    fixum tensor<f32, [2,2]> residual   ← shifted.subtrahe(target)
-    fixum tensor<f32, [2,2]> squared    ← residual.multiplica(residual)
-    redde squared.media()
+    fixum tensor<f32, [2,2]> shifted    ← prediction.added(bias)
+    fixum tensor<f32, [2,2]> residual   ← shifted.subtract(target)
+    fixum tensor<f32, [2,2]> squared    ← residual.multiply(residual)
+    redde squared.mean()
 }
 
 # -------------------------------------------------------------------------
@@ -78,10 +78,10 @@ incipit {
     fixum lista<f32> data_target ← [0.25,     0.0 - 1.0, 1.5,   0.75]
     fixum tensor<f32, []> seed ← vacua
 
-    fixum tensor<f32, [2,2]> input  ← seed.strue(data_input,  [2, 2])
-    varia tensor<f32, [2,2]> weight ← seed.strue(data_weight, [2, 2])
-    varia tensor<f32, [2,2]> bias   ← seed.strue(data_bias,   [2, 2])
-    fixum tensor<f32, [2,2]> target ← seed.strue(data_target, [2, 2])
+    fixum tensor<f32, [2,2]> input  ← seed.from_flat(data_input,  [2, 2])
+    varia tensor<f32, [2,2]> weight ← seed.from_flat(data_weight, [2, 2])
+    varia tensor<f32, [2,2]> bias   ← seed.from_flat(data_bias,   [2, 2])
+    fixum tensor<f32, [2,2]> target ← seed.from_flat(data_target, [2, 2])
 
     fixum f32 lr ← 0.01
 
@@ -92,7 +92,7 @@ incipit {
         # Forward + loss via the Gradus surface.
         fixum tensor<f32, [2,2]> pred ← nn.linear_2x2(input, weight, bias)
         fixum f32 loss_val ← loss.mse_2x2(pred, target)
-        loss_trace.appende(loss_val)
+        loss_trace.append(loss_val)
 
         # Backward pass via compiler-generated companion
         fixum f32 upstream ← 1.0

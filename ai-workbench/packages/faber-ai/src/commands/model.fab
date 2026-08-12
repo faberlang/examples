@@ -47,35 +47,35 @@ functio quoted_value(textus line) → textus {
     varia numerus initium ← -1
     varia numerus finis ← -1
     varia numerus i ← 0
-    dum i < line.longitudo() {
-        si line.sectio(i, i + 1) ≡ "\"" {
+    dum i < line.length() {
+        si line.slice(i, i + 1) ≡ "\"" {
             si initium < 0 {
                 initium ← i + 1
             } secus {
                 finis ← i
-                i ← line.longitudo()
+                i ← line.length()
             }
         }
         i ← i + 1
     }
 
-    si initium ≥ 0 et finis ≥ initium ergo redde line.sectio(initium, finis)
+    si initium ≥ 0 et finis ≥ initium ergo redde line.slice(initium, finis)
     redde ""
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
     fixum textus q ← |22| ↦ textus
-    redde line.initium("§ = §"(field, q)) et line.finis(q)
+    redde line.starts_with("§ = §"(field, q)) et line.ends_with(q)
 }
 
 functio subset_field_candidate(textus line, textus field) → bivalens {
-    redde line.initium("§ "(field)) aut line.initium("§="(field))
+    redde line.starts_with("§ "(field)) aut line.starts_with("§="(field))
 }
 
 functio subset_line_supported(textus line) → bivalens {
-    fixum textus trimmed ← line.recide()
-    si trimmed.longitudo() ≡ 0 ergo redde verum
-    si trimmed.initium("#") ergo redde verum
+    fixum textus trimmed ← line.trim()
+    si trimmed.length() ≡ 0 ergo redde verum
+    si trimmed.starts_with("#") ergo redde verum
     si trimmed ≡ "[[tiers]]" ergo redde verum
     si subset_field_candidate(trimmed, "alias") ergo redde subset_field_line(trimmed, "alias")
     si subset_field_candidate(trimmed, "source") ergo redde subset_field_line(trimmed, "source")
@@ -95,14 +95,14 @@ functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
 functio map_value(lista<textus> aliases, textus target, textus field) → textus {
     varia bivalens matched ← falsum
     itera ex aliases fixum line {
-        fixum textus trimmed ← line.recide()
+        fixum textus trimmed ← line.trim()
         si trimmed ≡ "[[tiers]]" {
             matched ← falsum
         }
-        si trimmed.initium("alias = ") {
+        si trimmed.starts_with("alias = ") {
             matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et trimmed.initium("§ = "(field)) {
+        si matched et trimmed.starts_with("§ = "(field)) {
             redde quoted_value(trimmed)
         }
     }
@@ -112,19 +112,19 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
 
 functio status_for(lista<textus> aliases, textus target) → textus {
     fixum textus status ← map_value(aliases, target, "status")
-    si status.longitudo() > 0 ergo redde status
+    si status.length() > 0 ergo redde status
     redde "unknown"
 }
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde source
+    si source.length() > 0 ergo redde source
     redde target
 }
 
 functio local_path_for(lista<textus> aliases, textus target) → textus {
     fixum textus localis ← raw_local_path_for(aliases, target)
-    si localis.longitudo() > 0 ergo redde ""
+    si localis.length() > 0 ergo redde ""
     redde ""
 }
 
@@ -230,10 +230,10 @@ functio inspect_text(lista<textus> aliases, textus target) → vacuum {
     nota "source: §"(source_for(aliases, target))
     nota "status: §"(status_for(aliases, target))
     nota "format: §"(format_for(aliases, target))
-    si local_path_for(aliases, target).longitudo() > 0 {
+    si local_path_for(aliases, target).length() > 0 {
         nota "local_path: §"(local_path_for(aliases, target))
     }
-    si router_id_for(aliases, target).longitudo() > 0 {
+    si router_id_for(aliases, target).length() > 0 {
         nota "router_model_id: §"(router_id_for(aliases, target))
     }
     nota "diagnostic: §"(diagnostic_for(aliases, target))
@@ -281,12 +281,12 @@ functio inspect_error_json(textus target, textus source, textus formatum, textus
 }
 
 functio output_files(lista<textus> files, textus display_path) → lista<textus> {
-    si display_path.longitudo() ≡ 0 ergo redde vacua
+    si display_path.length() ≡ 0 ergo redde vacua
     redde files
 }
 
 functio output_diagnostic(textus nuntius, textus display_path) → textus {
-    si display_path.longitudo() ≡ 0 et nuntius.finis("beside ") {
+    si display_path.length() ≡ 0 et nuntius.ends_with("beside ") {
         redde "tokenizer/config sibling probe skipped for redacted local path"
     }
     redde nuntius
@@ -294,7 +294,7 @@ functio output_diagnostic(textus nuntius, textus display_path) → textus {
 
 functio gguf_quantization_for(textus read_path, textus router_model_id, textus summary_quantization) → textus {
     si summary_quantization ≠ "FILE_TYPE_-1" ergo redde summary_quantization
-    si router_model_id.longitudo() ≡ 0 ergo redde summary_quantization
+    si router_model_id.length() ≡ 0 ergo redde summary_quantization
     fixum numerus offset ← solum.inveni(read_path, "general.file_type", 0, 12000000)
     si offset < 0 ergo redde summary_quantization
     fixum octeti fragment ← solum.partem(read_path, offset, 64)
@@ -308,7 +308,7 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
         si format_jsonne(formatum) {
             varia lista<ModelTensorRecord> tensors ← vacua
             itera ex summary.tensors fixum tensor {
-                tensors.appende(ModelTensorRecord {
+                tensors.append(ModelTensorRecord {
                     nomen = tensor.nomen,
                     dtype = tensor.dtype,
                     figura = tensor.figura,
@@ -318,7 +318,7 @@ functio inspect_local_safetensors(textus alias, textus source, textus read_path,
 
             varia lista<textus> diagnostics ← vacua
             itera ex summary.diagnostics fixum diagnostic {
-                diagnostics.appende(output_diagnostic(diagnostic.nuntius, display_path))
+                diagnostics.append(output_diagnostic(diagnostic.nuntius, display_path))
             }
             nota render_model_response(ModelInspectResponse {
                 alias = summary.alias,
@@ -369,7 +369,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
     fixum textus router_id_output ← "§"(router_model_id)
     fac {
         varia numerus prefix_bytes ← 16777216
-        si router_id_output.longitudo() > 0 et display_path.longitudo() ≡ 0 {
+        si router_id_output.length() > 0 et display_path.length() ≡ 0 {
             prefix_bytes ← 65536
         }
         fixum octeti data ← solum.partem(read_path, 0, prefix_bytes)
@@ -379,7 +379,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
         si format_jsonne(formatum) {
             varia lista<ModelTensorRecord> tensors ← vacua
             itera ex summary.tensors fixum tensor {
-                tensors.appende(ModelTensorRecord {
+                tensors.append(ModelTensorRecord {
                     nomen = tensor.nomen,
                     dtype = tensor.dtype,
                     figura = tensor.figura,
@@ -389,7 +389,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
 
             varia lista<textus> diagnostics ← vacua
             itera ex summary.diagnostics fixum diagnostic {
-                diagnostics.appende(diagnostic.nuntius)
+                diagnostics.append(diagnostic.nuntius)
             }
             nota render_model_response(ModelInspectResponse {
                 alias = summary.alias,
@@ -412,7 +412,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
             nota "status: §"(summary.status)
             nota "format: §"(summary.formatum)
             nota "local_path: §"(summary.local_path)
-            si router_id_output.longitudo() > 0 {
+            si router_id_output.length() > 0 {
                 nota "router_model_id: §"(router_id_output)
             }
             nota "tensor_count: §"(summary.tensor_count)
@@ -435,7 +435,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
             nota "status: error"
             nota "format: gguf"
             nota "local_path: §"(display_path)
-            si router_id_output.longitudo() > 0 {
+            si router_id_output.length() > 0 {
                 nota "router_model_id: §"(router_id_output)
             }
             nota "diagnostic: gguf metadata error: §"(err.nuntius)
@@ -527,13 +527,13 @@ functio inspect() argumenta args → vacuum {
     }
 
     fixum textus raw_local_path ← raw_local_path_for(aliases, target)
-    si status_for(aliases, target) ≡ "local" et raw_local_path.finis(".safetensors") {
+    si status_for(aliases, target) ≡ "local" et raw_local_path.ends_with(".safetensors") {
         si solum.exstat(raw_local_path) et solum.regularene(raw_local_path) et solum.legibilene(raw_local_path) {
             inspect_local_safetensors(target, source_for(aliases, target), raw_local_path, "", output_format)
             redde
         }
     }
-    si status_for(aliases, target) ≡ "router-backed" et format_for(aliases, target) ≡ "gguf" et raw_local_path.longitudo() > 0 {
+    si status_for(aliases, target) ≡ "router-backed" et format_for(aliases, target) ≡ "gguf" et raw_local_path.length() > 0 {
         si solum.exstat(raw_local_path) et solum.regularene(raw_local_path) et solum.legibilene(raw_local_path) {
             inspect_local_gguf(target, source_for(aliases, target), raw_local_path, "", router_id_for(aliases, target), output_format)
             redde

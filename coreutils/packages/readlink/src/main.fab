@@ -36,8 +36,8 @@ importa ex "norma:solum" privata solum
 importa ex "§gnu/stdio" privata gnu_stdio
 
 functio readlink_simplex(lista<textus> paths) → vacuum {
-    si paths.longitudo() > 0 {
-        gnu_stdio.scribe_linea(solum.sequere(paths.accipe(0) vel ""))
+    si paths.length() > 0 {
+        gnu_stdio.scribe_linea(solum.sequere(paths.get(0) vel ""))
     }
 }
 

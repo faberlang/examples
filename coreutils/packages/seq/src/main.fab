@@ -71,13 +71,13 @@ functio seq_numeri(numerus primus, numerus incrementum, numerus ultimus) → lis
     varia numerus n ← primus
     si incrementum > 0 {
         dum n ≤ ultimus {
-            numeri.appende(n)
+            numeri.append(n)
             n ← n + incrementum
         }
     }
     secus {
         dum n ≥ ultimus {
-            numeri.appende(n)
+            numeri.append(n)
             n ← n + incrementum
         }
     }
@@ -93,14 +93,14 @@ functio seq_lineae(lista<textus> operands, bivalens width_flag sponte vel falsum
     varia numerus incrementum ← 1
     varia numerus ultimus ← 0
 
-    si operands.longitudo() ≡ 1 {
+    si operands.length() ≡ 1 {
         ultimus ← operands[0] ↦ numerus ⇥ 0
     }
-    sin operands.longitudo() ≡ 2 {
+    sin operands.length() ≡ 2 {
         primus ← operands[0] ↦ numerus ⇥ 0
         ultimus ← operands[1] ↦ numerus ⇥ 0
     }
-    sin operands.longitudo() ≡ 3 {
+    sin operands.length() ≡ 3 {
         primus ← operands[0] ↦ numerus ⇥ 0
         incrementum ← operands[1] ↦ numerus ⇥ 0
         ultimus ← operands[2] ↦ numerus ⇥ 0
@@ -110,7 +110,7 @@ functio seq_lineae(lista<textus> operands, bivalens width_flag sponte vel falsum
     }
 
     itera ex seq_numeri(primus, incrementum, ultimus) fixum n {
-        lineae.appende(n ↦ textus)
+        lineae.append(n ↦ textus)
     }
 
     si width_flag {
@@ -118,7 +118,7 @@ functio seq_lineae(lista<textus> operands, bivalens width_flag sponte vel falsum
         fixum numerus latitudo ← latitudo_maxima(lineae)
 
         itera ex lineae fixum linea {
-            formatae.appende(aequa_latitudine(linea, latitudo))
+            formatae.append(aequa_latitudine(linea, latitudo))
         }
 
         lineae ← formatae
@@ -145,8 +145,8 @@ functio latitudo_maxima(lista<textus> lineae) → numerus {
     varia numerus maxima ← 0
 
     itera ex lineae fixum linea {
-        si linea.longitudo() > maxima {
-            maxima ← linea.longitudo()
+        si linea.length() > maxima {
+            maxima ← linea.length()
         }
     }
 
@@ -154,11 +154,11 @@ functio latitudo_maxima(lista<textus> lineae) → numerus {
 }
 
 functio aequa_latitudine(textus linea, numerus latitudo) → textus {
-    si linea.longitudo() ≥ latitudo ergo redde "" + linea
+    si linea.length() ≥ latitudo ergo redde "" + linea
 
-    fixum numerus addenda ← latitudo - linea.longitudo()
-    si linea.longitudo() > 0 et linea.sectio(0, 1) ≡ "-" {
-        redde ("-" + zeroes(addenda)) + linea.sectio(1, linea.longitudo())
+    fixum numerus addenda ← latitudo - linea.length()
+    si linea.length() > 0 et linea.slice(0, 1) ≡ "-" {
+        redde ("-" + zeroes(addenda)) + linea.slice(1, linea.length())
     }
 
     redde zeroes(addenda) + linea
@@ -195,18 +195,18 @@ functio seq_parse(lista<textus> args) → SeqOptiones {
     varia textus ∪ nihil separator ← nihil
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
-        fixum textus arg ← args.accipe(i) vel ""
+    dum i < args.length() {
+        fixum textus arg ← args.get(i) vel ""
         si arg ≡ "-w" {
             width_seen ← 1
             i ← i + 1
         }
         sin arg ≡ "-s" {
-            separator ← args.accipe(i + 1)
+            separator ← args.get(i + 1)
             i ← i + 2
         }
         secus {
-            operands.appende(arg)
+            operands.append(arg)
             i ← i + 1
         }
     }
@@ -269,7 +269,7 @@ incipit argumenta args {
     fixum lista<textus> lineae ← seq_lineae(opts.operands, width_flag)
 
     si separator non est nihil {
-        si lineae.longitudo() > 0 {
+        si lineae.length() > 0 {
             gnu_stdio.scribe_linea(seq_iunge(lineae, separator vel ""))
         }
     }

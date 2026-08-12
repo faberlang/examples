@@ -49,7 +49,7 @@ importa ex "§gnu/stdio" privata gnu_stdio
 functio capita_linearum(lista<textus> lineae, numerus petitus) → lista<textus> {
     varia lista<textus> caput ← vacua
     varia numerus finis ← petitus
-    fixum numerus copia ← lineae.longitudo()
+    fixum numerus copia ← lineae.length()
     varia numerus i ← 0
 
     si petitus < 0 {
@@ -57,8 +57,8 @@ functio capita_linearum(lista<textus> lineae, numerus petitus) → lista<textus>
         si finis < 0 ergo redde caput
     }
 
-    dum i < lineae.longitudo() et i < finis {
-        caput.appende(lineae.accipe(i) vel "")
+    dum i < lineae.length() et i < finis {
+        caput.append(lineae.get(i) vel "")
         i ← i + 1
     }
 
@@ -73,7 +73,7 @@ functio lege_omnes_lineas() → lista<textus> {
     fac {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae
-        lineae.appende(linea vel "")
+        lineae.append(linea vel "")
     } dum verum
 
     redde lineae
@@ -88,7 +88,7 @@ functio lege_caput_positivum(numerus petitus) → lista<textus> {
     dum i < petitus {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde caput
-        caput.appende(linea vel "")
+        caput.append(linea vel "")
         i ← i + 1
     }
 
