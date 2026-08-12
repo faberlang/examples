@@ -42,7 +42,7 @@
 # partials). `id` is the workgroup index.
 @ nucleum
 functio collige(tf32[1024] a, tf32[4] medius, u32 id) → vacuum {
-    fixum f32 total ← a.summa()
+    fixum f32 total ← a.sum()
     medius[id] ← total
 }
 
@@ -51,6 +51,6 @@ functio collige(tf32[1024] a, tf32[4] medius, u32 id) → vacuum {
 # 1 workgroup → 1 partial.
 @ nucleum
 functio recollige(tf32[4] medius, tf32[1] result, u32 id) → vacuum {
-    fixum f32 total ← medius.summa()
+    fixum f32 total ← medius.sum()
     result[id] ← total
 }

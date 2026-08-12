@@ -408,7 +408,7 @@ functio world_cell_is_solid(
 }
 
 functio floor_cell(f32 value) → numerus {
-    redde value.pavimentum()
+    redde value.floor()
 }
 
 # Inclusive min cell, exclusive-style max via epsilon on the high face.
@@ -822,16 +822,16 @@ functio _dda_step(f32 component) → numerus {
 }
 
 functio _dda_t_delta(f32 component) → f32 {
-    si component.absolutum() ≤ _dda_eps() {
+    si component.abs() ≤ _dda_eps() {
         redde _dda_inf()
     }
-    redde 1.0 ∷ f32 / component.absolutum()
+    redde 1.0 ∷ f32 / component.abs()
 }
 
 # Distance along the ray to the first boundary crossed when leaving the current
 # cell along one axis. Zero-component axes never win the min-t race.
 functio _dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
-    si component.absolutum() ≤ _dda_eps() {
+    si component.abs() ≤ _dda_eps() {
         redde _dda_inf()
     }
     si component > 0.0 {
@@ -1267,7 +1267,7 @@ functio _box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z
     si wire_result est nihil {
         redde nihil
     }
-    si wire_result!.vertex_count ≠ 8 aut wire_result!.indices.longitudo() ≠ 24 {
+    si wire_result!.vertex_count ≠ 8 aut wire_result!.indices.length() ≠ 24 {
         redde nihil
     }
     fixum f32 ox ← (cell_x ↦ f32) + 0.5 ∷ f32
@@ -1325,7 +1325,7 @@ functio selection_outline_from_hit(de VoxelHit hit) → SelectionOutline {
         vertex_count = 8,
         line_count = batch_result!.line_count,
         draw_count = 1,
-        index_count = indices.longitudo()
+        index_count = indices.length()
     }
 }
 

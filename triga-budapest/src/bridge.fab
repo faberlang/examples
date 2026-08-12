@@ -21,12 +21,12 @@ functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) �
 }
 
 functio _add_part(lista<ScenePart> parts, textus name, de math.Box3 bounds, f32 red, f32 green, f32 blue) → lista<ScenePart> {
-    parts.appende(ScenePart { name = name, bounds = bounds, red = red, green = green, blue = blue })
+    parts.append(ScenePart { name = name, bounds = bounds, red = red, green = green, blue = blue })
     redde parts
 }
 
 functio _chain_y(f32 z) → f32 {
-    fixum f32 ratio ← (z / 34.0).absolutum()
+    fixum f32 ratio ← (z / 34.0).abs()
     redde 5.4 + ratio * ratio * 5.2
 }
 
@@ -69,7 +69,7 @@ functio _add_backstay(lista<ScenePart> parts, textus suffix, f32 z_tower, f32 z_
         fixum f32 t0 ← ((bi ↦ f32) + 0.5) / 6.0
         fixum f32 z_mid ← z_tower + (z_anchor - z_tower) * t0
         fixum f32 y_mid ← 10.6 - 7.6 * t0
-        fixum f32 z_half ← (z_anchor - z_tower).absolutum() / 12.0 + 0.25
+        fixum f32 z_half ← (z_anchor - z_tower).abs() / 12.0 + 0.25
         output ← _add_part(output, "backstay-left-§-§"(suffix, bi ↦ textus), box3(-5.95 ∷ f32, y_mid - 0.09, z_mid - z_half, -5.55 ∷ f32, y_mid + 0.09, z_mid + z_half), 0.08, 0.08, 0.09)
         output ← _add_part(output, "backstay-right-§-§"(suffix, bi ↦ textus), box3(5.55, y_mid - 0.09, z_mid - z_half, 5.95, y_mid + 0.09, z_mid + z_half), 0.08, 0.08, 0.09)
         bi ← bi + 1
@@ -192,5 +192,5 @@ functio chain_bridge_parts() → lista<ScenePart> {
 
 functio scene_facts() → BudapestSceneFacts {
     fixum lista<ScenePart> parts ← chain_bridge_parts()
-    redde BudapestSceneFacts { object_count = parts.longitudo(), tower_count = 2, chain_segment_count = 50, hanger_count = 26, lion_marker_count = 4 }
+    redde BudapestSceneFacts { object_count = parts.length(), tower_count = 2, chain_segment_count = 50, hanger_count = 26, lion_marker_count = 4 }
 }

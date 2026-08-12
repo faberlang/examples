@@ -44,26 +44,26 @@
 importa ex "§gnu/stdio" privata gnu_stdio
 
 functio sine_slash_finali(textus via) → textus {
-    si via.longitudo() ≡ 0 ergo redde ""
+    si via.length() ≡ 0 ergo redde ""
 
-    varia numerus finis ← via.longitudo()
-    dum finis > 1 et via.sectio(finis - 1, finis) ≡ "/" {
+    varia numerus finis ← via.length()
+    dum finis > 1 et via.slice(finis - 1, finis) ≡ "/" {
         finis ← finis - 1
     }
 
-    redde via.sectio(0, finis)
+    redde via.slice(0, finis)
 }
 
 functio nomen_base(textus via) → textus {
     fixum textus munda ← sine_slash_finali(via)
-    si munda.longitudo() ≡ 0 ergo redde ""
+    si munda.length() ≡ 0 ergo redde ""
     si munda ≡ "/" ergo redde "/"
 
-    varia numerus initium ← munda.longitudo()
+    varia numerus initium ← munda.length()
     dum initium > 0 {
         initium ← initium - 1
-        si munda.sectio(initium, initium + 1) ≡ "/" {
-            redde munda.sectio(initium + 1, munda.longitudo())
+        si munda.slice(initium, initium + 1) ≡ "/" {
+            redde munda.slice(initium + 1, munda.length())
         }
     }
 
@@ -71,11 +71,11 @@ functio nomen_base(textus via) → textus {
 }
 
 functio sine_suffixo(textus nomen, textus suffixum) → textus {
-    fixum numerus suffixi_longitudo ← suffixum.longitudo()
+    fixum numerus suffixi_longitudo ← suffixum.length()
     si suffixi_longitudo ≡ 0 ergo redde nomen
-    si nomen.longitudo() ≤ suffixi_longitudo ergo redde nomen
-    si nomen.finis(suffixum) {
-        redde nomen.sectio(0, nomen.longitudo() - suffixi_longitudo)
+    si nomen.length() ≤ suffixi_longitudo ergo redde nomen
+    si nomen.ends_with(suffixum) {
+        redde nomen.slice(0, nomen.length() - suffixi_longitudo)
     }
 
     redde nomen
@@ -113,7 +113,7 @@ functio basename(lista<textus> operands) → textus {
 functio basenames_suffixo(lista<textus> operands, textus suffixum) → lista<textus> {
     varia lista<textus> nomina ← vacua
     itera ex operands fixum operandum {
-        nomina.appende(basename_unum(operandum, suffixum))
+        nomina.append(basename_unum(operandum, suffixum))
     }
 
     redde nomina
@@ -154,8 +154,8 @@ probandum "basename operands" tag "coreutils" {
 
     proba "suffix option removes suffix from multiple paths" {
         fixum lista<textus> nomina ← basenames_suffixo(["src/foo.c", "src/bar.c"], ".c")
-        adfirma (nomina.accipe(0) vel "") ≡ "foo"
-        adfirma (nomina.accipe(1) vel "") ≡ "bar"
+        adfirma (nomina.get(0) vel "") ≡ "foo"
+        adfirma (nomina.get(1) vel "") ≡ "bar"
     }
 }
 

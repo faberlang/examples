@@ -68,9 +68,9 @@ genus GrepOptiones {
 functio exemplaria_activa(lista<textus> e_patterns, lista<textus> operands) → lista<textus> {
     varia lista<textus> patterns ← vacua
 
-    si e_patterns.longitudo() > 0 ergo redde e_patterns
-    si operands.longitudo() > 0 {
-        patterns.appende(operands.accipe(0) vel "")
+    si e_patterns.length() > 0 ergo redde e_patterns
+    si operands.length() > 0 {
+        patterns.append(operands.get(0) vel "")
     }
 
     redde patterns
@@ -87,13 +87,13 @@ functio grep_parse(lista<textus> args) → GrepOptiones {
     varia numerus lineSeen ← 0
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
-        fixum textus arg ← args.accipe(i) vel ""
+    dum i < args.length() {
+        fixum textus arg ← args.get(i) vel ""
         varia numerus handled ← 0
 
         si arg ≡ "-e" {
-            si args.accipe(i + 1) non est nihil {
-                e_patterns.appende(args.accipe(i + 1) vel "")
+            si args.get(i + 1) non est nihil {
+                e_patterns.append(args.get(i + 1) vel "")
             }
             i ← i + 2
             handled ← 2
@@ -126,7 +126,7 @@ functio grep_parse(lista<textus> args) → GrepOptiones {
             tacet
         }
         secus {
-            operands.appende(arg)
+            operands.append(arg)
             i ← i + 1
         }
     }
@@ -135,14 +135,14 @@ functio grep_parse(lista<textus> args) → GrepOptiones {
 }
 
 functio parat_match(textus s, bivalens ignore_case) → textus {
-    si ignore_case ergo redde s.minuscula()
+    si ignore_case ergo redde s.lowercase()
     redde s
 }
 
 functio exemplar_congruitne(textus linea, textus exemplar, bivalens ignore_case) → bivalens {
     fixum textus linea_parata ← parat_match(linea, ignore_case)
     fixum textus exemplar_paratum ← parat_match(exemplar, ignore_case)
-    redde linea_parata.continet(exemplar_paratum)
+    redde linea_parata.contains(exemplar_paratum)
 }
 
 functio linea_congruitne(textus linea, lista<textus> patterns, bivalens ignore_case) → bivalens {
@@ -173,7 +173,7 @@ functio lineae_grep(lista<textus> lineae, lista<textus> patterns, bivalens ignor
         si includitne(linea, patterns, ignore_case, invert) {
             matches ← matches + 1
             si count_only ≡ falsum {
-                out.appende(forma_lineae(index, linea, line_numbers))
+                out.append(forma_lineae(index, linea, line_numbers))
             }
         }
 
@@ -181,7 +181,7 @@ functio lineae_grep(lista<textus> lineae, lista<textus> patterns, bivalens ignor
     }
 
     si count_only {
-        out.appende("§"(matches))
+        out.append("§"(matches))
     }
 
     redde out
@@ -199,7 +199,7 @@ functio grep_stdin(lista<textus> patterns, bivalens ignore_case, bivalens invert
             redde
         }
 
-        lineae.appende(linea vel "")
+        lineae.append(linea vel "")
     }
 }
 

@@ -48,11 +48,11 @@ importa ex "§gnu/stdio" privata gnu_stdio
 
 functio verte_lineas(lista<textus> lineae) → lista<textus> {
     varia lista<textus> reversae ← vacua
-    varia numerus i ← lineae.longitudo()
+    varia numerus i ← lineae.length()
 
     dum i > 0 {
         i ← i - 1
-        reversae.appende(lineae.accipe(i) vel "")
+        reversae.append(lineae.get(i) vel "")
     }
 
     redde reversae
@@ -66,7 +66,7 @@ functio lege_omnes_lineas() → lista<textus> {
     fac {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae
-        lineae.appende(linea vel "")
+        lineae.append(linea vel "")
     } dum verum
 
     redde lineae
@@ -74,7 +74,7 @@ functio lege_omnes_lineas() → lista<textus> {
 
 # File operands are intentionally outside this stepper slice.
 functio modus_stdin(lista<textus> operands) → bivalens {
-    redde operands.longitudo() ≡ 0
+    redde operands.length() ≡ 0
 }
 
 probandum "tac line reversal" tag "coreutils" {

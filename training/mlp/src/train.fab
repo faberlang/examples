@@ -77,17 +77,17 @@ functio mlp_loss(
 ) → f32 {
     # Layer 1: linear → GELU
     fixum tensor<f32, [4,4]> h1  ← input.matmul(weight1)
-    fixum tensor<f32, [4,4]> h1b ← h1.addita(bias1)
+    fixum tensor<f32, [4,4]> h1b ← h1.added(bias1)
     fixum tensor<f32, [4,4]> a1  ← h1b.gelu()
 
     # Layer 2: linear
     fixum tensor<f32, [4,4]> h2  ← a1.matmul(weight2)
-    fixum tensor<f32, [4,4]> h2b ← h2.addita(bias2)
+    fixum tensor<f32, [4,4]> h2b ← h2.added(bias2)
 
     # MSE loss
-    fixum tensor<f32, [4,4]> residual ← h2b.subtrahe(target)
-    fixum tensor<f32, [4,4]> squared  ← residual.multiplica(residual)
-    redde squared.media()
+    fixum tensor<f32, [4,4]> residual ← h2b.subtract(target)
+    fixum tensor<f32, [4,4]> squared  ← residual.multiply(residual)
+    redde squared.mean()
 }
 
 # -------------------------------------------------------------------------
@@ -132,12 +132,12 @@ incipit {
 
     fixum tensor<f32, []> seed ← vacua
 
-    fixum tensor<f32, [4,4]> input   ← seed.strue(data_input,   [4, 4])
-    varia tensor<f32, [4,4]> weight1 ← seed.strue(data_weight1, [4, 4])
-    varia tensor<f32, [4,4]> bias1   ← seed.strue(data_bias1,   [4, 4])
-    varia tensor<f32, [4,4]> weight2 ← seed.strue(data_weight2, [4, 4])
-    varia tensor<f32, [4,4]> bias2   ← seed.strue(data_bias2,   [4, 4])
-    fixum tensor<f32, [4,4]> target  ← seed.strue(data_target,  [4, 4])
+    fixum tensor<f32, [4,4]> input   ← seed.from_flat(data_input,   [4, 4])
+    varia tensor<f32, [4,4]> weight1 ← seed.from_flat(data_weight1, [4, 4])
+    varia tensor<f32, [4,4]> bias1   ← seed.from_flat(data_bias1,   [4, 4])
+    varia tensor<f32, [4,4]> weight2 ← seed.from_flat(data_weight2, [4, 4])
+    varia tensor<f32, [4,4]> bias2   ← seed.from_flat(data_bias2,   [4, 4])
+    fixum tensor<f32, [4,4]> target  ← seed.from_flat(data_target,  [4, 4])
 
     fixum f32 upstream ← 1.0
     fixum f32 lr ← 0.1
@@ -151,7 +151,7 @@ incipit {
         fixum tensor<f32, [4,4]> a1  ← nn.gelu_4x4(h1b)
         fixum tensor<f32, [4,4]> h2b ← nn.linear_4x4(a1, weight2, bias2)
         fixum f32 loss_val ← loss.mse_4x4(h2b, target)
-        loss_trace.appende(loss_val)
+        loss_trace.append(loss_val)
 
         # Backward pass via compiler-generated companion
         fixum _ grads ← mlp_backward(input, weight1, bias1, weight2, bias2,

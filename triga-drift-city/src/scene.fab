@@ -48,11 +48,11 @@ functio _add_object(lista<SceneObjectGeometry> objects, textus name, de math.Box
     varia lista<f32> payload ← vacua
     varia numerus k ← 0
     dum k < 48 {
-        payload.appende(vp_result![k])
+        payload.append(vp_result![k])
         k ← k + 1
     }
 
-    objects.appende(SceneObjectGeometry { name = name, vertex_count = gg.vertex_count, index_count = gg.indices.longitudo(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = math.Color { r = red, g = green, b = blue }, bounds = bounds })
+    objects.append(SceneObjectGeometry { name = name, vertex_count = gg.vertex_count, index_count = gg.indices.length(), vertex_byte_count = vbc vel 0, index_byte_count = ibc vel 0, vertex_payload = payload, index_payload = gg.indices, color = math.Color { r = red, g = green, b = blue }, bounds = bounds })
     redde objects
 }
 
@@ -70,14 +70,14 @@ functio greybox_scene_geometry(de city.City c, de math.Box3 car_box) → SceneGe
 
     # Roads: mid-gray (0.4, 0.4, 0.4)
     varia numerus ri ← 0
-    dum ri < c.roads.longitudo() {
+    dum ri < c.roads.length() {
         objects ← _add_object(objects, "road-§"(ri ↦ textus), (c.roads)[ri], 0.4, 0.4, 0.4)
         ri ← ri + 1
     }
 
     # Buildings: dark gray (0.2, 0.2, 0.25)
     varia numerus bi ← 0
-    dum bi < c.buildings.longitudo() {
+    dum bi < c.buildings.length() {
         objects ← _add_object(objects, "building-§"(bi ↦ textus), (c.buildings)[bi], 0.2, 0.2, 0.25)
         bi ← bi + 1
     }

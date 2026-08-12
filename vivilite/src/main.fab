@@ -166,12 +166,12 @@ functio store(de textus root) → Store {
 
 functio split(de textus s, de textus separator) → lista<textus> {
     varia lista<textus> partes ← vacua
-    fixum numerus sep_len ← separator.longitudo()
+    fixum numerus sep_len ← separator.length()
     varia numerus initium ← 0
     varia numerus i ← 0
-    dum i < s.longitudo() {
-        si s.sectio(i, i + sep_len) ≡ separator {
-            partes.appende(s.sectio(initium, i))
+    dum i < s.length() {
+        si s.slice(i, i + sep_len) ≡ separator {
+            partes.append(s.slice(initium, i))
             i ← i + sep_len
             initium ← i
         }
@@ -179,7 +179,7 @@ functio split(de textus s, de textus separator) → lista<textus> {
             i ← i + 1
         }
     }
-    partes.appende(s.sectio(initium, s.longitudo()))
+    partes.append(s.slice(initium, s.length()))
     redde partes
 }
 
@@ -206,8 +206,8 @@ functio ensure_store(de Store s) → vacuum {
 
 functio arg(de lista<textus> args, de textus flag, de textus def) → textus {
     varia numerus i ← 0
-    dum i < args.longitudo() {
-        si (args.accipe(i) vel "") ≡ flag ergo redde args.accipe(i + 1) vel (def ↦ textus)
+    dum i < args.length() {
+        si (args.get(i) vel "") ≡ flag ergo redde args.get(i + 1) vel (def ↦ textus)
         i ← i + 1
     }
     redde def ↦ textus
@@ -221,7 +221,7 @@ functio has(de lista<textus> args, de textus flag) → bivalens {
 }
 
 functio positional(de lista<textus> args, numerus index, de textus def) → textus {
-    redde args.accipe(index) vel (def ↦ textus)
+    redde args.get(index) vel (def ↦ textus)
 }
 
 functio row(de textus value) → textus {
@@ -234,7 +234,7 @@ functio cat(de textus left, de textus right) → textus {
 
 functio work_from_line(de textus line) → WorkItem {
     fixum lista<textus> p ← split(line, "\t")
-    redde WorkItem { handle = p.accipe(0) vel "", kind = p.accipe(1) vel "", status = p.accipe(2) vel "", from = p.accipe(3) vel "", to = p.accipe(4) vel "", subject = p.accipe(5) vel "", body = p.accipe(6) vel "" }
+    redde WorkItem { handle = p.get(0) vel "", kind = p.get(1) vel "", status = p.get(2) vel "", from = p.get(3) vel "", to = p.get(4) vel "", subject = p.get(5) vel "", body = p.get(6) vel "" }
 }
 
 functio work_line(de WorkItem item) → textus {
@@ -242,18 +242,18 @@ functio work_line(de WorkItem item) → textus {
 }
 
 functio next_handle(de textus kind, de lista<textus> lines) → textus {
-    fixum numerus n ← lines.longitudo() + 1
-    redde "§-§"(kind.sectio(0, 1), n ↦ textus)
+    fixum numerus n ← lines.length() + 1
+    redde "§-§"(kind.slice(0, 1), n ↦ textus)
 }
 
 functio count_identities(de Store s) → numerus {
-    redde read_lines(s.identities).longitudo()
+    redde read_lines(s.identities).length()
 }
 
 functio count_work(de Store s, de textus kind, de textus status, de textus who) → numerus {
     varia numerus count ← 0
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.length() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si (item.kind ≡ kind et item.status ≡ status) et item.to ≡ who {
                 count ← count + 1
@@ -266,10 +266,10 @@ functio count_work(de Store s, de textus kind, de textus status, de textus who) 
 functio list_work_json(de Store s, de textus kind, de textus who) → lista<BoardItemJson> {
     varia lista<BoardItemJson> items ← vacua
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.length() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si (item.kind ≡ kind et item.status ≡ "open") et item.to ≡ who {
-                items.appende(BoardItemJson { handle = item.handle, subject = item.subject, from = item.from })
+                items.append(BoardItemJson { handle = item.handle, subject = item.subject, from = item.from })
             }
         }
     }
@@ -298,13 +298,13 @@ functio identity_list(de Store s) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.identities) fixum line {
         fixum lista<textus> p ← split(line, "\t")
-        nota "§ §"(p.accipe(0) vel "", p.accipe(1) vel "")
+        nota "§ §"(p.get(0) vel "", p.get(1) vel "")
     }
 }
 
 functio send_mail(de Store s, de textus from, de textus to, de textus subject, de textus body) → vacuum {
     ensure_store(store(s.root))
-    fixum textus handle ← "m-§"((read_lines(s.mail ↦ textus).longitudo() + 1) ↦ textus)
+    fixum textus handle ← "m-§"((read_lines(s.mail ↦ textus).length() + 1) ↦ textus)
     solum.appone(s.mail ↦ textus, row("§\tlocal\t§\t§\t§\t§"(handle, from, to, subject, body)))
     nota "sent §"(handle)
 }
@@ -313,8 +313,8 @@ functio mail_list(de Store s, de textus who) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.mail) fixum line {
         fixum lista<textus> p ← split(line, "\t")
-        si (p.accipe(3) vel "") ≡ who {
-            nota "§  §"(p.accipe(0) vel "", p.accipe(4) vel "")
+        si (p.get(3) vel "") ≡ who {
+            nota "§  §"(p.get(0) vel "", p.get(4) vel "")
         }
     }
 }
@@ -323,12 +323,12 @@ functio mail_show(de Store s, de textus handle) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.mail) fixum line {
         fixum lista<textus> p ← split(line, "\t")
-        si (p.accipe(0) vel "") ≡ handle {
-            nota "From: §"(p.accipe(2) vel "")
-            nota "To: §"(p.accipe(3) vel "")
-            nota "Subject: §"(p.accipe(4) vel "")
+        si (p.get(0) vel "") ≡ handle {
+            nota "From: §"(p.get(2) vel "")
+            nota "To: §"(p.get(3) vel "")
+            nota "Subject: §"(p.get(4) vel "")
             nota ""
-            nota p.accipe(5) vel ""
+            nota p.get(5) vel ""
             redde
         }
     }
@@ -346,7 +346,7 @@ functio work_send(de Store s, de textus kind, de textus from, de textus to, de t
 functio work_list(de Store s, de textus kind, de textus who) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.length() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si (item.kind ≡ kind et item.status ≡ "open") et item.to ≡ who {
                 nota "§  §"(item.handle, item.subject)
@@ -358,7 +358,7 @@ functio work_list(de Store s, de textus kind, de textus who) → vacuum {
 functio work_show(de Store s, de textus handle) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.length() > 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
                 nota "From: §"(item.from)
@@ -379,11 +379,11 @@ functio rewrite_work(de Store s, de textus handle, de textus new_status, de text
     ensure_store(store(s.root))
     varia textus out ← ""
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.length() > 0 {
             varia WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
                 item.status ← new_status ↦ textus
-                si new_kind.longitudo() > 0 {
+                si new_kind.length() > 0 {
                     item.kind ← new_kind ↦ textus
                 }
             }
@@ -406,43 +406,43 @@ functio board_json(de Store s, de textus who) → textus {
 
 functio sqlite_count(de textus database, de textus who, de textus role) → numerus ⇥ textus {
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = ?2", [who ↦ valor, role ↦ valor])
-    fixum valor row ← rows.accipe(0)
+    fixum valor row ← rows.get(0)
     fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
-    fixum valor count ← fields.accipe("count")
+    fixum valor count ← fields.get("count")
     redde count ↦ numerus
 }
 
 functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus role, de textus kind, de textus note) → vacuum ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = ?3", [who ↦ valor, handle ↦ valor, role ↦ valor])
-    si rows.longitudo() ≠ 1 {
+    si rows.length() ≠ 1 {
         iace "open § not found: §"(kind, handle)
     }
-    fixum valor row ← rows.accipe(0)
+    fixum valor row ← rows.get(0)
     fixum tabula<textus, valor> item ← row ↦ tabula<textus, valor>
-    fixum valor message_id ← item.accipe("message_id")
-    fixum valor content_id ← item.accipe("content_id")
-    fixum valor subject ← item.accipe("subject")
+    fixum valor message_id ← item.get("message_id")
+    fixum valor content_id ← item.get("content_id")
+    fixum valor subject ← item.get("subject")
     varia lista<valor> statements ← vacua
-    statements.appende(sqlite_statement("UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = ?3", [who ↦ valor, message_id, role ↦ valor]))
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'moved', ?2, ?2, ?3, ?4, ?5, 'done', ?2, ?2, ?6, NULLIF(?7, ''))", ["§ done"(kind) ↦ valor, who ↦ valor, message_id, content_id, role ↦ valor, subject, note ↦ valor]))
+    statements.append(sqlite_statement("UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = ?3", [who ↦ valor, message_id, role ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'moved', ?2, ?2, ?3, ?4, ?5, 'done', ?2, ?2, ?6, NULLIF(?7, ''))", ["§ done"(kind) ↦ valor, who ↦ valor, message_id, content_id, role ↦ valor, subject, note ↦ valor]))
     sqlite.exsequi_batch(database, statements)
 }
 
 functio sqlite_want_promote(de Store s, de textus who, de textus handle, de textus note) → vacuum ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = 'wants'", [who ↦ valor, handle ↦ valor])
-    si rows.longitudo() ≠ 1 {
+    si rows.length() ≠ 1 {
         iace "open want not found: §"(handle)
     }
-    fixum valor row ← rows.accipe(0)
+    fixum valor row ← rows.get(0)
     fixum tabula<textus, valor> item ← row ↦ tabula<textus, valor>
-    fixum valor message_id ← item.accipe("message_id")
-    fixum valor content_id ← item.accipe("content_id")
-    fixum valor subject ← item.accipe("subject")
+    fixum valor message_id ← item.get("message_id")
+    fixum valor content_id ← item.get("content_id")
+    fixum valor subject ← item.get("subject")
     varia lista<valor> statements ← vacua
-    statements.appende(sqlite_statement("UPDATE messages SET local_role = 'needs', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = 'wants'", [who ↦ valor, message_id]))
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), 'want promote', 'moved', ?1, ?1, ?2, ?3, 'wants', 'needs', ?1, ?1, ?4, NULLIF(?5, ''))", [who ↦ valor, message_id, content_id, subject, note ↦ valor]))
+    statements.append(sqlite_statement("UPDATE messages SET local_role = 'needs', updated_at = datetime('now') WHERE account = ?1 AND message_id = ?2 AND local_role = 'wants'", [who ↦ valor, message_id]))
+    statements.append(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), 'want promote', 'moved', ?1, ?1, ?2, ?3, 'wants', 'needs', ?1, ?1, ?4, NULLIF(?5, ''))", [who ↦ valor, message_id, content_id, subject, note ↦ valor]))
     sqlite.exsequi_batch(database, statements)
 }
 
@@ -458,7 +458,7 @@ functio vivi_address(de textus identity, de textus mailspace) → textus {
 # stable regardless of platform newline conventions.
 functio compose_vivi_message(de textus mailspace, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus {
     varia textus normalized_body ← body ↦ textus
-    si body.longitudo() ≡ 0 aut body.sectio(body.longitudo() - 1, body.longitudo()) ≠ "\n" {
+    si body.length() ≡ 0 aut body.slice(body.length() - 1, body.length()) ≠ "\n" {
         normalized_body ← cat(body, "\r\n")
     }
     varia textus eml ← cat("From: ", vivi_address(from, mailspace))
@@ -466,7 +466,7 @@ functio compose_vivi_message(de textus mailspace, de textus kind, de textus from
     eml ← cat(eml, vivi_address(to, mailspace))
     eml ← cat(eml, "\r\nSubject: ")
     eml ← cat(eml, subject)
-    si kind.longitudo() > 0 {
+    si kind.length() > 0 {
         eml ← cat(eml, "\r\nX-Vivi-Kind: ")
         eml ← cat(eml, kind)
     }
@@ -480,39 +480,39 @@ functio compose_vivi_message(de textus mailspace, de textus kind, de textus from
 # ON CONFLICT DO UPDATE makes resends idempotent — same content hash reuses the row.
 functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, de textus to, de textus subject, de textus body) → textus ⇥ textus {
     fixum lista<textus> names ← vivi_config_names(s)
-    fixum textus mailspace ← names.accipe(0) vel ""
-    si mailspace.longitudo() ≡ 0 {
+    fixum textus mailspace ← names.get(0) vel ""
+    si mailspace.length() ≡ 0 {
         iace "Vivi mailspace name is missing"
     }
     fixum textus eml ← compose_vivi_message(mailspace, kind, from, to, subject, body)
     fixum octeti eml_bytes ← (eml ↦ textus) ↦ octeti
-    fixum numerus byte_size ← eml_bytes.longitudo()
+    fixum numerus byte_size ← eml_bytes.length()
     fixum textus content_id ← sqlite.sha256_hex(eml_bytes)
     fixum textus message_id ← "local-§-§-§"(to, role, content_id)
     fixum textus sent_message_id ← "local-§-sent-§"(from, content_id)
     varia textus command ← "mail send"
-    si kind.longitudo() > 0 {
+    si kind.length() > 0 {
         command ← "§ send"(kind)
     }
-    fixum textus blob_relpath ← "blobs/§/§/§.eml"(content_id.sectio(0, 2), content_id.sectio(2, 4), content_id)
+    fixum textus blob_relpath ← "blobs/§/§/§.eml"(content_id.slice(0, 2), content_id.slice(2, 4), content_id)
     fixum textus blob_path ← "§/.vivi/§"(s.root, blob_relpath)
     fixum bivalens blob_existed ← solum.exstat(blob_path)
     varia lista<valor> statements ← vacua
     # Store raw EML content by SHA-256 hash; idempotent — skip if already written.
-    statements.appende(sqlite_statement("INSERT INTO blobs (content_id, blob_relpath, byte_size, rfc_message_id, parsed_at) VALUES (?1, ?2, ?3, NULL, datetime('now')) ON CONFLICT(content_id) DO NOTHING", [content_id ↦ valor, blob_relpath ↦ valor, byte_size ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO blobs (content_id, blob_relpath, byte_size, rfc_message_id, parsed_at) VALUES (?1, ?2, ?3, NULL, datetime('now')) ON CONFLICT(content_id) DO NOTHING", [content_id ↦ valor, blob_relpath ↦ valor, byte_size ↦ valor]))
     # Store sender / recipient / subject metadata keyed by content hash.
-    statements.appende(sqlite_statement("INSERT INTO message_metadata (content_id, date, from_addr, to_addr, cc_addr, bcc_addr, subject, normalized_message_id) VALUES (?1, datetime('now'), ?2, ?3, '', '', ?4, NULL) ON CONFLICT(content_id) DO UPDATE SET from_addr = excluded.from_addr, to_addr = excluded.to_addr, subject = excluded.subject", [content_id ↦ valor, vivi_address(from, mailspace) ↦ valor, vivi_address(to, mailspace) ↦ valor, subject ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO message_metadata (content_id, date, from_addr, to_addr, cc_addr, bcc_addr, subject, normalized_message_id) VALUES (?1, datetime('now'), ?2, ?3, '', '', ?4, NULL) ON CONFLICT(content_id) DO UPDATE SET from_addr = excluded.from_addr, to_addr = excluded.to_addr, subject = excluded.subject", [content_id ↦ valor, vivi_address(from, mailspace) ↦ valor, vivi_address(to, mailspace) ↦ valor, subject ↦ valor]))
     # Deliver to recipient's inbox (or task/need/want role).
-    statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = excluded.local_role, updated_at = excluded.updated_at, deleted_at = NULL", [message_id ↦ valor, to ↦ valor, content_id ↦ valor, role ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = excluded.local_role, updated_at = excluded.updated_at, deleted_at = NULL", [message_id ↦ valor, to ↦ valor, content_id ↦ valor, role ↦ valor]))
     # Store sender's own sent copy (already read, in 'sent' folder).
-    statements.appende(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, 'sent', 1, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = 'sent', read_state = 1, updated_at = excluded.updated_at, deleted_at = NULL", [sent_message_id ↦ valor, from ↦ valor, content_id ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO messages (message_id, account, content_id, local_role, read_state, starred, draft_state, discovered_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, 'sent', 1, 0, NULL, datetime('now'), datetime('now'), NULL) ON CONFLICT(message_id) DO UPDATE SET content_id = excluded.content_id, local_role = 'sent', read_state = 1, updated_at = excluded.updated_at, deleted_at = NULL", [sent_message_id ↦ valor, from ↦ valor, content_id ↦ valor]))
     # Record the send event in the sender's mailspace event log.
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'sent_copy_created', ?2, ?2, ?3, ?4, NULL, 'sent', ?2, ?2, ?5, NULL)", [command ↦ valor, from ↦ valor, sent_message_id ↦ valor, content_id ↦ valor, subject ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'sent_copy_created', ?2, ?2, ?3, ?4, NULL, 'sent', ?2, ?2, ?5, NULL)", [command ↦ valor, from ↦ valor, sent_message_id ↦ valor, content_id ↦ valor, subject ↦ valor]))
     # Record the delivery event in the recipient's mailspace event log.
-    statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", [command ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, role ↦ valor, subject ↦ valor]))
+    statements.append(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", [command ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, role ↦ valor, subject ↦ valor]))
     sqlite.exsequi_batch("§/.vivi/mail.sqlite"(s.root), statements)
     si blob_existed ≠ verum {
-        solum.crea("§/.vivi/blobs/§/§"(s.root, content_id.sectio(0, 2), content_id.sectio(2, 4)))
+        solum.crea("§/.vivi/blobs/§/§"(s.root, content_id.slice(0, 2), content_id.slice(2, 4)))
         solum.scribe(blob_path, eml)
     }
     redde message_id
@@ -520,17 +520,17 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
 
 functio sqlite_unread(de textus database, de textus who) → numerus ⇥ textus {
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = 'inbox' AND read_state = 0", [who ↦ valor])
-    fixum valor row ← rows.accipe(0)
+    fixum valor row ← rows.get(0)
     fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
-    fixum valor count ← fields.accipe("count")
+    fixum valor count ← fields.get("count")
     redde count ↦ numerus
 }
 
 functio vivi_config_names(de Store s) → lista<textus> {
     varia lista<textus> names ← vacua
     itera ex read_lines("§/.vivi/mailspace.toml"(s.root)) fixum line {
-        si line.longitudo() > 9 et line.sectio(0, 8) ≡ «name = \"» {
-            names.appende(line.sectio(8, line.longitudo() - 1))
+        si line.length() > 9 et line.slice(0, 8) ≡ «name = \"» {
+            names.append(line.slice(8, line.length() - 1))
         }
     }
     redde names
@@ -538,7 +538,7 @@ functio vivi_config_names(de Store s) → lista<textus> {
 
 functio sqlite_status_json(de Store s) → textus ⇥ textus {
     fixum lista<textus> names ← vivi_config_names(s)
-    fixum textus mailspace ← names.accipe(0) vel ""
+    fixum textus mailspace ← names.get(0) vel ""
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     varia lista<ViviIdentityStatusJson> identities ← vacua
     varia numerus actionable_total ← 0
@@ -547,15 +547,15 @@ functio sqlite_status_json(de Store s) → textus ⇥ textus {
     varia numerus needs_total ← 0
     varia numerus wants_total ← 0
     varia numerus i ← 1
-    dum i < names.longitudo() {
-        fixum textus identity ← names.accipe(i) vel ""
+    dum i < names.length() {
+        fixum textus identity ← names.get(i) vel ""
         fixum numerus tasks ← sqlite_count(database, identity, "tasks")
         fixum numerus needs ← sqlite_count(database, identity, "needs")
         fixum numerus wants ← sqlite_count(database, identity, "wants")
         fixum numerus done ← sqlite_count(database, identity, "done")
         fixum numerus unread ← sqlite_unread(database, identity)
         fixum numerus actionable ← tasks + needs
-        identities.appende(ViviIdentityStatusJson { identity = identity ↦ textus, address = "§@§.local"(identity, mailspace), actionable_open = actionable, inbox_unread = unread, tasks_open = tasks, needs_open = needs, wants_open = wants, done = done })
+        identities.append(ViviIdentityStatusJson { identity = identity ↦ textus, address = "§@§.local"(identity, mailspace), actionable_open = actionable, inbox_unread = unread, tasks_open = tasks, needs_open = needs, wants_open = wants, done = done })
         actionable_total ← actionable_total + actionable
         unread_total ← unread_total + unread
         tasks_total ← tasks_total + tasks
@@ -580,10 +580,10 @@ functio sqlite_items(de textus database, de textus who, de textus role) → list
     varia lista<BoardItemJson> items ← vacua
     itera ex rows fixum row {
         fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
-        fixum valor handle ← fields.accipe("handle") vel ("" ↦ valor)
-        fixum valor subject ← fields.accipe("subject") vel ("" ↦ valor)
-        fixum valor sender ← fields.accipe("sender") vel ("" ↦ valor)
-        items.appende(BoardItemJson { handle = handle ↦ textus, subject = subject ↦ textus, from = sender ↦ textus })
+        fixum valor handle ← fields.get("handle") vel ("" ↦ valor)
+        fixum valor subject ← fields.get("subject") vel ("" ↦ valor)
+        fixum valor sender ← fields.get("sender") vel ("" ↦ valor)
+        items.append(BoardItemJson { handle = handle ↦ textus, subject = subject ↦ textus, from = sender ↦ textus })
     }
     redde items
 }
@@ -621,7 +621,7 @@ functio print_board(de Store s, de textus who) → vacuum {
 functio sqlite_mark_done(de textus database, de textus who, de textus handle) → vacuum ⇥ textus {
     fixum valor effect ← sqlite.exsequi(database, "UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE message_id = ?1 AND account = ?2 AND local_role IN ('tasks', 'needs', 'wants')", [handle ↦ valor, who ↦ valor])
     fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
-    fixum valor changed ← fields.accipe("rows_changed") vel (0 ↦ valor)
+    fixum valor changed ← fields.get("rows_changed") vel (0 ↦ valor)
     si (changed ↦ numerus) ≡ 0 {
         iace "no open work item for handle §"(handle)
     }
@@ -772,20 +772,20 @@ probandum "vivilite helpers" tag "vivilite" {
     }
     proba "split separates tab fields" {
         fixum lista<textus> p ← split("a\tb\tc", "\t")
-        adfirma p.longitudo() ≡ 3
-        adfirma (p.accipe(1) vel "") ≡ "b"
+        adfirma p.length() ≡ 3
+        adfirma (p.get(1) vel "") ≡ "b"
     }
     proba "file-backed mailspace state transitions are stable" {
         fixum Store s ← reset_fixture("vivilite-stage1-mail")
         fixum textus root ← s.root
         identity_add(store(root ↦ textus), "codex", "codex@fixture.local")
         send_mail(store(root ↦ textus), "codex", "reviewer", "hello", "body")
-        adfirma read_lines(store(root ↦ textus).identities).longitudo() ≡ 1
-        adfirma read_lines(store(root ↦ textus).mail).longitudo() ≡ 1
-        fixum lista<textus> mail ← split(read_lines(store(root ↦ textus).mail).accipe(0) vel "", "\t")
-        adfirma (mail.accipe(0) vel "") ≡ "m-1"
-        adfirma (mail.accipe(2) vel "") ≡ "codex"
-        adfirma (mail.accipe(3) vel "") ≡ "reviewer"
+        adfirma read_lines(store(root ↦ textus).identities).length() ≡ 1
+        adfirma read_lines(store(root ↦ textus).mail).length() ≡ 1
+        fixum lista<textus> mail ← split(read_lines(store(root ↦ textus).mail).get(0) vel "", "\t")
+        adfirma (mail.get(0) vel "") ≡ "m-1"
+        adfirma (mail.get(2) vel "") ≡ "codex"
+        adfirma (mail.get(3) vel "") ≡ "reviewer"
     }
     proba "work items update board totals and handles" {
         fixum Store s ← reset_fixture("vivilite-stage1-work")
@@ -829,34 +829,34 @@ incipit argumenta args {
     fixum textus note ← args.note
     fixum textus name ← args.name
     fixum textus address ← args.address
-    operands.appende("--for")
-    operands.appende(forid)
-    si fromid.longitudo() > 0 {
-        operands.appende("--from")
-        operands.appende(fromid)
+    operands.append("--for")
+    operands.append(forid)
+    si fromid.length() > 0 {
+        operands.append("--from")
+        operands.append(fromid)
     }
-    si toid.longitudo() > 0 {
-        operands.appende("--to")
-        operands.appende(toid)
+    si toid.length() > 0 {
+        operands.append("--to")
+        operands.append(toid)
     }
-    operands.appende("--subject")
-    operands.appende(subject)
-    operands.appende("--body")
-    operands.appende(body)
-    si note.longitudo() > 0 {
-        operands.appende("--note")
-        operands.appende(note)
+    operands.append("--subject")
+    operands.append(subject)
+    operands.append("--body")
+    operands.append(body)
+    si note.length() > 0 {
+        operands.append("--note")
+        operands.append(note)
     }
-    si name.longitudo() > 0 {
-        operands.appende("--name")
-        operands.appende(name)
+    si name.length() > 0 {
+        operands.append("--name")
+        operands.append(name)
     }
-    si address.longitudo() > 0 {
-        operands.appende("--address")
-        operands.appende(address)
+    si address.length() > 0 {
+        operands.append("--address")
+        operands.append(address)
     }
     si args.json {
-        operands.appende("--json")
+        operands.append("--json")
     }
     route(operands, store(args.project))
 }

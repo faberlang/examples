@@ -49,6 +49,6 @@ functio nil() → vacuum {
 @ radix lane "air"
 @ radix backward "hetero_backward"
 functio hetero_loss(tf32[4] x, tf32[2] w) → f32 {
-    fixum f32 sx ← x.summa()
+    fixum f32 sx ← x.sum()
     redde sx
 }

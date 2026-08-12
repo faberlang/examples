@@ -167,8 +167,8 @@ functio steering_amount(de InputState input) → f32 {
 functio vehicle_box_at(f32 x, f32 y, f32 z, f32 heading_degrees) → math.Box3 {
     fixum math.Vector3 forward ← math.camera_prorsum_planus_ex_yaw(heading_degrees)
     fixum math.Vector3 right ← math.camera_dextra_ex_yaw(heading_degrees)
-    fixum f32 half_x ← forward.x.absolutum() * vehicle_half_length() + right.x.absolutum() * vehicle_half_width()
-    fixum f32 half_z ← forward.z.absolutum() * vehicle_half_length() + right.z.absolutum() * vehicle_half_width()
+    fixum f32 half_x ← forward.x.abs() * vehicle_half_length() + right.x.abs() * vehicle_half_width()
+    fixum f32 half_z ← forward.z.abs() * vehicle_half_length() + right.z.abs() * vehicle_half_width()
     redde math.Box3 { min = math.vector3(x - half_x, y, z - half_z), max = math.vector3(x + half_x, y + 1.2, z + half_z) }
 }
 
@@ -280,7 +280,7 @@ functio step_vehicle(de city.City map, de Vehicle vehicle, de InputState input, 
     fixum math.Vector3 old_forward ← math.camera_prorsum_planus_ex_yaw(vehicle.heading_degrees)
     fixum math.Vector3 old_velocity ← math.vector3(vehicle.velocity_x, 0.0, vehicle.velocity_z)
     fixum f32 old_forward_speed ← (old_velocity).productum(old_forward)
-    fixum f32 speed_ratio ← clamp(old_forward_speed.absolutum() / steering_reference_speed(), minimum_steering_authority(), 1.0)
+    fixum f32 speed_ratio ← clamp(old_forward_speed.abs() / steering_reference_speed(), minimum_steering_authority(), 1.0)
     varia f32 travel_sign ← 1.0
     si old_forward_speed < 0.0 {
         travel_sign ← 0.0 - 1.0
@@ -367,7 +367,7 @@ functio step_vehicle(de city.City map, de Vehicle vehicle, de InputState input, 
         resolved ← verum
     }
 
-    redde Vehicle { x = final_x, y = vehicle.y, z = final_z, heading_degrees = next_heading, velocity_x = final_velocity_x, velocity_z = final_velocity_z, drift_amount = (math.vector3(final_velocity_x).productum(0.0, final_velocity_z), right).absolutum(), collided = full_move_clear ≡ falsum }
+    redde Vehicle { x = final_x, y = vehicle.y, z = final_z, heading_degrees = next_heading, velocity_x = final_velocity_x, velocity_z = final_velocity_z, drift_amount = (math.vector3(final_velocity_x).productum(0.0, final_velocity_z), right).abs(), collided = full_move_clear ≡ falsum }
 }
 
 functio step_application(de city.City map, de Application app, f32 delta_seconds) → Application {

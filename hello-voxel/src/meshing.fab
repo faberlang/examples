@@ -264,9 +264,9 @@ functio chunk_mesh_bounding_box(
 
 functio chunk_mesh_matches_face_count(de ChunkMesh mesh) → bivalens {
     si mesh.face_count ≡ 0 {
-        redde mesh.positions.longitudo() ≡ 0
-            et mesh.colors.longitudo() ≡ 0
-            et mesh.indices.longitudo() ≡ 0
+        redde mesh.positions.length() ≡ 0
+            et mesh.colors.length() ≡ 0
+            et mesh.indices.length() ≡ 0
     }
     fixum geometry.VisibleFaceMeshFacts ∪ nihil facts ← chunk_mesh_facts(mesh)
     si facts est nihil {
@@ -276,9 +276,9 @@ functio chunk_mesh_matches_face_count(de ChunkMesh mesh) → bivalens {
         et facts!.vertex_count ≡ mesh.face_count * 4
         et facts!.index_count ≡ mesh.face_count * 6
         et facts!.triangle_count ≡ mesh.face_count * 2
-        et mesh.positions.longitudo() ≡ mesh.face_count * 12
-        et mesh.colors.longitudo() ≡ mesh.face_count * 12
-        et mesh.indices.longitudo() ≡ mesh.face_count * 6
+        et mesh.positions.length() ≡ mesh.face_count * 12
+        et mesh.colors.length() ≡ mesh.face_count * 12
+        et mesh.indices.length() ≡ mesh.face_count * 6
 }
 
 # Count faces of one code in the mesh by matching the face-code color on
@@ -429,7 +429,7 @@ functio empty_chunk_resource_table() → ChunkResourceTable {
     dum i < voxel.chunk_count() {
         fixum ChunkResourceState ∪ nihil state ← empty_chunk_resource(i)
         si state non est nihil {
-            chunks.appende(ChunkResourceState {
+            chunks.append(ChunkResourceState {
                 handle = resource.ResourceHandle {
                     index = state!.handle.index,
                     generation = state!.handle.generation
@@ -447,11 +447,11 @@ functio empty_chunk_resource_table() → ChunkResourceTable {
 }
 
 functio f32_list_equal(de lista<f32> a, de lista<f32> b) → bivalens {
-    si a.longitudo() ≠ b.longitudo() {
+    si a.length() ≠ b.length() {
         redde falsum
     }
     varia numerus i ← 0
-    dum i < a.longitudo() {
+    dum i < a.length() {
         si a[i] ≠ b[i] {
             redde falsum
         }
@@ -461,11 +461,11 @@ functio f32_list_equal(de lista<f32> a, de lista<f32> b) → bivalens {
 }
 
 functio u32_list_equal(de lista<u32> a, de lista<u32> b) → bivalens {
-    si a.longitudo() ≠ b.longitudo() {
+    si a.length() ≠ b.length() {
         redde falsum
     }
     varia numerus i ← 0
-    dum i < a.longitudo() {
+    dum i < a.length() {
         si a[i] ≠ b[i] {
             redde falsum
         }
@@ -524,29 +524,29 @@ functio empty_state_at(
 }
 
 functio chunk_resource_table_valid(de ChunkResourceTable table) → bivalens {
-    si table.chunks.longitudo() ≠ voxel.chunk_count() {
+    si table.chunks.length() ≠ voxel.chunk_count() {
         redde falsum
     }
     varia numerus i ← 0
-    dum i < table.chunks.longitudo() {
+    dum i < table.chunks.length() {
         fixum ChunkResourceState state ← table.chunks[i]
         si state.handle.index ≠ i {
             redde falsum
         }
         si state.live ≡ falsum {
             si state.face_count ≠ 0
-                aut state.positions.longitudo() ≠ 0
-                aut state.colors.longitudo() ≠ 0
-                aut state.indices.longitudo() ≠ 0 {
+                aut state.positions.length() ≠ 0
+                aut state.colors.length() ≠ 0
+                aut state.indices.length() ≠ 0 {
                 redde falsum
             }
         } secus {
             si state.face_count ≡ 0 {
                 redde falsum
             }
-            si state.positions.longitudo() ≠ state.face_count * 12
-                aut state.colors.longitudo() ≠ state.face_count * 12
-                aut state.indices.longitudo() ≠ state.face_count * 6 {
+            si state.positions.length() ≠ state.face_count * 12
+                aut state.colors.length() ≠ state.face_count * 12
+                aut state.indices.length() ≠ state.face_count * 6 {
                 redde falsum
             }
         }
@@ -640,14 +640,14 @@ functio _table_with_state(
     si chunk_resource_table_valid(table) ≡ falsum {
         redde nihil
     }
-    si chunk_index < 0 aut chunk_index ≥ table.chunks.longitudo() {
+    si chunk_index < 0 aut chunk_index ≥ table.chunks.length() {
         redde nihil
     }
     varia lista<ChunkResourceState> chunks ← vacua
     varia numerus i ← 0
-    dum i < table.chunks.longitudo() {
+    dum i < table.chunks.length() {
         si i ≡ chunk_index {
-            chunks.appende(ChunkResourceState {
+            chunks.append(ChunkResourceState {
                 handle = resource.ResourceHandle {
                     index = state.handle.index,
                     generation = state.handle.generation
@@ -660,7 +660,7 @@ functio _table_with_state(
             })
         } secus {
             fixum ChunkResourceState existing ← table.chunks[i]
-            chunks.appende(ChunkResourceState {
+            chunks.append(ChunkResourceState {
                 handle = resource.ResourceHandle {
                     index = existing.handle.index,
                     generation = existing.handle.generation
@@ -702,7 +702,7 @@ functio remesh_dirty_chunks(
     varia lista<resource.ResourceLifecycleTransition> transitions ← vacua
     varia lista<numerus> remeshed ← vacua
     varia numerus i ← 0
-    dum i < drained!.chunks.longitudo() {
+    dum i < drained!.chunks.length() {
         fixum numerus chunk_index ← drained!.chunks[i]
         fixum voxel.Chunk chunk ← world.chunks[chunk_index]
         fixum ChunkMesh ∪ nihil mesh_result ← mesh_chunk(world, chunk.cx, chunk.cz)
@@ -731,8 +731,8 @@ functio remesh_dirty_chunks(
             redde nihil
         }
         table ← ChunkResourceTable { chunks = next_table!.chunks }
-        transitions.appende(applied!.transition)
-        remeshed.appende(chunk_index)
+        transitions.append(applied!.transition)
+        remeshed.append(chunk_index)
         i ← i + 1
     }
 
@@ -761,9 +761,9 @@ functio resource_lifecycle_batch_for_table(
         # Prefer the remesh transition when this logical id was remeshed.
         varia bivalens found ← falsum
         varia numerus j ← 0
-        dum j < remesh.remeshed.longitudo() {
+        dum j < remesh.remeshed.length() {
             si remesh.remeshed[j] ≡ i {
-                batch.appende(remesh.transitions[j])
+                batch.append(remesh.transitions[j])
                 found ← verum
             }
             j ← j + 1
@@ -775,11 +775,11 @@ functio resource_lifecycle_batch_for_table(
                 generation = prior.handle.generation
             }
             si prior.live {
-                batch.appende(resource.resource_lifecycle_unchanged(handle))
+                batch.append(resource.resource_lifecycle_unchanged(handle))
             } secus {
                 # No live resource: synthetic unchanged with no previous/current would
                 # be invalid. Use a stable zero-generation handle pair for identity.
-                batch.appende(resource.ResourceLifecycleTransition {
+                batch.append(resource.ResourceLifecycleTransition {
                     logical_index = handle.index,
                     previous = handle,
                     current = handle,
@@ -800,7 +800,7 @@ functio chunk_generation(de ChunkResourceTable table, numerus chunk_index) → n
     si chunk_resource_table_valid(table) ≡ falsum {
         redde nihil
     }
-    si chunk_index < 0 aut chunk_index ≥ table.chunks.longitudo() {
+    si chunk_index < 0 aut chunk_index ≥ table.chunks.length() {
         redde nihil
     }
     redde table.chunks[chunk_index].handle.generation
@@ -810,7 +810,7 @@ functio chunk_is_live(de ChunkResourceTable table, numerus chunk_index) → biva
     si chunk_resource_table_valid(table) ≡ falsum {
         redde falsum
     }
-    si chunk_index < 0 aut chunk_index ≥ table.chunks.longitudo() {
+    si chunk_index < 0 aut chunk_index ≥ table.chunks.length() {
         redde falsum
     }
     redde table.chunks[chunk_index].live

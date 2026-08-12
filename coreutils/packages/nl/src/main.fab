@@ -61,7 +61,7 @@ functio modus_lnne(textus modus_numeri) → bivalens {
 }
 
 functio numeranda_linea(textus linea, bivalens omnes) → bivalens {
-    redde omnes aut linea.longitudo() > 0
+    redde omnes aut linea.length() > 0
 }
 
 functio latitudo_activa(numerus petitus) → numerus {
@@ -84,9 +84,9 @@ functio spatia(numerus copia) → textus {
 functio forma_numeri(numerus n, numerus latitudo, bivalens sinister) → textus {
     fixum textus n_textus ← "§"(n)
     fixum numerus activa ← latitudo_activa(latitudo)
-    si n_textus.longitudo() ≥ activa ergo redde n_textus
+    si n_textus.length() ≥ activa ergo redde n_textus
 
-    fixum numerus addenda ← activa - n_textus.longitudo()
+    fixum numerus addenda ← activa - n_textus.length()
     si sinister ergo redde n_textus + spatia(addenda)
     redde spatia(addenda) + n_textus
 }
@@ -106,7 +106,7 @@ functio lineae_nl(lista<textus> lineae, bivalens omnes, numerus initium, numerus
     varia numerus numerus_lineae ← initium
 
     itera ex lineae fixum linea {
-        out.appende(forma_lineae(linea, numerus_lineae, omnes, latitudo, sinister))
+        out.append(forma_lineae(linea, numerus_lineae, omnes, latitudo, sinister))
         si numeranda_linea(linea, omnes) {
             numerus_lineae ← numerus_lineae + incrementum
         }
@@ -123,7 +123,7 @@ functio nl_stdin(bivalens omnes, numerus initium, numerus incrementum, numerus l
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae_nl(lineae, omnes, initium, incrementum, latitudo, sinister)
-        lineae.appende(linea vel "")
+        lineae.append(linea vel "")
     }
 
     redde lineae_nl(lineae, omnes, initium, incrementum, latitudo, sinister)
