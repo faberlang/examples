@@ -1,10 +1,10 @@
-// Runtime bridge for bare specifiers "web:dom" and "web:web".
+// Runtime bridge for bare specifiers "tela:dom" and "tela:web".
 //
-// The built ESM imports `{ dom }` from `"web:dom"` and `{ web }` from
-// `"web:web"`. Node.js cannot resolve these bare specifiers natively, so the
+// The built ESM imports `{ dom }` from `"tela:dom"` and `{ web }` from
+// `"tela:web"`. Node.js cannot resolve these bare specifiers natively, so the
 // test harness registers a loader hook that redirects both to this module.
 //
-// The namespace objects below mirror faber-web/runtime/dom.ts but operate
+// The namespace objects below mirror tela/runtime/dom.ts but operate
 // against whatever globalThis.document the harness has installed (fake DOM
 // in tests, real document in a browser).
 
@@ -17,7 +17,7 @@ function resolveRoot(sc) {
   const doc = globalThis.document;
   if (!sc.selector || sc.selector.length === 0) return doc;
   const root = doc.querySelector(sc.selector);
-  if (!root) throw new Error(`web:dom scope root not found for selector: ${sc.selector}`);
+  if (!root) throw new Error(`tela:dom scope root not found for selector: ${sc.selector}`);
   return root;
 }
 
@@ -25,14 +25,14 @@ function scope(selector) {
   const doc = globalThis.document;
   if (!selector || selector.length === 0) return { root: doc, selector };
   const root = doc.querySelector(selector);
-  if (!root) throw new Error(`web:dom scope selector not found: ${selector}`);
+  if (!root) throw new Error(`tela:dom scope selector not found: ${selector}`);
   return { root, selector };
 }
 
 function require(sc, selector) {
   const root = resolveRoot(sc);
   const el = root.querySelector(selector);
-  if (!el) throw new Error(`web:dom required selector not found: ${selector}`);
+  if (!el) throw new Error(`tela:dom required selector not found: ${selector}`);
   return el;
 }
 
@@ -142,7 +142,7 @@ export const dom = {
       primary: event.isPrimary ?? false,
     }));
   },
-  // Mirrors faber-web/runtime/dom.ts: focus state means "the document has
+  // Mirrors tela/runtime/dom.ts: focus state means "the document has
   // focus", tracked on the element and on window, and emitted once at
   // subscribe so a subscriber never starts from a stale default.
   on_focus(el, eventName, handler) {
@@ -215,7 +215,11 @@ function pointerLockState(el, denied) {
   };
 }
 
+// The tela:web annotation contract (tela/src/web.fab). `Mount`/`mount`/
+// `selector_of` are superseded by the tela:browser.mount lifecycle — no
+// consumer imports them; the namespace stays for the emitted tela:web shape.
 export const web = {
-  mount(selector) { return { selector }; },
-  selector_of(m) { return m.selector; },
+  WebController: class WebController {
+    selector;
+  },
 };

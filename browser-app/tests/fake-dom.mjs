@@ -1,7 +1,7 @@
 // Minimal fake DOM for the WEB5 browser fixture harness.
 //
 // Supports the selector, event, class, attribute, text, and value operations
-// that the faber-web runtime bridge uses. Not a full DOM implementation —
+// that the tela runtime bridge uses. Not a full DOM implementation —
 // only enough to observe controller mounts and mutations.
 
 export class FakeClassList {

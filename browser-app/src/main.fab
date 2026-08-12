@@ -50,8 +50,8 @@
 # Backend: Rust (ESM compilation target)
 # =============================================================================
 
-importa ex "web:web" privata web
-importa ex "web:dom" privata dom
+importa ex "tela:web" privata web
+importa ex "tela:dom" privata dom
 
 # ---------------------------------------------------------------------------
 # Controller 1: Click class/text toggle (#toggle-demo)
