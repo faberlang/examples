@@ -47,10 +47,10 @@ functio model_loss(
 ) → fractus {
     # Forward: prediction = input · weight + bias
     fixum tensor<f32, [2,2]> prediction ← input.matmul(weight)
-    fixum tensor<f32, [2,2]> shifted    ← prediction.added(bias)
+    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
 
     # Cross-entropy loss: crux_entropia(shifted, target)
-    redde shifted.cross_entropy(target)
+    redde shifted.crux_entropia(target)
 }
 
 # ---------------------------------------------------------------------------
@@ -95,15 +95,15 @@ incipit {
 
     fixum tensor<f32, []> seed ← vacua
 
-    fixum tensor<f32, [2,2]> input  ← seed.from_flat(data_input,  [2, 2])
-    varia tensor<f32, [2,2]> weight ← seed.from_flat(data_weight, [2, 2])
-    varia tensor<f32, [2,2]> bias   ← seed.from_flat(data_bias,   [2, 2])
-    fixum tensor<f32, [2,2]> target ← seed.from_flat(data_target, [2, 2])
+    fixum tensor<f32, [2,2]> input  ← seed.strue(data_input,  [2, 2])
+    varia tensor<f32, [2,2]> weight ← seed.strue(data_weight, [2, 2])
+    varia tensor<f32, [2,2]> bias   ← seed.strue(data_bias,   [2, 2])
+    fixum tensor<f32, [2,2]> target ← seed.strue(data_target, [2, 2])
 
     # ── Hyperparameters ───────────────────────────────────────────────────
     fixum f32 lr ← 0.01
-    fixum lista<numerus> shape_w ← weight.shape()
-    fixum lista<numerus> shape_b ← bias.shape()
+    fixum lista<numerus> shape_w ← weight.magnitudines()
+    fixum lista<numerus> shape_b ← bias.magnitudines()
 
     # ── Loop ──────────────────────────────────────────────────────────────
     fixum numerus steps ← 8
@@ -113,9 +113,9 @@ incipit {
         # ── FORWARD ───────────────────────────────────────────────────────
         # model_loss(input, weight, bias, target) inlined due to SEM010.
         fixum tensor<f32, [2,2]> pred ← input.matmul(weight)
-        fixum tensor<f32, [2,2]> shft ← pred.added(bias)
-        fixum f32 loss ← shft.cross_entropy(target)
-        loss_trace.append(loss)
+        fixum tensor<f32, [2,2]> shft ← pred.addita(bias)
+        fixum f32 loss ← shft.crux_entropia(target)
+        loss_trace.appende(loss)
 
         # ── BACKWARD ──────────────────────────────────────────────────────
         # Call the compiler-generated companion.
@@ -130,13 +130,13 @@ incipit {
         # param -= lr × grad(param)
         # Shape-generic SGD is blocked on Radix shape generics.
         # Concrete overloads exist in norma:optimizer for [4], [2,2], [1,2], [].
-        fixum tensor<f32, [2,2]> lr_fill_w ← seed.create(lr, shape_w)
-        fixum tensor<f32, [2,2]> scaled_w  ← gw.multiply(lr_fill_w)
-        weight ← weight.subtract(scaled_w)
+        fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
+        fixum tensor<f32, [2,2]> scaled_w  ← gw.multiplica(lr_fill_w)
+        weight ← weight.subtrahe(scaled_w)
 
-        fixum tensor<f32, [2,2]> lr_fill_b ← seed.create(lr, shape_b)
-        fixum tensor<f32, [2,2]> scaled_b  ← gb.multiply(lr_fill_b)
-        bias ← bias.subtract(scaled_b)
+        fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
+        fixum tensor<f32, [2,2]> scaled_b  ← gb.multiplica(lr_fill_b)
+        bias ← bias.subtrahe(scaled_b)
     }
 
     # ── Output ────────────────────────────────────────────────────────────

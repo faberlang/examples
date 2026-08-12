@@ -204,7 +204,7 @@ functio curre(textus vectors_path, textus out_path, textus formatum, textus metr
         }
         varia numerus actual_vectors ← 0
         itera ex artifact.vectors fixum item {
-            fixum numerus actual_dimensions ← item.values.length()
+            fixum numerus actual_dimensions ← item.values.longitudo()
             si actual_dimensions ≠ artifact.dimensions {
                 emit_error("vector dimensions mismatch: expected § got §"(artifact.dimensions, actual_dimensions), formatum)
                 redde

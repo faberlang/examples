@@ -35,8 +35,8 @@
 importa ex "norma:solum" privata solum
 
 functio move_simplex(lista<textus> paths) → vacuum {
-    si paths.length() > 1 {
-        solum.renomina(paths.get(0) vel "", paths.get(1) vel "")
+    si paths.longitudo() > 1 {
+        solum.renomina(paths.accipe(0) vel "", paths.accipe(1) vel "")
     }
 }
 

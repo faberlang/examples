@@ -61,7 +61,7 @@ functio lege_omnes_lineas() → lista<textus> {
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae
-        lineae.append(linea vel "")
+        lineae.appende(linea vel "")
     }
 
     redde lineae
@@ -71,7 +71,7 @@ functio lege_omnes_lineas() → lista<textus> {
 # default textus ordering; the declared Stage 4 input contract is ASCII only.
 functio lineae_ordinatae(lista<textus> lineae) → lista<textus> {
     varia lista<textus> out ← lineae
-    out.sort()
+    out.ordina()
     redde out
 }
 
@@ -80,8 +80,8 @@ functio ascii_minuscula(textus c) → textus {
     fixum textus lower ← "abcdefghijklmnopqrstuvwxyz"
     varia numerus i ← 0
 
-    dum i < upper.length() {
-        si upper.slice(i, i + 1) ≡ c ergo redde lower.slice(i, i + 1)
+    dum i < upper.longitudo() {
+        si upper.sectio(i, i + 1) ≡ c ergo redde lower.sectio(i, i + 1)
         i ← i + 1
     }
 
@@ -92,8 +92,8 @@ functio clavis_fold_ascii(textus linea) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < linea.length() {
-        out ← out + ascii_minuscula(linea.slice(i, i + 1))
+    dum i < linea.longitudo() {
+        out ← out + ascii_minuscula(linea.sectio(i, i + 1))
         i ← i + 1
     }
 
@@ -104,9 +104,9 @@ functio compara_textus(textus a, textus b) → numerus {
     si a ≡ b ergo redde 0
 
     varia lista<textus> duo ← ["" + a, "" + b]
-    duo.sort()
+    duo.ordina()
 
-    si (duo.get(0) vel "") ≡ a ergo redde 0 - 1
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
     redde 1
 }
 
@@ -127,19 +127,19 @@ functio inserta_ordinata(lista<textus> lineae, textus nova, bivalens fold_case) 
     varia bivalens inserta ← falsum
     varia numerus i ← 0
 
-    dum i < lineae.length() {
-        fixum textus current ← lineae.get(i) vel ""
+    dum i < lineae.longitudo() {
+        fixum textus current ← lineae.accipe(i) vel ""
         si inserta ≡ falsum et compara_lineas(nova, current, fold_case) < 0 {
-            out.append("" + nova)
+            out.appende("" + nova)
             inserta ← verum
         }
 
-        out.append(current)
+        out.appende(current)
         i ← i + 1
     }
 
     si inserta ≡ falsum {
-        out.append("" + nova)
+        out.appende("" + nova)
     }
 
     redde out
@@ -172,7 +172,7 @@ functio primae_lineae_per_fold_key(lista<textus> lineae) → lista<textus> {
     itera ex lineae fixum linea {
         fixum textus key ← clavis_fold_ascii(linea)
         si clavis_fold_extat(out, key) ≡ falsum {
-            out.append(linea)
+            out.appende(linea)
         }
     }
 
@@ -181,16 +181,16 @@ functio primae_lineae_per_fold_key(lista<textus> lineae) → lista<textus> {
 
 functio lineae_unicae_ordinatae(lista<textus> lineae, bivalens fold_case) → lista<textus> {
     varia lista<textus> out ← vacua
-    si lineae.length() ≡ 0 ergo redde out
+    si lineae.longitudo() ≡ 0 ergo redde out
 
-    out.append(lineae.get(0) vel "")
+    out.appende(lineae.accipe(0) vel "")
     varia numerus i ← 1
 
-    dum i < lineae.length() {
-        fixum textus prior ← lineae.get(i - 1) vel ""
-        fixum textus linea ← lineae.get(i) vel ""
+    dum i < lineae.longitudo() {
+        fixum textus prior ← lineae.accipe(i - 1) vel ""
+        fixum textus linea ← lineae.accipe(i) vel ""
         si compara_lineas(linea, prior, fold_case) ≠ 0 {
-            out.append(linea)
+            out.appende(linea)
         }
         i ← i + 1
     }
@@ -218,7 +218,7 @@ functio lineae_sort(lista<textus> lineae, bivalens reverse, bivalens unique, biv
     }
 
     si reverse {
-        out.reverse()
+        out.inverte()
     }
 
     redde out

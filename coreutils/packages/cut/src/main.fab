@@ -56,18 +56,18 @@ importa ex "§gnu/stdio" privata gnu_stdio
 
 functio discinde(textus s, textus separator) → lista<textus> {
     varia lista<textus> partes ← vacua
-    fixum numerus sep_len ← separator.length()
+    fixum numerus sep_len ← separator.longitudo()
     varia numerus initium ← 0
     varia numerus i ← 0
 
     si sep_len ≠ 1 {
-        partes.append(s)
+        partes.appende(s)
         redde partes
     }
 
-    dum i < s.length() {
-        si s.slice(i, i + sep_len) ≡ separator {
-            partes.append(s.slice(initium, i))
+    dum i < s.longitudo() {
+        si s.sectio(i, i + sep_len) ≡ separator {
+            partes.appende(s.sectio(initium, i))
             i ← i + sep_len
             initium ← i
         }
@@ -76,16 +76,16 @@ functio discinde(textus s, textus separator) → lista<textus> {
         }
     }
 
-    partes.append(s.slice(initium, s.length()))
+    partes.appende(s.sectio(initium, s.longitudo()))
     redde partes
 }
 
 functio habet_finitorem(textus linea, textus finitor) → bivalens {
-    si finitor.length() ≠ 1 ergo redde falsum
+    si finitor.longitudo() ≠ 1 ergo redde falsum
 
     varia numerus i ← 0
-    dum i < linea.length() {
-        si linea.slice(i, i + 1) ≡ finitor {
+    dum i < linea.longitudo() {
+        si linea.sectio(i, i + 1) ≡ finitor {
             redde verum
         }
         i ← i + 1
@@ -96,8 +96,8 @@ functio habet_finitorem(textus linea, textus finitor) → bivalens {
 
 functio dash_pos(textus spec) → numerus {
     varia numerus i ← 0
-    dum i < spec.length() {
-        si spec.slice(i, i + 1) ≡ "-" ergo redde i
+    dum i < spec.longitudo() {
+        si spec.sectio(i, i + 1) ≡ "-" ergo redde i
         i ← i + 1
     }
 
@@ -112,12 +112,12 @@ functio selectum_specne(textus spec, numerus index) → bivalens {
         redde unum > 0 et index ≡ unum
     }
 
-    fixum textus initium_textus ← spec.slice(0, dash)
-    fixum textus finis_textus ← spec.slice(dash + 1, spec.length())
+    fixum textus initium_textus ← spec.sectio(0, dash)
+    fixum textus finis_textus ← spec.sectio(dash + 1, spec.longitudo())
     fixum numerus initium ← initium_textus ↦ numerus ⇥ 0
     si initium ≤ 0 ergo redde falsum
 
-    si finis_textus.length() ≡ 0 {
+    si finis_textus.longitudo() ≡ 0 {
         redde index ≥ initium
     }
 
@@ -179,7 +179,7 @@ functio secat_lineam(textus linea, textus finitor, textus index_list, bivalens c
 
     itera ex fields fixum field {
         si selectio_servandane(index_list, index, complementum) {
-            kept.append(field)
+            kept.appende(field)
         }
 
         index ← index + 1

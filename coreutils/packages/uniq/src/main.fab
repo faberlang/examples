@@ -65,7 +65,7 @@ functio lege_omnes_lineas() → lista<textus> {
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae
-        lineae.append(linea vel "")
+        lineae.appende(linea vel "")
     }
 
     redde lineae
@@ -75,21 +75,21 @@ functio clavis_uniqui(textus linea, numerus skip_chars, numerus check_chars, biv
     varia textus clavis ← linea
 
     si skip_chars > 0 {
-        si skip_chars ≥ clavis.length() {
+        si skip_chars ≥ clavis.longitudo() {
             clavis ← ""
         }
         secus {
-            clavis ← clavis.slice(skip_chars, clavis.length())
+            clavis ← clavis.sectio(skip_chars, clavis.longitudo())
         }
     }
 
     si check_chars > 0 {
-        si check_chars < clavis.length() {
-            clavis ← clavis.slice(0, check_chars)
+        si check_chars < clavis.longitudo() {
+            clavis ← clavis.sectio(0, check_chars)
         }
     }
 
-    si ignore_case ergo redde clavis.lowercase()
+    si ignore_case ergo redde clavis.minuscula()
     redde clavis
 }
 
@@ -98,21 +98,21 @@ functio clavis_uniqui(textus linea, numerus skip_chars, numerus check_chars, biv
 # for the group even when comparison ignores ASCII case.
 functio greges_uniqui(lista<textus> lineae, numerus skip_chars, numerus check_chars, bivalens ignore_case) → lista<GrexUniq> {
     varia lista<GrexUniq> greges ← vacua
-    si lineae.length() ≡ 0 ergo redde greges
+    si lineae.longitudo() ≡ 0 ergo redde greges
 
-    varia textus currens ← lineae.get(0) vel ""
+    varia textus currens ← lineae.accipe(0) vel ""
     varia textus currens_clavis ← clavis_uniqui(currens, skip_chars, check_chars, ignore_case)
     varia numerus copia ← 1
     varia numerus i ← 1
 
-    dum i < lineae.length() {
-        fixum textus linea ← lineae.get(i) vel ""
+    dum i < lineae.longitudo() {
+        fixum textus linea ← lineae.accipe(i) vel ""
         fixum textus clavis ← clavis_uniqui(linea, skip_chars, check_chars, ignore_case)
         si clavis ≡ currens_clavis {
             copia ← copia + 1
         }
         secus {
-            greges.append(GrexUniq { linea = currens, copia = copia })
+            greges.appende(GrexUniq { linea = currens, copia = copia })
             currens ← linea
             currens_clavis ← clavis
             copia ← 1
@@ -120,7 +120,7 @@ functio greges_uniqui(lista<textus> lineae, numerus skip_chars, numerus check_ch
         i ← i + 1
     }
 
-    greges.append(GrexUniq { linea = currens, copia = copia })
+    greges.appende(GrexUniq { linea = currens, copia = copia })
     redde greges
 }
 
@@ -146,10 +146,10 @@ functio lineae_uniquae(lista<textus> lineae, bivalens comites, bivalens duplicat
 
         si include {
             si comites {
-                out.append("§ §"(forma_comitis(grex.copia), grex.linea))
+                out.appende("§ §"(forma_comitis(grex.copia), grex.linea))
             }
             secus {
-                out.append(grex.linea)
+                out.appende(grex.linea)
             }
         }
     }
