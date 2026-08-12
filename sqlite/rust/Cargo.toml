@@ -7,7 +7,7 @@ edition = "2021"
 path = "shim.rs"
 
 [dependencies]
-faber = { package = "faber-runtime", path = "../../../faber-runtime" }
+faber = { package = "faber-runtime", path = "../../../faber/runtime/rust" }
 rusqlite = { version = "0.32", features = ["bundled"] }
 sha2 = "0.10"
 
