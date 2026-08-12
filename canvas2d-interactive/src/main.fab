@@ -3,7 +3,7 @@
 # =============================================================================
 #
 # A pannable/zoomable world grid with one draggable rectangle, drawn by a
-# Faber program through the web:canvas2d binding, redrawn every on_frame tick.
+# Faber program through the tela:canvas2d binding, redrawn every on_frame tick.
 #
 #   • pan    — pointer drag on empty space moves the camera. Userland math:
 #              screen = world * zoom + (cam_x, cam_y); no camera genus in the
@@ -25,9 +25,9 @@
 #   • Path2D  — from_svg star at world (150,-100), fill + stroke
 #   • text    — fill_text labels with set_font/set_text_align/set_text_baseline
 
-importa ex "web:web" privata web
-importa ex "web:dom" privata dom
-importa ex "web:canvas2d" privata canvas2d
+importa ex "tela:web" privata web
+importa ex "tela:dom" privata dom
+importa ex "tela:canvas2d" privata canvas2d
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -68,7 +68,7 @@ functio point_in_rect(f64 px, f64 py, f64 rx, f64 ry, f64 rw, f64 rh) → bivale
 # save/restore.
 # ---------------------------------------------------------------------------
 
-functio draw_grid(canvas2d.Canvas2dContext ctx) → vacuum {
+functio draw_grid(canvas2d.Canvas2DContext ctx) → vacuum {
     fixum f64 start ← 0.0 - grid_extent()
     canvas2d.canvas2d_set_stroke_style(ctx, "lightgray")
     varia f64 w ← start
@@ -101,7 +101,7 @@ functio draw_grid(canvas2d.Canvas2dContext ctx) → vacuum {
 
 # Clipped blue region: the visible blue patch is exactly the closed path box
 # world (-200,-200)-(-120,-120), proving clip() applies to subsequent draws.
-functio draw_clip_demo(canvas2d.Canvas2dContext ctx) → vacuum {
+functio draw_clip_demo(canvas2d.Canvas2DContext ctx) → vacuum {
     canvas2d.canvas2d_save(ctx)
     canvas2d.canvas2d_begin_path(ctx)
     canvas2d.canvas2d_move_to(ctx, -200.0, -200.0)
@@ -115,21 +115,21 @@ functio draw_clip_demo(canvas2d.Canvas2dContext ctx) → vacuum {
     canvas2d.canvas2d_restore(ctx)
 }
 
-functio draw_arc(canvas2d.Canvas2dContext ctx) → vacuum {
+functio draw_arc(canvas2d.Canvas2DContext ctx) → vacuum {
     canvas2d.canvas2d_begin_path(ctx)
     canvas2d.canvas2d_arc(ctx, 0.0, 150.0, 10.0, 0.0, two_pi())
     canvas2d.canvas2d_set_fill_style(ctx, "green")
     canvas2d.canvas2d_fill(ctx)
 }
 
-functio draw_ellipse(canvas2d.Canvas2dContext ctx) → vacuum {
+functio draw_ellipse(canvas2d.Canvas2DContext ctx) → vacuum {
     canvas2d.canvas2d_begin_path(ctx)
     canvas2d.canvas2d_ellipse(ctx, 0.0, -150.0, 20.0, 12.0, 0.5, 0.0, two_pi())
     canvas2d.canvas2d_set_fill_style(ctx, "steelblue")
     canvas2d.canvas2d_fill(ctx)
 }
 
-functio draw_star(canvas2d.Canvas2dContext ctx, canvas2d.Path2D star) → vacuum {
+functio draw_star(canvas2d.Canvas2DContext ctx, canvas2d.Path2D star) → vacuum {
     canvas2d.canvas2d_save(ctx)
     canvas2d.canvas2d_translate(ctx, 150.0, -100.0)
     canvas2d.canvas2d_set_fill_style(ctx, "gold")
@@ -139,7 +139,7 @@ functio draw_star(canvas2d.Canvas2dContext ctx, canvas2d.Path2D star) → vacuum
     canvas2d.canvas2d_restore(ctx)
 }
 
-functio draw_rect(canvas2d.Canvas2dContext ctx, f64 rect_x, f64 rect_y) → vacuum {
+functio draw_rect(canvas2d.Canvas2DContext ctx, f64 rect_x, f64 rect_y) → vacuum {
     canvas2d.canvas2d_set_fill_style(ctx, "tomato")
     canvas2d.canvas2d_fill_rect(ctx, rect_x, rect_y, rect_width(), rect_height())
     canvas2d.canvas2d_set_font(ctx, "14px sans-serif")
@@ -153,7 +153,7 @@ functio draw_rect(canvas2d.Canvas2dContext ctx, f64 rect_x, f64 rect_y) → vacu
 }
 
 functio redraw(
-    canvas2d.Canvas2dContext ctx,
+    canvas2d.Canvas2DContext ctx,
     canvas2d.Path2D star,
     f64 cam_x,
     f64 cam_y,
@@ -184,7 +184,7 @@ functio redraw(
 @ WebController { selector = "#canvas-stage" }
 functio interactive_controller(dom.Scope scope) → lista<dom.Subscription> {
     fixum dom.Element canvas ← dom.require(scope, "canvas#stage")
-    fixum canvas2d.Canvas2dContext ctx ← canvas2d.canvas2d_context(canvas)
+    fixum canvas2d.Canvas2DContext ctx ← canvas2d.canvas2d_context(canvas)
     fixum canvas2d.Path2D star ← canvas2d.canvas2d_path2d_new_from_svg(star_svg())
 
     varia f64 cam_x ← 320.0
