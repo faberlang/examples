@@ -3,7 +3,7 @@
 # =============================================================================
 #
 # Draws a colored, rotated rectangle in a browser canvas through the
-# web:canvas2d binding:
+# tela:canvas2d binding:
 #
 #   • white background fill               — set_fill_style + fill_rect
 #   • blue filled rect (top-left)         — set_fill_style + fill_rect
@@ -19,9 +19,9 @@
 # window.__smokeResult. tests/smoke-test.mjs drives the page with Playwright
 # Chromium and fails on a non-pass result.
 
-importa ex "web:web" privata web
-importa ex "web:dom" privata dom
-importa ex "web:canvas2d" privata canvas2d
+importa ex "tela:web" privata web
+importa ex "tela:dom" privata dom
+importa ex "tela:canvas2d" privata canvas2d
 
 functio quarter_turn() → f64 {
     redde 0.7853981633974483
@@ -31,8 +31,8 @@ functio quarter_turn() → f64 {
 functio draw_controller(dom.Scope scope) → vacuum {
     fixum dom.Element stage ← dom.require(scope, "canvas#stage")
     fixum dom.Element probe ← dom.require(scope, "canvas#probe")
-    fixum canvas2d.Canvas2dContext stage_ctx ← canvas2d.canvas2d_context(stage)
-    fixum canvas2d.Canvas2dContext probe_ctx ← canvas2d.canvas2d_context(probe)
+    fixum canvas2d.Canvas2DContext stage_ctx ← canvas2d.canvas2d_context(stage)
+    fixum canvas2d.Canvas2DContext probe_ctx ← canvas2d.canvas2d_context(probe)
 
     # White background across the whole stage.
     canvas2d.canvas2d_set_fill_style(stage_ctx, "white")
