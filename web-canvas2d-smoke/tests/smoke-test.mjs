@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// web:canvas2d smoke test (Unit 1 — core draw surface).
+// tela:canvas2d smoke test (Unit 1 — core draw surface).
 //
 // End-to-end proof that a Faber program compiled by the real compiler draws a
 // colored, rotated rectangle in a real browser canvas through the
-// web:canvas2d runtime, verified by pixel readback:
+// tela:canvas2d runtime, verified by pixel readback:
 //
 //   probe canvas (1x1) center    — non-white (blue fill)  [required]
 //   stage canvas center (160,120) — green (translate + rotate + fill_rect)
@@ -13,16 +13,11 @@
 //
 // Pipeline:
 //   1. `faber build --package .` compiles src/main.fab to TypeScript. The
-//      browser product build's own tsc verification CANNOT pass for a second
-//      binding module: faber product packaging copies one runtime shim per
-//      library package (runtime/dom.ts), so the generated web:canvas2d facade
-//      imports `webCanvas2d*` symbols that the shim does not export, and the
-//      facade does not re-export genus values like `Canvas2dContext` for
-//      non-dom modules. That is a packaging gap outside this unit's write
-//      scope (faber repo); the emitted sources are snapshotted from the
-//      build's staging directory before the tsc step fails.
-//   2. The real runtime sources (faber-web/runtime/dom.ts + canvas2d.ts) are
-//      transpiled to ESM, and a hand-written `web:canvas2d` facade wires the
+//      emitted sources are snapshotted from the build's staging dir as soon
+//      as they appear (the tela provider's per-stem shims let the tsc
+//      verification pass; the snapshot is taken either way).
+//   2. The real runtime sources (tela/runtime/dom.ts + canvas2d.ts) are
+//      transpiled to ESM, and a hand-written `tela:canvas2d` facade wires the
 //      Faber namespace to them exactly like the product generator would.
 //   3. Playwright Chromium loads the harness page, runs `draw_controller`,
 //      and reports pixel readback assertions on `window.__smokeResult`.
@@ -92,17 +87,17 @@ writeFileSync(
   path.join(ROOT, "faber.lock"),
   `
 [[package]]
-name = "web"
+name = "tela"
 version = "0.1.0"
 source = "path"
-package_root = "${WORKSPACE}/faber-web"
+package_root = "${WORKSPACE}/tela"
 kind = "lib"
 target_language = "ts"
 target_triple = "browser"
 target_manifest = ""
-interface_root = "${WORKSPACE}/faber-web/src"
+interface_root = "${WORKSPACE}/tela/src"
 artifact = ""
-crate = "web"
+crate = "tela"
 rustc = ""
 `,
 );
@@ -120,7 +115,7 @@ const build = spawn(FABER_BIN, ["build", "--package", "."], {
   stdio: ["ignore", "pipe", "pipe"],
 });
 
-const REQUIRED_SNAPSHOT = ["main.ts", "web-canvas2d.ts", "web-dom.ts", "web-shim-dom.ts", "web-web.ts"];
+const REQUIRED_SNAPSHOT = ["main.ts", "tela-canvas2d.ts", "tela-dom.ts", "tela-shim-dom.ts", "tela-web.ts"];
 
 let snapshotted = false;
 const deadline = Date.now() + 60000;
@@ -181,25 +176,24 @@ function transpileFile(srcPath, destPath) {
 }
 
 // main.ts and the dom/web facades + shim come from the snapshot (real compiler
-// output). runtime/canvas2d.ts is transpiled fresh from faber-web (the
-// snapshot's generated web:canvas2d facade cannot compile, see header note).
+// output). runtime/canvas2d.ts is transpiled fresh from tela (the hand-written
+// tela:canvas2d facade imports from it directly, see below).
 transpileFile(path.join(staging, "main.ts"), path.join(staging, "main.js"));
-transpileFile(path.join(staging, "web-dom.ts"), path.join(staging, "web-dom.js"));
-transpileFile(path.join(staging, "web-shim-dom.ts"), path.join(staging, "web-shim-dom.js"));
-transpileFile(path.join(staging, "web-web.ts"), path.join(staging, "web-web.js"));
-transpileFile(path.join(WORKSPACE, "faber-web/runtime/canvas2d.ts"), path.join(staging, "runtime-canvas2d.js"));
+transpileFile(path.join(staging, "tela-dom.ts"), path.join(staging, "tela-dom.js"));
+transpileFile(path.join(staging, "tela-shim-dom.ts"), path.join(staging, "tela-shim-dom.js"));
+transpileFile(path.join(staging, "tela-web.ts"), path.join(staging, "tela-web.js"));
+transpileFile(path.join(WORKSPACE, "tela/runtime/canvas2d.ts"), path.join(staging, "runtime-canvas2d.js"));
 
-// Hand-written web:canvas2d facade over the real runtime — mirrors what the
+// Hand-written tela:canvas2d facade over the real runtime — mirrors what the
 // product generator emits, except it imports from the real runtime file.
-// `Canvas2dContext` is the genus value export the compiler's emitted import
-// requires (`import { Canvas2dContext, canvas2d } from "./web-canvas2d.js"`);
+// `Canvas2DContext` is the genus value export the compiler's emitted import
+// requires (`import { Canvas2DContext, canvas2d } from "./tela-canvas2d.js"`);
 // type annotations are erased at transpile time so the value is never used.
 writeFileSync(
-  path.join(staging, "web-canvas2d.js"),
-  `// Hand-written web:canvas2d facade — the product-generated facade imports
-// canvas2d symbols from the single package shim (runtime/dom.ts), which the
-// faber packaging gap makes uncompilable (see smoke-test.mjs header). This
-// wires the same Faber namespace to the real runtime directly.
+  path.join(staging, "tela-canvas2d.js"),
+  `// Hand-written tela:canvas2d facade — wires the Faber namespace to the real
+// tela/runtime/canvas2d.ts the way the product generator would (per-stem
+// shim), but directly against the runtime module.
 import {
   webCanvas2dClearRect as canvas2d_clear_rect,
   webCanvas2dContext as canvas2d_context,
@@ -230,7 +224,7 @@ export {
   canvas2d_translate,
 };
 
-export const Canvas2dContext = class Canvas2dContext {};
+export const Canvas2DContext = class Canvas2DContext {};
 
 export const canvas2d = {
   canvas2d_clear_rect,
@@ -259,7 +253,7 @@ writeFileSync(
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>web:canvas2d smoke harness</title>
+  <title>tela:canvas2d smoke harness</title>
 </head>
 <body>
   <canvas id="stage" width="320" height="240"></canvas>

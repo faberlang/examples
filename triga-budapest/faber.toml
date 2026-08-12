@@ -22,7 +22,7 @@ controllers_json = "controllers.json"
 source = "src/shaders/test-data"
 
 [dependencies]
-web = "0.1.0"
+tela = "0.1.0"
 triga = "0.1.0"
 
 # STAYS la (not en): triga library members subtracta/multiplicata/productum/transversum

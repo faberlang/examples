@@ -42,8 +42,8 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "web:web" privata web
-importa ex "web:dom" privata dom
+importa ex "tela:web" privata web
+importa ex "tela:dom" privata dom
 importa ex "./voxel" privata voxel
 importa ex "./meshing" privata meshing
 importa ex "./application" privata application
