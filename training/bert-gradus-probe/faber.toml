@@ -15,4 +15,8 @@ kind = "bin"
 # through the ordinary `faber run -t fmir` CPU route, like the fragment).
 
 [reader]
-locale = "en"
+# la (Q2 corpus la-pass, want 39c43851): the package source uses the Latin
+# keyword surface (functio/fixum/si/…); en-pack authority (locale S2-U1) makes
+# Latin-keyword sources uncompilable under en. Flip to en only when the source
+# is converted to the en keyword surface.
+locale = "la"
