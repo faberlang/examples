@@ -49,9 +49,9 @@ fn forbidden_inference_claims() → list<string> {
 fn sorted_keys(map<string, bool> claims) → list<string> {
     var list<string> keys ← vacua
     for ref claims const key {
-        keys.appende(key)
+        keys.append(key)
     }
-    keys.ordina()
+    keys.sort()
     return keys
 }
 
@@ -59,18 +59,18 @@ fn unknown_keys_failures(map<string, bool> claims, string label, list<string> al
     var list<string> failures ← vacua
     var list<string> known ← vacua
     for from FORBIDDEN_INFERENCE_CLAIMS const word {
-        known.appende(word)
+        known.append(word)
     }
     for from allowed_false const word {
-        known.appende(word)
+        known.append(word)
     }
     for from allowed_true const word {
-        known.appende(word)
+        known.append(word)
     }
     const list<string> keys ← sorted_keys(claims)
     for from keys const key {
-        if not known.continet(key) {
-            failures.appende("§ claim § is unknown to the shared forbidden vocabulary"(label, key))
+        if not known.contains(key) {
+            failures.append("§ claim § is unknown to the shared forbidden vocabulary"(label, key))
         }
     }
     return failures
@@ -80,9 +80,9 @@ fn allowed_false_failures(map<string, bool> claims, string label, list<string> a
     var list<string> failures ← vacua
     const list<string> keys ← sorted_keys(claims)
     for from keys const key {
-        if allowed_false.continet(key) {
+        if allowed_false.contains(key) {
             if claims[key] ≠ false {
-                failures.appende("§ claim § must remain false"(label, key))
+                failures.append("§ claim § must remain false"(label, key))
             }
         }
     }
@@ -92,14 +92,14 @@ fn allowed_false_failures(map<string, bool> claims, string label, list<string> a
 fn forbidden_failures(map<string, bool> claims, string label, bool require_all) → list<string> {
     var list<string> failures ← vacua
     for from FORBIDDEN_INFERENCE_CLAIMS const key {
-        if claims.accipe(key) is null {
+        if claims.get(key) is null {
             if require_all {
-                failures.appende("§ claim § must be explicitly false"(label, key))
+                failures.append("§ claim § must be explicitly false"(label, key))
             }
             continue
         }
         if claims[key] ≠ false {
-            failures.appende("§ claim § must remain false"(label, key))
+            failures.append("§ claim § must remain false"(label, key))
         }
     }
     return failures
@@ -110,16 +110,16 @@ fn false_claim_failures_inner(map<string, bool> claims, string label, bool requi
     if require_all {
         const list<string> u ← unknown_keys_failures(claims, label, allowed_false, allowed_true)
         for from u const item {
-            failures.appende(item)
+            failures.append(item)
         }
         const list<string> a ← allowed_false_failures(claims, label, allowed_false)
         for from a const item {
-            failures.appende(item)
+            failures.append(item)
         }
     }
     const list<string> f ← forbidden_failures(claims, label, require_all)
     for from f const item {
-        failures.appende(item)
+        failures.append(item)
     }
     return failures
 }

@@ -59,25 +59,25 @@ fn known_contains(list<string> known, string key) → bool {
     return false
 }
 
-fn claim_failures(map<string, valor> claims, string label) → list<string> {
+fn claim_failures(map<string, value> claims, string label) → list<string> {
     var list<string> failures ← vacua
     var list<string> keys ← vacua
     for ref claims const key {
-        keys.appende(key)
+        keys.append(key)
     }
-    keys.ordina()
+    keys.sort()
     for from keys const key {
         if not known_contains(FORBIDDEN_INFERENCE_CLAIMS, key) {
-            failures.appende("§ claim § is unknown to the shared forbidden vocabulary"(label, key))
+            failures.append("§ claim § is unknown to the shared forbidden vocabulary"(label, key))
         }
     }
     for from FORBIDDEN_INFERENCE_CLAIMS const key {
         if claims[key] is null {
-            failures.appende("§ claim § must be explicitly false"(label, key))
+            failures.append("§ claim § must be explicitly false"(label, key))
             continue
         }
         if claims[key] ↦ bool ≠ false {
-            failures.appende("§ claim § must remain false"(label, key))
+            failures.append("§ claim § must remain false"(label, key))
         }
     }
     return failures
@@ -85,7 +85,7 @@ fn claim_failures(map<string, valor> claims, string label) → list<string> {
 
 main {
     const list<string> av ← processus.argumenta() ↦ list<string>
-    if av.longitudo() ≠ 2 {
+    if av.length() ≠ 2 {
         consolum.mone("usage: runner_artifact_claim_gate <artifact> <expected_status>")
         processus.exi(2)
     }
@@ -96,25 +96,25 @@ main {
         processus.exi(2)
     }
 
-    var list<map<string, valor>> events ← vacua
+    var list<map<string, value>> events ← vacua
     const list<string> lines ← solum.carpe(artifact) ↦ list<string>
-    const numerus total ← lines.longitudo()
-    var numerus i ← 0
-    dum i < total {
+    const int total ← lines.length()
+    var int i ← 0
+    while i < total {
         const any parsed ← json.tempta(lines[i] ↦ string)
         if parsed is null {
             consolum.mone("line §: invalid JSON"(i + 1))
             processus.exi(1)
         }
-        events.appende(parsed ↦ map<string, valor>)
+        events.append(parsed ↦ map<string, value>)
         i ← i + 1
     }
 
-    if events.longitudo() ≡ 0 {
+    if events.length() ≡ 0 {
         consolum.mone("runner artifact has no events")
         processus.exi(1)
     }
-    const map<string, valor> first ← events[0] ↦ map<string, valor>
+    const map<string, value> first ← events[0] ↦ map<string, value>
     if first["event"] is null {
         consolum.mone("runner artifact first event must be metadata")
         processus.exi(1)
@@ -126,23 +126,23 @@ main {
     }
     var list<string> failures ← vacua
     if first["status"] is null {
-        failures.appende("runner artifact metadata status 'None' does not match '§'"(expected_status))
+        failures.append("runner artifact metadata status 'None' does not match '§'"(expected_status))
     } else {
         const string status ← first["status"] ↦ string
         if status ≠ expected_status {
-            failures.appende("runner artifact metadata status '§' does not match '§'"(status, expected_status))
+            failures.append("runner artifact metadata status '§' does not match '§'"(status, expected_status))
         }
     }
     if first["claims"] is null {
-        failures.appende("runner artifact metadata claims must be an object")
+        failures.append("runner artifact metadata claims must be an object")
     } else {
-        const map<string, valor> claims ← first["claims"] ↦ map<string, valor>
+        const map<string, value> claims ← first["claims"] ↦ map<string, value>
         const list<string> cf ← claim_failures(claims, "runner artifact metadata")
         for from cf const item {
-            failures.appende(item)
+            failures.append(item)
         }
     }
-    if failures.longitudo() ≠ 0 {
+    if failures.length() ≠ 0 {
         for from failures const failure {
             consolum.mone(failure)
         }

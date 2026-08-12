@@ -26,9 +26,9 @@ const list<string> CLAIM_GATED_METADATA_STATUSES ← ["oracle-backed", "router-b
 
 fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool> ∪ null> claims, string label) → list<string> {
     var list<string> failures ← vacua
-    const numerus n ← events.longitudo()
-    var numerus i ← 0
-    dum i < n {
+    const int n ← events.length()
+    var int i ← 0
+    while i < n {
         const map<string, any> event ← events[i]
         if event["event"] is null {
             i ← i + 1
@@ -41,11 +41,11 @@ fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool>
                 continue
             }
             const string status ← event["status"] ↦ string
-            if CLAIM_GATED_METADATA_STATUSES.continet(status) {
+            if CLAIM_GATED_METADATA_STATUSES.contains(status) {
                 const string event_label ← "§ metadata[§]"(label, i)
                 const list<string> cf ← claim_gates.false_claim_failures(claims[i], event_label, true, vacua, vacua)
                 for from cf const item {
-                    failures.appende(item)
+                    failures.append(item)
                 }
             }
         }

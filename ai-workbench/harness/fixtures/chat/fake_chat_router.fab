@@ -51,9 +51,9 @@ const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
 ]
 
 fn value_for(list<string> args, string flag, string fallback) → string {
-    const numerus n ← args.longitudo()
-    var numerus i ← 0
-    dum i < n {
+    const int n ← args.length()
+    var int i ← 0
+    while i < n {
         const string tok ← args[i] ↦ string
         if tok ≡ flag {
             if i + 1 < n {
@@ -67,31 +67,31 @@ fn value_for(list<string> args, string flag, string fallback) → string {
 }
 
 fn trim(string s) → string {
-    var numerus start ← 0
-    var numerus end ← s.longitudo()
-    dum start < end {
-        const string ch ← s.sectio(start, start + 1)
+    var int start ← 0
+    var int end ← s.length()
+    while start < end {
+        const string ch ← s.slice(start, start + 1)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
             start ← start + 1
         } else {
             break
         }
     }
-    dum end > start {
-        const string ch ← s.sectio(end - 1, end)
+    while end > start {
+        const string ch ← s.slice(end - 1, end)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
             end ← end - 1
         } else {
             break
         }
     }
-    return s.sectio(start, end)
+    return s.slice(start, end)
 }
 
 fn all_false_claims(list<string> forbidden) → string {
     var string out ← ""
-    var numerus i ← 0
-    dum i < forbidden.longitudo() {
+    var int i ← 0
+    while i < forbidden.length() {
         if i > 0 {
             out ← out + ","
         }
