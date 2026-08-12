@@ -15,4 +15,4 @@ kind = "bin"
 mathesis = "0.1.0"
 
 [reader]
-locale = "la"
+locale = "en"

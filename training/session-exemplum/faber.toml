@@ -12,4 +12,4 @@ target = "fmir"
 kind = "bin"
 
 [reader]
-locale = "la"
+locale = "en"

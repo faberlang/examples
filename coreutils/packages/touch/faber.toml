@@ -12,4 +12,4 @@ target = "rust"
 kind = "bin"
 
 [reader]
-locale = "la"
+locale = "en"

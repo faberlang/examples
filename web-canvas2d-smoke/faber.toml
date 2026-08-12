@@ -21,4 +21,4 @@ controllers_json = "controllers.json"
 web = "0.1.0"
 
 [reader]
-locale = "la"
+locale = "en"

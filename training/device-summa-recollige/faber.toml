@@ -89,4 +89,4 @@ inputs = { a = [
 ] }
 
 [reader]
-locale = "la"
+locale = "en"
