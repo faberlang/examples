@@ -22,7 +22,7 @@ public = "public"
 controllers_json = "controllers.json"
 
 [dependencies]
-web = "0.1.0"
+tela = "0.1.0"
 triga = "0.1.0"
 
 # STAYS la (not en): triga library members subtracta/multiplicata/productum/transversum
