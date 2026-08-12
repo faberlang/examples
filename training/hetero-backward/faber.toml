@@ -34,4 +34,4 @@ inputs = { x = [
 ] }
 
 [reader]
-locale = "la"
+locale = "en"

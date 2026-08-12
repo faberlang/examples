@@ -25,5 +25,8 @@ controllers_json = "controllers.json"
 web = "0.1.0"
 triga = "0.1.0"
 
+# STAYS la (not en): triga library members subtracta/multiplicata/productum/transversum
+# are not en-declared in radix stdlib/locale/en/pack.toml yet (hand-8 residual 3);
+# flip to en when the en pack rows exist.
 [reader]
 locale = "la"

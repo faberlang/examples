@@ -32,4 +32,4 @@ inputs.target = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
 inputs.lr = [0.1]
 
 [reader]
-locale = "la"
+locale = "en"

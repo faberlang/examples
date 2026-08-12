@@ -15,4 +15,4 @@ kind = "bin"
 # through the ordinary `faber run -t fmir` CPU route, like the fragment).
 
 [reader]
-locale = "la"
+locale = "en"
