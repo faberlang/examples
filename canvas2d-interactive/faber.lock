@@ -1,0 +1,14 @@
+
+[[package]]
+name = "tela"
+version = "0.1.0"
+source = "path"
+package_root = "/Users/ianzepp/work/faberlang/tela"
+kind = "lib"
+target_language = "ts"
+target_triple = "browser"
+target_manifest = ""
+interface_root = "/Users/ianzepp/work/faberlang/tela/src"
+artifact = ""
+crate = "tela"
+rustc = ""
