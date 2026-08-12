@@ -52,7 +52,7 @@ genus CommOptiones {
 }
 
 functio comm_optio_flag(textus arg, textus digit) → bivalens {
-    redde (arg.length() ≡ 2 et arg.slice(0, 1) ≡ "-") et arg.slice(1, 2) ≡ digit
+    redde (arg.longitudo() ≡ 2 et arg.sectio(0, 1) ≡ "-") et arg.sectio(1, 2) ≡ digit
 }
 
 functio comm_parse(lista<textus> args) → CommOptiones {
@@ -62,8 +62,8 @@ functio comm_parse(lista<textus> args) → CommOptiones {
     varia lista<textus> paths ← vacua
     varia numerus i ← 0
 
-    dum i < args.length() {
-        fixum textus arg ← args.get(i) vel ""
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
         si comm_optio_flag(arg, "1") {
             suppress1 ← 1
             i ← i + 1
@@ -77,7 +77,7 @@ functio comm_parse(lista<textus> args) → CommOptiones {
             i ← i + 1
         }
         secus {
-            paths.append(arg)
+            paths.appende(arg)
             i ← i + 1
         }
     }
@@ -89,9 +89,9 @@ functio compara_textus(textus a, textus b) → numerus {
     si a ≡ b ergo redde 0
 
     varia lista<textus> duo ← ["" + a, "" + b]
-    duo.sort()
+    duo.ordina()
 
-    si (duo.get(0) vel "") ≡ a ergo redde 0 - 1
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
     redde 1
 }
 
@@ -114,22 +114,22 @@ functio comm_lineae(lista<textus> left, lista<textus> right, CommOptiones opts) 
         }
     }
 
-    dum i < left.length() aut j < right.length() {
-        si j ≥ right.length() {
+    dum i < left.longitudo() aut j < right.longitudo() {
+        si j ≥ right.longitudo() {
             si opts.suppress1 ≡ falsum {
-                nota left.get(i) vel ""
+                nota left.accipe(i) vel ""
             }
             i ← i + 1
         }
-        sin i ≥ left.length() {
+        sin i ≥ left.longitudo() {
             si opts.suppress2 ≡ falsum {
-                nota col2_prefix + (right.get(j) vel "")
+                nota col2_prefix + (right.accipe(j) vel "")
             }
             j ← j + 1
         }
         secus {
-            fixum textus a ← left.get(i) vel ""
-            fixum textus b ← right.get(j) vel ""
+            fixum textus a ← left.accipe(i) vel ""
+            fixum textus b ← right.accipe(j) vel ""
             si compara_textus(a, b) < 0 {
                 si opts.suppress1 ≡ falsum {
                     nota a
@@ -158,7 +158,7 @@ functio lege_stdin_lineas() → lista<textus> {
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae
-        lineae.append(linea vel "")
+        lineae.appende(linea vel "")
     }
     redde lineae
 }
@@ -172,9 +172,9 @@ probandum "comm merge" tag "coreutils" {
     proba "sorted unique and common lines partition cleanly" {
         fixum lista<textus> left ← ["a", "b"]
         fixum lista<textus> right ← ["b", "c"]
-        adfirma (left.get(0) vel "") ≡ "a"
-        adfirma (right.get(1) vel "") ≡ "c"
-        adfirma (left.get(1) vel "") ≡ (right.get(0) vel "")
+        adfirma (left.accipe(0) vel "") ≡ "a"
+        adfirma (right.accipe(1) vel "") ≡ "c"
+        adfirma (left.accipe(1) vel "") ≡ (right.accipe(0) vel "")
     }
 }
 

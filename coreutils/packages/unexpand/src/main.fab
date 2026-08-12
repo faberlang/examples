@@ -88,8 +88,8 @@ functio tabulatio_periodica(numerus petitus) → Tabulatio {
 functio habet_comma(textus raw) → bivalens {
     varia numerus i ← 0
 
-    dum i < raw.length() {
-        fixum textus ch ← raw.slice(i, i + 1)
+    dum i < raw.longitudo() {
+        fixum textus ch ← raw.sectio(i, i + 1)
         si ch ≡ "," {
             redde verum
         }
@@ -114,9 +114,9 @@ functio tabulatio_ex_lista(textus raw) → Tabulatio {
     varia numerus initium ← 0
     varia numerus i ← 0
 
-    dum i ≤ raw.length() {
-        si i ≡ raw.length() aut raw.slice(i, i + 1) ≡ "," {
-            fixum numerus finis ← raw.slice(initium, i) ↦ numerus ⇥ 0
+    dum i ≤ raw.longitudo() {
+        si i ≡ raw.longitudo() aut raw.sectio(i, i + 1) ≡ "," {
+            fixum numerus finis ← raw.sectio(initium, i) ↦ numerus ⇥ 0
             si finis > 0 {
                 count ← count + 1
                 si count ≡ 1 {
@@ -212,11 +212,11 @@ functio unexpand_linea_cum(textus linea, bivalens convertit_plene, bivalens fini
     varia numerus columna ← 0
     varia bivalens in_principio ← verum
 
-    dum i < linea.length() {
-        fixum textus ch ← linea.slice(i, i + 1)
+    dum i < linea.longitudo() {
+        fixum textus ch ← linea.sectio(i, i + 1)
         si ch ≡ " " et (convertit_plene aut in_principio) {
             varia numerus finis ← i
-            dum finis < linea.length() et linea.slice(finis, finis + 1) ≡ " " {
+            dum finis < linea.longitudo() et linea.sectio(finis, finis + 1) ≡ " " {
                 finis ← finis + 1
             }
 
@@ -256,22 +256,22 @@ functio unexpand_parse(lista<textus> args) → UnexpandOptiones {
     varia Tabulatio tabs ← tabulatio_periodica(8)
     varia numerus i ← 0
 
-    dum i < args.length() {
-        fixum textus arg ← args.get(i) vel ""
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
         si arg ≡ "-a" aut arg ≡ "--all" {
             plene_visum ← 1
             i ← i + 1
         }
         sin arg ≡ "-t" aut arg ≡ "--tabs" {
-            tabs ← tabulatio_spec(args.get(i + 1) vel "8")
+            tabs ← tabulatio_spec(args.accipe(i + 1) vel "8")
             i ← i + 2
         }
-        sin arg.length() > 2 et arg.slice(0, 2) ≡ "-t" {
-            tabs ← tabulatio_spec(arg.slice(2, arg.length()))
+        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-t" {
+            tabs ← tabulatio_spec(arg.sectio(2, arg.longitudo()))
             i ← i + 1
         }
-        sin arg.length() > 7 et arg.slice(0, 7) ≡ "--tabs=" {
-            tabs ← tabulatio_spec(arg.slice(7, arg.length()))
+        sin arg.longitudo() > 7 et arg.sectio(0, 7) ≡ "--tabs=" {
+            tabs ← tabulatio_spec(arg.sectio(7, arg.longitudo()))
             i ← i + 1
         }
         secus {

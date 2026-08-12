@@ -12,14 +12,14 @@ import from "./claim_gates" private claim_gates
 fn build_full_false(list<string> forbidden) → map<string, bool> {
     var map<string, bool> full ← vacua
     for from forbidden const key {
-        full.pone(key, false)
+        full.put(key, false)
     }
     return full
 }
 
 fn contains_substring(list<string> issues, string needle) → bool {
     for from issues const issue {
-        if issue.continet(needle) {
+        if issue.contains(needle) {
             return true
         }
     }
@@ -28,35 +28,35 @@ fn contains_substring(list<string> issues, string needle) → bool {
 
 fn make_metadata_event(string status, map<string, bool> claims) → map<string, any> {
     var map<string, any> event ← vacua
-    event.pone("event", "metadata")
-    event.pone("status", status)
-    event.pone("claims", claims)
+    event.put("event", "metadata")
+    event.put("status", status)
+    event.put("claims", claims)
     return event
 }
 
 fn validate_runner_artifact_events(list<map<string, any>> events, string expected_status) → list<string> {
     var list<string> failures ← vacua
-    if events.longitudo() ≡ 0 {
+    if events.length() ≡ 0 {
         return ["runner artifact has no events"]
     }
     const map<string, any> first ← events[0]
     const string event_kind ← first["event"] ↦ string
     if event_kind ≠ "metadata" {
-        failures.appende("runner artifact first event must be metadata")
+        failures.append("runner artifact first event must be metadata")
         return failures
     }
     const string status ← first["status"] ↦ string
     if status ≠ expected_status {
-        failures.appende("runner artifact metadata status '§' does not match '§'"(status, expected_status))
+        failures.append("runner artifact metadata status '§' does not match '§'"(status, expected_status))
     }
     if first["claims"] is null {
-        failures.appende("runner artifact metadata claims must be an object")
+        failures.append("runner artifact metadata claims must be an object")
         return failures
     }
     const map<string, bool> cm ← first["claims"] ↦ map<string, bool>
     const list<string> claim_failures ← claim_gates.false_claim_failures(cm, "runner artifact metadata", true, vacua, vacua)
     for from claim_failures const item {
-        failures.appende(item)
+        failures.append(item)
     }
     return failures
 }
@@ -67,56 +67,56 @@ main {
     const list<string> forbidden ← claim_gates.forbidden_inference_claims()
     const map<string, bool> full_false ← build_full_false(forbidden)
 
-    if claim_gates.false_claim_failures(full_false, "full false", true, e, e).longitudo() ≠ 0 {
-        failures.appende("complete shared vocabulary with false values must pass")
+    if claim_gates.false_claim_failures(full_false, "full false", true, e, e).length() ≠ 0 {
+        failures.append("complete shared vocabulary with false values must pass")
     }
 
     var map<string, bool> unknown_true ← build_full_false(forbidden)
-    unknown_true.pone("renamed_public_runtime_claim", true)
+    unknown_true.put("renamed_public_runtime_claim", true)
     const list<string> unknown_true_failures ← claim_gates.false_claim_failures(unknown_true, "unknown true", true, e, e)
     if not contains_substring(unknown_true_failures, "renamed_public_runtime_claim") {
-        failures.appende("unknown true claim key must fail require-all claim gate")
+        failures.append("unknown true claim key must fail require-all claim gate")
     }
 
     const map<string, bool> partial ← {"public_inference": false}
     const list<string> missing ← claim_gates.false_claim_failures(partial, "partial", true, e, e)
     if not contains_substring(missing, "faber_owned_inference") {
-        failures.appende("partial guarded claim vocabulary must fail require-all claim gate")
+        failures.append("partial guarded claim vocabulary must fail require-all claim gate")
     }
 
     var map<string, bool> unknown_exception ← build_full_false(forbidden)
-    unknown_exception.pone("documented_local_metadata_claim", false)
+    unknown_exception.put("documented_local_metadata_claim", false)
     const list<string> documented_exception ← ["documented_local_metadata_claim"]
-    if claim_gates.false_claim_failures(unknown_exception, "documented exception", true, documented_exception, e).longitudo() ≠ 0 {
-        failures.appende("documented false unknown claim exception must pass when explicitly supplied")
+    if claim_gates.false_claim_failures(unknown_exception, "documented exception", true, documented_exception, e).length() ≠ 0 {
+        failures.append("documented false unknown claim exception must pass when explicitly supplied")
     }
 
     var map<string, bool> true_unknown_exception ← build_full_false(forbidden)
-    true_unknown_exception.pone("documented_local_metadata_claim", true)
+    true_unknown_exception.put("documented_local_metadata_claim", true)
     const list<string> true_exception_failures ← claim_gates.false_claim_failures(true_unknown_exception, "documented true exception", true, documented_exception, e)
     if not contains_substring(true_exception_failures, "documented_local_metadata_claim") {
-        failures.appende("documented false unknown claim exception must reject true values")
+        failures.append("documented false unknown claim exception must reject true values")
     }
 
-    if claim_gates.false_claim_failures(true_unknown_exception, "documented positive exception", true, e, documented_exception).longitudo() ≠ 0 {
-        failures.appende("documented positive exception must pass only through allowed_true_claims")
+    if claim_gates.false_claim_failures(true_unknown_exception, "documented positive exception", true, e, documented_exception).length() ≠ 0 {
+        failures.append("documented positive exception must pass only through allowed_true_claims")
     }
 
     const map<string, any> matching_event ← make_metadata_event("oracle-backed", full_false)
     const list<map<string, any>> artifact ← [matching_event]
-    if validate_runner_artifact_events(artifact, "oracle-backed").longitudo() ≠ 0 {
-        failures.appende("runner artifact gate must accept matching status with full false claims")
+    if validate_runner_artifact_events(artifact, "oracle-backed").length() ≠ 0 {
+        failures.append("runner artifact gate must accept matching status with full false claims")
     }
     const list<string> mismatch_failures ← validate_runner_artifact_events(artifact, "router-backed")
     if not contains_substring(mismatch_failures, "does not match") {
-        failures.appende("runner artifact gate must reject metadata/status mismatch")
+        failures.append("runner artifact gate must reject metadata/status mismatch")
     }
 
-    if failures.longitudo() ≠ 0 {
+    if failures.length() ≠ 0 {
         for from failures const failure {
             print "FAIL §"(failure)
         }
-        mori "shared claim gates assertion failed"
+        panic "shared claim gates assertion failed"
     }
     print "ok: shared claim gates"
 }

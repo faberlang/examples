@@ -83,18 +83,18 @@ functio tabstop_activa(textus petitus) → numerus {
 
 functio discinde(textus s, textus separator) → lista<textus> {
     varia lista<textus> partes ← vacua
-    fixum numerus sep_len ← separator.length()
+    fixum numerus sep_len ← separator.longitudo()
     varia numerus initium ← 0
     varia numerus i ← 0
 
     si sep_len ≠ 1 {
-        partes.append(s)
+        partes.appende(s)
         redde partes
     }
 
-    dum i < s.length() {
-        si s.slice(i, i + sep_len) ≡ separator {
-            partes.append(s.slice(initium, i))
+    dum i < s.longitudo() {
+        si s.sectio(i, i + sep_len) ≡ separator {
+            partes.appende(s.sectio(initium, i))
             i ← i + sep_len
             initium ← i
         }
@@ -103,7 +103,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
         }
     }
 
-    partes.append(s.slice(initium, s.length()))
+    partes.appende(s.sectio(initium, s.longitudo()))
     redde partes
 }
 
@@ -111,7 +111,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
 # single numeric `-t N` remains the repeating every-N-columns mode.
 functio tabulae_ex_spec(textus spec) → Tabulae {
     fixum lista<textus> partes ← discinde(spec, ",")
-    fixum bivalens finita ← partes.length() > 1
+    fixum bivalens finita ← partes.longitudo() > 1
     varia numerus count ← 0
     varia numerus stop1 ← 0
     varia numerus stop2 ← 0
@@ -202,8 +202,8 @@ functio expande_lineam_cum(textus linea, bivalens finita, numerus amplitudo, num
     varia numerus i ← 0
     varia bivalens in_principio ← verum
 
-    dum i < linea.length() {
-        fixum textus c ← linea.slice(i, i + 1)
+    dum i < linea.longitudo() {
+        fixum textus c ← linea.sectio(i, i + 1)
         si c ≡ "\t" et (non solum_initio aut in_principio) {
             fixum numerus copia ← spatia_ad_tabstop(columna, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8)
             out ← out + spatia(copia)
@@ -253,8 +253,8 @@ functio expand_parse(lista<textus> args) → ExpandOptiones {
     varia numerus initial_seen ← 0
     varia numerus i ← 0
 
-    dum i < args.length() {
-        fixum textus arg ← args.get(i) vel ""
+    dum i < args.longitudo() {
+        fixum textus arg ← args.accipe(i) vel ""
         si arg ≡ flag_initiale_breve() {
             initial_seen ← 1
             i ← i + 1
@@ -264,19 +264,19 @@ functio expand_parse(lista<textus> args) → ExpandOptiones {
             i ← i + 1
         }
         sin arg ≡ "-t" {
-            tabulae ← tabulae_ex_spec(args.get(i + 1) vel "8")
+            tabulae ← tabulae_ex_spec(args.accipe(i + 1) vel "8")
             i ← i + 2
         }
         sin arg ≡ "--tabs" {
-            tabulae ← tabulae_ex_spec(args.get(i + 1) vel "8")
+            tabulae ← tabulae_ex_spec(args.accipe(i + 1) vel "8")
             i ← i + 2
         }
-        sin arg.length() > 2 et arg.slice(0, 2) ≡ "-t" {
-            tabulae ← tabulae_ex_spec(arg.slice(2, arg.length()))
+        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-t" {
+            tabulae ← tabulae_ex_spec(arg.sectio(2, arg.longitudo()))
             i ← i + 1
         }
-        sin arg.length() > 7 et arg.slice(0, 7) ≡ "--tabs=" {
-            tabulae ← tabulae_ex_spec(arg.slice(7, arg.length()))
+        sin arg.longitudo() > 7 et arg.sectio(0, 7) ≡ "--tabs=" {
+            tabulae ← tabulae_ex_spec(arg.sectio(7, arg.longitudo()))
             i ← i + 1
         }
         secus {

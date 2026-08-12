@@ -98,14 +98,14 @@ functio selected_ne(de lista<textus> selected, textus id) → bivalens {
 
 @ privata
 functio dot(de lista<fractus> left, de lista<fractus> right) → fractus ⇥ textus {
-    si left.length() ≠ right.length() {
-        iace "dot product dimension mismatch: expected § got §"(left.length(), right.length())
+    si left.longitudo() ≠ right.longitudo() {
+        iace "dot product dimension mismatch: expected § got §"(left.longitudo(), right.longitudo())
     }
     varia fractus total ← 0.0
     varia numerus i ← 0
-    dum i < left.length() {
-        fixum fractus a ← left.get(i) vel 0.0
-        fixum fractus b ← right.get(i) vel 0.0
+    dum i < left.longitudo() {
+        fixum fractus a ← left.accipe(i) vel 0.0
+        fixum fractus b ← right.accipe(i) vel 0.0
         total ← total + (a * b)
         i ← i + 1
     }
@@ -117,9 +117,9 @@ functio compara_textus(textus a, textus b) → numerus {
     si a ≡ b ergo redde 0
 
     varia lista<textus> duo ← ["§"(a), "§"(b)]
-    duo.sort()
+    duo.ordina()
 
-    si (duo.get(0) vel "") ≡ a ergo redde 0 - 1
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
     redde 1
 }
 
@@ -136,11 +136,11 @@ functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus 
     varia lista<ScoredRecord> out ← vacua
     varia lista<textus> selected ← vacua
     varia numerus limit ← top
-    si limit > records.length() {
-        limit ← records.length()
+    si limit > records.longitudo() {
+        limit ← records.longitudo()
     }
 
-    dum out.length() < limit {
+    dum out.longitudo() < limit {
         varia bivalens found ← falsum
         varia textus best_id ← ""
         varia textus best_text ← ""
@@ -159,13 +159,13 @@ functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus 
         }
         si found ≠ verum ergo redde out
         fixum textus selected_id ← "§"(best_id)
-        out.append(ScoredRecord {
-            rank = out.length() + 1,
+        out.appende(ScoredRecord {
+            rank = out.longitudo() + 1,
             id = "§"(selected_id),
             text = best_text,
             score = best_score
         })
-        selected.append(selected_id)
+        selected.appende(selected_id)
     }
     redde out
 }
@@ -234,7 +234,7 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         emit_error("invalid --top: must be positive", formatum)
         redde
     }
-    si query_vector_path.length() ≡ 0 {
+    si query_vector_path.longitudo() ≡ 0 {
         emit_error("query embedding required: pass --query-vector", formatum)
         redde
     }
@@ -294,7 +294,7 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         }
         varia numerus actual_vectors ← 0
         itera ex index.vectors fixum item {
-            fixum numerus actual_dimensions ← item.values.length()
+            fixum numerus actual_dimensions ← item.values.longitudo()
             si actual_dimensions ≠ index.dimensions {
                 emit_error("index vector dimensions mismatch: expected § got §"(index.dimensions, actual_dimensions), formatum)
                 redde
@@ -305,7 +305,7 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
             emit_error("index vector count mismatch: expected § got §"(index.input_vectors, actual_vectors), formatum)
             redde
         }
-        fixum numerus actual_query_dimensions ← query_vector.values.length()
+        fixum numerus actual_query_dimensions ← query_vector.values.longitudo()
         si actual_query_dimensions ≠ index.dimensions {
             emit_error("query vector dimensions mismatch: expected § got §"(index.dimensions, actual_query_dimensions), formatum)
             redde

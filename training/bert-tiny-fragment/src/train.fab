@@ -82,39 +82,39 @@ functio bert_tiny_loss(
     tensor<f32, [2, 2]> dk_scale,
     tensor<f32, [2, 8]> target
 ) → f32 {
-    fixum tensor<f32, [2, 8]> ln1 ← input.layer_norm(1, 1.0e-5, ln1_s, ln1_o)
+    fixum tensor<f32, [2, 8]> ln1 ← input.laminatio(1, 1.0e-5, ln1_s, ln1_o)
 
     fixum tensor<f32, [2, 8]> q  ← ln1.matmul(wq)
-    fixum tensor<f32, [2, 8]> qb ← q.added_bias(bq)
+    fixum tensor<f32, [2, 8]> qb ← q.addita_bias(bq)
     fixum tensor<f32, [2, 8]> k  ← ln1.matmul(wk)
-    fixum tensor<f32, [2, 8]> kb ← k.added_bias(bk)
+    fixum tensor<f32, [2, 8]> kb ← k.addita_bias(bk)
     fixum tensor<f32, [2, 8]> v  ← ln1.matmul(wv)
-    fixum tensor<f32, [2, 8]> vb ← v.added_bias(bv)
+    fixum tensor<f32, [2, 8]> vb ← v.addita_bias(bv)
 
-    fixum tensor<f32, [8, 2]> kt      ← kb.transpose()
+    fixum tensor<f32, [8, 2]> kt      ← kb.transpone()
     fixum tensor<f32, [2, 2]> scores  ← qb.matmul(kt)
-    fixum tensor<f32, [2, 2]> scaled  ← scores.multiply(dk_scale)
-    fixum tensor<f32, [2, 2]> attn    ← scaled.softmax()
+    fixum tensor<f32, [2, 2]> scaled  ← scores.multiplica(dk_scale)
+    fixum tensor<f32, [2, 2]> attn    ← scaled.activatio_softmax()
     fixum tensor<f32, [2, 8]> context ← attn.matmul(vb)
 
     fixum tensor<f32, [2, 8]> ao   ← context.matmul(wo)
-    fixum tensor<f32, [2, 8]> aob  ← ao.added_bias(bo)
-    fixum tensor<f32, [2, 8]> r1   ← input.added(aob)
+    fixum tensor<f32, [2, 8]> aob  ← ao.addita_bias(bo)
+    fixum tensor<f32, [2, 8]> r1   ← input.addita(aob)
 
-    fixum tensor<f32, [2, 8]> ln2 ← r1.layer_norm(1, 1.0e-5, ln2_s, ln2_o)
+    fixum tensor<f32, [2, 8]> ln2 ← r1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
 
     fixum tensor<f32, [2, 8]> h1   ← ln2.matmul(wf1)
-    fixum tensor<f32, [2, 8]> h1b  ← h1.added_bias(bf1)
+    fixum tensor<f32, [2, 8]> h1b  ← h1.addita_bias(bf1)
     fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
     fixum tensor<f32, [2, 8]> h2   ← a1.matmul(wf2)
-    fixum tensor<f32, [2, 8]> h2b  ← h2.added_bias(bf2)
-    fixum tensor<f32, [2, 8]> r2   ← ln2.added(h2b)
+    fixum tensor<f32, [2, 8]> h2b  ← h2.addita_bias(bf2)
+    fixum tensor<f32, [2, 8]> r2   ← ln2.addita(h2b)
 
-    fixum tensor<f32, [2, 8]> ln3 ← r2.layer_norm(1, 1.0e-5, ln3_s, ln3_o)
+    fixum tensor<f32, [2, 8]> ln3 ← r2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
 
-    fixum tensor<f32, [2, 8]> resd ← ln3.subtract(target)
-    fixum tensor<f32, [2, 8]> sqrd ← resd.multiply(resd)
-    redde sqrd.mean()
+    fixum tensor<f32, [2, 8]> resd ← ln3.subtrahe(target)
+    fixum tensor<f32, [2, 8]> sqrd ← resd.multiplica(resd)
+    redde sqrd.media()
 }
 
 # -------------------------------------------------------------------------
@@ -328,27 +328,27 @@ incipit {
     # Tensor construction
     fixum tensor<f32, []> seed ← vacua
 
-    fixum tensor<f32, [2, 8]> input  ← seed.from_flat(data_input,   [2, 8])
-    varia tensor<f32, [8, 8]> wq     ← seed.from_flat(data_wq,      [8, 8])
-    varia tensor<f32, [8]>    bq     ← seed.from_flat(data_bq,      [8])
-    varia tensor<f32, [8, 8]> wk     ← seed.from_flat(data_wk,      [8, 8])
-    varia tensor<f32, [8]>    bk     ← seed.from_flat(data_bk,      [8])
-    varia tensor<f32, [8, 8]> wv     ← seed.from_flat(data_wv,      [8, 8])
-    varia tensor<f32, [8]>    bv     ← seed.from_flat(data_bv,      [8])
-    varia tensor<f32, [8, 8]> wo     ← seed.from_flat(data_wo,      [8, 8])
-    varia tensor<f32, [8]>    bo     ← seed.from_flat(data_bo,      [8])
-    varia tensor<f32, [8, 8]> wf1    ← seed.from_flat(data_wf1,     [8, 8])
-    varia tensor<f32, [8]>    bf1    ← seed.from_flat(data_bf1,     [8])
-    varia tensor<f32, [8, 8]> wf2    ← seed.from_flat(data_wf2,     [8, 8])
-    varia tensor<f32, [8]>    bf2    ← seed.from_flat(data_bf2,     [8])
-    varia tensor<f32, [8]>    ln1_s  ← seed.from_flat(data_ln1_s,   [8])
-    varia tensor<f32, [8]>    ln1_o  ← seed.from_flat(data_ln1_o,   [8])
-    varia tensor<f32, [8]>    ln2_s  ← seed.from_flat(data_ln2_s,   [8])
-    varia tensor<f32, [8]>    ln2_o  ← seed.from_flat(data_ln2_o,   [8])
-    varia tensor<f32, [8]>    ln3_s  ← seed.from_flat(data_ln3_s,   [8])
-    varia tensor<f32, [8]>    ln3_o  ← seed.from_flat(data_ln3_o,   [8])
-    fixum tensor<f32, [2, 2]> dk_scale ← seed.from_flat(data_scale, [2, 2])
-    fixum tensor<f32, [2, 8]> target  ← seed.from_flat(data_target,  [2, 8])
+    fixum tensor<f32, [2, 8]> input  ← seed.strue(data_input,   [2, 8])
+    varia tensor<f32, [8, 8]> wq     ← seed.strue(data_wq,      [8, 8])
+    varia tensor<f32, [8]>    bq     ← seed.strue(data_bq,      [8])
+    varia tensor<f32, [8, 8]> wk     ← seed.strue(data_wk,      [8, 8])
+    varia tensor<f32, [8]>    bk     ← seed.strue(data_bk,      [8])
+    varia tensor<f32, [8, 8]> wv     ← seed.strue(data_wv,      [8, 8])
+    varia tensor<f32, [8]>    bv     ← seed.strue(data_bv,      [8])
+    varia tensor<f32, [8, 8]> wo     ← seed.strue(data_wo,      [8, 8])
+    varia tensor<f32, [8]>    bo     ← seed.strue(data_bo,      [8])
+    varia tensor<f32, [8, 8]> wf1    ← seed.strue(data_wf1,     [8, 8])
+    varia tensor<f32, [8]>    bf1    ← seed.strue(data_bf1,     [8])
+    varia tensor<f32, [8, 8]> wf2    ← seed.strue(data_wf2,     [8, 8])
+    varia tensor<f32, [8]>    bf2    ← seed.strue(data_bf2,     [8])
+    varia tensor<f32, [8]>    ln1_s  ← seed.strue(data_ln1_s,   [8])
+    varia tensor<f32, [8]>    ln1_o  ← seed.strue(data_ln1_o,   [8])
+    varia tensor<f32, [8]>    ln2_s  ← seed.strue(data_ln2_s,   [8])
+    varia tensor<f32, [8]>    ln2_o  ← seed.strue(data_ln2_o,   [8])
+    varia tensor<f32, [8]>    ln3_s  ← seed.strue(data_ln3_s,   [8])
+    varia tensor<f32, [8]>    ln3_o  ← seed.strue(data_ln3_o,   [8])
+    fixum tensor<f32, [2, 2]> dk_scale ← seed.strue(data_scale, [2, 2])
+    fixum tensor<f32, [2, 8]> target  ← seed.strue(data_target,  [2, 8])
 
     # Training constants
     fixum f32 upstream ← 1.0
@@ -365,15 +365,15 @@ incipit {
         fixum tensor<f32, [2, 8]> vb  ← nn.linear_2x8(ln1, wv, bv)
         fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_2x8(qb, kb, vb, dk_scale)
         fixum tensor<f32, [2, 8]> aob ← nn.linear_2x8(ctx, wo, bo)
-        fixum tensor<f32, [2, 8]> r1  ← input.added(aob)
+        fixum tensor<f32, [2, 8]> r1  ← input.addita(aob)
         fixum tensor<f32, [2, 8]> ln2 ← nn.layernorm_2x8(r1, ln2_s, ln2_o)
         fixum tensor<f32, [2, 8]> h1b ← nn.linear_2x8(ln2, wf1, bf1)
         fixum tensor<f32, [2, 8]> a1  ← nn.gelu_2x8(h1b)
         fixum tensor<f32, [2, 8]> h2b ← nn.linear_2x8(a1, wf2, bf2)
-        fixum tensor<f32, [2, 8]> r2  ← ln2.added(h2b)
+        fixum tensor<f32, [2, 8]> r2  ← ln2.addita(h2b)
         fixum tensor<f32, [2, 8]> ln3 ← nn.layernorm_2x8(r2, ln3_s, ln3_o)
         fixum f32 loss_val ← loss.mse_2x8(ln3, target)
-        loss_trace.append(loss_val)
+        loss_trace.appende(loss_val)
 
         # Backward pass via the compiler-generated companion.
         fixum _ grads ← bert_tiny_backward(

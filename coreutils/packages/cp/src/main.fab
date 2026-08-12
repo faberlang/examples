@@ -34,8 +34,8 @@
 importa ex "norma:solum" privata solum
 
 functio copia_simplex(lista<textus> paths) → vacuum {
-    si paths.length() > 1 {
-        solum.exscribe(paths.get(0) vel "", paths.get(1) vel "")
+    si paths.longitudo() > 1 {
+        solum.exscribe(paths.accipe(0) vel "", paths.accipe(1) vel "")
     }
 }
 

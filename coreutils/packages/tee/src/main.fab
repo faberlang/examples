@@ -49,7 +49,7 @@
 importa ex "§gnu/stdio" privata gnu_stdio
 
 functio no_file_subsetne(lista<textus> operands) → bivalens {
-    redde operands.length() ≡ 0
+    redde operands.longitudo() ≡ 0
 }
 
 functio append_noopne(bivalens append, lista<textus> operands) → bivalens {

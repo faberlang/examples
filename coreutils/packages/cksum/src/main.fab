@@ -51,9 +51,9 @@ functio lege_octeti_stdin() → lista<numerus> {
         si linea est nihil ergo redde bytes
         fixum lista<numerus> payload ← gnu_bytes.octeti_textus(linea vel "")
         itera ex payload fixum octet {
-            bytes.append(octet)
+            bytes.appende(octet)
         }
-        bytes.append(10)
+        bytes.appende(10)
     }
 
     redde bytes
@@ -61,7 +61,7 @@ functio lege_octeti_stdin() → lista<numerus> {
 
 functio forma_cksum(lista<numerus> bytes) → textus {
     fixum numerus crc ← gnu_bytes.crc32_octeti(bytes)
-    redde "§ §"(crc, bytes.length())
+    redde "§ §"(crc, bytes.longitudo())
 }
 
 probandum "cksum formatting" tag "coreutils" {

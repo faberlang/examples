@@ -56,9 +56,9 @@ functio compara_textus(textus a, textus b) → numerus {
     si a ≡ b ergo redde 0
 
     varia lista<textus> duo ← ["" + a, "" + b]
-    duo.sort()
+    duo.ordina()
 
-    si (duo.get(0) vel "") ≡ a ergo redde 0 - 1
+    si (duo.accipe(0) vel "") ≡ a ergo redde 0 - 1
     redde 1
 }
 
@@ -67,7 +67,7 @@ functio lege_stdin_lineas() → lista<textus> {
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde lineae
-        lineae.append(linea vel "")
+        lineae.appende(linea vel "")
     }
     redde lineae
 }
@@ -78,30 +78,30 @@ functio lege_lineas(textus via) → lista<textus> {
 }
 
 functio campi_lineae(textus linea) → lista<textus> {
-    redde linea.split(" ")
+    redde linea.divide(" ")
 }
 
 functio clavis_campi(lista<textus> campi, numerus index) → textus {
     si index < 1 ergo redde ""
-    si campi.length() < index ergo redde ""
-    redde campi.get(index - 1) vel ""
+    si campi.longitudo() < index ergo redde ""
+    redde campi.accipe(index - 1) vel ""
 }
 
 functio rest_campi(lista<textus> campi, numerus index) → lista<textus> {
     varia lista<textus> rest ← vacua
     varia numerus i ← index
-    dum i < campi.length() {
-        rest.append(campi.get(i) vel "")
+    dum i < campi.longitudo() {
+        rest.appende(campi.accipe(i) vel "")
         i ← i + 1
     }
     redde rest
 }
 
 functio inter_spatia_campi(lista<textus> campi) → textus {
-    si campi.length() ≡ 0 ergo redde ""
+    si campi.longitudo() ≡ 0 ergo redde ""
     varia textus out ← campi[0]
     varia numerus i ← 1
-    dum i < campi.length() {
+    dum i < campi.longitudo() {
         out ← out + " " + campi[i]
         i ← i + 1
     }
@@ -111,12 +111,12 @@ functio inter_spatia_campi(lista<textus> campi) → textus {
 functio forma_join_linea(lista<textus> left, lista<textus> right, JoinOptiones opts) → textus {
     varia lista<textus> out ← vacua
     varia numerus i ← 0
-    dum i < left.length() {
-        out.append(left.get(i) vel "")
+    dum i < left.longitudo() {
+        out.appende(left.accipe(i) vel "")
         i ← i + 1
     }
     itera ex rest_campi(right, opts.field2) fixum campum {
-        out.append(campum)
+        out.appende(campum)
     }
     redde inter_spatia_campi(out)
 }
@@ -125,9 +125,9 @@ functio join_lineae(lista<textus> left_lines, lista<textus> right_lines, JoinOpt
     varia numerus i ← 0
     varia numerus j ← 0
 
-    dum i < left_lines.length() et j < right_lines.length() {
-        fixum lista<textus> left_fields ← campi_lineae(left_lines.get(i) vel "")
-        fixum lista<textus> right_fields ← campi_lineae(right_lines.get(j) vel "")
+    dum i < left_lines.longitudo() et j < right_lines.longitudo() {
+        fixum lista<textus> left_fields ← campi_lineae(left_lines.accipe(i) vel "")
+        fixum lista<textus> right_fields ← campi_lineae(right_lines.accipe(j) vel "")
         fixum textus left_key ← clavis_campi(left_fields, opts.field1)
         fixum textus right_key ← clavis_campi(right_fields, opts.field2)
 

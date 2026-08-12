@@ -53,35 +53,35 @@ functio quoted_value(textus line) → textus {
     varia numerus initium ← -1
     varia numerus finis ← -1
     varia numerus i ← 0
-    dum i < line.length() {
-        si line.slice(i, i + 1) ≡ "\"" {
+    dum i < line.longitudo() {
+        si line.sectio(i, i + 1) ≡ "\"" {
             si initium < 0 {
                 initium ← i + 1
             } secus {
                 finis ← i
-                i ← line.length()
+                i ← line.longitudo()
             }
         }
         i ← i + 1
     }
 
-    si initium ≥ 0 et finis ≥ initium ergo redde line.slice(initium, finis)
+    si initium ≥ 0 et finis ≥ initium ergo redde line.sectio(initium, finis)
     redde ""
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
     fixum textus q ← |22| ↦ textus
-    redde line.starts_with("§ = §"(field, q)) et line.ends_with(q)
+    redde line.initium("§ = §"(field, q)) et line.finis(q)
 }
 
 functio subset_field_candidate(textus line, textus field) → bivalens {
-    redde line.starts_with("§ "(field)) aut line.starts_with("§="(field))
+    redde line.initium("§ "(field)) aut line.initium("§="(field))
 }
 
 functio subset_line_supported(textus line) → bivalens {
-    fixum textus trimmed ← line.trim()
-    si trimmed.length() ≡ 0 ergo redde verum
-    si trimmed.starts_with("#") ergo redde verum
+    fixum textus trimmed ← line.recide()
+    si trimmed.longitudo() ≡ 0 ergo redde verum
+    si trimmed.initium("#") ergo redde verum
     si trimmed ≡ "[[tiers]]" ergo redde verum
     si subset_field_candidate(trimmed, "alias") ergo redde subset_field_line(trimmed, "alias")
     si subset_field_candidate(trimmed, "source") ergo redde subset_field_line(trimmed, "source")
@@ -101,14 +101,14 @@ functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
 functio map_value(lista<textus> aliases, textus target, textus field) → textus {
     varia bivalens matched ← falsum
     itera ex aliases fixum line {
-        fixum textus trimmed ← line.trim()
+        fixum textus trimmed ← line.recide()
         si trimmed ≡ "[[tiers]]" {
             matched ← falsum
         }
-        si trimmed.starts_with("alias = ") {
+        si trimmed.initium("alias = ") {
             matched ← quoted_value(trimmed) ≡ target
         }
-        si matched et trimmed.starts_with("§ = "(field)) {
+        si matched et trimmed.initium("§ = "(field)) {
             redde quoted_value(trimmed)
         }
     }
@@ -118,13 +118,13 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
 
 functio status_for(lista<textus> aliases, textus target) → textus {
     fixum textus status ← map_value(aliases, target, "status")
-    si status.length() > 0 ergo redde status
+    si status.longitudo() > 0 ergo redde status
     redde "unknown"
 }
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.length() > 0 ergo redde "§"(source)
+    si source.longitudo() > 0 ergo redde "§"(source)
     redde target
 }
 
@@ -136,7 +136,7 @@ functio input_count(textus input_path) → numerus {
     fixum lista<textus> lines ← solum.carpe(input_path)
     varia numerus count ← 0
     itera ex lines fixum line {
-        si line.trim().length() > 0 {
+        si line.recide().longitudo() > 0 {
             count ← count + 1
         }
     }
@@ -313,14 +313,14 @@ functio result_stderr(tabula<textus, valor> result) → textus {
 }
 
 functio runner_failure(tabula<textus, valor> result) → textus {
-    fixum textus stderr ← result_stderr(result).trim()
-    si stderr.length() > 0 ergo redde stderr
-    redde result_stdout(result).trim()
+    fixum textus stderr ← result_stderr(result).recide()
+    si stderr.longitudo() > 0 ergo redde stderr
+    redde result_stdout(result).recide()
 }
 
 functio artifact_contains(textus out_path, textus marker) → bivalens {
     fixum textus artifact ← solum.lege<textus>(out_path)
-    redde artifact.contains(marker)
+    redde artifact.continet(marker)
 }
 
 functio curre(
@@ -354,7 +354,7 @@ functio curre(
     }
 
     fixum textus local_path ← raw_local_path_for(aliases, target)
-    si local_path.length() ≡ 0 aut solum.exstat(local_path) ≠ verum {
+    si local_path.longitudo() ≡ 0 aut solum.exstat(local_path) ≠ verum {
         emit_error(target, "local model file not found: §"(target), formatum)
         redde
     }
@@ -373,7 +373,7 @@ functio curre(
 
     fixum numerus count ← input_count(input_path)
     fixum textus source ← source_for(aliases, target)
-    si oracle_runner.length() > 0 {
+    si oracle_runner.longitudo() > 0 {
         si solum.exstat(oracle_runner) ≠ verum {
             emit_error(target, "oracle runner not found: §"(oracle_runner), formatum)
             redde
