@@ -48,4 +48,8 @@ inputs.target = [1.0, 0.5, 0.0, 0.8, 1.0, 0.2, 0.7, 0.5, 1.0, 0.8, 0.3, 0.6, 0.9
 inputs.lr = [0.01]
 
 [reader]
-locale = "en"
+# la (Q2 corpus la-pass, want 39c43851): the package source uses the Latin
+# keyword surface (functio/fixum/si/…); en-pack authority (locale S2-U1) makes
+# Latin-keyword sources uncompilable under en. Flip to en only when the source
+# is converted to the en keyword surface.
+locale = "la"
