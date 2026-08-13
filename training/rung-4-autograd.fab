@@ -35,9 +35,9 @@ functio rung4_loss(
     tensor<f32, []> x,
     tensor<f32, []> y
 ) → f32 {
-    fixum tensor<f32, []> prediction ← weight.multiplica(x)
+    fixum tensor<f32, []> prediction ← weight ⊙ x
     fixum tensor<f32, []> err ← prediction.subtrahe(y)
-    redde err.multiplica(err).media()
+    redde (err ⊙ err).media()
 }
 
 # -------------------------------------------------------------------------
@@ -66,7 +66,7 @@ incipit {
     fixum _ grads0 ← rung4_backward(weight, x, y, nil(), upstream)
     fixum [gw0, _, _] ← grads0
     fixum tensor<f32, []> lr_fill_w0 ← seed.crea(lr, shape_0d)
-    fixum tensor<f32, []> scaled_w0 ← gw0.multiplica(lr_fill_w0)
+    fixum tensor<f32, []> scaled_w0 ← gw0 ⊙ lr_fill_w0
     weight ← weight.subtrahe(scaled_w0)
 
     # Step 1 — loss = (2*2 - 4)² = 0.0, d_weight = 2*(2*2-4)*2 = 0.0
@@ -74,7 +74,7 @@ incipit {
     fixum _ grads1 ← rung4_backward(weight, x, y, nil(), upstream)
     fixum [gw1, _, _] ← grads1
     fixum tensor<f32, []> lr_fill_w1 ← seed.crea(lr, shape_0d)
-    fixum tensor<f32, []> scaled_w1 ← gw1.multiplica(lr_fill_w1)
+    fixum tensor<f32, []> scaled_w1 ← gw1 ⊙ lr_fill_w1
     weight ← weight.subtrahe(scaled_w1)
 
     nota loss0

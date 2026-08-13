@@ -33,8 +33,8 @@ locale = "la"
 
 @ nucleum
 functio rung2_mlp_kernel(tf32[2, 2] input, tf32[2, 2] w0, tf32[2, 2] w1) → tf32[2, 2] {
-    fixum tf32[2, 2] hidden ← input.matmul(w0)
-    redde hidden.matmul(w1)
+    fixum tf32[2, 2] hidden ← input · w0
+    redde hidden · w1
 }
 
 incipit {

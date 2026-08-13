@@ -39,6 +39,6 @@ functio nil() → vacuum {
 @ radix lane "air"
 @ radix backward "loss_backward"
 functio simple_loss(tf32[1000] x, tf32[1000] w) → f32 {
-    fixum tensor<f32, [1000]> product ← x.multiplica(w)
+    fixum tensor<f32, [1000]> product ← x ⊙ w
     redde product.media()
 }

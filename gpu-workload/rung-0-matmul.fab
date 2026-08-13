@@ -34,11 +34,11 @@ locale = "la"
 
 @ nucleum
 functio rung0_matmul_kernel(tf32[2, 3] a, tf32[3, 2] b) → tf32[2, 2] {
-    redde a.matmul(b)
+    redde a · b
 }
 
 functio rung0_cpu_reference(tf32[2, 3] a, tf32[3, 2] b) → tf32[2, 2] {
-    redde a.matmul(b)
+    redde a · b
 }
 
 incipit {

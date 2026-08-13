@@ -62,36 +62,36 @@ functio bert_tiny_loss(
 ) → f32 {
     fixum tensor<f32, [2, 8]> ln1 ← input.laminatio(1, 1.0e-5, ln1_s, ln1_o)
 
-    fixum tensor<f32, [2, 8]> q  ← ln1.matmul(wq)
+    fixum tensor<f32, [2, 8]> q  ← ln1 · wq
     fixum tensor<f32, [2, 8]> qb ← q.addita_bias(bq)
-    fixum tensor<f32, [2, 8]> k  ← ln1.matmul(wk)
+    fixum tensor<f32, [2, 8]> k  ← ln1 · wk
     fixum tensor<f32, [2, 8]> kb ← k.addita_bias(bk)
-    fixum tensor<f32, [2, 8]> v  ← ln1.matmul(wv)
+    fixum tensor<f32, [2, 8]> v  ← ln1 · wv
     fixum tensor<f32, [2, 8]> vb ← v.addita_bias(bv)
 
     fixum tensor<f32, [8, 2]> kt      ← kb.transpone()
-    fixum tensor<f32, [2, 2]> scores  ← qb.matmul(kt)
-    fixum tensor<f32, [2, 2]> scaled  ← scores.multiplica(dk_scale)
+    fixum tensor<f32, [2, 2]> scores  ← qb · kt
+    fixum tensor<f32, [2, 2]> scaled  ← scores ⊙ dk_scale
     fixum tensor<f32, [2, 2]> attn    ← scaled.activatio_softmax()
-    fixum tensor<f32, [2, 8]> context ← attn.matmul(vb)
+    fixum tensor<f32, [2, 8]> context ← attn · vb
 
-    fixum tensor<f32, [2, 8]> ao   ← context.matmul(wo)
+    fixum tensor<f32, [2, 8]> ao   ← context · wo
     fixum tensor<f32, [2, 8]> aob  ← ao.addita_bias(bo)
     fixum tensor<f32, [2, 8]> r1   ← input.addita(aob)
 
     fixum tensor<f32, [2, 8]> ln2 ← r1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
 
-    fixum tensor<f32, [2, 8]> h1   ← ln2.matmul(wf1)
+    fixum tensor<f32, [2, 8]> h1   ← ln2 · wf1
     fixum tensor<f32, [2, 8]> h1b  ← h1.addita_bias(bf1)
     fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
-    fixum tensor<f32, [2, 8]> h2   ← a1.matmul(wf2)
+    fixum tensor<f32, [2, 8]> h2   ← a1 · wf2
     fixum tensor<f32, [2, 8]> h2b  ← h2.addita_bias(bf2)
     fixum tensor<f32, [2, 8]> r2   ← ln2.addita(h2b)
 
     fixum tensor<f32, [2, 8]> ln3 ← r2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
 
     fixum tensor<f32, [2, 8]> resd ← ln3.subtrahe(target)
-    fixum tensor<f32, [2, 8]> sqrd ← resd.multiplica(resd)
+    fixum tensor<f32, [2, 8]> sqrd ← resd ⊙ resd
     redde sqrd.media()
 }
 
@@ -391,8 +391,8 @@ incipit {
         # scaled = scores·dk_scale, softmax) — byte-identical values, exposed
         # solely so the exit-gate score/softmax intermediates can be captured.
         fixum tensor<f32, [8, 2]> kt_obs     ← kb.transpone()
-        fixum tensor<f32, [2, 2]> scores_obs ← qb.matmul(kt_obs)
-        fixum tensor<f32, [2, 2]> scaled_obs ← scores_obs.multiplica(dk_scale)
+        fixum tensor<f32, [2, 2]> scores_obs ← qb · kt_obs
+        fixum tensor<f32, [2, 2]> scaled_obs ← scores_obs ⊙ dk_scale
         fixum tensor<f32, [2, 2]> attn_obs   ← scaled_obs.activatio_softmax()
 
         fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_2x8(qb, kb, vb, dk_scale)
