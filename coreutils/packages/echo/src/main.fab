@@ -50,9 +50,9 @@
 #   After:  printf
 # =============================================================================
 
-importa ex "norma:consolum" privata consolum
-importa ex "§gnu/format" privata gnu_format
-importa ex "§gnu/stdio" privata gnu_stdio
+importa ex "norma:consolum" consolum
+importa ex "§gnu/format" gnu_format
+importa ex "§gnu/stdio" gnu_stdio
 
 functio optio_noop_e(textus arg) → bivalens {
     redde arg ≡ "-E"

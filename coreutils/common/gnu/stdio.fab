@@ -43,6 +43,7 @@ locale = "la"
 # Backend: both
 # =============================================================================
 
+@ publica
 functio scribe_linea(textus linea) → vacuum {
     nota linea
 }

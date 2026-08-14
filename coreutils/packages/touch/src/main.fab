@@ -31,7 +31,7 @@
 # Stage: Stage 3, file-operand via solum
 # Backend: stepper
 # =============================================================================
-importa ex "norma:solum" privata solum
+importa ex "norma:solum" solum
 
 functio tange_paths(lista<textus> paths) → vacuum {
     itera ex paths fixum path {

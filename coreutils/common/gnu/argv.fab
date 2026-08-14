@@ -40,6 +40,7 @@ locale = "la"
 
 # Operand list helpers for GNU-style CLI utilities.
 
+@ publica
 functio linea_operandorum(lista<textus> verba) → textus {
     si verba.longitudo() ≡ 0 ergo redde ""
     varia textus linea ← verba[0]
