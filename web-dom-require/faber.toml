@@ -1,0 +1,26 @@
+[package]
+name = "web-dom-require"
+version = "0.1.0"
+edition = "2026"
+
+[paths]
+entry = "main.fab"
+
+[build]
+target = "ts"
+kind = "bin"
+
+[product]
+kind = "browser-app"
+emit = "typescript"
+out = "dist"
+templates = "pages"
+controllers_json = "controllers.json"
+
+[dependencies]
+tela = "0.1.0"
+
+# English substitute for the g10 tela-origin require exercise dropped in
+# b44283fd7. Source uses the en keyword surface (fn/print/void/import from).
+[reader]
+locale = "en"
