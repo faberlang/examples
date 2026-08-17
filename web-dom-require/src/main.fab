@@ -1,0 +1,12 @@
+# web-dom-require — English g10 tela:dom.require coverage
+#
+# Restores the consumer exercise emptied in radix b44283fd7
+# (`nota dom.require` → empty `fn`). English substitute only; no Latin nota.
+
+import from "tela:web" web
+import from "tela:dom" dom
+
+@ WebController { selector = "[data-faber=shell]" }
+fn shell(dom.Scope scope) → void {
+  print dom.require(scope, "button")
+}
