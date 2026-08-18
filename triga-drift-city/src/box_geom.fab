@@ -1,5 +1,5 @@
-importa ex "triga:geometry" privata geometry
-importa ex "triga:math" privata math
+importa ex "triga:geometry" geometry
+importa ex "triga:math" math
 
 # ---------------------------------------------------------------------------
 # _box_corner_positions — shared private helper that returns the 8 corner

@@ -1,6 +1,6 @@
-importa ex "./box_geom" privata box_geom
-importa ex "./bridge" privata bridge
-importa ex "triga:math" privata math
+importa ex "./box_geom" box_geom
+importa ex "./bridge" bridge
+importa ex "triga:math" math
 
 genus SceneObjectGeometry {
     textus name

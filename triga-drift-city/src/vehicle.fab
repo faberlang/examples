@@ -1,5 +1,5 @@
-importa ex "./city" privata city
-importa ex "triga:math" privata math
+importa ex "./city" city
+importa ex "triga:math" math
 
 genus InputState {
     bivalens forward

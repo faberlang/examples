@@ -1,10 +1,10 @@
-importa ex "tela:web" privata web
-importa ex "tela:dom" privata dom
-importa ex "./city" privata city
-importa ex "./vehicle" privata vehicle
-importa ex "./scene" privata scene
-importa ex "triga:math" privata math
-importa ex "triga:graph" privata graph
+importa ex "tela:web" web
+importa ex "tela:dom" dom
+importa ex "./city" city
+importa ex "./vehicle" vehicle
+importa ex "./scene" scene
+importa ex "triga:math" math
+importa ex "triga:graph" graph
 
 # ---------------------------------------------------------------------------
 # Text helpers for host bridge (transform payload + one-shot geometry).

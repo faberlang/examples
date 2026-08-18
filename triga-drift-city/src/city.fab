@@ -1,4 +1,4 @@
-importa ex "triga:math" privata math
+importa ex "triga:math" math
 
 genus City {
     math.Box3 bounds
