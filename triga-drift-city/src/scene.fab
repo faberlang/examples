@@ -1,7 +1,7 @@
-importa ex "triga:geometry" privata geometry
-importa ex "./box_geom" privata box_geom
-importa ex "./city" privata city
-importa ex "triga:math" privata math
+importa ex "triga:geometry" geometry
+importa ex "./box_geom" box_geom
+importa ex "./city" city
+importa ex "triga:math" math
 
 # ---------------------------------------------------------------------------
 # SceneObjectGeometry — one renderable object in the greybox scene.

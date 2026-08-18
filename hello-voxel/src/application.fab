@@ -39,10 +39,10 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "./voxel" privata voxel
-importa ex "triga:geometry" privata geometry
-importa ex "triga:primitives" privata primitives
-importa ex "triga:math" privata math
+importa ex "./voxel" voxel
+importa ex "triga:geometry" geometry
+importa ex "triga:primitives" primitives
+importa ex "triga:math" math
 
 # =========================================================================
 # CONSTANTS

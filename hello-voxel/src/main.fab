@@ -42,13 +42,13 @@
 # Backend: Rust (WebGPU native)
 # =========================================================================
 
-importa ex "tela:web" privata web
-importa ex "tela:dom" privata dom
-importa ex "./voxel" privata voxel
-importa ex "./meshing" privata meshing
-importa ex "./application" privata application
-importa ex "triga:math" privata math
-importa ex "triga:resource" privata resource
+importa ex "tela:web" web
+importa ex "tela:dom" dom
+importa ex "./voxel" voxel
+importa ex "./meshing" meshing
+importa ex "./application" application
+importa ex "triga:math" math
+importa ex "triga:resource" resource
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
 fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32

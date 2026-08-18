@@ -1,4 +1,4 @@
-importa ex "triga:math" privata math
+importa ex "triga:math" math
 
 # ---------------------------------------------------------------------------
 # Lit box geometry — 24 vertices (4 per face × 6 faces), 36 indices.

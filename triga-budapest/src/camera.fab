@@ -1,5 +1,5 @@
-importa ex "triga:math" privata math
-importa ex "triga:graph" privata graph
+importa ex "triga:math" math
+importa ex "triga:graph" graph
 
 genus CameraInput {
     bivalens yaw_left = falsum
