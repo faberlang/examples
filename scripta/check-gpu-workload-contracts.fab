@@ -34,7 +34,7 @@ fn close(float left, float right, float tolerance) → bool {
 }
 
 fn check_rung4(string repo_root) → list<string> {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     const string ref_path ← repo_root + "/gpu-workload/rung-4-toy-train.ref.json"
     const string expected_path ← repo_root + "/gpu-workload/rung-4-toy-train.expected"
     const map<string, value> ref ← json.solve(solum.lege(ref_path) ↦ string) ↦ map<string, value>
@@ -60,8 +60,8 @@ fn check_rung4(string repo_root) → list<string> {
     const float x ← inputs["x"] ↦ float
     const float y ← inputs["y"] ↦ float
     const float rate ← inputs["rate"] ↦ float
-    var list<float> losses ← vacua
-    var list<float> weights ← vacua
+    var list<float> losses ← empty
+    var list<float> weights ← empty
     var float weight ← inputs["initial_weight"] ↦ float
 
     var int index ← 0

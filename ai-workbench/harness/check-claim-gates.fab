@@ -10,7 +10,7 @@ locale = "en"
 import from "./claim_gates" private claim_gates
 
 fn build_full_false(list<string> forbidden) → map<string, bool> {
-    var map<string, bool> full ← vacua
+    var map<string, bool> full ← empty
     for from forbidden const key {
         full.put(key, false)
     }
@@ -27,7 +27,7 @@ fn contains_substring(list<string> issues, string needle) → bool {
 }
 
 fn make_metadata_event(string status, map<string, bool> claims) → map<string, any> {
-    var map<string, any> event ← vacua
+    var map<string, any> event ← empty
     event.put("event", "metadata")
     event.put("status", status)
     event.put("claims", claims)
@@ -35,7 +35,7 @@ fn make_metadata_event(string status, map<string, bool> claims) → map<string, 
 }
 
 fn validate_runner_artifact_events(list<map<string, any>> events, string expected_status) → list<string> {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     if events.length() ≡ 0 {
         return ["runner artifact has no events"]
     }
@@ -54,7 +54,7 @@ fn validate_runner_artifact_events(list<map<string, any>> events, string expecte
         return failures
     }
     const map<string, bool> cm ← first["claims"] ↦ map<string, bool>
-    const list<string> claim_failures ← claim_gates.false_claim_failures(cm, "runner artifact metadata", true, vacua, vacua)
+    const list<string> claim_failures ← claim_gates.false_claim_failures(cm, "runner artifact metadata", true, empty, empty)
     for from claim_failures const item {
         failures.append(item)
     }
@@ -62,8 +62,8 @@ fn validate_runner_artifact_events(list<map<string, any>> events, string expecte
 }
 
 main {
-    var list<string> failures ← vacua
-    const list<string> e ← vacua
+    var list<string> failures ← empty
+    const list<string> e ← empty
     const list<string> forbidden ← claim_gates.forbidden_inference_claims()
     const map<string, bool> full_false ← build_full_false(forbidden)
 

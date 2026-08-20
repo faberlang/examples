@@ -90,7 +90,7 @@ fn trim(string s) → string {
 }
 
 fn split_words(string text) → list<string> {
-    var list<string> words ← vacua
+    var list<string> words ← empty
     const numerus n ← text.longitudo()
     var numerus i ← 0
     dum i < n {
@@ -159,7 +159,7 @@ main {
 
     const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
     const list<string> words ← split_words(prompt)
-    var list<numerus> token_ids ← vacua
+    var list<numerus> token_ids ← empty
     var numerus w ← 0
     dum w < words.longitudo() {
         if vocab[words[w]] is null {
@@ -170,7 +170,7 @@ main {
         w ← w + 1
     }
 
-    var list<string> vocab_keys ← vacua
+    var list<string> vocab_keys ← empty
     for ref vocab const key {
         vocab_keys.appende(key)
     }

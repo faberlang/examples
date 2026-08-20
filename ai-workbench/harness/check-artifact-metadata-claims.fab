@@ -15,7 +15,7 @@ import from "./artifact_metadata_claims" private artifact_metadata_claims
 import from "./claim_gates" private claim_gates
 
 fn build_full_false(list<string> forbidden) → map<string, bool> {
-    var map<string, bool> full ← vacua
+    var map<string, bool> full ← empty
     for from forbidden const key {
         full.put(key, false)
     }
@@ -32,7 +32,7 @@ fn contains_substring(list<string> issues, string needle) → bool {
 }
 
 fn make_event(string kind, string status, map<string, bool> claims) → map<string, any> {
-    var map<string, any> event ← vacua
+    var map<string, any> event ← empty
     event.put("event", kind)
     event.put("status", status)
     event.put("claims", claims)
@@ -40,14 +40,14 @@ fn make_event(string kind, string status, map<string, bool> claims) → map<stri
 }
 
 fn make_metadata_without_claims(string status) → map<string, any> {
-    var map<string, any> event ← vacua
+    var map<string, any> event ← empty
     event.put("event", "metadata")
     event.put("status", status)
     return event
 }
 
 fn claims_of(list<map<string, any>> events) → list<map<string, bool> ∪ null> {
-    var list<map<string, bool> ∪ null> claims ← vacua
+    var list<map<string, bool> ∪ null> claims ← empty
     const int n ← events.length()
     var int i ← 0
     while i < n {
@@ -68,11 +68,11 @@ fn check_failures(list<map<string, any>> events, string label) → list<string> 
 }
 
 main {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     const list<string> forbidden ← claim_gates.forbidden_inference_claims()
     const map<string, bool> full_false ← build_full_false(forbidden)
 
-    var list<map<string, any>> clean ← vacua
+    var list<map<string, any>> clean ← empty
     clean.append(make_event("metadata", "oracle-backed", full_false))
     clean.append(make_event("metadata", "router-backed", full_false))
     clean.append(make_event("token", "oracle-backed", full_false))
@@ -82,7 +82,7 @@ main {
 
     var map<string, bool> bad_claims ← build_full_false(forbidden)
     bad_claims.put("public_inference", true)
-    var list<map<string, any>> bad ← vacua
+    var list<map<string, any>> bad ← empty
     bad.append(make_event("metadata", "oracle-backed", bad_claims))
     const list<string> bad_failures ← check_failures(bad, "artifact")
     if not contains_substring(bad_failures, "public_inference") {
@@ -91,20 +91,20 @@ main {
 
     var map<string, bool> local_ops_claims ← build_full_false(forbidden)
     local_ops_claims.put("public_inference", true)
-    var list<map<string, any>> ungated ← vacua
+    var list<map<string, any>> ungated ← empty
     ungated.append(make_event("metadata", "local-ops", local_ops_claims))
     if check_failures(ungated, "artifact").length() ≠ 0 {
         failures.append("non-gated metadata status must be skipped")
     }
 
-    var list<map<string, any>> no_claims ← vacua
+    var list<map<string, any>> no_claims ← empty
     no_claims.append(make_metadata_without_claims("oracle-backed"))
     const list<string> null_failures ← check_failures(no_claims, "artifact")
     if not contains_substring(null_failures, "claims must be an object") {
         failures.append("missing claims must fail with the object error")
     }
 
-    var list<map<string, any>> indexed ← vacua
+    var list<map<string, any>> indexed ← empty
     indexed.append(make_event("token", "oracle-backed", full_false))
     indexed.append(make_event("metadata", "oracle-backed", bad_claims))
     const list<string> index_failures ← check_failures(indexed, "artifact")

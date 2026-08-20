@@ -25,7 +25,7 @@ import from "./claim_gates" private claim_gates
 const list<string> CLAIM_GATED_METADATA_STATUSES ← ["oracle-backed", "router-backed"]
 
 fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool> ∪ null> claims, string label) → list<string> {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     const int n ← events.length()
     var int i ← 0
     while i < n {
@@ -43,7 +43,7 @@ fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool>
             const string status ← event["status"] ↦ string
             if CLAIM_GATED_METADATA_STATUSES.contains(status) {
                 const string event_label ← "§ metadata[§]"(label, i)
-                const list<string> cf ← claim_gates.false_claim_failures(claims[i], event_label, true, vacua, vacua)
+                const list<string> cf ← claim_gates.false_claim_failures(claims[i], event_label, true, empty, empty)
                 for from cf const item {
                     failures.append(item)
                 }

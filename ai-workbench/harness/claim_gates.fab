@@ -47,7 +47,7 @@ fn forbidden_inference_claims() → list<string> {
 }
 
 fn sorted_keys(map<string, bool> claims) → list<string> {
-    var list<string> keys ← vacua
+    var list<string> keys ← empty
     for ref claims const key {
         keys.append(key)
     }
@@ -56,8 +56,8 @@ fn sorted_keys(map<string, bool> claims) → list<string> {
 }
 
 fn unknown_keys_failures(map<string, bool> claims, string label, list<string> allowed_false, list<string> allowed_true) → list<string> {
-    var list<string> failures ← vacua
-    var list<string> known ← vacua
+    var list<string> failures ← empty
+    var list<string> known ← empty
     for from FORBIDDEN_INFERENCE_CLAIMS const word {
         known.append(word)
     }
@@ -77,7 +77,7 @@ fn unknown_keys_failures(map<string, bool> claims, string label, list<string> al
 }
 
 fn allowed_false_failures(map<string, bool> claims, string label, list<string> allowed_false) → list<string> {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     const list<string> keys ← sorted_keys(claims)
     for from keys const key {
         if allowed_false.contains(key) {
@@ -90,7 +90,7 @@ fn allowed_false_failures(map<string, bool> claims, string label, list<string> a
 }
 
 fn forbidden_failures(map<string, bool> claims, string label, bool require_all) → list<string> {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     for from FORBIDDEN_INFERENCE_CLAIMS const key {
         if claims.get(key) is null {
             if require_all {
@@ -106,7 +106,7 @@ fn forbidden_failures(map<string, bool> claims, string label, bool require_all) 
 }
 
 fn false_claim_failures_inner(map<string, bool> claims, string label, bool require_all, list<string> allowed_false, list<string> allowed_true) → list<string> {
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     if require_all {
         const list<string> u ← unknown_keys_failures(claims, label, allowed_false, allowed_true)
         for from u const item {
