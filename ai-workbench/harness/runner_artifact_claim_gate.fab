@@ -60,8 +60,8 @@ fn known_contains(list<string> known, string key) → bool {
 }
 
 fn claim_failures(map<string, value> claims, string label) → list<string> {
-    var list<string> failures ← vacua
-    var list<string> keys ← vacua
+    var list<string> failures ← empty
+    var list<string> keys ← empty
     for ref claims const key {
         keys.append(key)
     }
@@ -96,7 +96,7 @@ main {
         processus.exi(2)
     }
 
-    var list<map<string, value>> events ← vacua
+    var list<map<string, value>> events ← empty
     const list<string> lines ← solum.carpe(artifact) ↦ list<string>
     const int total ← lines.length()
     var int i ← 0
@@ -124,7 +124,7 @@ main {
         consolum.mone("runner artifact first event must be metadata")
         processus.exi(1)
     }
-    var list<string> failures ← vacua
+    var list<string> failures ← empty
     if first["status"] is null {
         failures.append("runner artifact metadata status 'None' does not match '§'"(expected_status))
     } else {
