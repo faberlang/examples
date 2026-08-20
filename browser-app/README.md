@@ -43,8 +43,8 @@ mounts controllers against a fake DOM, simulates events, and asserts mutations.
 - **Faber source** (`src/main.fab`) defines eleven `@ WebController` functions.
 - Radix compiles each to TypeScript; faber product packaging invokes `tsc` to
   produce browser ESM and writes `controllers.json`.
-- The built ESM imports `{ dom }` from `"web:dom"` and `{ web }` from
-  `"web:web"` — bare specifiers resolved by the test harness to a runtime
+- The built ESM imports `{ dom }` from `"tela:dom"` and `{ web }` from
+  `"tela:web"` — bare specifiers resolved by the test harness to a runtime
   bridge that delegates to a fake DOM.
 
 ### Known codegen gap
