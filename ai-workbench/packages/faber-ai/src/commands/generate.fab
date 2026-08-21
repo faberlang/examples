@@ -172,7 +172,7 @@ functio event_metadata(
     textus oracle_label,
     numerus max_new_tokens,
     textus temperature,
-    numerus seed,
+    numerus seed
 ) → textus {
     redde render_generate_metadata(GenerateEventMetadata {
         event = "metadata",
@@ -199,7 +199,7 @@ functio blocked_artifact(
     textus out_path,
     numerus max_new_tokens,
     textus temperature,
-    numerus seed,
+    numerus seed
 ) → vacuum {
     fixum textus diagnosticum ← blocked_diagnostic(target)
     fixum textus body ← "§\n§\n"(event_metadata(target, source, "blocked", "", max_new_tokens, temperature, seed), event_diagnostic(diagnosticum))
@@ -217,7 +217,7 @@ functio emit_summary_json(
     numerus max_new_tokens,
     textus temperature,
     numerus seed,
-    textus diagnosticum,
+    textus diagnosticum
 ) → vacuum {
     nota render_generate_summary(GenerateSummary {
         model = target,
@@ -241,7 +241,7 @@ functio emit_summary_text(
     textus out_path,
     bivalens streaming,
     textus oracle_label,
-    textus diagnosticum,
+    textus diagnosticum
 ) → vacuum {
     nota "model: §"(target)
     nota "source: §"(source)
@@ -266,7 +266,7 @@ functio emit_summary(
     textus temperature,
     numerus seed,
     textus diagnosticum,
-    textus formatum,
+    textus formatum
 ) → vacuum {
     si format_jsonne(formatum) {
         emit_summary_json(target, source, status, prompt_path, out_path, streaming, oracle_label, max_new_tokens, temperature, seed, diagnosticum)
@@ -289,7 +289,7 @@ functio oracle_args(
     textus oracle_label,
     numerus max_new_tokens,
     textus temperature,
-    numerus seed,
+    numerus seed
 ) → lista<textus> {
     redde [
         "python3",
@@ -311,7 +311,7 @@ functio oracle_args(
         "--temperature",
         temperature,
         "--seed",
-        seed ↦ textus,
+        seed ↦ textus
     ]
 }
 
@@ -338,7 +338,7 @@ functio runner_artifact_gate_args(textus out_path, textus expected_status) → l
         "python3",
         "examples/ai-workbench/harness/runner_artifact_claim_gate.py",
         out_path,
-        expected_status,
+        expected_status
     ]
 }
 
@@ -358,7 +358,7 @@ functio curre(
     textus oracle_label,
     numerus max_new_tokens,
     textus temperature,
-    numerus seed,
+    numerus seed
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
         emit_error(target, target, "alias map not found: §"(map_path), formatum)

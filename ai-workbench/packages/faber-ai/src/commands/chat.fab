@@ -174,7 +174,7 @@ functio event_metadata(
     textus status,
     textus router_id,
     textus runtime,
-    textus router_url,
+    textus router_url
 ) → textus {
     redde render_chat_metadata(ChatEventMetadata {
         event = "metadata",
@@ -199,7 +199,7 @@ functio blocked_artifact(
     textus source,
     textus out_path,
     textus router_id,
-    textus router_url,
+    textus router_url
 ) → vacuum {
     fixum textus diagnosticum ← blocked_diagnostic(target)
     fixum textus body ← "§\n§\n"(event_metadata(target, source, "blocked", router_id, "", router_url), event_diagnostic(diagnosticum))
@@ -215,7 +215,7 @@ functio emit_summary_json(
     textus router_id,
     textus router_label,
     textus router_url,
-    textus diagnosticum,
+    textus diagnosticum
 ) → vacuum {
     nota render_chat_summary(ChatSummary {
         model = target,
@@ -237,7 +237,7 @@ functio emit_summary_text(
     textus out_path,
     textus router_id,
     textus router_label,
-    textus diagnosticum,
+    textus diagnosticum
 ) → vacuum {
     nota "model: §"(target)
     nota "source: §"(source)
@@ -260,7 +260,7 @@ functio emit_summary(
     textus router_label,
     textus router_url,
     textus diagnosticum,
-    textus formatum,
+    textus formatum
 ) → vacuum {
     si format_jsonne(formatum) {
         emit_summary_json(target, source, status, prompt_path, out_path, router_id, router_label, router_url, diagnosticum)
@@ -282,7 +282,7 @@ functio router_args(
     textus router_id,
     textus local_path,
     textus router_label,
-    textus router_url,
+    textus router_url
 ) → lista<textus> {
     redde [
         "python3",
@@ -302,7 +302,7 @@ functio router_args(
         "--router-label",
         router_label,
         "--router-url",
-        router_url,
+        router_url
     ]
 }
 
@@ -329,7 +329,7 @@ functio runner_artifact_gate_args(textus out_path, textus expected_status) → l
         "python3",
         "examples/ai-workbench/harness/runner_artifact_claim_gate.py",
         out_path,
-        expected_status,
+        expected_status
     ]
 }
 
@@ -347,7 +347,7 @@ functio curre(
     textus map_path,
     textus router_runner,
     textus router_label,
-    textus router_url,
+    textus router_url
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
         emit_error(target, target, "alias map not found: §"(map_path), formatum)

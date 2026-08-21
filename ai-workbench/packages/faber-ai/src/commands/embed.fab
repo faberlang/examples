@@ -280,7 +280,7 @@ functio oracle_args(
     textus model_dir,
     textus target,
     textus source,
-    textus oracle_label,
+    textus oracle_label
 ) → lista<textus> {
     redde [
         "python3",
@@ -296,7 +296,7 @@ functio oracle_args(
         "--source",
         source,
         "--oracle-label",
-        oracle_label,
+        oracle_label
     ]
 }
 
@@ -330,7 +330,7 @@ functio curre(
     textus formatum,
     textus map_path,
     textus oracle_runner,
-    textus oracle_label,
+    textus oracle_label
 ) → vacuum {
     si solum.exstat(map_path) ≠ verum {
         emit_error(target, "alias map not found: §"(map_path), formatum)
