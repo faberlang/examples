@@ -34,9 +34,9 @@
 # Build: faber run -t fmir examples/training/linear-regression/
 # =============================================================================
 
-importa ex "gradus:nn" privata nn
-importa ex "gradus:loss" privata loss
-importa ex "gradus:train" privata train
+importa ex "gradus:nn" nn
+importa ex "gradus:loss" loss
+importa ex "gradus:train" train
 
 # -------------------------------------------------------------------------
 # Differentiable forward: loss = mean((input·weight + bias − target)²)
