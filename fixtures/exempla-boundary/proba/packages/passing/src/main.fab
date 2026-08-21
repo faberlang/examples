@@ -4,7 +4,7 @@
 #
 # What this example teaches:
 #   • Passing test package — all proba assertions hold
-#   • nocapture demonstration — `nota` output visible with --nocapture flag
+#   • nocapture demonstration — passing-case `nota` output is captured and replayed with --nocapture flag
 #   • Multiple test patterns — arithmetic assertion, text equality, entry point
 #
 # Syntaxes used:
@@ -19,7 +19,7 @@
 #   • Test helper functions for common assertion patterns — extract shared setup/assertion logic into functio helpers imported from a shared module
 #
 # Anti-patterns (avoid these):
-#   • Using nota in tests that must run silently in CI — nota output is only visible with --nocapture; prefer pure assertions for CI environments
+#   • Using nota in tests that must run silently in CI — passing-case nota output is replayed with --nocapture; prefer pure assertions for CI environments
 #
 # Learning path:
 #   Before: Stage 10: proba, adfirma (basic test assertions)
