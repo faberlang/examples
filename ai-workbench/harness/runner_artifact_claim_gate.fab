@@ -47,7 +47,7 @@ const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
     "model_blobs_in_git",
     "implicit_model_downloads",
     "implicit_model_blobs",
-    "pytorch_equivalence",
+    "pytorch_equivalence"
 ]
 
 fn known_contains(list<string> known, string key) → bool {

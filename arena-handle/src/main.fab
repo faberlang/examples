@@ -148,7 +148,7 @@ functio area_tollit(Area area, de Manus manus) → Area {
 # Heterogeneous node: stores Manus, never deep-copies the resource payload.
 discretio Nodus {
     Groupus { lista<Manus> filii },
-    Tessera { Manus geometria },
+    Tessera { Manus geometria }
 }
 
 probandum "arena-handle contract" tag "identity" {

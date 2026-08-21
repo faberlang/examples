@@ -30,7 +30,7 @@ functio embed() argumenta args → vacuum {
         "§"(args.format),
         "§"(args.map),
         "§"(args.oracle_runner),
-        "§"(args.oracle_label),
+        "§"(args.oracle_label)
     )
 }
 
@@ -45,7 +45,7 @@ functio index() argumenta args → vacuum {
         "§"(args.vectors),
         "§"(args.out),
         "§"(args.format),
-        "§"(args.metric),
+        "§"(args.metric)
     )
 }
 
@@ -62,7 +62,7 @@ functio query() argumenta args → vacuum {
         "§"(args.query_text),
         args.top,
         "§"(args.format),
-        "§"(args.query_vector),
+        "§"(args.query_vector)
     )
 }
 
@@ -89,7 +89,7 @@ functio generate() argumenta args → vacuum {
         "§"(args.oracle_label),
         args.max_new_tokens,
         "§"(args.temperature),
-        args.seed,
+        args.seed
     )
 }
 
@@ -112,6 +112,6 @@ functio chat() argumenta args → vacuum {
         "§"(args.map),
         "§"(args.router_runner),
         "§"(args.router_label),
-        "§"(args.router_url),
+        "§"(args.router_url)
     )
 }
