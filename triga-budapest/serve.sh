@@ -9,7 +9,7 @@ DO_BUILD=1
 PID_FILE="${APP_DIR}/.serve.pid"
 
 SHARED_FABER="${HOME}/.cache/faberlang-target/faber/debug/faber"
-LOCAL_FABER="${WORKSPACE}/faber/target/debug/faber"
+LOCAL_FABER="${WORKSPACE}/radix/target/debug/faber"
 
 usage() {
   cat <<'EOF'

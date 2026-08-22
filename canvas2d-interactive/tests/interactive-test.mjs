@@ -31,7 +31,7 @@
 //      the test drives real pointer + wheel events and probes pixels.
 //
 // Run from this directory:  node tests/interactive-test.mjs
-// Requires: faber binary (env FABER, default ../../faber/target/debug/faber),
+// Requires: faber binary (env FABER, default ../../radix/target/debug/faber),
 // playwright + typescript modules under the workspace node_modules.
 
 import { spawn } from "node:child_process";
@@ -62,7 +62,7 @@ const ts = require(resolveTypescript());
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
 const WORKSPACE = path.resolve(ROOT, "../..");
-const FABER_BIN = process.env.FABER ?? path.join(WORKSPACE, "faber/target/debug/faber");
+const FABER_BIN = process.env.FABER ?? path.join(WORKSPACE, "radix/target/debug/faber");
 
 const FAIL = "\x1b[31mFAIL\x1b[0m";
 const PASS = "\x1b[32mPASS\x1b[0m";

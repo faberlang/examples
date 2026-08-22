@@ -9,7 +9,7 @@ WORKSPACE="$(cd "$APP_DIR/../.." && pwd)"
 for candidate in \
   "${FABER:-}" \
   "${HOME}/.cache/faberlang-target/faber/debug/faber" \
-  "$WORKSPACE/faber/target/debug/faber"
+  "$WORKSPACE/radix/target/debug/faber"
 do
   if [[ -n "$candidate" && -x "$candidate" ]]; then
     FABER_BIN="$candidate"
@@ -21,7 +21,7 @@ if [[ -z "${FABER_BIN:-}" ]]; then
   echo "triga-drift-city: no faber binary found. Tried:" >&2
   echo "  FABER=${FABER:-<unset>}" >&2
   echo "  ${HOME}/.cache/faberlang-target/faber/debug/faber" >&2
-  echo "  $WORKSPACE/faber/target/debug/faber" >&2
+  echo "  $WORKSPACE/radix/target/debug/faber" >&2
   exit 1
 fi
 echo "using faber: $FABER_BIN"

@@ -38,7 +38,7 @@ Open **http://127.0.0.1:8765/pages/index.html** and hard-refresh after rebuild.
 
 `FABER` may point at a binary; otherwise the script tries
 `~/.cache/faberlang-target/faber/debug/faber` (faber’s shared target-dir), then
-`faber/target/debug/faber`.
+`radix/target/debug/faber`.
 
 ## Ownership
 

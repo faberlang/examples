@@ -52,7 +52,7 @@ node tests/interactive-test.mjs
 ```
 
 Requires: the faber CLI (`FABER` env or default
-`../../faber/target/debug/faber`), the workspace `node_modules` (playwright),
+`../../radix/target/debug/faber`), the workspace `node_modules` (playwright),
 and a global `typescript` module (resolved next to `node`). The fixture
 `faber.lock` is regenerated with workspace paths, same as `web-canvas2d-smoke`
 and `browser-app`.
@@ -71,7 +71,7 @@ selectable until a consumer needs wheel-direction data in the binding
 
 ## Packaging note (stale faber binary)
 
-The running `faber` binary at `faber/target/debug/faber` predates hand-5's
+The running `faber` binary at `radix/target/debug/faber` predates hand-5's
 `b7cc2e9` per-stem shim fix, so the browser product build's `tsc`
 verification still fails for a second binding module: `[shims.canvas2d]`
 (`runtime/canvas2d.ts`) is declared in `faber-web/bindings/ts.toml`, but the

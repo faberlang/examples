@@ -2,7 +2,7 @@
 set -euo pipefail
 # NSM-E7: native-Faber launcher for check-gpu-workload-contracts. The gate
 # logic lives entirely in check-gpu-workload-contracts.fab; this entrypoint
-# only runs it on the released faber binary (faber/target/debug/faber,
+# only runs it on the released faber binary (radix/target/debug/faber,
 # 1.6.0-rc.1). The PATH `faber` (1.3.0) is never a valid execution surface.
 # FABER_BIN overrides the binary.
 #
@@ -12,7 +12,7 @@ set -euo pipefail
 # location-independent: the launcher passes the examples repo root as argv[0]
 # (the Python reference self-locates, which a staged source cannot).
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FABER_BIN="${FABER_BIN:-$(cd "$HERE/../.." && pwd)/faber/target/debug/faber}"
+FABER_BIN="${FABER_BIN:-$(cd "$HERE/../.." && pwd)/radix/target/debug/faber}"
 export FABER_BIN
 if [[ ! -x "$FABER_BIN" ]]; then
     echo "check-gpu-workload-contracts: released faber binary not found: $FABER_BIN (set FABER_BIN)" >&2

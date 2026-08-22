@@ -35,7 +35,7 @@ R-W1 fix (radix commit `4197839e9`, "accept tensor float unary ops in MIR
 validator") must be present in the build; a stale binary rejects it with
 `float unary operand is not fractus` / `fmir image build failed`. The oracle
 was captured and regenerated with the prebuilt
-`faber/target/debug/faber` (SHA-256
+`radix/target/debug/faber` (SHA-256
 `2a4cfbcc8aab6b06784a285906ac3b1f8680d13bd6ec7a7c18d6ce763cde9120`,
 2026-08-03), which reproduces all three captures byte-identically. Once faber
 main is built against a radix containing the R-W1 fix, `faber` on PATH works.

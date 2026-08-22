@@ -41,5 +41,5 @@ S6-C2 `addita_bias` rank-extension add — the radix R-W1 fix (radix commit
 stepper broadcast must be present in the build; a stale binary rejects it with
 `float unary operand is not fractus` / `fmir image build failed`. The oracle
 was captured and regenerated with the workspace faber binary
-(`faber/target/debug/faber`, built 2026-08-05), which reproduces all three
+(`radix/target/debug/faber`, built 2026-08-05), which reproduces all three
 captures byte-identically.

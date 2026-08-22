@@ -33,7 +33,7 @@ node tests/smoke-test.mjs
 ```
 
 Requires: the faber CLI (`FABER` env or default
-`../../faber/target/debug/faber`), the workspace `node_modules` (playwright),
+`../../radix/target/debug/faber`), the workspace `node_modules` (playwright),
 and a global `typescript` module (resolved next to `node`). The fixture
 `faber.lock` is regenerated with workspace paths, same as `browser-app`.
 
