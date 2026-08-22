@@ -25,7 +25,7 @@ fn value_for(list<string> args, string flag, string fallback) → string {
     const int n ← args.length()
     var int i ← 0
     while i < n {
-        const string tok ← args[i] ↦ string
+        const string tok ↤ args[i]
         if tok ≡ flag {
             if i + 1 < n {
                 return args[i + 1] ↦ string

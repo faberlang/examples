@@ -323,9 +323,9 @@ functio chunk_mesh_face_winding_matches(
         redde falsum
     }
     fixum numerus index_base ← face_index * 6
-    fixum numerus i0 ← mesh.indices[index_base] ↦ numerus
-    fixum numerus i1 ← mesh.indices[index_base + 1] ↦ numerus
-    fixum numerus i2 ← mesh.indices[index_base + 2] ↦ numerus
+    fixum numerus i0 ↤ mesh.indices[index_base]
+    fixum numerus i1 ↤ mesh.indices[index_base + 1]
+    fixum numerus i2 ↤ mesh.indices[index_base + 2]
     fixum numerus p0 ← i0 * 3
     fixum numerus p1 ← i1 * 3
     fixum numerus p2 ← i2 * 3

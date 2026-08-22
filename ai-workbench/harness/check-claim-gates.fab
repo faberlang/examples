@@ -40,12 +40,12 @@ fn validate_runner_artifact_events(list<map<string, any>> events, string expecte
         return ["runner artifact has no events"]
     }
     const map<string, any> first ← events[0]
-    const string event_kind ← first["event"] ↦ string
+    const string event_kind ↤ first["event"]
     if event_kind ≠ "metadata" {
         failures.append("runner artifact first event must be metadata")
         return failures
     }
-    const string status ← first["status"] ↦ string
+    const string status ↤ first["status"]
     if status ≠ expected_status {
         failures.append("runner artifact metadata status '§' does not match '§'"(status, expected_status))
     }
@@ -53,7 +53,7 @@ fn validate_runner_artifact_events(list<map<string, any>> events, string expecte
         failures.append("runner artifact metadata claims must be an object")
         return failures
     }
-    const map<string, bool> cm ← first["claims"] ↦ map<string, bool>
+    const map<string, bool> cm ↤ first["claims"]
     const list<string> claim_failures ← claim_gates.false_claim_failures(cm, "runner artifact metadata", true, empty, empty)
     for from claim_failures const item {
         failures.append(item)

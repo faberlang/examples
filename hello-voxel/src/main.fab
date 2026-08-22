@@ -65,7 +65,7 @@ functio lista_f32_textus(lista<f32> values) → textus {
     varia numerus i ← 0
     dum i < values.length() {
         si i ≡ 0 {
-            out ← values[i] ↦ textus
+            out ↤ values[i]
         } secus {
             out ← "§,§"(out, values[i] ↦ textus)
         }
@@ -79,7 +79,7 @@ functio lista_u32_textus(lista<u32> values) → textus {
     varia numerus i ← 0
     dum i < values.length() {
         si i ≡ 0 {
-            out ← values[i] ↦ textus
+            out ↤ values[i]
         } secus {
             out ← "§,§"(out, values[i] ↦ textus)
         }
@@ -93,7 +93,7 @@ functio lista_numerus_textus(lista<numerus> values) → textus {
     varia numerus i ← 0
     dum i < values.length() {
         si i ≡ 0 {
-            out ← values[i] ↦ textus
+            out ↤ values[i]
         } secus {
             out ← "§,§"(out, values[i] ↦ textus)
         }
@@ -616,8 +616,8 @@ functio emit_interaction_snapshot(
 # =========================================================================
 
 functio aspect_from_resize(dom.ResizeState resize) → f32 {
-    fixum f32 width ← resize.width ↦ f32
-    fixum f32 height ← resize.height ↦ f32
+    fixum f32 width ↤ resize.width
+    fixum f32 height ↤ resize.height
     si height > 0.0 {
         redde width / height
     }

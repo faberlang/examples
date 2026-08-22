@@ -299,8 +299,8 @@ incipit {
     fixum f32 upstream ← 1.0
     fixum _ grads ← loss_backward(x, w, nil(), upstream)
     fixum [gx, gw] ← grads
-    fixum lista<f32> flat_gx ← gx ↦ lista<f32>
-    fixum lista<f32> flat_gw ← gw ↦ lista<f32>
+    fixum lista<f32> flat_gx ↤ gx
+    fixum lista<f32> flat_gw ↤ gw
     nota "grad_x"
     nota flat_gx
     nota "grad_w"

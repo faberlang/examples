@@ -54,7 +54,7 @@ fn value_for(list<string> args, string flag, string fallback) → string {
     const int n ← args.length()
     var int i ← 0
     while i < n {
-        const string tok ← args[i] ↦ string
+        const string tok ↤ args[i]
         if tok ≡ flag {
             if i + 1 < n {
                 return args[i + 1] ↦ string
@@ -115,8 +115,8 @@ main {
         consolum.mone("usage: fake_generate_oracle --prompt <file> --out <file> --model-dir <dir> --model-alias <name> --source <name> --oracle-label <name> --max-new-tokens <n> --temperature <t> --seed <n>")
         processus.exi(2)
     }
-    const int max_new_tokens ← max_tokens_arg ↦ int
-    const int seed ← seed_arg ↦ int
+    const int max_new_tokens ↤ max_tokens_arg
+    const int seed ↤ seed_arg
 
     const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
     const string claims_json ← all_false_claims(FORBIDDEN_INFERENCE_CLAIMS)

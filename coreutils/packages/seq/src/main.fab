@@ -94,16 +94,16 @@ functio seq_lineae(lista<textus> operands, bivalens width_flag sponte vel falsum
     varia numerus ultimus ← 0
 
     si operands.longitudo() ≡ 1 {
-        ultimus ← operands[0] ↦ numerus ⇥ 0
+        ultimus ↤ operands[0] ⇥ 0
     }
     sin operands.longitudo() ≡ 2 {
-        primus ← operands[0] ↦ numerus ⇥ 0
-        ultimus ← operands[1] ↦ numerus ⇥ 0
+        primus ↤ operands[0] ⇥ 0
+        ultimus ↤ operands[1] ⇥ 0
     }
     sin operands.longitudo() ≡ 3 {
-        primus ← operands[0] ↦ numerus ⇥ 0
-        incrementum ← operands[1] ↦ numerus ⇥ 0
-        ultimus ← operands[2] ↦ numerus ⇥ 0
+        primus ↤ operands[0] ⇥ 0
+        incrementum ↤ operands[1] ⇥ 0
+        ultimus ↤ operands[2] ⇥ 0
     }
     secus {
         redde lineae

@@ -108,20 +108,20 @@ functio selectum_specne(textus spec, numerus index) → bivalens {
     fixum numerus dash ← dash_pos(spec)
 
     si dash < 0 {
-        fixum numerus unum ← spec ↦ numerus ⇥ 0
+        fixum numerus unum ↤ spec ⇥ 0
         redde unum > 0 et index ≡ unum
     }
 
     fixum textus initium_textus ← spec.sectio(0, dash)
     fixum textus finis_textus ← spec.sectio(dash + 1, spec.longitudo())
-    fixum numerus initium ← initium_textus ↦ numerus ⇥ 0
+    fixum numerus initium ↤ initium_textus ⇥ 0
     si initium ≤ 0 ergo redde falsum
 
     si finis_textus.longitudo() ≡ 0 {
         redde index ≥ initium
     }
 
-    fixum numerus finis ← finis_textus ↦ numerus ⇥ 0
+    fixum numerus finis ↤ finis_textus ⇥ 0
     redde (finis ≥ initium et index ≥ initium) et index ≤ finis
 }
 

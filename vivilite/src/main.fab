@@ -382,9 +382,9 @@ functio rewrite_work(de Store s, de textus handle, de textus new_status, de text
         si line.longitudo() > 0 {
             varia WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
-                item.status ← new_status ↦ textus
+                item.status ↤ new_status
                 si new_kind.longitudo() > 0 {
-                    item.kind ← new_kind ↦ textus
+                    item.kind ↤ new_kind
                 }
             }
             out ← cat(out, row(work_line(item)))
@@ -407,7 +407,7 @@ functio board_json(de Store s, de textus who) → textus {
 functio sqlite_count(de textus database, de textus who, de textus role) → numerus ⇥ textus {
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = ?2", [who ↦ valor, role ↦ valor])
     fixum valor row ← rows.accipe(0)
-    fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+    fixum tabula<textus, valor> fields ↤ row
     fixum valor count ← fields.accipe("count")
     redde count ↦ numerus
 }
@@ -419,7 +419,7 @@ functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus 
         iace "open § not found: §"(kind, handle)
     }
     fixum valor row ← rows.accipe(0)
-    fixum tabula<textus, valor> item ← row ↦ tabula<textus, valor>
+    fixum tabula<textus, valor> item ↤ row
     fixum valor message_id ← item.accipe("message_id")
     fixum valor content_id ← item.accipe("content_id")
     fixum valor subject ← item.accipe("subject")
@@ -436,7 +436,7 @@ functio sqlite_want_promote(de Store s, de textus who, de textus handle, de text
         iace "open want not found: §"(handle)
     }
     fixum valor row ← rows.accipe(0)
-    fixum tabula<textus, valor> item ← row ↦ tabula<textus, valor>
+    fixum tabula<textus, valor> item ↤ row
     fixum valor message_id ← item.accipe("message_id")
     fixum valor content_id ← item.accipe("content_id")
     fixum valor subject ← item.accipe("subject")
@@ -457,7 +457,7 @@ functio vivi_address(de textus identity, de textus mailspace) → textus {
 # Canonical UTF-8 EML with \r\n line endings, so SHA-256 content-addressing is
 # stable regardless of platform newline conventions.
 functio compose_vivi_message(de textus mailspace, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus {
-    varia textus normalized_body ← body ↦ textus
+    varia textus normalized_body ↤ body
     si body.longitudo() ≡ 0 aut body.sectio(body.longitudo() - 1, body.longitudo()) ≠ "\n" {
         normalized_body ← cat(body, "\r\n")
     }
@@ -521,7 +521,7 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
 functio sqlite_unread(de textus database, de textus who) → numerus ⇥ textus {
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT COUNT(*) AS count FROM messages WHERE account = ?1 AND local_role = 'inbox' AND read_state = 0", [who ↦ valor])
     fixum valor row ← rows.accipe(0)
-    fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+    fixum tabula<textus, valor> fields ↤ row
     fixum valor count ← fields.accipe("count")
     redde count ↦ numerus
 }
@@ -579,7 +579,7 @@ functio sqlite_items(de textus database, de textus who, de textus role) → list
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS handle, md.subject AS subject, md.from_addr AS sender FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND m.local_role = ?2 ORDER BY m.updated_at DESC, m.message_id ASC", [who ↦ valor, role ↦ valor])
     varia lista<BoardItemJson> items ← vacua
     itera ex rows fixum row {
-        fixum tabula<textus, valor> fields ← row ↦ tabula<textus, valor>
+        fixum tabula<textus, valor> fields ↤ row
         fixum valor handle ← fields.accipe("handle") vel ("" ↦ valor)
         fixum valor subject ← fields.accipe("subject") vel ("" ↦ valor)
         fixum valor sender ← fields.accipe("sender") vel ("" ↦ valor)
@@ -620,7 +620,7 @@ functio print_board(de Store s, de textus who) → vacuum {
 # Handle is messages.message_id as emitted by sqlite-read board items.
 functio sqlite_mark_done(de textus database, de textus who, de textus handle) → vacuum ⇥ textus {
     fixum valor effect ← sqlite.exsequi(database, "UPDATE messages SET local_role = 'done', updated_at = datetime('now') WHERE message_id = ?1 AND account = ?2 AND local_role IN ('tasks', 'needs', 'wants')", [handle ↦ valor, who ↦ valor])
-    fixum tabula<textus, valor> fields ← effect ↦ tabula<textus, valor>
+    fixum tabula<textus, valor> fields ↤ effect
     fixum valor changed ← fields.accipe("rows_changed") vel (0 ↦ valor)
     si (changed ↦ numerus) ≡ 0 {
         iace "no open work item for handle §"(handle)

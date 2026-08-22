@@ -230,8 +230,8 @@ functio interactive_controller(dom.Scope scope) → lista<dom.Subscription> {
                     dom.attr_set(canvas, "data-interaction", "dragging")
                 } secus {
                     pan_active ← verum
-                    pan_start_x ← pointer.x ↦ f64
-                    pan_start_y ← pointer.y ↦ f64
+                    pan_start_x ↤ pointer.x
+                    pan_start_y ↤ pointer.y
                     pan_cam_x ← cam_x
                     pan_cam_y ← cam_y
                     dom.attr_set(canvas, "data-interaction", "panning")

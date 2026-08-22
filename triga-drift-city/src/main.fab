@@ -15,7 +15,7 @@ functio floats_textus(de lista<f32> values) → textus {
     varia numerus i ← 0
     dum i < values.length() {
         si i ≡ 0 {
-            output ← values[i] ↦ textus
+            output ↤ values[i]
         }
         secus {
             output ← "§ §"(output, values[i] ↦ textus)
@@ -30,7 +30,7 @@ functio indices_textus(de lista<u32> values) → textus {
     varia numerus i ← 0
     dum i < values.length() {
         si i ≡ 0 {
-            output ← values[i] ↦ textus
+            output ↤ values[i]
         }
         secus {
             output ← "§ §"(output, values[i] ↦ textus)

@@ -55,7 +55,7 @@ fn value_for(list<string> args, string flag, string fallback) → string {
     const numerus n ← args.longitudo()
     var numerus i ← 0
     dum i < n {
-        const string tok ← args[i] ↦ string
+        const string tok ↤ args[i]
         if tok ≡ flag {
             if i + 1 < n {
                 return args[i + 1] ↦ string
@@ -146,16 +146,16 @@ main {
         consolum.mone("usage: tiny_token_logits_oracle --prompt <file> --out <file> --model-dir <dir> --model-alias <name> --source <name> --oracle-label <name> --max-new-tokens <n> --temperature <t> --seed <n>")
         processus.exi(2)
     }
-    const numerus max_new_tokens ← max_tokens_arg ↦ numerus
-    const numerus seed ← seed_arg ↦ numerus
+    const numerus max_new_tokens ↤ max_tokens_arg
+    const numerus seed ↤ seed_arg
 
     const string artifact_path ← model_dir + "/tiny-model.fma.json"
     const map<string, valor> artifact ← json.solve(solum.lege(artifact_path) ↦ string) ↦ map<string, valor>
-    const map<string, valor> tokenizer ← artifact["tokenizer"] ↦ map<string, valor>
-    const map<string, numerus> vocab ← tokenizer["vocab"] ↦ map<string, numerus>
-    const string unknown_token ← tokenizer["unknown_token"] ↦ string
-    const string tokenizer_format ← tokenizer["format"] ↦ string
-    const numerus unknown_id ← vocab[unknown_token] ↦ numerus
+    const map<string, valor> tokenizer ↤ artifact["tokenizer"]
+    const map<string, numerus> vocab ↤ tokenizer["vocab"]
+    const string unknown_token ↤ tokenizer["unknown_token"]
+    const string tokenizer_format ↤ tokenizer["format"]
+    const numerus unknown_id ↤ vocab[unknown_token]
 
     const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
     const list<string> words ← split_words(prompt)

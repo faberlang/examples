@@ -69,7 +69,7 @@ functio quoted_value(textus line) → textus {
 }
 
 functio subset_field_line(textus line, textus field) → bivalens {
-    fixum textus q ← |22| ↦ textus
+    fixum textus q ↤ |22|
     redde line.initium("§ = §"(field, q)) et line.finis(q)
 }
 

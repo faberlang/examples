@@ -44,7 +44,7 @@ fn check_rung4(string repo_root) → list<string> {
         failures.append("rung4 tolerance must be a finite non-negative number")
         return failures
     }
-    const float tolerance ← tolerance_value ↦ float
+    const float tolerance ↤ tolerance_value
     # The JSON parser rejects NaN/Infinity literals, so the self-inequality
     # arm is defensive parity for math.isfinite.
     if tolerance < 0.0 or tolerance ≠ tolerance {
@@ -53,21 +53,21 @@ fn check_rung4(string repo_root) → list<string> {
     }
 
     const map<string, value> expected ← json.solve(solum.lege(expected_path) ↦ string) ↦ map<string, value>
-    const map<string, value> inputs ← ref["inputs"] ↦ map<string, value>
-    const map<string, value> session ← ref["session_contract"] ↦ map<string, value>
-    const list<value> events ← session["events"] ↦ list<value>
+    const map<string, value> inputs ↤ ref["inputs"]
+    const map<string, value> session ↤ ref["session_contract"]
+    const list<value> events ↤ session["events"]
 
-    const float x ← inputs["x"] ↦ float
-    const float y ← inputs["y"] ↦ float
-    const float rate ← inputs["rate"] ↦ float
+    const float x ↤ inputs["x"]
+    const float y ↤ inputs["y"]
+    const float rate ↤ inputs["rate"]
     var list<float> losses ← empty
     var list<float> weights ← empty
-    var float weight ← inputs["initial_weight"] ↦ float
+    var float weight ↤ inputs["initial_weight"]
 
     var int index ← 0
     while index < events.length() {
-        const map<string, value> event ← events[index] ↦ map<string, value>
-        const int step ← event["step"] ↦ int
+        const map<string, value> event ↤ events[index]
+        const int step ↤ event["step"]
         if step ≠ index {
             failures.append("rung4 event " + (index ↦ string) + ": step=" + (step ↦ string))
         }
@@ -75,7 +75,7 @@ fn check_rung4(string repo_root) → list<string> {
         if launch_value is null {
             failures.append("rung4 event " + (index ↦ string) + ": unexpected launch None")
         } else {
-            const string launch ← launch_value ↦ string
+            const string launch ↤ launch_value
             if launch ≠ "rung4_step_kernel" {
                 failures.append("rung4 event " + (index ↦ string) + ": unexpected launch '" + launch + "'")
             }
@@ -103,15 +103,15 @@ fn check_rung4(string repo_root) → list<string> {
     if (inputs["steps"] ↦ int) ≠ events.length() {
         failures.append("rung4 inputs.steps does not match session event count")
     }
-    const map<string, value> reference ← ref["reference"] ↦ map<string, value>
+    const map<string, value> reference ↤ ref["reference"]
     if reference ≠ expected {
         failures.append("rung4 .expected sidecar must mirror reference oracle")
     }
-    const list<value> reference_losses ← reference["losses"] ↦ list<value>
+    const list<value> reference_losses ↤ reference["losses"]
     if reference_losses.length() ≠ losses.length() {
         failures.append("rung4 reference loss count does not match session event count")
     }
-    const list<value> reference_weights ← reference["weights"] ↦ list<value>
+    const list<value> reference_weights ↤ reference["weights"]
     if reference_weights.length() ≠ weights.length() {
         failures.append("rung4 reference weight count does not match session event count")
     }
@@ -130,14 +130,14 @@ fn check_rung4(string repo_root) → list<string> {
         j ← j + 1
     }
 
-    const map<string, value> floor ← ref["current_output_checked_floor"] ↦ map<string, value>
+    const map<string, value> floor ↤ ref["current_output_checked_floor"]
     const list<string> floor_claims ← ["device_training", "session_lifecycle", "optimizer_workflow", "pytorch_equivalence"]
     for from floor_claims const claim {
         if (floor[claim] ↦ int) ≠ 0 {
             failures.append("rung4 " + claim + " must remain a non-claim")
         }
     }
-    const string contract ← ref["contract"] ↦ string
+    const string contract ↤ ref["contract"]
     if not contract.contains("PyTorch equivalence") {
         failures.append("rung4 contract must explicitly reject PyTorch equivalence")
     }
@@ -150,7 +150,7 @@ main {
         consolum.mone("usage: check-gpu-workload-contracts <repo-root>")
         processus.exi(1)
     }
-    const string repo_root ← av[0] ↦ string
+    const string repo_root ↤ av[0]
     const list<string> failures ← check_rung4(repo_root)
     if failures.length() ≠ 0 {
         consolum.mone("gpu workload contract failures:")

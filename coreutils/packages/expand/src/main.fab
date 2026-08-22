@@ -76,7 +76,7 @@ functio tabulae_default() → Tabulae {
 }
 
 functio tabstop_activa(textus petitus) → numerus {
-    fixum numerus n ← petitus ↦ numerus ⇥ 0
+    fixum numerus n ↤ petitus ⇥ 0
     si n > 0 ergo redde n
     redde 8
 }
@@ -123,7 +123,7 @@ functio tabulae_ex_spec(textus spec) → Tabulae {
     varia numerus stop8 ← 0
 
     itera ex partes fixum pars {
-        fixum numerus stop ← pars ↦ numerus ⇥ 0
+        fixum numerus stop ↤ pars ⇥ 0
         si stop > 0 {
             count ← count + 1
             si count ≡ 1 {
