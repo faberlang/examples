@@ -1,7 +1,6 @@
 # Triga Budapest — Renderer Completeness Showcase
 
-Status: Stage 0 scaffold active; Chain Bridge greybox package present; material,
-texture, asset, and reflection-pipeline completion still open.
+**Status**: active — Stage 0 scaffold landed 2026-07-29; orbit camera and lighting iteration landed 2026-07-30/31; texture/sampler, asset import, and reflection-pipeline stages still open
 
 ## Goal
 

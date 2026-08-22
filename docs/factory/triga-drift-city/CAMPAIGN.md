@@ -1,6 +1,6 @@
 # Campaign: Triga Drift City
 
-**Status:** framework established; roadmap ready for routing only
+**Status**: active — Stage 0–1 complete; Stage 2 units accepted 2026-07-27, stage gate open pending real-browser WebGPU evidence; Stages 3–6 planned (not deferred)
 **Mode:** draft/maintain — this document does not authorize implementation
 **Owner repo:** `examples`
 **Participating repos:** `examples`, `triga`, `radix`, `hosts`, `faber`, `faber-web`
