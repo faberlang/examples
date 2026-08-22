@@ -15,7 +15,7 @@ loss traces (and full captures) must be byte-identical.
 
 How each combo runs (capture convention — oracle/README.md):
   1. Patch in place: src/train.fab and oracle/capture.fab get the lr literal
-     and the loop bound (`fixum f32 lr <- <lr>`, `fixum numerus steps <- <n>`);
+     and the loop bound (`fixum f32 lr ← <lr>`, `fixum numerus steps ← <n>`);
      faber.toml gets `[device] steps = <n>`. The loop bound and the manifest
      step count MUST match — the step-count validation fails closed.
      (oracle/capture.fab is the instrumented copy of src/train.fab that the
