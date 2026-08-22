@@ -8,7 +8,7 @@ WORKSPACE="$(cd "$APP_DIR/../.." && pwd)"
 for candidate in \
   "${FABER:-}" \
   "${HOME}/.cache/faberlang-target/faber/debug/faber" \
-  "$WORKSPACE/faber/target/debug/faber"
+  "$WORKSPACE/radix/target/debug/faber"
 do
   if [[ -n "$candidate" && -x "$candidate" ]]; then
     FABER_BIN="$candidate"

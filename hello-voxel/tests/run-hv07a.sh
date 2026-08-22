@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 WORKSPACE="$(cd "$APP_DIR/../.." && pwd)"
-FABER_BIN="${FABER:-$WORKSPACE/faber/target/debug/faber}"
+FABER_BIN="${FABER:-$WORKSPACE/radix/target/debug/faber}"
 
 if [[ ! -x "$FABER_BIN" ]]; then
   echo "run-hv07a: missing faber binary at $FABER_BIN" >&2

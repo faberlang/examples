@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 WORKSPACE="$(cd "$APP_DIR/../.." && pwd)"
-FABER_BIN="${FABER:-$WORKSPACE/faber/target/debug/faber}"
+FABER_BIN="${FABER:-$WORKSPACE/radix/target/debug/faber}"
 
 # --- Generate faber.lock with correct workspace paths ---
 cat > "$APP_DIR/faber.lock" <<LOCK

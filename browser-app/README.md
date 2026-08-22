@@ -23,7 +23,7 @@ observable DOM mutations under a browser/DOM harness.
 
 ```sh
 # From examples/browser-app/
-../../faber/target/debug/faber build --package .
+../../radix/target/debug/faber build --package .
 ```
 
 Output: `dist/faber-esm/faber-browser.js` (ESM entry), `dist/controllers.json`,

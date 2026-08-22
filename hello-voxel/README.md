@@ -7,7 +7,7 @@ cube, voxel world, input loop, or WebGPU execution.
 ## Current State
 
 - `src/main.fab` defines one `WebController`.
-- The controller marks the package root as ready through `web:dom`.
+- The controller marks the package root as ready through `tela:dom`.
 - The page reserves a canvas for the later direct WebGPU host.
 
 ## Build
@@ -16,8 +16,8 @@ cube, voxel world, input loop, or WebGPU execution.
 ./tests/run.sh
 ```
 
-The script writes a local `faber.lock` that points `web` to the sibling
-`faber-web` package, builds the browser product, and checks the generated
+The script writes a local `faber.lock` that points `tela` to the sibling
+`tela` package, builds the browser product, and checks the generated
 controller manifest. It also imports the generated browser ESM through a Node
 DOM harness and verifies that the generated lifecycle helper mounts the
 controller and updates the package status.
