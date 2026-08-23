@@ -1,0 +1,29 @@
+{
+  "fixture": "device-summa-filum",
+  "stage": "SFR-6 distributed sum (Metal native collective)",
+  "kernel": "column_dot",
+  "recipe": "CollectionKernelPlan::DistributedSum",
+  "dtype": "f32",
+  "term": "t = s * 1.4140625 (F16 column-dot: every input, the F16-grid weight, and every per-term product sit exactly on the binary16 grid)",
+  "input_shape": [
+    32
+  ],
+  "output_shape": [
+    1
+  ],
+  "policy": "numeric-policy v1.0.0",
+  "family": "reduction sum",
+  "atol": 1e-06,
+  "rtol": 1e-06,
+  "expected_sum": 62.21875,
+  "capture_sha256": "2d1dbf1d39c13183fd1f5f2b57673161fc6e5e378a2bcb227711030c5b9f2708",
+  "input_formula": "a[i] = (i % 8) * 0.25 + 0.5",
+  "input_sample": [
+    0.5,
+    0.75,
+    1.0,
+    1.25
+  ],
+  "input_count": 32,
+  "oracle_spelling": "sequential: summa ex a apud [i] fixum s { varia t = s * 1.4140625; redde t }"
+}

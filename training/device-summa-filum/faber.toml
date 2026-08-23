@@ -1,0 +1,25 @@
+# SFR-6 distributed-sum proof package (summa-filum-reduction).
+[package]
+name = "device-summa-filum"
+version = "0.1.0"
+edition = "2026"
+
+[paths]
+source = "src"
+entry = "device_summa_filum.fab"
+
+[build]
+target = "fmir"
+kind = "bin"
+
+# The device surface opt-in (same convention as device-summa): `auto`
+# resolves against the machine's admitted backends at run time;
+# `--backend metal` on the command line overrides this.
+[device]
+backend = "auto"
+inputs = { a = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25] }
+
+[reader]
+# la (same as device-summa): the package source uses the Latin keyword
+# surface (functio/fixum/varia/…).
+locale = "la"
