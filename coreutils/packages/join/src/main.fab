@@ -44,7 +44,7 @@
 # Backend: stepper+Rust
 # =============================================================================
 
-importa ex "norma:solum" privata solum
+importa ex "norma:fs" privata solum
 importa ex "§gnu/stdio" privata gnu_stdio
 
 genus JoinOptiones {

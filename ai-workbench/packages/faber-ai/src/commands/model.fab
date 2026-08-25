@@ -1,7 +1,7 @@
 # Model inventory and metadata commands for the Faber AI workbench.
 
 importa ex "norma:json" privata json
-importa ex "norma:solum" privata solum
+importa ex "norma:fs" privata solum
 importa ex "norma:model" privata model
 
 @ json

@@ -32,7 +32,7 @@
 # Stage: Stage 3, file-operand via solum
 # Backend: stepper
 # =============================================================================
-importa ex "norma:solum" privata solum
+importa ex "norma:fs" privata solum
 importa ex "§gnu/stdio" privata gnu_stdio
 
 functio readlink_simplex(lista<textus> paths) → vacuum {

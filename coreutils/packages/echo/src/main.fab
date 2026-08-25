@@ -50,7 +50,7 @@
 #   After:  printf
 # =============================================================================
 
-importa ex "norma:consolum" consolum
+importa ex "norma:console" consolum
 importa ex "§gnu/format" gnu_format
 importa ex "§gnu/stdio" gnu_stdio
 
@@ -152,7 +152,7 @@ functio echo_novam_lineam(lista<textus> args) → bivalens {
 }
 
 # Raw no-newline write. Called from the package entry so package-MIR links
-# `norma:consolum.dic` as a kernel provider (shared common/* units currently
+# `norma:console.dic` as a kernel provider (shared common/* units currently
 # leave that call as an unresolved package provider under --interpret).
 functio scribe_sine_linea(textus textus) → vacuum {
     consolum.dic(textus)

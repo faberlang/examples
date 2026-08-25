@@ -63,7 +63,7 @@
 # =============================================================================
 
 importa ex "norma:json" privata json
-importa ex "norma:solum" privata solum
+importa ex "norma:fs" privata solum
 importa ex "sqlite:sqlite" privata sqlite
 
 genus Store {

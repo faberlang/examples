@@ -5,7 +5,7 @@
 # What this example teaches:
 #   • `fac`/`cape` (try/catch) — error handling around `processus.lege` for
 #     missing environment variables, swallowing the error with `tacet`
-#   • `norma:processus` import — calling into the standard library for
+#   • `norma:process` import — calling into the standard library for
 #     process-level operations
 #   • `itera` over CLI `@ operandus` — processing variable-length operand lists
 #     from the framework parser
@@ -41,7 +41,7 @@
 # Stage: Stage 3, named-operand slice via processus, full env dump deferred
 # Backend: stepper
 # =============================================================================
-importa ex "norma:processus" privata processus
+importa ex "norma:process" privata processus
 importa ex "§gnu/stdio" privata gnu_stdio
 
 functio printenv_nomen(textus nomen) → vacuum {

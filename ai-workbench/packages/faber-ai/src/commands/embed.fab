@@ -1,8 +1,8 @@
 # MiniLM embedding command contract for Stage 2.
 
 importa ex "norma:json" privata json
-importa ex "norma:solum" privata solum
-importa ex "norma:processus" privata processus
+importa ex "norma:fs" privata solum
+importa ex "norma:process" privata processus
 
 @ json
 @ privata

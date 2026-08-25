@@ -19,9 +19,9 @@ locale = "la"
 #
 # Implementation notes:
 #   Line output uses language `nota` (implicit newline). Raw no-newline writes —
-#   package-MIR currently bridges `norma:consolum.dic` only when the call lives
+#   package-MIR currently bridges `norma:console.dic` only when the call lives
 #   in a package unit whose providers are rewritten (see echo `scribe_sine_linea`).
-#   Prefer importing `norma:consolum` in the package entry until shared `common/*`
+#   Prefer importing `norma:console` in the package entry until shared `common/*`
 #   library providers rewrite correctly.
 #
 # Alternate approaches (not shown):
@@ -31,7 +31,7 @@ locale = "la"
 #     warnings and error messages
 #
 # Anti-patterns (avoid these):
-#   • Calling norma:consolum from shared common/* helpers — providers are not yet
+#   • Calling norma:console from shared common/* helpers — providers are not yet
 #     rewritten correctly for shared library units; prefer importing at the
 #     package entry point (see anti-patterns: retired host-abstraction imports)
 #

@@ -32,7 +32,7 @@
 # Backend: stepper+Rust
 # =============================================================================
 
-importa ex "norma:solum" privata solum
+importa ex "norma:fs" privata solum
 
 functio crea_directoria(lista<textus> paths) → vacuum {
     itera ex paths fixum path {

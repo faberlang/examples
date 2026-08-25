@@ -56,8 +56,8 @@
 # Stage: Stage 2-4, stdin/file parity, stepper+Rust
 # Backend: stepper+Rust
 # =============================================================================
-importa ex "norma:consolum" privata consolum
-importa ex "norma:processus" privata processus
+importa ex "norma:console" privata consolum
+importa ex "norma:process" privata processus
 
 functio printf_escape(textus s) → textus {
     varia textus out ← ""
