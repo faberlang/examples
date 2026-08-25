@@ -1,11 +1,11 @@
 # Faber AI workbench command surface.
 
-importa ex "./commands/model" privata * ut modelModule
-importa ex "./commands/embed" privata * ut embedModule
-importa ex "./commands/index" privata * ut indexModule
-importa ex "./commands/query" privata * ut queryModule
-importa ex "./commands/generate" privata * ut generateModule
-importa ex "./commands/chat" privata * ut chatModule
+importa ex "./commands/model" * ut modelModule
+importa ex "./commands/embed" * ut embedModule
+importa ex "./commands/index" * ut indexModule
+importa ex "./commands/query" * ut queryModule
+importa ex "./commands/generate" * ut generateModule
+importa ex "./commands/chat" * ut chatModule
 
 @ cli "faber-ai"
 @ versio "0.1.0"
