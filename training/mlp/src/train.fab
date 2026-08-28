@@ -6,8 +6,8 @@
 # Migrated from inline layer/loss/SGD expressions to Gradus (S4-B,
 # radix/docs/factory/gpu-training-lowering/stage-4-delivery.md); evolved to the
 # Stage 5 device product fixture (S5-U7, stage-5-delivery.md):
-#   nn.linear_4x4          forward linear layer     y = x·W + b
-#   nn.gelu_4x4            GELU activation
+#   nn.linear              forward linear layer     y = x·W + b
+#   nn.gelu                GELU activation
 #   loss.mse_4x4           mean squared error       mean((pred − target)²)
 #   train.train_step_4x4   SGD update of weight1/bias1/weight2/bias2 from
 #                          explicit gradients
@@ -49,9 +49,9 @@
 # Build: faber run -t fmir examples/training/mlp/
 # =============================================================================
 
-importa ex "gradus:nn" privata nn
-importa ex "gradus:loss" privata loss
-importa ex "gradus:train" privata train
+importa ex "gradus:nn" nn
+importa ex "gradus:loss" loss
+importa ex "gradus:train" train
 
 # -------------------------------------------------------------------------
 # Differentiable forward: mlp_loss
@@ -147,9 +147,9 @@ incipit {
 
     itera ab 0‥steps fixum step {
         # Forward + loss via the Gradus surface.
-        fixum tensor<f32, [4,4]> h1b ← nn.linear_4x4(input, weight1, bias1)
-        fixum tensor<f32, [4,4]> a1  ← nn.gelu_4x4(h1b)
-        fixum tensor<f32, [4,4]> h2b ← nn.linear_4x4(a1, weight2, bias2)
+        fixum tensor<f32, [4,4]> h1b ← nn.linear(input, weight1, bias1)
+        fixum tensor<f32, [4,4]> a1  ← nn.gelu(h1b)
+        fixum tensor<f32, [4,4]> h2b ← nn.linear(a1, weight2, bias2)
         fixum f32 loss_val ← loss.mse_4x4(h2b, target)
         loss_trace.appende(loss_val)
 

@@ -149,9 +149,9 @@ incipit {
 
     itera ab 0‥steps fixum step {
         # Forward + loss via the Gradus surface (mirrors src/train.fab).
-        fixum tensor<f32, [4,4]> h1b ← nn.linear_4x4(input, weight1, bias1)
-        fixum tensor<f32, [4,4]> a1  ← nn.gelu_4x4(h1b)
-        fixum tensor<f32, [4,4]> h2b ← nn.linear_4x4(a1, weight2, bias2)
+        fixum tensor<f32, [4,4]> h1b ← nn.linear(input, weight1, bias1)
+        fixum tensor<f32, [4,4]> a1  ← nn.gelu(h1b)
+        fixum tensor<f32, [4,4]> h2b ← nn.linear(a1, weight2, bias2)
         fixum f32 loss_val ← loss.mse_4x4(h2b, target)
         loss_trace.appende(loss_val)
 
