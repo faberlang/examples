@@ -23,7 +23,7 @@ files are that reference.
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.1`, Wave A5; `mlp_loss` returns `f32` — explicit f32 loss contract) via the Gradus static-shape surface (S4-B/S5-U7): `nn.linear_4x4` forward, `nn.gelu_4x4`, `loss.mse_4x4`, `train.train_step_4x4` update |
+| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.1`, Wave A5; `mlp_loss` returns `f32` — explicit f32 loss contract) via the Gradus static-shape surface (S4-B/S5-U7): shape-generic `nn.linear` forward and `nn.gelu` (instantiated [4,4] at the call site), `loss.mse_4x4`, `train.train_step_4x4` update |
 | trainable | `weight1` [4,4], `bias1` [4,4], `weight2` [4,4], `bias2` [4,4] |
 | frozen | `input` [4,4], `target` [4,4] |
 | lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "mlp_backward"` (S5-U7 device marking; SEM059 shape) |
