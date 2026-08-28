@@ -4,7 +4,7 @@
 #
 # Migrated from inline layer/loss/SGD expressions to Gradus (S4-A,
 # radix/docs/factory/gpu-training-lowering/stage-4-delivery.md):
-#   nn.linear_2x2          forward linear layer     y = input·weight + bias
+#   nn.linear              forward linear layer     y = input·weight + bias
 #   loss.mse_2x2           mean squared error       mean((pred − target)²)
 #   train.train_step_2x2   SGD update of weight+bias from explicit gradients
 #
@@ -90,13 +90,7 @@ incipit {
 
     itera ab 0‥steps fixum step {
         # Forward + loss via the Gradus surface.
-        varia tensor<f32, [2,2]> pred ← input
-        fac {
-            pred ← nn.linear_2x2(input, weight, bias)
-        }
-        cape err {
-            pred ← input
-        }
+        varia tensor<f32, [2,2]> pred ← nn.linear(input, weight, bias)
         fixum f32 loss_val ← loss.mse_2x2(pred, target)
         loss_trace.appende(loss_val)
 
