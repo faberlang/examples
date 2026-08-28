@@ -18,9 +18,9 @@ broadcasting (`stage-6-delivery.md` §S6-U8):
 
 - the loss lane gained `@ nucleum` (alongside the existing `@ radix lane "air"`
   + `@ radix backward "bert_tiny_backward"`);
-- the loop calls the S6-G1 Gradus surface (`nn.layernorm_2x8` /
-  `nn.linear_2x8` / `nn.gelu`, `attention.scaled_dot_product_static`,
-  `loss.mse_2x8`, `train.train_step_bert_linear` / `train_step_bert_layernorm`);
+- the loop calls the shape-generic Gradus surface (`nn.layernorm<T,D>` /
+  `nn.linear_channel<M,K,N>` / `nn.gelu`, `attention.scaled_dot_product_static`,
+  `loss.mse<M,N>`, `optimize.sgd_step<Figura>` list form);
 - biases are per-channel `[8]` via the S6-C2 `addita_bias` rank-extension add —
   the fragment's `[2,8]` duplicated-row workaround is gone (18 trainable
   tensors, 480 floats);
