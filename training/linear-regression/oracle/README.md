@@ -20,7 +20,7 @@ per element against these references using the frozen numeric policy in
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | 2×2 linear + bias + MSE, 8-step SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-A): `nn.linear_2x2` forward, `loss.mse_2x2`, `train.train_step_2x2` update |
+| model | 2×2 linear + bias + MSE, 8-step SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-A): shape-generic `nn.linear` forward (instantiated [2,2] at the call site), `loss.mse_2x2`, `train.train_step_2x2` update |
 | trainable | `weight` [2,2], `bias` [2,2] |
 | frozen | `input` [2,2], `target` [2,2] |
 | companion | `@ radix backward "linear_backward"` (AIR-generated, CPU FMIR stepper) |
