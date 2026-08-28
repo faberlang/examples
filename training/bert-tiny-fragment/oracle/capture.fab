@@ -21,7 +21,7 @@
 # device marking is omitted (the MLP S5-U7 convention: a CPU oracle capture
 # runner carries no device kernel) and `nota` lines plus one OBSERVATIONAL
 # attention-intermediate block were added. The observational block recomputes
-# the sub-expressions the inlined attention.scaled_dot_product_2x8 executes
+# the sub-expressions the inlined attention.scaled_dot_product_static executes
 # (scores = qb@kt, scaled = scores·dk_scale, softmax) — byte-identical values,
 # exposed solely so the exit-gate score/softmax intermediates can be captured.
 # Softmax row sums and gradient L2 norms are derived from the captured tensors
@@ -387,7 +387,7 @@ incipit {
         fixum tensor<f32, [2, 8]> vb  ← nn.linear_2x8(ln1, wv, bv)
         # ---- OBSERVATIONAL (capture only) -------------------------------
         # Recompute the attention sub-expressions the inlined
-        # attention.scaled_dot_product_2x8 executes (scores = qb@kt,
+        # attention.scaled_dot_product_static executes (scores = qb@kt,
         # scaled = scores·dk_scale, softmax) — byte-identical values, exposed
         # solely so the exit-gate score/softmax intermediates can be captured.
         fixum tensor<f32, [8, 2]> kt_obs     ← kb.transpone()
@@ -395,12 +395,12 @@ incipit {
         fixum tensor<f32, [2, 2]> scaled_obs ← scores_obs ⊙ dk_scale
         fixum tensor<f32, [2, 2]> attn_obs   ← scaled_obs.activatio_softmax()
 
-        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_2x8(qb, kb, vb, dk_scale)
+        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_static(qb, kb, vb, dk_scale)
         fixum tensor<f32, [2, 8]> aob ← nn.linear_2x8(ctx, wo, bo)
         fixum tensor<f32, [2, 8]> r1  ← input.addita(aob)
         fixum tensor<f32, [2, 8]> ln2 ← nn.layernorm_2x8(r1, ln2_s, ln2_o)
         fixum tensor<f32, [2, 8]> h1b ← nn.linear_2x8(ln2, wf1, bf1)
-        fixum tensor<f32, [2, 8]> a1  ← nn.gelu_2x8(h1b)
+        fixum tensor<f32, [2, 8]> a1  ← nn.gelu(h1b)
         fixum tensor<f32, [2, 8]> h2b ← nn.linear_2x8(a1, wf2, bf2)
         fixum tensor<f32, [2, 8]> r2  ← ln2.addita(h2b)
         fixum tensor<f32, [2, 8]> ln3 ← nn.layernorm_2x8(r2, ln3_s, ln3_o)

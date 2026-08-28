@@ -26,8 +26,8 @@
 #
 # Gradus surface exercised from the loop (package→library calls, the S6-G1
 # surface as validated by the bert-gradus-probe):
-#   nn.layernorm_2x8 / nn.linear_2x8 / nn.gelu_2x8   leaf primitives
-#   attention.scaled_dot_product_2x8  scaled dot-product attention
+#   nn.layernorm_2x8 / nn.linear_2x8 / nn.gelu   leaf primitives
+#   attention.scaled_dot_product_static  scaled dot-product attention
 #   loss.mse_2x8                      MSE loss
 #   train.train_step_bert_linear / _layernorm
 #                                     SGD update of the 18-trainable set
@@ -363,12 +363,12 @@ incipit {
         fixum tensor<f32, [2, 8]> qb  ← nn.linear_2x8(ln1, wq, bq)
         fixum tensor<f32, [2, 8]> kb  ← nn.linear_2x8(ln1, wk, bk)
         fixum tensor<f32, [2, 8]> vb  ← nn.linear_2x8(ln1, wv, bv)
-        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_2x8(qb, kb, vb, dk_scale)
+        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_static(qb, kb, vb, dk_scale)
         fixum tensor<f32, [2, 8]> aob ← nn.linear_2x8(ctx, wo, bo)
         fixum tensor<f32, [2, 8]> r1  ← input.addita(aob)
         fixum tensor<f32, [2, 8]> ln2 ← nn.layernorm_2x8(r1, ln2_s, ln2_o)
         fixum tensor<f32, [2, 8]> h1b ← nn.linear_2x8(ln2, wf1, bf1)
-        fixum tensor<f32, [2, 8]> a1  ← nn.gelu_2x8(h1b)
+        fixum tensor<f32, [2, 8]> a1  ← nn.gelu(h1b)
         fixum tensor<f32, [2, 8]> h2b ← nn.linear_2x8(a1, wf2, bf2)
         fixum tensor<f32, [2, 8]> r2  ← ln2.addita(h2b)
         fixum tensor<f32, [2, 8]> ln3 ← nn.layernorm_2x8(r2, ln3_s, ln3_o)

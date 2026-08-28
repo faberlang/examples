@@ -12,8 +12,8 @@
 #
 # Gradus surface exercised from the loop (package→library calls):
 #   transformer.bert_tiny_block_2x8   full block → pre-loss LN output
-#   nn.layernorm_2x8 / nn.linear_2x8 / nn.gelu_2x8   leaf primitives
-#   attention.scaled_dot_product_2x8  scaled dot-product attention
+#   nn.layernorm_2x8 / nn.linear_2x8 / nn.gelu   leaf primitives
+#   attention.scaled_dot_product_static  scaled dot-product attention
 #   loss.mse_2x8                      MSE loss
 #   train.train_step_bert_linear / _layernorm
 #                                     SGD update of the 18-trainable set
@@ -357,7 +357,7 @@ incipit {
         block_trace.appende(block_loss)
 
         # Forward via the composed leaf surface (nn + attention leaves).
-        # nn.linear_2x8 / layernorm_2x8 / gelu_2x8 return ⇥ NnError; handle
+        # nn.linear_2x8 / layernorm_2x8 return ⇥ NnError; handle
         # like examples/training/linear-regression (fac/cape).
         varia tensor<f32, [2, 8]> ln1 ← input
         fac {
@@ -387,7 +387,7 @@ incipit {
         cape err {
             vb ← ln1
         }
-        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_2x8(qb, kb, vb, dk_scale)
+        fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_static(qb, kb, vb, dk_scale)
         varia tensor<f32, [2, 8]> aob ← ctx
         fac {
             aob ← nn.linear_2x8(ctx, wo, bo)
@@ -410,13 +410,7 @@ incipit {
         cape err {
             h1b ← ln2
         }
-        varia tensor<f32, [2, 8]> a1 ← h1b
-        fac {
-            a1 ← nn.gelu_2x8(h1b)
-        }
-        cape err {
-            a1 ← h1b
-        }
+        fixum tensor<f32, [2, 8]> a1 ← nn.gelu(h1b)
         varia tensor<f32, [2, 8]> h2b ← a1
         fac {
             h2b ← nn.linear_2x8(a1, wf2, bf2)
