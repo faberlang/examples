@@ -3,7 +3,7 @@
 # =============================================================================
 #
 # Provenance: an exact copy of src/train.fab (S4-A migration onto the Gradus
-# static-shape surface) with ADDED `nota` statements so the deterministic
+# generic surface) with ADDED `nota` statements so the deterministic
 # CPU/FMIR oracle reference can be captured in full:
 #   1. initial params/inputs          (nota "initial_*" before the loop)
 #   2. the 8-step loss trace          (nota loss per step, plus the fixture's
@@ -14,7 +14,7 @@
 #   4. final params                   (nota "final_*" after the loop)
 #
 # The arithmetic below is byte-identical to src/train.fab (forward/loss via
-# gradus:nn/gradus:loss, update via gradus:train); only `nota` lines were
+# gradus:nn/gradus:loss, update via gradus:optimize); only `nota` lines were
 # added. Regenerate this file's captured output with:
 #   faber run -t fmir oracle/capture.fab
 # from the package directory (examples/training/linear-regression/).
@@ -22,9 +22,9 @@
 # See oracle/README.md for the capture schema and validation rules.
 # =============================================================================
 
-importa ex "gradus:nn" privata nn
-importa ex "gradus:loss" privata loss
-importa ex "gradus:train" privata train
+importa ex "gradus:nn" nn
+importa ex "gradus:loss" loss
+importa ex "gradus:optimize" optimize
 
 # -------------------------------------------------------------------------
 # Differentiable forward: loss = mean((input·weight + bias − target)²)
@@ -90,7 +90,7 @@ incipit {
     itera ab 0‥steps fixum step {
         # Forward + loss via the Gradus surface.
         varia tensor<f32, [2,2]> pred ← nn.linear(input, weight, bias)
-        fixum f32 loss_val ← loss.mse_2x2(pred, target)
+        fixum f32 loss_val ← loss.mse(pred, target)
         loss_trace.appende(loss_val)
 
         # ---- CAPTURE: per-step loss -------------------------------------
@@ -114,10 +114,11 @@ incipit {
         nota "grad_target"
         nota gt
 
-        # Update via Gradus training step (explicit params + gradients + lr).
-        fixum [nw, nb] ← train.train_step_2x2(weight, bias, gw, gb, lr)
-        weight ← nw
-        bias ← nb
+        # Update via the generic Gradus optimizer (explicit params + gradients + lr).
+        fixum lista<tensor<f32, [2,2]>> updated ← optimize.sgd_step(
+            [weight, bias], [gw, gb], lr)
+        weight ← updated[0]
+        bias ← updated[1]
     }
 
     # ---- CAPTURE: final params ------------------------------------------

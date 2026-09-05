@@ -20,7 +20,7 @@ per element against these references using the frozen numeric policy in
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | 2×2 linear + bias + MSE, 8-step SGD (`lr = 0.01`) via the Gradus static-shape surface (S4-A): shape-generic `nn.linear` forward (instantiated [2,2] at the call site), `loss.mse_2x2`, `train.train_step_2x2` update |
+| model | 2×2 linear + bias + MSE, 8-step SGD (`lr = 0.01`) via the Gradus generic surface (S4-A): shape-generic `nn.linear` forward (instantiated [2,2] at the call site), `loss.mse`, `optimize.sgd_step` update |
 | trainable | `weight` [2,2], `bias` [2,2] |
 | frozen | `input` [2,2], `target` [2,2] |
 | companion | `@ radix backward "linear_backward"` (AIR-generated, CPU FMIR stepper) |
@@ -138,8 +138,8 @@ probe); acceptance per element via the gradient rule.
 
 ### S4-A migration (2026-08-04, Gradus surface — pinned release faber v1.4.0)
 
-The S4-A migration changed `src/train.fab` (inline SGD → `gradus:nn` /
-`gradus:loss` / `gradus:train`) and regenerated `oracle/capture.fab` as the
+The S4-A migration changed `src/train.fab` (inline SGD → the Gradus `nn`,
+loss, and optimizer surfaces) and regenerated `oracle/capture.fab` as the
 instrumented copy of the migrated source. The captured oracle is **unchanged
 byte-for-byte**; no oracle assertion was weakened.
 

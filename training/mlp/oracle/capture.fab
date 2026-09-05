@@ -37,9 +37,9 @@
 # See oracle/README.md for the capture schema and validation rules.
 # =============================================================================
 
-importa ex "gradus:nn" privata nn
-importa ex "gradus:loss" privata loss
-importa ex "gradus:train" privata train
+importa ex "gradus:nn" nn
+importa ex "gradus:loss" loss
+importa ex "gradus:optimize" optimize
 
 # -------------------------------------------------------------------------
 # Differentiable forward: mlp_loss
@@ -152,7 +152,7 @@ incipit {
         fixum tensor<f32, [4,4]> h1b ← nn.linear(input, weight1, bias1)
         fixum tensor<f32, [4,4]> a1  ← nn.gelu(h1b)
         fixum tensor<f32, [4,4]> h2b ← nn.linear(a1, weight2, bias2)
-        fixum f32 loss_val ← loss.mse_4x4(h2b, target)
+        fixum f32 loss_val ← loss.mse(h2b, target)
         loss_trace.appende(loss_val)
 
         # ---- CAPTURE: per-step loss -------------------------------------
@@ -178,14 +178,14 @@ incipit {
         nota "grad_target"
         nota gt
 
-        # Update via Gradus training step (explicit params + gradients + lr).
-        fixum [nw1, nb1, nw2, nb2] ← train.train_step_4x4(
-            weight1, bias1, weight2, bias2,
-            gw1, gb1, gw2, gb2, lr)
-        weight1 ← nw1
-        bias1 ← nb1
-        weight2 ← nw2
-        bias2 ← nb2
+        # Update via the generic Gradus optimizer (explicit params + gradients + lr).
+        fixum lista<tensor<f32, [4,4]>> updated ← optimize.sgd_step(
+            [weight1, bias1, weight2, bias2],
+            [gw1, gb1, gw2, gb2], lr)
+        weight1 ← updated[0]
+        bias1 ← updated[1]
+        weight2 ← updated[2]
+        bias2 ← updated[3]
     }
 
     # ---- CAPTURE: final params ------------------------------------------

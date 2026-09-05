@@ -1,6 +1,6 @@
 # =============================================================================
 # train.fab — S5-U7: two-layer MLP (linear + GELU + linear + MSE) on the Gradus
-# static-shape surface, 100-step device product fixture
+# generic surface, 100-step device product fixture
 # =============================================================================
 #
 # Migrated from inline layer/loss/SGD expressions to Gradus (S4-B,
@@ -8,8 +8,8 @@
 # Stage 5 device product fixture (S5-U7, stage-5-delivery.md):
 #   nn.linear              forward linear layer     y = x·W + b
 #   nn.gelu                GELU activation
-#   loss.mse_4x4           mean squared error       mean((pred − target)²)
-#   train.train_step_4x4   SGD update of weight1/bias1/weight2/bias2 from
+#   loss.mse               mean squared error       mean((pred − target)²)
+#   optimize.sgd_step       SGD update of weight1/bias1/weight2/bias2 from
 #                          explicit gradients
 #
 # The package-owned differentiated function retains its ONE explicit
@@ -19,7 +19,7 @@
 # Device marking: the lane function carries @ nucleum (SEM059, @ nucleum +
 # @ radix lane "air" + @ radix backward), so the device constructor admits it
 # as the compute lane alongside its generated companion and the Gradus
-# train_step the loop calls. The manifest [device] section declares the
+# optimize.sgd_step call the loop makes. The manifest [device] section declares the
 # backend selection ("auto"), the trainable/frozen host inputs, and the step
 # count (steps = 100) — validated against the source loop bound below.
 #
@@ -35,7 +35,7 @@
 # returning gradients for all six params (input, w1, b1, w2, b2, target).
 # Trainable: weight1, bias1, weight2, bias2. Frozen: input, target.
 #
-# Multi-step: iterates 100 steps with backward pass + Gradus training step,
+# Multi-step: iterates 100 steps with backward pass + generic optimizer step,
 # records loss trace, notas the trace.
 #
 # Ops exercised (8 of 15 AIR tensor ops):
@@ -51,7 +51,7 @@
 
 importa ex "gradus:nn" nn
 importa ex "gradus:loss" loss
-importa ex "gradus:train" train
+importa ex "gradus:optimize" optimize
 
 # -------------------------------------------------------------------------
 # Differentiable forward: mlp_loss
@@ -150,7 +150,7 @@ incipit {
         fixum tensor<f32, [4,4]> h1b ← nn.linear(input, weight1, bias1)
         fixum tensor<f32, [4,4]> a1  ← nn.gelu(h1b)
         fixum tensor<f32, [4,4]> h2b ← nn.linear(a1, weight2, bias2)
-        fixum f32 loss_val ← loss.mse_4x4(h2b, target)
+        fixum f32 loss_val ← loss.mse(h2b, target)
         loss_trace.appende(loss_val)
 
         # Backward pass via compiler-generated companion
@@ -158,14 +158,14 @@ incipit {
                                      target, nil(), upstream)
         fixum [_, gw1, gb1, gw2, gb2, _] ← grads
 
-        # Update via Gradus training step (explicit params + gradients + lr).
-        fixum [nw1, nb1, nw2, nb2] ← train.train_step_4x4(
-            weight1, bias1, weight2, bias2,
-            gw1, gb1, gw2, gb2, lr)
-        weight1 ← nw1
-        bias1 ← nb1
-        weight2 ← nw2
-        bias2 ← nb2
+        # Update via the generic Gradus optimizer (explicit params + gradients + lr).
+        fixum lista<tensor<f32, [4,4]>> updated ← optimize.sgd_step(
+            [weight1, bias1, weight2, bias2],
+            [gw1, gb1, gw2, gb2], lr)
+        weight1 ← updated[0]
+        bias1 ← updated[1]
+        weight2 ← updated[2]
+        bias2 ← updated[3]
     }
 
     nota loss_trace

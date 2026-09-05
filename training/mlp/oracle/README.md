@@ -23,7 +23,7 @@ files are that reference.
 | | |
 |---|---|
 | entry | `src/train.fab` |
-| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.1`, Wave A5; `mlp_loss` returns `f32` — explicit f32 loss contract) via the Gradus static-shape surface (S4-B/S5-U7): shape-generic `nn.linear` forward and `nn.gelu` (instantiated [4,4] at the call site), `loss.mse_4x4`, `train.train_step_4x4` update |
+| model | two-layer MLP: `linear(4×4→4×4) + GELU + linear(4×4→4×4) + MSE`, **100-step** SGD (`lr = 0.1`, Wave A5; `mlp_loss` returns `f32` — explicit f32 loss contract) via the Gradus generic surface (S4-B/S5-U7): shape-generic `nn.linear` forward and `nn.gelu` (instantiated [4,4] at the call site), `loss.mse`, `optimize.sgd_step` update |
 | trainable | `weight1` [4,4], `bias1` [4,4], `weight2` [4,4], `bias2` [4,4] |
 | frozen | `input` [4,4], `target` [4,4] |
 | lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "mlp_backward"` (S5-U7 device marking; SEM059 shape) |
@@ -168,8 +168,8 @@ probe); acceptance per element via the gradient rule.
 
 ### S4-B migration (2026-08-04, Gradus surface — pinned release faber v1.4.0)
 
-The S4-B migration changed `src/train.fab` (inline SGD → `gradus:nn` /
-`gradus:loss` / `gradus:train` 4×4 calls) and regenerated `oracle/capture.fab`
+The S4-B migration changed `src/train.fab` (inline SGD → the Gradus `nn`,
+loss, and optimizer surfaces for the 4×4 calls) and regenerated `oracle/capture.fab`
 as the instrumented copy of the migrated source. The captured oracle is
 **unchanged byte-for-byte**; no oracle assertion was weakened.
 
@@ -215,7 +215,7 @@ frozen-slot gradients be captured).
 Wave A5 (Stage 5 findings P0-1 step 2 + P0-2) changed `src/train.fab` in two
 places and re-captured the oracle once:
 1. **P0-1 step 2** — `mlp_loss` return type `fractus` → `f32`: the arithmetic
-   was already f32 (`loss.mse_4x4` returns f32; the strict-f32 replay passed),
+   was already f32 (`loss.mse` returns f32; the strict-f32 replay passed),
    so the declared `fractus` (f64) return hid a latent f64 ABI reject. The
    declared return type now matches the executed contract, so the generated
    companion's upstream is f32. The typing change does **not** alter the
