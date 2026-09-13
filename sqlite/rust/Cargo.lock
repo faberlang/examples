@@ -84,7 +84,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "faber-runtime"
+name = "faber"
 version = "0.1.0"
 dependencies = [
  "regex",
@@ -94,7 +94,7 @@ dependencies = [
 name = "faber-sqlite-binding"
 version = "0.1.0"
 dependencies = [
- "faber-runtime",
+ "faber",
  "rusqlite",
  "sha2",
 ]
