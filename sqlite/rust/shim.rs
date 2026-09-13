@@ -10,6 +10,10 @@ use std::collections::BTreeMap;
 ///
 /// Returns `Err` if the database cannot be opened, if parameter binding
 /// fails, or if SQL execution fails.
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the `sqlite:sqlite.exsequi` Faber binding ABI passes owned `textus` and `lista<valor>` values"
+)]
 pub fn exsequi(via: String, sql: String, params: Vec<Valor>) -> Result<Valor, String> {
     let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
@@ -82,6 +86,10 @@ fn read_batch_statement(statement: Valor) -> Result<(String, Vec<Value>), String
 /// Returns `Err` if the database cannot be opened, if SQL preparation
 /// fails, if parameter binding fails, or if query execution or row
 /// reading fails.
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the `sqlite:sqlite.quaere` Faber binding ABI passes owned `textus` and `lista<valor>` values"
+)]
 pub fn quaere(via: String, sql: String, params: Vec<Valor>) -> Result<Vec<Valor>, String> {
     let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
@@ -104,6 +112,10 @@ pub fn quaere(via: String, sql: String, params: Vec<Valor>) -> Result<Vec<Valor>
 /// Returns `Err` if the database cannot be opened, if SQL preparation
 /// fails, if parameter binding fails, or if query execution or value
 /// reading fails.
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the `sqlite:sqlite.scalar` Faber binding ABI passes owned `textus` and `lista<valor>` values"
+)]
 pub fn scalar(via: String, sql: String, params: Vec<Valor>) -> Result<Option<Valor>, String> {
     let connection = Connection::open(via).map_err(|e| sqlite_error(&e))?;
     let params = bind_values(params)?;
@@ -180,7 +192,7 @@ fn parse_transaction_step(step: Valor, index: usize) -> Result<(String, Vec<Valo
     Ok((sql, params))
 }
 
-#[must_use] 
+#[must_use]
 pub fn sha256_hex(bytes: Vec<u8>) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
