@@ -24,8 +24,8 @@
 #   • `dum` — while loops (passim)
 #   • `itera` — for-each over list (lines 857, 862, 869, etc.)
 #   • `probandum`/`proba`/`adfirma` — tests (lines 916-998)
-#   • `@ cli` / `@ descriptio` — CLI declarations (not shown, would be at end)
-#   • `incipit` — entry point (not shown)
+#   • `@ cli` / `@ descriptio` / `@ operandus` — CLI declarations (end of file)
+#   • `incipit` — entry point (end of file)
 #   • `functio` — function definitions (passim)
 #   • `fixum` / `varia` — bindings (passim)
 #   • `textus`, `numerus`, `bivalens`, `lista<...>`, `vacuum` — types (passim)
@@ -355,7 +355,7 @@ functio argumentum_float_textus(lista<textus> args, numerus index) → textus {
 }
 
 functio nuntia_malum_numericum(textus raw) → vacuum {
-    consolum.mone("/usr/bin/printf: '§': expected a numeric value"(raw))
+    consolum.mone("/usr/bin/printf: ‘§’: expected a numeric value"(raw))
 }
 
 functio nuntia_si_malum_integer(lista<textus> args, numerus index) → bivalens {
@@ -1053,5 +1053,14 @@ probandum "printf formatting" tag "coreutils" {
         adfirma printf_textus(["%.2e\n", "99.99"]) ≡ "1.00e+02\n"
         adfirma printf_textus(["%.0e\n", "9.6"]) ≡ "1e+01\n"
         adfirma printf_textus(["%.2E\n", "0.01256"]) ≡ "1.26E-02\n"
+    }
+}
+
+@ cli "printf"
+@ descriptio "GNU coreutils printf parity exemplum"
+@ operandus ceteri textus operands
+incipit argumenta args {
+    si exsequere_printf(args.operands) {
+        processus.exi(1)
     }
 }
