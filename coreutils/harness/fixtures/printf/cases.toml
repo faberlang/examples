@@ -120,15 +120,23 @@ exit = 0
 stdout_newline = true
 
 [[case]]
+# Ruling (task beb78cbc): stderr records the portable coreutils form `printf: …`.
+# GNU derives the message prefix from argv[0]'s basename, so the live-GNU
+# comparison is host-dependent: Homebrew resolves gprintf (`gprintf:`), Linux
+# resolves /usr/bin/printf (`printf:`). skip_gnu waives only that machine
+# dependent prefix token; faber stdout, stderr, and exit stay asserted against
+# this fixture byte-for-byte. Without the flag the case passes verbatim on
+# hosts where gnu_binary resolves an unprefixed GNU printf.
 id = "invalid-decimal-integer"
 lane = "stepper"
 tier = "A"
 args = ["%d\\n", "abc"]
 stdin = ""
 stdout = "0\n"
-stderr = "/usr/bin/printf: ‘abc’: expected a numeric value\n"
+stderr = "printf: 'abc': expected a numeric value\n"
 exit = 1
 stdout_newline = true
+skip_gnu = true
 
 [[case]]
 id = "quoted-character-decimal"
@@ -159,9 +167,10 @@ tier = "A"
 args = ["%x\\n", "abc"]
 stdin = ""
 stdout = "0\n"
-stderr = "/usr/bin/printf: ‘abc’: expected a numeric value\n"
+stderr = "printf: 'abc': expected a numeric value\n"
 exit = 1
 stdout_newline = true
+skip_gnu = true  # same argv[0] prefix ruling as invalid-decimal-integer
 
 [[case]]
 id = "quoted-character-lower-hex"
@@ -291,9 +300,10 @@ tier = "A"
 args = ["%f\\n", "abc"]
 stdin = ""
 stdout = "0.000000\n"
-stderr = "/usr/bin/printf: ‘abc’: expected a numeric value\n"
+stderr = "printf: 'abc': expected a numeric value\n"
 exit = 1
 stdout_newline = true
+skip_gnu = true  # same argv[0] prefix ruling as invalid-decimal-integer
 
 [[case]]
 id = "float-integer-explicit-precision"

@@ -355,7 +355,7 @@ functio argumentum_float_textus(lista<textus> args, numerus index) → textus {
 }
 
 functio nuntia_malum_numericum(textus raw) → vacuum {
-    consolum.mone("/usr/bin/printf: ‘§’: expected a numeric value"(raw))
+    consolum.mone("printf: '§': expected a numeric value"(raw))
 }
 
 functio nuntia_si_malum_integer(lista<textus> args, numerus index) → bivalens {
