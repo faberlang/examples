@@ -149,8 +149,10 @@ functio crc32_tabula() → lista<numerus> {
         varia numerus t ← i ⇐ 24
         varia numerus j ← 0
         dum j < 8 {
-            si (t ∧ 2147483648) ≠ 0 {  # MSB test (0x80000000)
-                t ← ((t ⇐ 1) ⊻ 79764919) ∧ 4294967295  # CRC-32 polynomial 0xEDB88320; u32 bitmask 0xFFFFFFFF
+            # MSB test (0x80000000)
+            si (t ∧ 2147483648) ≠ 0 {
+                # CRC-32 polynomial 0xEDB88320; u32 bitmask 0xFFFFFFFF
+                t ← ((t ⇐ 1) ⊻ 79764919) ∧ 4294967295
             } secus {
                 t ← (t ⇐ 1) ∧ 4294967295
             }
