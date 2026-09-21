@@ -32,7 +32,7 @@
 # Backend: stepper+Rust
 # =============================================================================
 
-importa ex "norma:fs" privata solum
+importa ex "norma:fs" solum
 
 functio move_simplex(lista<textus> paths) → vacuum {
     si paths.longitudo() > 1 {

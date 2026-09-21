@@ -54,7 +54,7 @@
 #   After:  sort, tr
 # =============================================================================
 
-importa ex "§gnu/stdio" privata gnu_stdio
+importa ex "§gnu/stdio" gnu_stdio
 
 genus GrepOptiones {
     lista<textus> patterns

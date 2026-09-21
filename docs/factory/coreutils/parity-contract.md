@@ -28,7 +28,7 @@ Normalization (apply to both sides before compare):
 
 | Lane | Runner | When |
 | --- | --- | --- |
-| `stepper` | `faber run --interpret <package> -- <args>` | Inner DevCycle; default harness mode |
+| `stepper` | `faber run <package> -- <args>` (interpreted execution always) | Inner DevCycle; default harness mode |
 | `rust` | `faber build <package>` then run emitted binary with `<args>` | Utility ship-complete gate |
 
 Harness command (Stage 1 deliverable):

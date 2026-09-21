@@ -30,8 +30,8 @@
 # Stage: Stage 3, no-input operand via processus
 # Backend: stepper
 # =============================================================================
-importa ex "norma:process" privata processus
-importa ex "§gnu/stdio" privata gnu_stdio
+importa ex "norma:process" processus
+importa ex "§gnu/stdio" gnu_stdio
 
 @ cli "pwd"
 @ descriptio "GNU coreutils pwd parity exemplum"

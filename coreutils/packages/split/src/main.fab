@@ -51,8 +51,8 @@
 # Stage: Stage 3-4, stdin line-splitting to files via solum
 # Backend: stepper
 # =============================================================================
-importa ex "norma:fs" privata solum
-importa ex "§gnu/stdio" privata gnu_stdio
+importa ex "norma:fs" solum
+importa ex "§gnu/stdio" gnu_stdio
 
 functio lege_stdin_lineas() → lista<textus> {
     varia lista<textus> lineae ← vacua

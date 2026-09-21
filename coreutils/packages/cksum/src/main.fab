@@ -40,8 +40,8 @@
 # Backend: stepper+Rust
 # =============================================================================
 
-importa ex "§gnu/bytes" privata gnu_bytes
-importa ex "§gnu/stdio" privata gnu_stdio
+importa ex "§gnu/bytes" gnu_bytes
+importa ex "§gnu/stdio" gnu_stdio
 
 functio lege_octeti_stdin() → lista<numerus> {
     varia lista<numerus> bytes ← vacua

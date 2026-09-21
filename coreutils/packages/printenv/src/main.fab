@@ -13,7 +13,7 @@
 #     to the system environment
 #
 # Syntaxes used:
-#   • `importa` — module import with `privata` (line 1-2)
+#   • `importa` — module import (line 1-2)
 #   • `fac`/`cape` — try/catch error handling (lines 9-12)
 #   • `tacet` — silence/ignore error (line 12)
 #   • `si`/`ergo` — conditional (not used in this file directly)
@@ -41,8 +41,8 @@
 # Stage: Stage 3, named-operand slice via processus, full env dump deferred
 # Backend: stepper
 # =============================================================================
-importa ex "norma:process" privata processus
-importa ex "§gnu/stdio" privata gnu_stdio
+importa ex "norma:process" processus
+importa ex "§gnu/stdio" gnu_stdio
 
 functio printenv_nomen(textus nomen) → vacuum {
     fac {
