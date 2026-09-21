@@ -163,40 +163,40 @@ probandum "uniq adjacent grouping and output" tag "coreutils" {
         adfirma lineae_uniquae(empty, falsum, falsum, falsum, 0, 0, falsum) ≡ empty
     }
     proba "adjacent duplicates collapse by default" {
-        adfirma lineae_uniquae(["a", "a", "b", "a"], falsum, falsum, falsum, 0, 0, falsum) ≡ ["a", "b", "a"]
+        adfirma lineae_uniquae(["a", "a", "b", "a"], falsum, falsum, falsum, 0, 0, falsum) ≡ (["a", "b", "a"] ↦ lista<textus>)
     }
     proba "counts render in GNU uniq count shape" {
-        adfirma lineae_uniquae(["a", "a", "b"], verum, falsum, falsum, 0, 0, falsum) ≡ ["      2 a", "      1 b"]
+        adfirma lineae_uniquae(["a", "a", "b"], verum, falsum, falsum, 0, 0, falsum) ≡ (["      2 a", "      1 b"] ↦ lista<textus>)
     }
     proba "duplicate mode emits repeated groups only once" {
-        adfirma lineae_uniquae(["a", "a", "b", "c", "c"], falsum, verum, falsum, 0, 0, falsum) ≡ ["a", "c"]
+        adfirma lineae_uniquae(["a", "a", "b", "c", "c"], falsum, verum, falsum, 0, 0, falsum) ≡ (["a", "c"] ↦ lista<textus>)
     }
     proba "unique mode emits singleton groups" {
-        adfirma lineae_uniquae(["a", "a", "b", "a"], falsum, falsum, verum, 0, 0, falsum) ≡ ["b", "a"]
+        adfirma lineae_uniquae(["a", "a", "b", "a"], falsum, falsum, verum, 0, 0, falsum) ≡ (["b", "a"] ↦ lista<textus>)
     }
     proba "ignore case groups adjacent ASCII variants and preserves first spelling" {
-        adfirma lineae_uniquae(["Alpha", "alpha", "BETA", "beta", "Alpha"], falsum, falsum, falsum, 0, 0, verum) ≡ ["Alpha", "BETA", "Alpha"]
+        adfirma lineae_uniquae(["Alpha", "alpha", "BETA", "beta", "Alpha"], falsum, falsum, falsum, 0, 0, verum) ≡ (["Alpha", "BETA", "Alpha"] ↦ lista<textus>)
     }
     proba "ignore case counts adjacent ASCII variants" {
-        adfirma lineae_uniquae(["Alpha", "alpha", "ALPHA", "Beta"], verum, falsum, falsum, 0, 0, verum) ≡ ["      3 Alpha", "      1 Beta"]
+        adfirma lineae_uniquae(["Alpha", "alpha", "ALPHA", "Beta"], verum, falsum, falsum, 0, 0, verum) ≡ (["      3 Alpha", "      1 Beta"] ↦ lista<textus>)
     }
     proba "ignore case duplicate mode uses folded grouping" {
-        adfirma lineae_uniquae(["A", "a", "b", "B", "c"], falsum, verum, falsum, 0, 0, verum) ≡ ["A", "b"]
+        adfirma lineae_uniquae(["A", "a", "b", "B", "c"], falsum, verum, falsum, 0, 0, verum) ≡ (["A", "b"] ↦ lista<textus>)
     }
     proba "skip characters modifies only the comparison key" {
         adfirma clavis_uniqui("xxAlpha", 2, 0, falsum) ≡ "Alpha"
-        adfirma lineae_uniquae(["xxA", "yyA", "zzB", "qB"], falsum, falsum, falsum, 2, 0, falsum) ≡ ["xxA", "zzB", "qB"]
+        adfirma lineae_uniquae(["xxA", "yyA", "zzB", "qB"], falsum, falsum, falsum, 2, 0, falsum) ≡ (["xxA", "zzB", "qB"] ↦ lista<textus>)
     }
     proba "check width compares only leading key characters after skip" {
         adfirma clavis_uniqui("abc", 0, 2, falsum) ≡ "ab"
-        adfirma lineae_uniquae(["abc", "abd", "xyz", "xya"], falsum, falsum, falsum, 0, 2, falsum) ≡ ["abc", "xyz"]
+        adfirma lineae_uniquae(["abc", "abd", "xyz", "xya"], falsum, falsum, falsum, 0, 2, falsum) ≡ (["abc", "xyz"] ↦ lista<textus>)
     }
     proba "skip and ignore case compose after key slicing" {
         adfirma clavis_uniqui("xxAlpha", 2, 0, verum) ≡ "alpha"
-        adfirma lineae_uniquae(["xxAlpha", "yyalpha", "zzBeta"], falsum, falsum, falsum, 2, 0, verum) ≡ ["xxAlpha", "zzBeta"]
+        adfirma lineae_uniquae(["xxAlpha", "yyalpha", "zzBeta"], falsum, falsum, falsum, 2, 0, verum) ≡ (["xxAlpha", "zzBeta"] ↦ lista<textus>)
     }
     proba "width-limited counts use comparison key groups" {
-        adfirma lineae_uniquae(["abc", "abd", "xyz", "xya"], verum, falsum, falsum, 0, 2, falsum) ≡ ["      2 abc", "      2 xyz"]
+        adfirma lineae_uniquae(["abc", "abd", "xyz", "xya"], verum, falsum, falsum, 0, 2, falsum) ≡ (["      2 abc", "      2 xyz"] ↦ lista<textus>)
     }
     proba "non-positive width leaves key unlimited" {
         adfirma clavis_uniqui("abc", 0, 0, falsum) ≡ "abc"

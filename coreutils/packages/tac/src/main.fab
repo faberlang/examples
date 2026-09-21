@@ -83,13 +83,13 @@ probandum "tac line reversal" tag "coreutils" {
         adfirma verte_lineas(empty) ≡ empty
     }
     proba "one line stays in place" {
-        adfirma verte_lineas(["solo"]) ≡ ["solo"]
+        adfirma verte_lineas(["solo"]) ≡ (["solo"] ↦ lista<textus>)
     }
     proba "multiple lines reverse order" {
-        adfirma verte_lineas(["a", "b", "c"]) ≡ ["c", "b", "a"]
+        adfirma verte_lineas(["a", "b", "c"]) ≡ (["c", "b", "a"] ↦ lista<textus>)
     }
     proba "blank and repeated lines are preserved" {
-        adfirma verte_lineas(["same", "", "same"]) ≡ ["same", "", "same"]
+        adfirma verte_lineas(["same", "", "same"]) ≡ (["same", "", "same"] ↦ lista<textus>)
     }
 }
 

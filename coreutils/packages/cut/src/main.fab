@@ -208,7 +208,7 @@ functio cut_stdin(textus finitor, textus index_list, bivalens solum_finitas, biv
 
 probandum "cut field selection helpers" tag "coreutils" {
     proba "split keeps empty fields" {
-        adfirma discinde("a,,c", ",") ≡ ["a", "", "c"]
+        adfirma discinde("a,,c", ",") ≡ (["a", "", "c"] ↦ lista<textus>)
     }
     proba "single fields and comma lists select by input order" {
         adfirma secat_lineam("a,b,c", ",", "2", falsum) ≡ "b"

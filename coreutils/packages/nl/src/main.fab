@@ -131,26 +131,26 @@ functio nl_stdin(bivalens omnes, numerus initium, numerus incrementum, numerus l
 
 probandum "nl numbering and formatting" tag "coreutils" {
     proba "default mode numbers only non-empty lines" {
-        adfirma lineae_nl(["alpha", "", "beta"], falsum, 1, 1, 6, falsum) ≡ ["     1	alpha", "       ", "     2	beta"]
+        adfirma lineae_nl(["alpha", "", "beta"], falsum, 1, 1, 6, falsum) ≡ (["     1	alpha", "       ", "     2	beta"] ↦ lista<textus>)
     }
     proba "all-lines mode numbers blank records" {
-        adfirma lineae_nl(["alpha", "", "beta"], verum, 1, 1, 6, falsum) ≡ ["     1	alpha", "     2	", "     3	beta"]
+        adfirma lineae_nl(["alpha", "", "beta"], verum, 1, 1, 6, falsum) ≡ (["     1	alpha", "     2	", "     3	beta"] ↦ lista<textus>)
     }
     proba "number field is right-aligned to six columns" {
         adfirma forma_numeri(7, 6, falsum) ≡ "     7"
         adfirma forma_numeri(123456, 6, falsum) ≡ "123456"
     }
     proba "starting number and increment advance numbered records" {
-        adfirma lineae_nl(["alpha", "beta", "gamma"], falsum, 5, 2, 6, falsum) ≡ ["     5	alpha", "     7	beta", "     9	gamma"]
+        adfirma lineae_nl(["alpha", "beta", "gamma"], falsum, 5, 2, 6, falsum) ≡ (["     5	alpha", "     7	beta", "     9	gamma"] ↦ lista<textus>)
     }
     proba "positive number width controls right-aligned field" {
-        adfirma lineae_nl(["alpha", "", "beta"], falsum, 1, 1, 3, falsum) ≡ ["  1	alpha", "    ", "  2	beta"]
+        adfirma lineae_nl(["alpha", "", "beta"], falsum, 1, 1, 3, falsum) ≡ (["  1	alpha", "    ", "  2	beta"] ↦ lista<textus>)
     }
     proba "non-positive number width falls back to default" {
         adfirma forma_numeri(7, 0, falsum) ≡ "     7"
     }
     proba "ln format left-justifies number within active width" {
-        adfirma lineae_nl(["alpha", "beta"], falsum, 1, 1, 6, verum) ≡ ["1     	alpha", "2     	beta"]
+        adfirma lineae_nl(["alpha", "beta"], falsum, 1, 1, 6, verum) ≡ (["1     	alpha", "2     	beta"] ↦ lista<textus>)
     }
     proba "number format ln selects left alignment" {
         adfirma modus_lnne("ln") ≡ verum

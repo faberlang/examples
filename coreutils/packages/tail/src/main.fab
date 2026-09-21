@@ -166,23 +166,23 @@ functio tail_parse(lista<textus> args) → TailOptiones {
 
 probandum "tail line selection" tag "coreutils" {
     proba "default-sized selection keeps all short input" {
-        adfirma cauda_linearum(["a", "b", "c"], 10) ≡ ["a", "b", "c"]
+        adfirma cauda_linearum(["a", "b", "c"], 10) ≡ (["a", "b", "c"] ↦ lista<textus>)
     }
     proba "default-sized selection keeps the last ten lines" {
-        adfirma cauda_linearum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"], 10) ≡ ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+        adfirma cauda_linearum(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"], 10) ≡ (["3", "4", "5", "6", "7", "8", "9", "10", "11", "12"] ↦ lista<textus>)
     }
     proba "line limit keeps the final records" {
-        adfirma cauda_linearum(["a", "b", "c"], 2) ≡ ["b", "c"]
+        adfirma cauda_linearum(["a", "b", "c"], 2) ≡ (["b", "c"] ↦ lista<textus>)
     }
     proba "zero line limit emits no lines" {
         fixum lista<textus> empty ← vacua
         adfirma cauda_linearum(["a", "b"], 0) ≡ empty
     }
     proba "start-line selection uses one-based positions" {
-        adfirma cauda_ab_linea(["1", "2", "3", "4", "5"], 3) ≡ ["3", "4", "5"]
+        adfirma cauda_ab_linea(["1", "2", "3", "4", "5"], 3) ≡ (["3", "4", "5"] ↦ lista<textus>)
     }
     proba "start-line one emits all input" {
-        adfirma cauda_ab_linea(["1", "2", "3"], 1) ≡ ["1", "2", "3"]
+        adfirma cauda_ab_linea(["1", "2", "3"], 1) ≡ (["1", "2", "3"] ↦ lista<textus>)
     }
     proba "start-line beyond input emits no lines" {
         fixum lista<textus> empty ← vacua
@@ -195,11 +195,11 @@ probandum "tail line selection" tag "coreutils" {
     }
     proba "local parser keeps unsigned counts as last-line mode" {
         fixum TailOptiones opts ← tail_parse(["-n", "2"])
-        adfirma cauda_selecta(["1", "2", "3", "4", "5"], opts) ≡ ["4", "5"]
+        adfirma cauda_selecta(["1", "2", "3", "4", "5"], opts) ≡ (["4", "5"] ↦ lista<textus>)
     }
     proba "local parser treats negative counts as last-line mode" {
         fixum TailOptiones opts ← tail_parse(["-n", "-2"])
-        adfirma cauda_selecta(["1", "2", "3", "4", "5"], opts) ≡ ["4", "5"]
+        adfirma cauda_selecta(["1", "2", "3", "4", "5"], opts) ≡ (["4", "5"] ↦ lista<textus>)
     }
 }
 

@@ -149,28 +149,28 @@ functio plica_stdin(numerus latitudo, bivalens spatiis) → vacuum {
 
 probandum "fold line wrapping" tag "coreutils" {
     proba "short line stays unchanged" {
-        adfirma plica_lineam("abc", 4) ≡ ["abc"]
+        adfirma plica_lineam("abc", 4) ≡ (["abc"] ↦ lista<textus>)
     }
     proba "exact width line stays one line" {
-        adfirma plica_lineam("abcd", 4) ≡ ["abcd"]
+        adfirma plica_lineam("abcd", 4) ≡ (["abcd"] ↦ lista<textus>)
     }
     proba "long line wraps at requested width" {
-        adfirma plica_lineam("abcdefghi", 4) ≡ ["abcd", "efgh", "i"]
+        adfirma plica_lineam("abcdefghi", 4) ≡ (["abcd", "efgh", "i"] ↦ lista<textus>)
     }
     proba "empty input line remains an empty output line" {
-        adfirma plica_lineam("", 4) ≡ [""]
+        adfirma plica_lineam("", 4) ≡ ([""] ↦ lista<textus>)
     }
     proba "spaces mode breaks after last space in width" {
-        adfirma plica_lineam_spatiis("one two three four", 8) ≡ ["one two ", "three ", "four"]
+        adfirma plica_lineam_spatiis("one two three four", 8) ≡ (["one two ", "three ", "four"] ↦ lista<textus>)
     }
     proba "spaces mode falls back for long word" {
-        adfirma plica_lineam_spatiis("abcdefghijklmno", 8) ≡ ["abcdefgh", "ijklmno"]
+        adfirma plica_lineam_spatiis("abcdefghijklmno", 8) ≡ (["abcdefgh", "ijklmno"] ↦ lista<textus>)
     }
     proba "spaces mode preserves double-space trailing break" {
-        adfirma plica_lineam_spatiis("aa  bb cc", 6) ≡ ["aa  ", "bb cc"]
+        adfirma plica_lineam_spatiis("aa  bb cc", 6) ≡ (["aa  ", "bb cc"] ↦ lista<textus>)
     }
     proba "spaces mode keeps blank input line" {
-        adfirma plica_lineam_spatiis("", 4) ≡ [""]
+        adfirma plica_lineam_spatiis("", 4) ≡ ([""] ↦ lista<textus>)
     }
     proba "non-positive width falls back to default slice width" {
         adfirma latitudo_activa(0) ≡ 80

@@ -205,37 +205,37 @@ functio grep_stdin(lista<textus> patterns, bivalens ignore_case, bivalens invert
 
 probandum "grep literal stdin helpers" tag "coreutils" {
     proba "literal substring keeps matching lines" {
-        adfirma lineae_grep(["alpha", "bravo", "charlie"], ["ha"], falsum, falsum, falsum, falsum) ≡ ["alpha", "charlie"]
+        adfirma lineae_grep(["alpha", "bravo", "charlie"], ["ha"], falsum, falsum, falsum, falsum) ≡ (["alpha", "charlie"] ↦ lista<textus>)
     }
     proba "ignore case lowercases both sides" {
         adfirma linea_congruitne("Alpha", ["AL"], verum) ≡ verum
         adfirma linea_congruitne("Alpha", ["AL"], falsum) ≡ falsum
     }
     proba "invert keeps nonmatching lines" {
-        adfirma lineae_grep(["alpha", "why", "bravo"], ["a"], falsum, verum, falsum, falsum) ≡ ["why"]
+        adfirma lineae_grep(["alpha", "why", "bravo"], ["a"], falsum, verum, falsum, falsum) ≡ (["why"] ↦ lista<textus>)
     }
     proba "count mode emits only the selected line count" {
-        adfirma lineae_grep(["alpha", "why", "bravo"], ["a"], falsum, falsum, verum, falsum) ≡ ["2"]
+        adfirma lineae_grep(["alpha", "why", "bravo"], ["a"], falsum, falsum, verum, falsum) ≡ (["2"] ↦ lista<textus>)
     }
     proba "line number mode prefixes one-based input positions" {
-        adfirma lineae_grep(["why", "alpha", "bravo"], ["a"], falsum, falsum, falsum, verum) ≡ ["2:alpha", "3:bravo"]
+        adfirma lineae_grep(["why", "alpha", "bravo"], ["a"], falsum, falsum, falsum, verum) ≡ (["2:alpha", "3:bravo"] ↦ lista<textus>)
     }
     proba "multiple option patterns match as OR" {
-        adfirma lineae_grep(["alpha", "beta", "gamma"], ["alpha", "gamma"], falsum, falsum, falsum, falsum) ≡ ["alpha", "gamma"]
+        adfirma lineae_grep(["alpha", "beta", "gamma"], ["alpha", "gamma"], falsum, falsum, falsum, falsum) ≡ (["alpha", "gamma"] ↦ lista<textus>)
     }
     proba "multiple option patterns compose with invert" {
-        adfirma lineae_grep(["alpha", "beta", "gamma"], ["alpha", "gamma"], falsum, verum, falsum, falsum) ≡ ["beta"]
+        adfirma lineae_grep(["alpha", "beta", "gamma"], ["alpha", "gamma"], falsum, verum, falsum, falsum) ≡ (["beta"] ↦ lista<textus>)
     }
     proba "positional pattern is active when no option patterns exist" {
-        adfirma exemplaria_activa(vacua, ["needle"]) ≡ ["needle"]
+        adfirma exemplaria_activa(vacua, ["needle"]) ≡ (["needle"] ↦ lista<textus>)
     }
     proba "option patterns win over positional pattern" {
-        adfirma exemplaria_activa(["alpha", "gamma"], ["beta"]) ≡ ["alpha", "gamma"]
+        adfirma exemplaria_activa(["alpha", "gamma"], ["beta"]) ≡ (["alpha", "gamma"] ↦ lista<textus>)
     }
     proba "local option parser extracts repeated e patterns and flags" {
         fixum GrepOptiones opts ← grep_parse(["-i", "-n", "-e", "alpha", "-e", "gamma", "beta"])
-        adfirma opts.patterns ≡ ["alpha", "gamma"]
-        adfirma opts.operands ≡ ["beta"]
+        adfirma opts.patterns ≡ (["alpha", "gamma"] ↦ lista<textus>)
+        adfirma opts.operands ≡ (["beta"] ↦ lista<textus>)
         adfirma opts.ignoreCase ≡ verum
         adfirma opts.lineNumbers ≡ verum
     }

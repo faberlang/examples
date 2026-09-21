@@ -230,34 +230,34 @@ probandum "sort keyless stdin helpers" tag "coreutils" {
         adfirma lineae_sort(empty, falsum, falsum, falsum) ≡ empty
     }
     proba "already sorted lines stay sorted" {
-        adfirma lineae_sort(["alpha", "bravo", "charlie"], falsum, falsum, falsum) ≡ ["alpha", "bravo", "charlie"]
+        adfirma lineae_sort(["alpha", "bravo", "charlie"], falsum, falsum, falsum) ≡ (["alpha", "bravo", "charlie"] ↦ lista<textus>)
     }
     proba "unsorted ASCII lines sort lexicographically" {
-        adfirma lineae_sort(["delta", "alpha", "charlie", "bravo"], falsum, falsum, falsum) ≡ ["alpha", "bravo", "charlie", "delta"]
+        adfirma lineae_sort(["delta", "alpha", "charlie", "bravo"], falsum, falsum, falsum) ≡ (["alpha", "bravo", "charlie", "delta"] ↦ lista<textus>)
     }
     proba "duplicates are preserved" {
-        adfirma lineae_sort(["b", "a", "b", "a"], falsum, falsum, falsum) ≡ ["a", "a", "b", "b"]
+        adfirma lineae_sort(["b", "a", "b", "a"], falsum, falsum, falsum) ≡ (["a", "a", "b", "b"] ↦ lista<textus>)
     }
     proba "blank lines sort before nonblank lines" {
-        adfirma lineae_sort(["b", "", "a"], falsum, falsum, falsum) ≡ ["", "a", "b"]
+        adfirma lineae_sort(["b", "", "a"], falsum, falsum, falsum) ≡ (["", "a", "b"] ↦ lista<textus>)
     }
     proba "reverse flag emits descending sorted lines" {
-        adfirma lineae_sort(["alpha", "charlie", "bravo"], verum, falsum, falsum) ≡ ["charlie", "bravo", "alpha"]
+        adfirma lineae_sort(["alpha", "charlie", "bravo"], verum, falsum, falsum) ≡ (["charlie", "bravo", "alpha"] ↦ lista<textus>)
     }
     proba "unique flag removes duplicate sorted lines" {
-        adfirma lineae_sort(["b", "a", "b", "a"], falsum, verum, falsum) ≡ ["a", "b"]
+        adfirma lineae_sort(["b", "a", "b", "a"], falsum, verum, falsum) ≡ (["a", "b"] ↦ lista<textus>)
     }
     proba "reverse and unique combine" {
-        adfirma lineae_sort(["b", "a", "c", "b", "a"], verum, verum, falsum) ≡ ["c", "b", "a"]
+        adfirma lineae_sort(["b", "a", "c", "b", "a"], verum, verum, falsum) ≡ (["c", "b", "a"] ↦ lista<textus>)
     }
     proba "fold case sorts by ASCII lowercase key with original tie-breaker" {
-        adfirma lineae_sort(["b", "A", "a", "B"], falsum, falsum, verum) ≡ ["A", "a", "B", "b"]
+        adfirma lineae_sort(["b", "A", "a", "B"], falsum, falsum, verum) ≡ (["A", "a", "B", "b"] ↦ lista<textus>)
     }
     proba "fold case unique keeps GNU representative for declared ASCII fixture" {
-        adfirma lineae_sort(["b", "A", "a", "B"], falsum, verum, verum) ≡ ["A", "b"]
+        adfirma lineae_sort(["b", "A", "a", "B"], falsum, verum, verum) ≡ (["A", "b"] ↦ lista<textus>)
     }
     proba "fold case reverse emits descending folded order" {
-        adfirma lineae_sort(["b", "A", "a", "B"], verum, falsum, verum) ≡ ["b", "B", "a", "A"]
+        adfirma lineae_sort(["b", "A", "a", "B"], verum, falsum, verum) ≡ (["b", "B", "a", "A"] ↦ lista<textus>)
     }
 }
 

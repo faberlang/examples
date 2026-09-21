@@ -216,16 +216,16 @@ functio seq_parse(lista<textus> args) → SeqOptiones {
 
 probandum "seq integer ranges" tag "coreutils" {
     proba "one operand counts from one" {
-        adfirma seq_lineae(["3"]) ≡ ["1", "2", "3"]
+        adfirma seq_lineae(["3"]) ≡ (["1", "2", "3"] ↦ lista<textus>)
     }
     proba "two operands count between endpoints" {
-        adfirma seq_lineae(["3", "5"]) ≡ ["3", "4", "5"]
+        adfirma seq_lineae(["3", "5"]) ≡ (["3", "4", "5"] ↦ lista<textus>)
     }
     proba "three operands use positive increment" {
-        adfirma seq_lineae(["2", "2", "6"]) ≡ ["2", "4", "6"]
+        adfirma seq_lineae(["2", "2", "6"]) ≡ (["2", "4", "6"] ↦ lista<textus>)
     }
     proba "three operands use negative increment" {
-        adfirma seq_lineae(["5", "-2", "1"]) ≡ ["5", "3", "1"]
+        adfirma seq_lineae(["5", "-2", "1"]) ≡ (["5", "3", "1"] ↦ lista<textus>)
     }
     proba "mismatched positive direction is empty" {
         fixum lista<textus> empty ← vacua
@@ -242,20 +242,20 @@ probandum "seq integer ranges" tag "coreutils" {
         adfirma seq_iuncta(["1", "3"], falsum, "") ≡ "123"
     }
     proba "equal width pads positive integer range" {
-        adfirma seq_lineae(["8", "10"], verum) ≡ ["08", "09", "10"]
+        adfirma seq_lineae(["8", "10"], verum) ≡ (["08", "09", "10"] ↦ lista<textus>)
     }
     proba "equal width pads after negative sign" {
-        adfirma seq_lineae(["-10", "2"], verum) ≡ ["-10", "-09", "-08", "-07", "-06", "-05", "-04", "-03", "-02", "-01", "000", "001", "002"]
+        adfirma seq_lineae(["-10", "2"], verum) ≡ (["-10", "-09", "-08", "-07", "-06", "-05", "-04", "-03", "-02", "-01", "000", "001", "002"] ↦ lista<textus>)
     }
     proba "local option parser preserves negative operands" {
         fixum SeqOptiones opts ← seq_parse(["5", "-2", "1"])
-        adfirma opts.operands ≡ ["5", "-2", "1"]
+        adfirma opts.operands ≡ (["5", "-2", "1"] ↦ lista<textus>)
     }
     proba "local option parser extracts supported flags" {
         fixum SeqOptiones opts ← seq_parse(["-w", "-s", ",", "8", "10"])
         adfirma opts.width_flag ≡ verum
         adfirma (opts.separator vel "") ≡ ","
-        adfirma opts.operands ≡ ["8", "10"]
+        adfirma opts.operands ≡ (["8", "10"] ↦ lista<textus>)
     }
 }
 

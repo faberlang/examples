@@ -102,17 +102,17 @@ functio lege_caput(numerus petitus) → lista<textus> {
 
 probandum "head line selection" tag "coreutils" {
     proba "default-sized selection keeps all short input" {
-        adfirma capita_linearum(["a", "b", "c"], 10) ≡ ["a", "b", "c"]
+        adfirma capita_linearum(["a", "b", "c"], 10) ≡ (["a", "b", "c"] ↦ lista<textus>)
     }
     proba "line limit truncates longer input" {
-        adfirma capita_linearum(["a", "b", "c"], 2) ≡ ["a", "b"]
+        adfirma capita_linearum(["a", "b", "c"], 2) ≡ (["a", "b"] ↦ lista<textus>)
     }
     proba "zero line limit emits no lines" {
         fixum lista<textus> empty ← vacua
         adfirma capita_linearum(["a", "b"], 0) ≡ empty
     }
     proba "negative line limit drops the final records" {
-        adfirma capita_linearum(["1", "2", "3", "4", "5"], -2) ≡ ["1", "2", "3"]
+        adfirma capita_linearum(["1", "2", "3", "4", "5"], -2) ≡ (["1", "2", "3"] ↦ lista<textus>)
     }
     proba "negative line limit larger than input emits no lines" {
         fixum lista<textus> empty ← vacua
