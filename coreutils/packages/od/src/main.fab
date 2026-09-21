@@ -213,15 +213,15 @@ probandum "od formatting" tag "coreutils" {
     proba "empty stdin emits only the base address line" {
         fixum lista<numerus> empty ← vacua
         fixum textus forma ← "o2"
-        adfirma od_stdin(empty, forma) ≡ ["0000000"]
+        adfirma od_stdin(empty, forma) ≡ (["0000000"] ↦ lista<textus>)
     }
     proba "default o2 groups little-endian two-byte words" {
         fixum textus forma ← "o2"
-        adfirma od_stdin([97, 10], forma) ≡ ["0000000 005141", "0000002"]
+        adfirma od_stdin([97, 10], forma) ≡ (["0000000 005141", "0000002"] ↦ lista<textus>)
     }
     proba "x1 format emits individual hexadecimal bytes" {
         fixum textus forma ← "x1"
-        adfirma od_stdin([97, 10], forma) ≡ ["0000000 61 0a", "0000002"]
+        adfirma od_stdin([97, 10], forma) ≡ (["0000000 61 0a", "0000002"] ↦ lista<textus>)
     }
 }
 
