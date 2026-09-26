@@ -127,6 +127,7 @@ functio octet_ascius(textus c) → numerus {
     }
 }
 
+@ publica
 functio octeti_textus(textus s) → lista<numerus> {
     varia lista<numerus> bytes ← vacua
     varia numerus i ← 0
@@ -169,6 +170,7 @@ functio crc32_tabula() → lista<numerus> {
 # Processes each byte through the lookup table, then mixes the input length
 # into the checksum (POSIX requirement). The final ¬crc (bitwise NOT) is the
 # POSIX cksum variant — standard CRC-32 omits this step.
+@ publica
 functio crc32_octeti(lista<numerus> bytes) → numerus {
     fixum lista<numerus> tabula ← crc32_tabula()
     varia numerus crc ← 0
