@@ -30,7 +30,7 @@ locale = "la"
 #   • ↦ regex conversion for text → regex type conversion — "\\d+" ↦ regex is the canonical path; ∷ is for static type ascription, not runtime conversion
 #
 # Anti-patterns (avoid these):
-#   • Unsafe casts between unrelated types without intermediate conversion — ∷ is a static cast; use ↦ with ⇥ recovery for runtime values that may fail
+#   • Unsafe casts between unrelated types without intermediate conversion — ∷ is a static cast; use ↦ with ⊥ recovery for runtime values that may fail
 #   • Chained casts that lose type information — each ∷ step should preserve the semantic intent; avoid data ∷ textus ∷ numerus chains that discard type safety
 #
 # Learning path:

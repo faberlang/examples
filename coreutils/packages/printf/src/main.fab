@@ -5,7 +5,7 @@
 # What this example teaches:
 #   • Full printf format-string parsing — width, precision, dynamic width (`*`),
 #     and conversion specifiers (`%s`, `%d`, `%x`, `%o`, `%f`, `%e`, `%b`)
-#   • String-to-number conversion with `↦` and fallback via `⇥` — parsing
+#   • String-to-number conversion with `↦` and fallback via `⊥` — parsing
 #     integer and float text operands safely
 #   • `elige`/`casu`/`ceterum` — pattern matching used for hex digit tables
 #     and dispatch over format specifier characters
@@ -17,7 +17,7 @@
 # Syntaxes used:
 #   • `lege` (not used — this slice is operand-driven, not stdin-driven)
 #   • `↦` — type conversion (`textus` → `numerus`, lines 93, 102, etc.)
-#   • `⇥` — type conversion fallback (lines 93, 102, etc.)
+#   • `⊥` — type conversion fallback (lines 93, 102, etc.)
 #   • `≡` / `≠` — equality / inequality (passim)
 #   • `elige`/`casu`/`ceterum` — pattern match (lines 209-219, 319-426)
 #   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
@@ -150,7 +150,7 @@ functio format_width(textus formatum, numerus initium, numerus species_index) �
         i ← i + 1
     }
     si i ≡ initium ergo redde 0
-    redde formatum.sectio(initium, i) ↦ numerus ⇥ 0
+    redde formatum.sectio(initium, i) ↦ numerus ⊥ 0
 }
 
 functio format_precision(textus formatum, numerus initium, numerus species_index) → numerus {
@@ -158,7 +158,7 @@ functio format_precision(textus formatum, numerus initium, numerus species_index
     dum i < species_index {
         si formatum.sectio(i, i + 1) ≡ "." {
             si i + 1 < species_index et formatum.sectio(i + 1, i + 2) ≡ "*" ergo redde -1
-            redde formatum.sectio(i + 1, species_index) ↦ numerus ⇥ 0
+            redde formatum.sectio(i + 1, species_index) ↦ numerus ⊥ 0
         }
         i ← i + 1
     }
@@ -282,7 +282,7 @@ functio argumentum_numerus(lista<textus> args, numerus index) → numerus {
     si raw.longitudo() ≥ 2 et (raw.sectio(0, 1) ≡ "'" aut raw.sectio(0, 1) ≡ «\"») {
         redde ascii_quoted_value(raw.sectio(1, 2))
     }
-    redde raw ↦ numerus ⇥ 0
+    redde raw ↦ numerus ⊥ 0
 }
 
 functio quoted_numericne(textus raw) → bivalens {
@@ -623,7 +623,7 @@ functio rounded_fraction(textus fraction, numerus precision) → textus {
 }
 
 functio increment_integer_text(textus integer) → textus {
-    redde "§"((integer ↦ numerus ⇥ 0) + 1)
+    redde "§"((integer ↦ numerus ⊥ 0) + 1)
 }
 
 functio float_textus(textus raw, numerus precision) → textus {
@@ -734,7 +734,7 @@ functio exponent_textus(textus raw, numerus precision, bivalens uppercase) → t
 
     fixum textus rounded ← float_textus(mantissa_raw, precision)
     fixum lista<textus> normalized ← normalize_rounded_mantissa(rounded, exponent, precision)
-    redde signum + normalized[0] + exponent_suffix(normalized[1] ↦ numerus ⇥ 0, uppercase)
+    redde signum + normalized[0] + exponent_suffix(normalized[1] ↦ numerus ⊥ 0, uppercase)
 }
 
 functio printf_unum(textus formatum, lista<textus> args, numerus initium) → textus {

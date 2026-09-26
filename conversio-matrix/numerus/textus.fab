@@ -17,7 +17,7 @@ locale = "la"
 # Alternate approaches (not shown):
 #   • 42 ∷ textus — compile-time ascription when the value is already a text
 #     constant (no runtime conversion); use ∷ for literals, ↦ for variables
-#   • 42 ↦ textus ⇥ "0" — inline recovery with a fallback string (never fails
+#   • 42 ↦ textus ⊥ "0" — inline recovery with a fallback string (never fails
 #     here, but the pattern applies to fallible conversions)
 #
 # Anti-patterns (avoid these):

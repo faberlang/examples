@@ -15,15 +15,15 @@ locale = "la"
 #   • incipit (entry point) — line 8
 #
 # Alternate approaches (not shown):
-#   • "3.14" ↦ fractus ⇥ 0.0 — inline recovery with a fallback float on parse failure
+#   • "3.14" ↦ fractus ⊥ 0.0 — inline recovery with a fallback float on parse failure
 #   • fac { "bad" ↦ fractus } cape err { ... } — scoped error handling for multi-step ops
 
 # Anti-patterns (avoid these):
-#   • "3.14" ↦ fractus vel 0.0 — use ⇥ for conversio recovery, not vel (vel is for T ∪ nihil)
+#   • "3.14" ↦ fractus vel 0.0 — use ⊥ for conversio recovery, not vel (vel is for T ∪ nihil)
 #   • ∷ fractus — static ascription cannot parse a string; use ↦
 
 # Pitfalls:
-#   • Non-numeric text throws at runtime — wrap in fac/cape or use ⇥ recovery
+#   • Non-numeric text throws at runtime — wrap in fac/cape or use ⊥ recovery
 #   • Hex floats ('0x1.0p3') and special values ('NaN', 'Inf') may vary by backend
 
 # Learning path:

@@ -8,8 +8,8 @@
 #   • Local option parsing — `tail_parse` walks raw operand strings (including
 #     `-n +N` start-line mode) because the framework normalizes away the `+`
 #     sign before the package sees it
-#   • `↦` with result fallback `⇥` — parsing numeric arguments with default
-#     fallback (line 89: `↦ numerus ⇥ 1`)
+#   • `↦` with result fallback `⊥` — parsing numeric arguments with default
+#     fallback (line 89: `↦ numerus ⊥ 1`)
 #   • Pure selection helpers — `cauda_linearum` and `cauda_ab_linea` are pure
 #     functions exercising last-N and start-line slicing on `lista<textus>`
 #   • `fac`/`dum` post-check loop — idiomatic forever-loop pattern for
@@ -23,7 +23,7 @@
 #   • `vel` — fallback (lines 68, 77, 83, 89, 108, 144)
 #   • `≡` — equality (passim)
 #   • `↦` — type conversion (lines 89, 90)
-#   • `⇥` — conversion fallback (lines 89, 90)
+#   • `⊥` — conversion fallback (lines 89, 90)
 #   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
 #   • `dum` — while loops (lines 35, 38, 47, 52, 56, etc.)
 #   • `fac`/`dum` — post-check loop (lines 75-80)
@@ -134,10 +134,10 @@ functio lege_caudam(TailOptiones opts) → lista<textus> {
 
 functio tail_spec(textus raw) → TailOptiones {
     si raw.longitudo() > 0 et raw.sectio(0, 1) ≡ "+" {
-        redde TailOptiones { lineae = raw.sectio(1, raw.longitudo()) ↦ numerus ⇥ 1, ab_initio = verum }
+        redde TailOptiones { lineae = raw.sectio(1, raw.longitudo()) ↦ numerus ⊥ 1, ab_initio = verum }
     }
 
-    redde TailOptiones { lineae = abs_numerus(raw ↦ numerus ⇥ 10), ab_initio = falsum }
+    redde TailOptiones { lineae = abs_numerus(raw ↦ numerus ⊥ 10), ab_initio = falsum }
 }
 
 # Raw rest operands preserve the sign on `-n +N`; the generated numeric option

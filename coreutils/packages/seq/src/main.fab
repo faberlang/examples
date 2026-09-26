@@ -10,7 +10,7 @@
 #     integers as operands
 #   • `numerus` ranges with `dum` — generating arithmetic sequences with
 #     positive or negative increments
-#   • `↦` type conversion (`textus` → `numerus`) with `⇥` fallback — parsing
+#   • `↦` type conversion (`textus` → `numerus`) with `⊥` fallback — parsing
 #     integer operands
 #   • Equal-width padding — computing `latitudo_maxima` across generated lines
 #     and `aequa_latitudine` for zero-padded output
@@ -21,7 +21,7 @@
 #   • `lege` — not used (operand-driven)
 #   • `∪` — nullable union type `textus ∪ nihil` (lines 7, 140, etc.)
 #   • `↦` — type conversion (lines 41, 43, 45, 47, 49, 51, etc.)
-#   • `⇥` — conversion fallback (lines 41, 43, 45, 47, 49, 51, etc.)
+#   • `⊥` — conversion fallback (lines 41, 43, 45, 47, 49, 51, etc.)
 #   • `≡` — equality (passim)
 #   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
 #   • `dum` — while loop (lines 18, 20, 25, 27, etc.)
@@ -94,16 +94,16 @@ functio seq_lineae(lista<textus> operands, bivalens width_flag sponte vel falsum
     varia numerus ultimus ← 0
 
     si operands.longitudo() ≡ 1 {
-        ultimus ↤ operands[0] ⇥ 0
+        ultimus ↤ operands[0] ⊥ 0
     }
     sin operands.longitudo() ≡ 2 {
-        primus ↤ operands[0] ⇥ 0
-        ultimus ↤ operands[1] ⇥ 0
+        primus ↤ operands[0] ⊥ 0
+        ultimus ↤ operands[1] ⊥ 0
     }
     sin operands.longitudo() ≡ 3 {
-        primus ↤ operands[0] ⇥ 0
-        incrementum ↤ operands[1] ⇥ 0
-        ultimus ↤ operands[2] ⇥ 0
+        primus ↤ operands[0] ⊥ 0
+        incrementum ↤ operands[1] ⊥ 0
+        ultimus ↤ operands[2] ⊥ 0
     }
     secus {
         redde lineae

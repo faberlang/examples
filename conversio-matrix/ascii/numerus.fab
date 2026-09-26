@@ -21,7 +21,7 @@ locale = "la"
 #
 # Anti-patterns (avoid these):
 #   • '42' ∷ numerus — static ascription (∷) cannot parse a string; use ↦
-#   • '42' ↦ numerus vel 0 — use ⇥ for conversio recovery, not vel
+#   • '42' ↦ numerus vel 0 — use ⊥ for conversio recovery, not vel
 #
 # Pitfalls:
 #   • Non-digit characters throw a runtime parse error; wrap in fac/cape
@@ -29,7 +29,7 @@ locale = "la"
 #
 # Learning path:
 #   Before: see numerus/ and textus/ exempla (Stage 3 types)
-#   After:  see tail/src/main.fab (↦ numerus ⇥ 10 with fallback)
+#   After:  see tail/src/main.fab (↦ numerus ⊥ 10 with fallback)
 #
 # Stage: Phase-1 model sketch, ASCII → numerus via Deref fallback
 # Backend: Rust ◐, wasm-text —

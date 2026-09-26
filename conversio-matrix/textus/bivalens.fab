@@ -15,7 +15,7 @@ locale = "la"
 #   • incipit (entry point) — line 8
 #
 # Alternate approaches (not shown):
-#   • "salve" ↦ bivalens ⇥ falsum — inline recovery with default on conversion failure (rarely needed; always succeeds)
+#   • "salve" ↦ bivalens ⊥ falsum — inline recovery with default on conversion failure (rarely needed; always succeeds)
 
 # Anti-patterns (avoid these):
 #   • "salve" ↦ bivalens expecting verum then using as integer — bivalens, not numerus; no numeric value
