@@ -24,7 +24,7 @@
 #   • `nihil` — EOF sentinel (line 197)
 #   • `vel` — fallback (lines 31, 72, 100, 211, 214, etc.)
 #   • `↦` — type conversion (lines 71, 100, 109)
-#   • `⇥` — conversion fallback (line 109)
+#   • `⊥` — conversion fallback (line 109)
 #   • `≡` — equality (passim)
 #   • `si`/`sin`/`secus`/`ergo` — conditionals (passim)
 #   • `dum` — while loops (passim)
@@ -116,7 +116,7 @@ functio tabulatio_ex_lista(textus raw) → Tabulatio {
 
     dum i ≤ raw.longitudo() {
         si i ≡ raw.longitudo() aut raw.sectio(i, i + 1) ≡ "," {
-            fixum numerus finis ← raw.sectio(initium, i) ↦ numerus ⇥ 0
+            fixum numerus finis ← raw.sectio(initium, i) ↦ numerus ⊥ 0
             si finis > 0 {
                 count ← count + 1
                 si count ≡ 1 {
@@ -156,7 +156,7 @@ functio tabulatio_ex_lista(textus raw) → Tabulatio {
 
 functio tabulatio_spec(textus raw) → Tabulatio {
     si habet_comma(raw) ergo redde tabulatio_ex_lista(raw)
-    redde tabulatio_periodica(raw ↦ numerus ⇥ 8)
+    redde tabulatio_periodica(raw ↦ numerus ⊥ 8)
 }
 
 functio proximum_finem_cum(numerus columna, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → numerus {

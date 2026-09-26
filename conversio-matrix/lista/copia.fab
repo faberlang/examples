@@ -16,7 +16,7 @@ locale = "la"
 #
 # Alternate approaches (not shown):
 #   • lista ∷ copia — static ascription does not deduplicate; use ↦
-#   • [1,2,3] ↦ copia<numerus> ⇥ vacua — inline recovery with empty set on failure
+#   • [1,2,3] ↦ copia<numerus> ⊥ vacua — inline recovery with empty set on failure
 
 # Anti-patterns (avoid these):
 #   • [1,1,2] ↦ copia<numerus> then iterating expecting 3 elements — duplicates are dropped

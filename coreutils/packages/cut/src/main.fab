@@ -4,7 +4,7 @@
 #
 # What this example teaches:
 #   • discinde — custom split function for single-char delimiters (no stdlib split yet)
-#   • ↦ numerus ⇥ — fallible string-to-number conversion with default
+#   • ↦ numerus ⊥ — fallible string-to-number conversion with default
 #   • elige-style field selection — selectum_specne tests singles and ranges (1, 1-3, 2-)
 #   • bivalens complementum — inverting the selected set in input order
 #   • solum_finitas flag — suppressing delimiter-less records (-s/--only-delimited)
@@ -19,7 +19,7 @@
 #   • ≡ / ≠ / > / < — throughout
 #   • itera ex — lines 88, 101, 137
 #   • redde — throughout
-#   • ↦ numerus ⇥ (conversion) — lines 68, 75, 80
+#   • ↦ numerus ⊥ (conversion) — lines 68, 75, 80
 #   • probandum / proba / adfirma — lines 164-186
 #   • @ cli / @ descriptio / @ optio — lines 190-194
 #   • incipit — line 195
@@ -108,20 +108,20 @@ functio selectum_specne(textus spec, numerus index) → bivalens {
     fixum numerus dash ← dash_pos(spec)
 
     si dash < 0 {
-        fixum numerus unum ↤ spec ⇥ 0
+        fixum numerus unum ↤ spec ⊥ 0
         redde unum > 0 et index ≡ unum
     }
 
     fixum textus initium_textus ← spec.sectio(0, dash)
     fixum textus finis_textus ← spec.sectio(dash + 1, spec.longitudo())
-    fixum numerus initium ↤ initium_textus ⇥ 0
+    fixum numerus initium ↤ initium_textus ⊥ 0
     si initium ≤ 0 ergo redde falsum
 
     si finis_textus.longitudo() ≡ 0 {
         redde index ≥ initium
     }
 
-    fixum numerus finis ↤ finis_textus ⇥ 0
+    fixum numerus finis ↤ finis_textus ⊥ 0
     redde (finis ≥ initium et index ≥ initium) et index ≤ finis
 }
 

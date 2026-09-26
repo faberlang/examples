@@ -15,20 +15,20 @@ locale = "la"
 #   • incipit (entry point) — line 8
 #
 # Alternate approaches (not shown):
-#   • "42" ↦ numerus ⇥ 0 — inline recovery with a default integer on parse failure
+#   • "42" ↦ numerus ⊥ 0 — inline recovery with a default integer on parse failure
 #   • fac { textus ↦ numerus } cape err { ... } — scoped error handling for multi-step parsing
 
 # Anti-patterns (avoid these):
-#   • "42" ↦ numerus vel 0 — use ⇥ for conversio recovery, not vel (vel is for T ∪ nihil)
+#   • "42" ↦ numerus vel 0 — use ⊥ for conversio recovery, not vel (vel is for T ∪ nihil)
 #   • ∷ numerus — static ascription cannot parse a string; use ↦
 
 # Pitfalls:
-#   • Non-numeric text throws at runtime — wrap in fac/cape or use ⇥ recovery
+#   • Non-numeric text throws at runtime — wrap in fac/cape or use ⊥ recovery
 #   • Whitespace is not trimmed — " 42 " is not valid; use chorda methods to strip
 
 # Learning path:
 #   Before: see textus/ and numerus/ exempla (Stage 3 types)
-#   After:  see tail/src/main.fab (↦ numerus ⇥ 10 for option parsing)
+#   After:  see tail/src/main.fab (↦ numerus ⊥ 10 for option parsing)
 
 # Stage: Phase-1 model, both backends
 # Backend: Rust ✓, wasm-text ✓

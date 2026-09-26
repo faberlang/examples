@@ -5,7 +5,7 @@
 # What this example teaches:
 #   • genus with multiple numeric fields — Tabulae struct storing up to 8 tab stops
 #   • discinde — custom comma-separated list splitter (matching cut's pattern)
-#   • ↦ numerus ⇥ — string-to-number conversion with fallback
+#   • ↦ numerus ⊥ — string-to-number conversion with fallback
 #   • Manual parser for short/long flags with argument — -tN, -t N, --tabs, --tabs=N, -i, --initial
 #   • Tab-stop math — computing spaces-to-next-stop with absolute and repeating modes
 #   • Large probandum suite — 10 tests covering custom stops, lists, initial-only
@@ -20,7 +20,7 @@
 #   • ≡ / ≠ / > / < — throughout
 #   • itera ex — lines 80
 #   • redde — throughout
-#   • ↦ numerus ⇥ (conversion) — lines 34, 83
+#   • ↦ numerus ⊥ (conversion) — lines 34, 83
 #   • probandum / proba / adfirma — lines 244-277
 #   • @ cli / @ descriptio / @ operandus — lines 280-282
 #   • incipit — line 283
@@ -76,7 +76,7 @@ functio tabulae_default() → Tabulae {
 }
 
 functio tabstop_activa(textus petitus) → numerus {
-    fixum numerus n ↤ petitus ⇥ 0
+    fixum numerus n ↤ petitus ⊥ 0
     si n > 0 ergo redde n
     redde 8
 }
@@ -123,7 +123,7 @@ functio tabulae_ex_spec(textus spec) → Tabulae {
     varia numerus stop8 ← 0
 
     itera ex partes fixum pars {
-        fixum numerus stop ↤ pars ⇥ 0
+        fixum numerus stop ↤ pars ⊥ 0
         si stop > 0 {
             count ← count + 1
             si count ≡ 1 {

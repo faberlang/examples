@@ -17,7 +17,7 @@ locale = "la"
 #
 # Alternate approaches (not shown):
 #   • "hello" ∷ ascii — static ascription when text is known-ASCII at compile time
-#   • "café" ↦ ascii ⇥ 'n/a' — inline recovery with default ascii on failure
+#   • "café" ↦ ascii ⊥ 'n/a' — inline recovery with default ascii on failure
 
 # Anti-patterns (avoid these):
 #   • "café" ↦ ascii without checking — non-ASCII characters throw at runtime

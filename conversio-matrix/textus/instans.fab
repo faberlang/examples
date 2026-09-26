@@ -16,7 +16,7 @@ locale = "la"
 #
 # Alternate approaches (not shown):
 #   • fac { textus ↦ instans } cape err { ... } — scoped error handling for invalid datetime strings
-#   • "..." ↦ instans ⇥ nunc() — inline recovery with current time on parse failure
+#   • "..." ↦ instans ⊥ nunc() — inline recovery with current time on parse failure
 
 # Anti-patterns (avoid these):
 #   • "yesterday" ↦ instans — natural-language dates are not parsed; only RFC 3339 format
