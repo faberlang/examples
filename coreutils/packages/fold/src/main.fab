@@ -140,7 +140,7 @@ functio plica_stdin(numerus latitudo, bivalens spatiis) → vacuum {
         }
 
         fixum textus secura ← linea vel ""
-        fixum lista<textus> partes ← spatiis sic plica_lineam_spatiis(secura, latitudo) secus plica_lineam(secura, latitudo)
+        fixum lista<textus> partes ← spatiis ✓ plica_lineam_spatiis(secura, latitudo) ✗ plica_lineam(secura, latitudo)
         itera ex partes fixum pars {
             gnu_stdio.scribe_linea(pars)
         }
