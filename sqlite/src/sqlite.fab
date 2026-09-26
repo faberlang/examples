@@ -35,11 +35,17 @@
 # Backend: stepper (declaration only)
 # =============================================================================
 
+@ publica
 functio exsequi(textus via, textus sql, lista<valor> params) → valor ⇥ textus
+@ publica
 functio exsequi_batch(textus via, lista<valor> statements) → lista<valor> ⇥ textus
+@ publica
 functio quaere(textus via, textus sql, lista<valor> params) → lista<valor> ⇥ textus
+@ publica
 functio scalar(textus via, textus sql, lista<valor> params) → valor ∪ nihil ⇥ textus
 # Atomic batch: each step is a tabula with textus "sql" and lista<valor> "params".
 # All steps commit together or roll back; no connection handle is exposed.
+@ publica
 functio transactio(textus via, lista<valor> steps) → valor ⇥ textus
+@ publica
 functio sha256_hex(octeti bytes) → textus
