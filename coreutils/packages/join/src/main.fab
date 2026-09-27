@@ -48,8 +48,8 @@ importa ex "norma:fs" solum
 importa ex "§gnu/stdio" gnu_stdio
 
 genus JoinOptiones {
-    numerus field1
-    numerus field2
+    varia numerus field1
+    varia numerus field2
 }
 
 functio compara_textus(textus a, textus b) → numerus {

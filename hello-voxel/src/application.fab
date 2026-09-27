@@ -83,47 +83,47 @@ functio key_code_d() → textus { redde "KeyD" }
 # =========================================================================
 
 genus Camera {
-    f32 yaw_degrees
-    f32 pitch_degrees
+    varia f32 yaw_degrees
+    varia f32 pitch_degrees
 }
 
 genus InputState {
-    bivalens key_w
-    bivalens key_a
-    bivalens key_s
-    bivalens key_d
-    bivalens pointer_locked
-    bivalens focused
-    f32 mouse_dx
-    f32 mouse_dy
+    varia bivalens key_w
+    varia bivalens key_a
+    varia bivalens key_s
+    varia bivalens key_d
+    varia bivalens pointer_locked
+    varia bivalens focused
+    varia f32 mouse_dx
+    varia f32 mouse_dy
 }
 
 genus Player {
-    f32 x
-    f32 y
-    f32 z
-    f32 velocity_y
-    bivalens grounded
+    varia f32 x
+    varia f32 y
+    varia f32 z
+    varia f32 velocity_y
+    varia bivalens grounded
 }
 
 genus Application {
-    Camera camera
-    InputState input
-    Player player
+    varia Camera camera
+    varia InputState input
+    varia Player player
 }
 
 # Voxel DDA hit: solid cell under the ray plus the empty cell stepped from
 # (adjacent placement target). has_preceding is false when the ray starts
 # inside a solid (no legal place face).
 genus VoxelHit {
-    numerus hit_x
-    numerus hit_y
-    numerus hit_z
-    numerus prev_x
-    numerus prev_y
-    numerus prev_z
-    bivalens has_preceding
-    f32 distance
+    varia numerus hit_x
+    varia numerus hit_y
+    varia numerus hit_z
+    varia numerus prev_x
+    varia numerus prev_y
+    varia numerus prev_z
+    varia bivalens has_preceding
+    varia f32 distance
 }
 
 # =========================================================================
@@ -1217,21 +1217,21 @@ functio try_place_dirty(
 # Unit wire box translated to the hit cell center. Host may draw the line list;
 # structural attrs always expose positions/indices/line_count for proof.
 genus SelectionOutline {
-    bivalens active
-    numerus hit_x
-    numerus hit_y
-    numerus hit_z
-    numerus prev_x
-    numerus prev_y
-    numerus prev_z
-    bivalens has_preceding
-    f32 distance
-    lista<f32> positions
-    lista<u32> indices
-    numerus vertex_count
-    numerus line_count
-    numerus draw_count
-    numerus index_count
+    varia bivalens active
+    varia numerus hit_x
+    varia numerus hit_y
+    varia numerus hit_z
+    varia numerus prev_x
+    varia numerus prev_y
+    varia numerus prev_z
+    varia bivalens has_preceding
+    varia f32 distance
+    varia lista<f32> positions
+    varia lista<u32> indices
+    varia numerus vertex_count
+    varia numerus line_count
+    varia numerus draw_count
+    varia numerus index_count
 }
 
 functio empty_selection_outline() → SelectionOutline {

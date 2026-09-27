@@ -54,8 +54,8 @@
 importa ex "§gnu/stdio" gnu_stdio
 
 genus TailOptiones {
-    numerus lineae
-    bivalens ab_initio
+    varia numerus lineae
+    varia bivalens ab_initio
 }
 
 functio numerus_caudae(numerus petitus) → numerus {

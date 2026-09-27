@@ -57,12 +57,12 @@
 importa ex "§gnu/stdio" gnu_stdio
 
 genus GrepOptiones {
-    lista<textus> patterns
-    lista<textus> operands
-    bivalens ignoreCase
-    bivalens invert
-    bivalens countOnly
-    bivalens lineNumbers
+    varia lista<textus> patterns
+    varia lista<textus> operands
+    varia bivalens ignoreCase
+    varia bivalens invert
+    varia bivalens countOnly
+    varia bivalens lineNumbers
 }
 
 functio exemplaria_activa(lista<textus> e_patterns, lista<textus> operands) → lista<textus> {

@@ -55,8 +55,8 @@
 importa ex "§gnu/stdio" gnu_stdio
 
 genus GrexUniq {
-    textus linea
-    numerus copia
+    varia textus linea
+    varia numerus copia
 }
 
 functio lege_omnes_lineas() → lista<textus> {

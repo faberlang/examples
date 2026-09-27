@@ -57,22 +57,22 @@
 importa ex "§gnu/stdio" gnu_stdio
 
 genus Tabulatio {
-    bivalens finita
-    numerus amplitudo
-    numerus count
-    numerus stop1
-    numerus stop2
-    numerus stop3
-    numerus stop4
-    numerus stop5
-    numerus stop6
-    numerus stop7
-    numerus stop8
+    varia bivalens finita
+    varia numerus amplitudo
+    varia numerus count
+    varia numerus stop1
+    varia numerus stop2
+    varia numerus stop3
+    varia numerus stop4
+    varia numerus stop5
+    varia numerus stop6
+    varia numerus stop7
+    varia numerus stop8
 }
 
 genus UnexpandOptiones {
-    bivalens convertit_plene
-    Tabulatio tabs
+    varia bivalens convertit_plene
+    varia Tabulatio tabs
 }
 
 functio tabulatio_activa(numerus petitus) → numerus {

@@ -45,10 +45,10 @@
 
 importa ex "norma:fs" solum
 genus CommOptiones {
-    bivalens suppress1
-    bivalens suppress2
-    bivalens suppress3
-    lista<textus> paths
+    varia bivalens suppress1
+    varia bivalens suppress2
+    varia bivalens suppress3
+    varia lista<textus> paths
 }
 
 functio comm_optio_flag(textus arg, textus digit) → bivalens {

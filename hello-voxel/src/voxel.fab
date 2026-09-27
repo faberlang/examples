@@ -111,37 +111,37 @@ functio block_solid() → numerus { redde 1 }
 # =========================================================================
 
 genus WorldCoord {
-    numerus x
-    numerus y
-    numerus z
+    varia numerus x
+    varia numerus y
+    varia numerus z
 }
 
 genus ChunkCoord {
-    numerus cx
-    numerus cz
+    varia numerus cx
+    varia numerus cz
 }
 
 genus LocalCoord {
-    numerus lx
-    numerus ly
-    numerus lz
+    varia numerus lx
+    varia numerus ly
+    varia numerus lz
 }
 
 genus ChunkAddress {
-    ChunkCoord chunk
-    LocalCoord local
-    numerus local_index
-    numerus chunk_index
+    varia ChunkCoord chunk
+    varia LocalCoord local
+    varia numerus local_index
+    varia numerus chunk_index
 }
 
 genus Chunk {
-    numerus cx
-    numerus cz
-    lista<numerus> blocks
+    varia numerus cx
+    varia numerus cz
+    varia lista<numerus> blocks
 }
 
 genus World {
-    lista<Chunk> chunks
+    varia lista<Chunk> chunks
 }
 
 # =========================================================================
@@ -636,18 +636,18 @@ functio empty_world_is_all_air(de World world) → bivalens {
 
 genus DirtySet {
     # Fixed mask length = chunk_count(); index i dirty ⇔ flags[i] ≡ verum.
-    lista<bivalens> flags
+    varia lista<bivalens> flags
 }
 
 genus DirtyDrain {
-    DirtySet dirty
-    lista<numerus> chunks
+    varia DirtySet dirty
+    varia lista<numerus> chunks
 }
 
 genus WorldEdit {
-    World world
-    DirtySet dirty
-    bivalens changed
+    varia World world
+    varia DirtySet dirty
+    varia bivalens changed
 }
 
 functio dirty_empty() → DirtySet {

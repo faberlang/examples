@@ -57,9 +57,9 @@
 importa ex "§gnu/stdio" gnu_stdio
 
 genus SeqOptiones {
-    lista<textus> operands
-    bivalens width_flag
-    textus ∪ nihil separator
+    varia lista<textus> operands
+    varia bivalens width_flag
+    varia textus ∪ nihil separator
 }
 
 # The range generator stays numeric: it decides which integers exist before any

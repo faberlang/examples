@@ -1,29 +1,29 @@
 importa ex "triga:math" math
 
 genus City {
-    math.Box3 bounds
-    lista<math.Box3> roads
-    lista<math.Box3> buildings
+    varia math.Box3 bounds
+    varia lista<math.Box3> roads
+    varia lista<math.Box3> buildings
 }
 
 # A body resting on the ground as an oriented rectangle in the x/z plane.
 # `centre.y` is the base; the body rises to `centre.y + height`.
 genus Footprint {
-    math.Vector3 centre
-    math.Vector3 forward
-    math.Vector3 right
-    f32 half_length
-    f32 half_width
-    f32 height
+    varia math.Vector3 centre
+    varia math.Vector3 forward
+    varia math.Vector3 right
+    varia f32 half_length
+    varia f32 half_width
+    varia f32 height
 }
 
 genus SceneFacts {
-    numerus road_count
-    numerus building_count
-    numerus car_count
-    lista<math.Box3> road_bounds
-    lista<math.Box3> building_bounds
-    math.Box3 car_bounds
+    varia numerus road_count
+    varia numerus building_count
+    varia numerus car_count
+    varia lista<math.Box3> road_bounds
+    varia lista<math.Box3> building_bounds
+    varia math.Box3 car_bounds
 }
 
 functio box3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) → math.Box3 {

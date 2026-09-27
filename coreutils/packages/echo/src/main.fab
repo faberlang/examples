@@ -67,9 +67,9 @@ functio optio_suppressit_novam_lineam(textus arg) → bivalens {
 }
 
 genus EchoOperanda {
-    lista<textus> verba
-    bivalens novam_lineam
-    bivalens effugia
+    varia lista<textus> verba
+    varia bivalens novam_lineam
+    varia bivalens effugia
 }
 
 functio echo_operanda(lista<textus> args) → EchoOperanda {

@@ -47,12 +47,12 @@ importa ex "triga:resource" resource
 # =========================================================================
 
 genus ChunkMesh {
-    numerus cx
-    numerus cz
-    numerus face_count
-    lista<f32> positions
-    lista<f32> colors
-    lista<u32> indices
+    varia numerus cx
+    varia numerus cz
+    varia numerus face_count
+    varia lista<f32> positions
+    varia lista<f32> colors
+    varia lista<u32> indices
 }
 
 # =========================================================================
@@ -371,28 +371,28 @@ functio chunk_mesh_face_winding_matches(
 genus ChunkResourceState {
     # Logical identity is handle.index (chunk_index). generation is replaceable.
     # Cached mesh payload detects content change when face_count is unchanged.
-    resource.ResourceHandle handle
-    bivalens live
-    numerus face_count
-    lista<f32> positions
-    lista<f32> colors
-    lista<u32> indices
+    varia resource.ResourceHandle handle
+    varia bivalens live
+    varia numerus face_count
+    varia lista<f32> positions
+    varia lista<f32> colors
+    varia lista<u32> indices
 }
 
 genus ChunkResourceTable {
-    lista<ChunkResourceState> chunks
+    varia lista<ChunkResourceState> chunks
 }
 
 genus ChunkResourceApply {
-    ChunkResourceState state
-    resource.ResourceLifecycleTransition transition
+    varia ChunkResourceState state
+    varia resource.ResourceLifecycleTransition transition
 }
 
 genus DirtyRemeshResult {
-    voxel.DirtySet dirty
-    ChunkResourceTable resources
-    lista<resource.ResourceLifecycleTransition> transitions
-    lista<numerus> remeshed
+    varia voxel.DirtySet dirty
+    varia ChunkResourceTable resources
+    varia lista<resource.ResourceLifecycleTransition> transitions
+    varia lista<numerus> remeshed
 }
 
 functio chunk_logical_handle(numerus chunk_index) → resource.ResourceHandle ∪ nihil {

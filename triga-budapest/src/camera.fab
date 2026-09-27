@@ -2,24 +2,24 @@ importa ex "triga:math" math
 importa ex "triga:graph" graph
 
 genus CameraInput {
-    bivalens yaw_left = falsum
-    bivalens yaw_right = falsum
-    bivalens pitch_up = falsum
-    bivalens pitch_down = falsum
-    bivalens dolly_in = falsum
-    bivalens dolly_out = falsum
-    bivalens pan_left = falsum
-    bivalens pan_right = falsum
-    bivalens pan_forward = falsum
-    bivalens pan_back = falsum
+    varia bivalens yaw_left = falsum
+    varia bivalens yaw_right = falsum
+    varia bivalens pitch_up = falsum
+    varia bivalens pitch_down = falsum
+    varia bivalens dolly_in = falsum
+    varia bivalens dolly_out = falsum
+    varia bivalens pan_left = falsum
+    varia bivalens pan_right = falsum
+    varia bivalens pan_forward = falsum
+    varia bivalens pan_back = falsum
 }
 
 genus OrbitCamera {
-    math.Vector3 target
-    f32 yaw_degrees
-    f32 pitch_degrees
-    f32 distance
-    CameraInput input
+    varia math.Vector3 target
+    varia f32 yaw_degrees
+    varia f32 pitch_degrees
+    varia f32 distance
+    varia CameraInput input
 }
 
 functio spawn_camera() → OrbitCamera {

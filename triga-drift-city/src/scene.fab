@@ -7,22 +7,22 @@ importa ex "triga:math" math
 # SceneObjectGeometry — one renderable object in the greybox scene.
 # ---------------------------------------------------------------------------
 genus SceneObjectGeometry {
-    textus name
-    numerus vertex_count
-    numerus index_count
-    numerus vertex_byte_count
-    numerus index_byte_count
-    lista<f32> vertex_payload
-    lista<u32> index_payload
-    math.Color color
-    math.Box3 bounds
+    varia textus name
+    varia numerus vertex_count
+    varia numerus index_count
+    varia numerus vertex_byte_count
+    varia numerus index_byte_count
+    varia lista<f32> vertex_payload
+    varia lista<u32> index_payload
+    varia math.Color color
+    varia math.Box3 bounds
 }
 
 # ---------------------------------------------------------------------------
 # SceneGeometryManifest — collection of all greybox scene objects.
 # ---------------------------------------------------------------------------
 genus SceneGeometryManifest {
-    lista<SceneObjectGeometry> objects
+    varia lista<SceneObjectGeometry> objects
 }
 
 # ---------------------------------------------------------------------------
