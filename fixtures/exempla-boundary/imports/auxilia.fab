@@ -47,6 +47,6 @@ generis numerus ANSWER = 42
 
 # A genus for testing
 genus Point {
-    numerus x
-    numerus y
+    varia numerus x
+    varia numerus y
 }
