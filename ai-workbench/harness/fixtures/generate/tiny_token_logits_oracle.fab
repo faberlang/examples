@@ -162,7 +162,7 @@ main {
     var list<numerus> token_ids ← empty
     var numerus w ← 0
     dum w < words.longitudo() {
-        if vocab[words[w]] is null {
+        if vocab[words[w]] is none {
             token_ids.appende(unknown_id)
         } else {
             token_ids.appende(vocab[words[w]] ↦ numerus)
