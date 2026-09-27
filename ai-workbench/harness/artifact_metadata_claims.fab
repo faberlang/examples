@@ -24,19 +24,19 @@ import from "./claim_gates" private claim_gates
 
 static list<string> CLAIM_GATED_METADATA_STATUSES = ["oracle-backed", "router-backed"]
 
-fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool> ∪ null> claims, string label) → list<string> {
+fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool> ∪ none> claims, string label) → list<string> {
     var list<string> failures ← empty
     const int n ← events.length()
     var int i ← 0
     while i < n {
         const map<string, any> event ← events[i]
-        if event["event"] is null {
+        if event["event"] is none {
             i ← i + 1
             continue
         }
         const string kind ↤ event["event"]
         if kind ≡ "metadata" {
-            if event["status"] is null {
+            if event["status"] is none {
                 i ← i + 1
                 continue
             }

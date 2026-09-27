@@ -92,7 +92,7 @@ fn allowed_false_failures(map<string, bool> claims, string label, list<string> a
 fn forbidden_failures(map<string, bool> claims, string label, bool require_all) → list<string> {
     var list<string> failures ← empty
     for from FORBIDDEN_INFERENCE_CLAIMS const key {
-        if claims.get(key) is null {
+        if claims.get(key) is none {
             if require_all {
                 failures.append("§ claim § must be explicitly false"(label, key))
             }
@@ -124,8 +124,8 @@ fn false_claim_failures_inner(map<string, bool> claims, string label, bool requi
     return failures
 }
 
-fn false_claim_failures(map<string, bool> ∪ null claims, string label, bool require_all, list<string> allowed_false, list<string> allowed_true) → list<string> {
-    if claims is null {
+fn false_claim_failures(map<string, bool> ∪ none claims, string label, bool require_all, list<string> allowed_false, list<string> allowed_true) → list<string> {
+    if claims is none {
         return ["§ claims must be an object"(label)]
     }
     return false_claim_failures_inner(claims, label, require_all, allowed_false, allowed_true)

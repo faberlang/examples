@@ -80,13 +80,13 @@ functio face_neighbor_world(
     numerus face_code
 ) → voxel.WorldCoord ∪ nihil {
     si math.face_code_valida(face_code) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum numerus ∪ nihil dx ← math.face_code_x_offset(face_code)
     fixum numerus ∪ nihil dy ← math.face_code_y_offset(face_code)
     fixum numerus ∪ nihil dz ← math.face_code_z_offset(face_code)
     si dx est nihil aut dy est nihil aut dz est nihil {
-        redde nihil
+        redde nulla
     }
     redde voxel.WorldCoord {
         x = x + (dx vel 0),
@@ -160,10 +160,10 @@ functio mesh_chunk(
     numerus cz
 ) → ChunkMesh ∪ nihil {
     si voxel.world_valid(world) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si voxel.chunk_coord_valid(cx, cz) ≡ falsum {
-        redde nihil
+        redde nulla
     }
 
     varia lista<f32> positions ← vacua
@@ -200,7 +200,7 @@ functio mesh_chunk(
                                         wz
                                     )
                                 si appended est nihil {
-                                    redde nihil
+                                    redde nulla
                                 }
                                 positions ← appended!.positions
                                 colors ← appended!.colors
@@ -248,7 +248,7 @@ functio chunk_mesh_facts(
     de ChunkMesh mesh
 ) → geometry.VisibleFaceMeshFacts ∪ nihil {
     si mesh.face_count ≡ 0 {
-        redde nihil
+        redde nulla
     }
     redde chunk_mesh_colored(mesh).facts()
 }
@@ -257,7 +257,7 @@ functio chunk_mesh_bounding_box(
     de ChunkMesh mesh
 ) → geometry.BoundingBox ∪ nihil {
     si mesh.face_count ≡ 0 {
-        redde nihil
+        redde nulla
     }
     redde chunk_mesh_colored(mesh).bounding_box()
 }
@@ -288,11 +288,11 @@ functio chunk_mesh_count_face_code(
     numerus face_code
 ) → numerus ∪ nihil {
     si math.face_code_valida(face_code) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum math.Color ∪ nihil expected ← math.face_code_color(face_code)
     si expected est nihil {
-        redde nihil
+        redde nulla
     }
     varia numerus count ← 0
     varia numerus face ← 0
@@ -397,7 +397,7 @@ genus DirtyRemeshResult {
 
 functio chunk_logical_handle(numerus chunk_index) → resource.ResourceHandle ∪ nihil {
     si chunk_index < 0 aut chunk_index ≥ voxel.chunk_count() {
-        redde nihil
+        redde nulla
     }
     redde resource.ResourceHandle {
         index = chunk_index,
@@ -408,7 +408,7 @@ functio chunk_logical_handle(numerus chunk_index) → resource.ResourceHandle �
 functio empty_chunk_resource(numerus chunk_index) → ChunkResourceState ∪ nihil {
     fixum resource.ResourceHandle ∪ nihil handle ← chunk_logical_handle(chunk_index)
     si handle est nihil {
-        redde nihil
+        redde nulla
     }
     redde ChunkResourceState {
         handle = resource.ResourceHandle {
@@ -561,7 +561,7 @@ functio apply_chunk_mesh_resource(
     de ChunkMesh mesh
 ) → ChunkResourceApply ∪ nihil {
     si state.handle.index < 0 aut state.handle.index ≥ voxel.chunk_count() {
-        redde nihil
+        redde nulla
     }
     fixum numerus faces ← mesh.face_count
     si faces ≡ 0 {
@@ -638,10 +638,10 @@ functio table_with_state(
     de ChunkResourceState state
 ) → ChunkResourceTable ∪ nihil {
     si chunk_resource_table_valid(table) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si chunk_index < 0 aut chunk_index ≥ table.chunks.length() {
-        redde nihil
+        redde nulla
     }
     varia lista<ChunkResourceState> chunks ← vacua
     varia numerus i ← 0
@@ -684,18 +684,18 @@ functio remesh_dirty_chunks(
     de ChunkResourceTable resources
 ) → DirtyRemeshResult ∪ nihil {
     si voxel.world_valid(world) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si voxel.dirty_valid(dirty) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si chunk_resource_table_valid(resources) ≡ falsum {
-        redde nihil
+        redde nulla
     }
 
     fixum voxel.DirtyDrain ∪ nihil drained ← voxel.dirty_drain(dirty)
     si drained est nihil {
-        redde nihil
+        redde nulla
     }
 
     varia ChunkResourceTable table ← ChunkResourceTable { chunks = resources.chunks }
@@ -707,7 +707,7 @@ functio remesh_dirty_chunks(
         fixum voxel.Chunk chunk ← world.chunks[chunk_index]
         fixum ChunkMesh ∪ nihil mesh_result ← mesh_chunk(world, chunk.cx, chunk.cz)
         si mesh_result est nihil {
-            redde nihil
+            redde nulla
         }
         fixum ChunkMesh mesh ← ChunkMesh {
             cx = mesh_result!.cx,
@@ -720,7 +720,7 @@ functio remesh_dirty_chunks(
         fixum ChunkResourceState prior ← table.chunks[chunk_index]
         fixum ChunkResourceApply ∪ nihil applied ← apply_chunk_mesh_resource(prior, mesh)
         si applied est nihil {
-            redde nihil
+            redde nulla
         }
         fixum ChunkResourceTable ∪ nihil next_table ← table_with_state(
             table,
@@ -728,7 +728,7 @@ functio remesh_dirty_chunks(
             applied!.state
         )
         si next_table est nihil {
-            redde nihil
+            redde nulla
         }
         table ← ChunkResourceTable { chunks = next_table!.chunks }
         transitions.append(applied!.transition)
@@ -750,10 +750,10 @@ functio resource_lifecycle_batch_for_table(
     de DirtyRemeshResult remesh
 ) → lista<resource.ResourceLifecycleTransition> ∪ nihil {
     si chunk_resource_table_valid(before) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si chunk_resource_table_valid(remesh.resources) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     varia lista<resource.ResourceLifecycleTransition> batch ← vacua
     varia numerus i ← 0
@@ -791,17 +791,17 @@ functio resource_lifecycle_batch_for_table(
         i ← i + 1
     }
     si resource.resource_lifecycles_valid(batch) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde batch
 }
 
 functio chunk_generation(de ChunkResourceTable table, numerus chunk_index) → numerus ∪ nihil {
     si chunk_resource_table_valid(table) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si chunk_index < 0 aut chunk_index ≥ table.chunks.length() {
-        redde nihil
+        redde nulla
     }
     redde table.chunks[chunk_index].handle.generation
 }

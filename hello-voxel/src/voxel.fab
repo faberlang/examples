@@ -183,21 +183,21 @@ functio local_coord_valid(numerus lx, numerus ly, numerus lz) → bivalens {
 
 functio local_index(numerus lx, numerus ly, numerus lz) → numerus ∪ nihil {
     si local_coord_valid(lx, ly, lz) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde lx + chunk_size() * (lz + chunk_size() * ly)
 }
 
 functio chunk_index(numerus cx, numerus cz) → numerus ∪ nihil {
     si chunk_coord_valid(cx, cz) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde cx + chunk_count_x() * cz
 }
 
 functio world_to_chunk_coord(numerus x, numerus y, numerus z) → ChunkCoord ∪ nihil {
     si world_in_bounds(x, y, z) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde ChunkCoord {
         cx = x / chunk_size(),
@@ -207,7 +207,7 @@ functio world_to_chunk_coord(numerus x, numerus y, numerus z) → ChunkCoord ∪
 
 functio world_to_local_coord(numerus x, numerus y, numerus z) → LocalCoord ∪ nihil {
     si world_in_bounds(x, y, z) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde LocalCoord {
         lx = x % chunk_size(),
@@ -218,15 +218,15 @@ functio world_to_local_coord(numerus x, numerus y, numerus z) → LocalCoord ∪
 
 functio world_to_address(numerus x, numerus y, numerus z) → ChunkAddress ∪ nihil {
     si world_in_bounds(x, y, z) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum ChunkCoord ∪ nihil chunk_result ← world_to_chunk_coord(x, y, z)
     si chunk_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum LocalCoord ∪ nihil local_result ← world_to_local_coord(x, y, z)
     si local_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum numerus ∪ nihil local_index_result ← local_index(
         local_result!.lx,
@@ -234,14 +234,14 @@ functio world_to_address(numerus x, numerus y, numerus z) → ChunkAddress ∪ n
         local_result!.lz
     )
     si local_index_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum numerus ∪ nihil chunk_index_result ← chunk_index(
         chunk_result!.cx,
         chunk_result!.cz
     )
     si chunk_index_result est nihil {
-        redde nihil
+        redde nulla
     }
     redde ChunkAddress {
         chunk = ChunkCoord {
@@ -260,13 +260,13 @@ functio world_to_address(numerus x, numerus y, numerus z) → ChunkAddress ∪ n
 
 functio address_to_world(de ChunkAddress address) → WorldCoord ∪ nihil {
     si chunk_coord_valid(address.chunk.cx, address.chunk.cz) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si local_coord_valid(
         address.local.lx,
         address.local.ly,
         address.local.lz
-    ) ≡ falsum ergo redde nihil
+    ) ≡ falsum ergo redde nulla
     redde WorldCoord {
         x = address.chunk.cx * chunk_size() + address.local.lx,
         y = address.local.ly,
@@ -290,7 +290,7 @@ functio empty_chunk_blocks() → lista<numerus> {
 
 functio empty_chunk(numerus cx, numerus cz) → Chunk ∪ nihil {
     si chunk_coord_valid(cx, cz) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde Chunk {
         cx = cx,
@@ -348,11 +348,11 @@ functio world_valid(de World world) → bivalens {
 
 functio world_get(de World world, numerus x, numerus y, numerus z) → numerus ∪ nihil {
     si world_valid(world) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum ChunkAddress ∪ nihil address_result ← world_to_address(x, y, z)
     si address_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum Chunk chunk ← world.chunks[address_result!.chunk_index]
     fixum numerus value ← chunk.blocks[address_result!.local_index]
@@ -361,10 +361,10 @@ functio world_get(de World world, numerus x, numerus y, numerus z) → numerus �
 
 functio chunk_with_block(de Chunk chunk, numerus local_index, numerus block_id) → Chunk ∪ nihil {
     si local_index < 0 aut local_index ≥ chunk.blocks.length() {
-        redde nihil
+        redde nulla
     }
     si block_id_valid(block_id) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     varia lista<numerus> blocks ← vacua
     varia numerus i ← 0
@@ -391,14 +391,14 @@ functio world_set(
     numerus block_id
 ) → World ∪ nihil {
     si world_valid(world) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si block_id_valid(block_id) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum ChunkAddress ∪ nihil address_result ← world_to_address(x, y, z)
     si address_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum Chunk chunk ← world.chunks[address_result!.chunk_index]
     fixum Chunk ∪ nihil updated_chunk ← chunk_with_block(
@@ -407,7 +407,7 @@ functio world_set(
         block_id
     )
     si updated_chunk est nihil {
-        redde nihil
+        redde nulla
     }
     varia lista<Chunk> chunks ← vacua
     varia numerus i ← 0
@@ -691,10 +691,10 @@ functio dirty_contains(de DirtySet dirty, numerus chunk_index) → bivalens {
 
 functio dirty_mark(de DirtySet dirty, numerus chunk_index) → DirtySet ∪ nihil {
     si dirty_valid(dirty) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si chunk_index < 0 aut chunk_index ≥ dirty.flags.length() {
-        redde nihil
+        redde nulla
     }
     varia lista<bivalens> flags ← vacua
     varia numerus i ← 0
@@ -714,14 +714,14 @@ functio dirty_mark_many(
     de lista<numerus> chunk_indices
 ) → DirtySet ∪ nihil {
     si dirty_valid(dirty) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     varia DirtySet next ← DirtySet { flags = dirty.flags }
     varia numerus i ← 0
     dum i < chunk_indices.length() {
         fixum DirtySet ∪ nihil marked ← dirty_mark(next, chunk_indices[i])
         si marked est nihil {
-            redde nihil
+            redde nulla
         }
         next ← DirtySet { flags = marked!.flags }
         i ← i + 1
@@ -732,7 +732,7 @@ functio dirty_mark_many(
 # Drain: return sorted unique dirty chunk indices and clear the set.
 functio dirty_drain(de DirtySet dirty) → DirtyDrain ∪ nihil {
     si dirty_valid(dirty) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     varia lista<numerus> chunks ← vacua
     varia numerus i ← 0
@@ -762,7 +762,7 @@ functio affected_chunk_indices(
 ) → lista<numerus> ∪ nihil {
     fixum ChunkAddress ∪ nihil address_result ← world_to_address(x, y, z)
     si address_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum numerus owning ← address_result!.chunk_index
     fixum numerus lx ← address_result!.local.lx
@@ -774,7 +774,7 @@ functio affected_chunk_indices(
     varia DirtySet mask ← dirty_empty()
     fixum DirtySet ∪ nihil own_marked ← dirty_mark(mask, owning)
     si own_marked est nihil {
-        redde nihil
+        redde nulla
     }
     mask ← DirtySet { flags = own_marked!.flags }
 
@@ -817,7 +817,7 @@ functio affected_chunk_indices(
 
     fixum DirtyDrain ∪ nihil drained ← dirty_drain(mask)
     si drained est nihil {
-        redde nihil
+        redde nulla
     }
     redde drained!.chunks
 }
@@ -830,7 +830,7 @@ functio dirty_mark_world_cell(
 ) → DirtySet ∪ nihil {
     fixum lista<numerus> ∪ nihil affected ← affected_chunk_indices(x, y, z)
     si affected est nihil {
-        redde nihil
+        redde nulla
     }
     fixum lista<numerus> indices ← affected vel []
     redde dirty_mark_many(dirty, indices)
@@ -846,14 +846,14 @@ functio world_set_dirty(
     numerus block_id
 ) → WorldEdit ∪ nihil {
     si dirty_valid(dirty) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum numerus ∪ nihil current ← world_get(world, x, y, z)
     si current est nihil {
-        redde nihil
+        redde nulla
     }
     si block_id_valid(block_id) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si (current vel 0) ≡ block_id {
         redde WorldEdit {
@@ -864,11 +864,11 @@ functio world_set_dirty(
     }
     fixum World ∪ nihil next_world ← world_set(world, x, y, z, block_id)
     si next_world est nihil {
-        redde nihil
+        redde nulla
     }
     fixum DirtySet ∪ nihil next_dirty ← dirty_mark_world_cell(dirty, x, y, z)
     si next_dirty est nihil {
-        redde nihil
+        redde nulla
     }
     redde WorldEdit {
         world = World { chunks = next_world!.chunks },
@@ -880,7 +880,7 @@ functio world_set_dirty(
 # Sorted unique dirty chunk indices (does not clear the set).
 functio dirty_indices(de DirtySet dirty) → lista<numerus> ∪ nihil {
     si dirty_valid(dirty) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     varia lista<numerus> chunks ← vacua
     varia numerus i ← 0

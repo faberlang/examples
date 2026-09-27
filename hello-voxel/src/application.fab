@@ -850,13 +850,13 @@ functio voxel_dda(
     f32 max_distance
 ) → VoxelHit ∪ nihil {
     si max_distance < 0.0 {
-        redde nihil
+        redde nulla
     }
     fixum f32 len_sq ← direction.x * direction.x
         + direction.y * direction.y
         + direction.z * direction.z
     si len_sq ≤ dda_eps() {
-        redde nihil
+        redde nulla
     }
 
     varia numerus x ← floor_cell(origin.x)
@@ -903,7 +903,7 @@ functio voxel_dda(
             si t_max_x < t_max_z {
                 distance ← t_max_x
                 si distance > max_distance {
-                    redde nihil
+                    redde nulla
                 }
                 prev_x ← x
                 prev_y ← y
@@ -913,7 +913,7 @@ functio voxel_dda(
             } secus {
                 distance ← t_max_z
                 si distance > max_distance {
-                    redde nihil
+                    redde nulla
                 }
                 prev_x ← x
                 prev_y ← y
@@ -925,7 +925,7 @@ functio voxel_dda(
             si t_max_y < t_max_z {
                 distance ← t_max_y
                 si distance > max_distance {
-                    redde nihil
+                    redde nulla
                 }
                 prev_x ← x
                 prev_y ← y
@@ -935,7 +935,7 @@ functio voxel_dda(
             } secus {
                 distance ← t_max_z
                 si distance > max_distance {
-                    redde nihil
+                    redde nulla
                 }
                 prev_x ← x
                 prev_y ← y
@@ -959,7 +959,7 @@ functio voxel_dda(
         }
         steps ← steps + 1
     }
-    redde nihil
+    redde nulla
 }
 
 # Camera-centered selection: eye origin, view direction, locked range 6.
@@ -993,10 +993,10 @@ functio remove_hit(
         hit.hit_z
     )
     si id est nihil {
-        redde nihil
+        redde nulla
     }
     si voxel.block_is_solid(id vel 0) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde voxel.world_set(
         world,
@@ -1015,7 +1015,7 @@ functio place_at_preceding(
     de VoxelHit hit
 ) → voxel.World ∪ nihil {
     si hit.has_preceding ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum numerus ∪ nihil id ← voxel.world_get(
         world,
@@ -1024,10 +1024,10 @@ functio place_at_preceding(
         hit.prev_z
     )
     si id est nihil {
-        redde nihil
+        redde nulla
     }
     si voxel.block_is_air(id vel 1) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si placement_intersects_player(
         player,
@@ -1035,7 +1035,7 @@ functio place_at_preceding(
         hit.prev_y,
         hit.prev_z
     ) {
-        redde nihil
+        redde nulla
     }
     redde voxel.world_set(
         world,
@@ -1054,7 +1054,7 @@ functio try_remove(
 ) → voxel.World ∪ nihil {
     fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
     si hit_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum VoxelHit hit ← VoxelHit {
         hit_x = hit_result!.hit_x,
@@ -1077,7 +1077,7 @@ functio try_place(
 ) → voxel.World ∪ nihil {
     fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
     si hit_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum VoxelHit hit ← VoxelHit {
         hit_x = hit_result!.hit_x,
@@ -1109,10 +1109,10 @@ functio remove_hit_dirty(
         hit.hit_z
     )
     si id est nihil {
-        redde nihil
+        redde nulla
     }
     si voxel.block_is_solid(id vel 0) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     redde voxel.world_set_dirty(
         world,
@@ -1132,7 +1132,7 @@ functio place_at_preceding_dirty(
     de VoxelHit hit
 ) → voxel.WorldEdit ∪ nihil {
     si hit.has_preceding ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum numerus ∪ nihil id ← voxel.world_get(
         world,
@@ -1141,10 +1141,10 @@ functio place_at_preceding_dirty(
         hit.prev_z
     )
     si id est nihil {
-        redde nihil
+        redde nulla
     }
     si voxel.block_is_air(id vel 1) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     si placement_intersects_player(
         player,
@@ -1152,7 +1152,7 @@ functio place_at_preceding_dirty(
         hit.prev_y,
         hit.prev_z
     ) {
-        redde nihil
+        redde nulla
     }
     redde voxel.world_set_dirty(
         world,
@@ -1172,7 +1172,7 @@ functio try_remove_dirty(
 ) → voxel.WorldEdit ∪ nihil {
     fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
     si hit_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum VoxelHit hit ← VoxelHit {
         hit_x = hit_result!.hit_x,
@@ -1195,7 +1195,7 @@ functio try_place_dirty(
 ) → voxel.WorldEdit ∪ nihil {
     fixum VoxelHit ∪ nihil hit_result ← select_voxel(world, camera, player)
     si hit_result est nihil {
-        redde nihil
+        redde nulla
     }
     fixum VoxelHit hit ← VoxelHit {
         hit_x = hit_result!.hit_x,
@@ -1265,10 +1265,10 @@ functio box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z)
         1.0 ∷ f32
     )
     si wire_result est nihil {
-        redde nihil
+        redde nulla
     }
     si wire_result!.vertex_count ≠ 8 aut wire_result!.indices.length() ≠ 24 {
-        redde nihil
+        redde nulla
     }
     fixum f32 ox ← (cell_x ↦ f32) + 0.5 ∷ f32
     fixum f32 oy ← (cell_y ↦ f32) + 0.5 ∷ f32

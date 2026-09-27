@@ -87,7 +87,7 @@ functio view_projection(de OrbitCamera camera, f32 aspect) → math.Matrix4 ∪ 
 
 functio transform_payload(de OrbitCamera camera, f32 aspect) → math.TransformPayload ∪ nihil {
     fixum math.Matrix4 ∪ nihil view_projection_result ← view_projection(camera, aspect)
-    si view_projection_result est nihil ergo redde nihil
+    si view_projection_result est nihil ergo redde nulla
     fixum math.Matrix4 view_projection_matrix ← math.Matrix4 { elements = view_projection_result!.elements }
     redde math.transform_payload(math.matrix4_identitas(), view_projection_matrix)
 }

@@ -46,13 +46,13 @@ fn make_metadata_without_claims(string status) → map<string, any> {
     return event
 }
 
-fn claims_of(list<map<string, any>> events) → list<map<string, bool> ∪ null> {
-    var list<map<string, bool> ∪ null> claims ← empty
+fn claims_of(list<map<string, any>> events) → list<map<string, bool> ∪ none> {
+    var list<map<string, bool> ∪ none> claims ← empty
     const int n ← events.length()
     var int i ← 0
     while i < n {
         const map<string, any> event ← events[i]
-        if event["claims"] is null {
+        if event["claims"] is none {
             claims.append(null)
         } else {
             claims.append(event["claims"] ↦ map<string, bool>)
@@ -63,7 +63,7 @@ fn claims_of(list<map<string, any>> events) → list<map<string, bool> ∪ null>
 }
 
 fn check_failures(list<map<string, any>> events, string label) → list<string> {
-    const list<map<string, bool> ∪ null> claims ← claims_of(events)
+    const list<map<string, bool> ∪ none> claims ← claims_of(events)
     return artifact_metadata_claims.metadata_claim_failures(events, claims, label)
 }
 

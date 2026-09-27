@@ -40,7 +40,7 @@ fn check_rung4(string repo_root) → list<string> {
     const map<string, value> ref ← json.solve(solum.lege(ref_path) ↦ string) ↦ map<string, value>
 
     const value tolerance_value ← ref["tolerance"]
-    if tolerance_value is null {
+    if tolerance_value is none {
         failures.append("rung4 tolerance must be a finite non-negative number")
         return failures
     }
@@ -72,7 +72,7 @@ fn check_rung4(string repo_root) → list<string> {
             failures.append("rung4 event " + (index ↦ string) + ": step=" + (step ↦ string))
         }
         const value launch_value ← event["launch"]
-        if launch_value is null {
+        if launch_value is none {
             failures.append("rung4 event " + (index ↦ string) + ": unexpected launch None")
         } else {
             const string launch ↤ launch_value

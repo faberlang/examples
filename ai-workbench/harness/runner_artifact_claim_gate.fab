@@ -72,7 +72,7 @@ fn claim_failures(map<string, value> claims, string label) → list<string> {
         }
     }
     for from FORBIDDEN_INFERENCE_CLAIMS const key {
-        if claims[key] is null {
+        if claims[key] is none {
             failures.append("§ claim § must be explicitly false"(label, key))
             continue
         }
@@ -102,7 +102,7 @@ main {
     var int i ← 0
     while i < total {
         const any parsed ← json.tempta(lines[i] ↦ string)
-        if parsed is null {
+        if parsed is none {
             consolum.mone("line §: invalid JSON"(i + 1))
             processus.exi(1)
         }
@@ -115,7 +115,7 @@ main {
         processus.exi(1)
     }
     const map<string, value> first ↤ events[0]
-    if first["event"] is null {
+    if first["event"] is none {
         consolum.mone("runner artifact first event must be metadata")
         processus.exi(1)
     }
@@ -125,7 +125,7 @@ main {
         processus.exi(1)
     }
     var list<string> failures ← empty
-    if first["status"] is null {
+    if first["status"] is none {
         failures.append("runner artifact metadata status 'None' does not match '§'"(expected_status))
     } else {
         const string status ↤ first["status"]
@@ -133,7 +133,7 @@ main {
             failures.append("runner artifact metadata status '§' does not match '§'"(status, expected_status))
         }
     }
-    if first["claims"] is null {
+    if first["claims"] is none {
         failures.append("runner artifact metadata claims must be an object")
     } else {
         const map<string, value> claims ↤ first["claims"]

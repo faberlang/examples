@@ -49,7 +49,7 @@ fn validate_runner_artifact_events(list<map<string, any>> events, string expecte
     if status ≠ expected_status {
         failures.append("runner artifact metadata status '§' does not match '§'"(status, expected_status))
     }
-    if first["claims"] is null {
+    if first["claims"] is none {
         failures.append("runner artifact metadata claims must be an object")
         return failures
     }

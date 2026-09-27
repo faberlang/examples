@@ -177,7 +177,7 @@ functio batch_from_resource_table(
     de meshing.ChunkResourceTable table
 ) → WorldChunkBatch ∪ nihil {
     si meshing.chunk_resource_table_valid(table) ≡ falsum {
-        redde nihil
+        redde nulla
     }
 
     varia lista<meshing.ChunkMesh> meshes ← vacua
@@ -203,7 +203,7 @@ functio batch_from_resource_table(
             indices = state.indices
         }
         si meshing.chunk_mesh_matches_face_count(mesh) ≡ falsum {
-            redde nihil
+            redde nulla
         }
         meshes.append(mesh)
         si state.live et state.face_count > 0 {
@@ -238,7 +238,7 @@ functio batch_from_resource_table(
 # Full remesh of the world into a resource table (bootstrap / fixture only).
 functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
     si voxel.world_valid(world) ≡ falsum {
-        redde nihil
+        redde nulla
     }
     fixum meshing.ChunkResourceTable empty ← meshing.empty_chunk_resource_table()
     fixum voxel.DirtySet dirty ← dirty_mark_all()
@@ -248,7 +248,7 @@ functio mesh_world(de voxel.World world) → WorldChunkBatch ∪ nihil {
         empty
     )
     si remesh est nihil {
-        redde nihil
+        redde nulla
     }
     redde batch_from_resource_table(remesh!.resources)
 }

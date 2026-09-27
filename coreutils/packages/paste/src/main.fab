@@ -113,7 +113,7 @@ functio modus_stdin(lista<textus> operands) → bivalens {
 
 probandum "paste stdin helper subset" tag "coreutils" {
     proba "missing delimiter defaults to tab" {
-        adfirma delimiters_activi(nihil) ≡ tabulator()
+        adfirma delimiters_activi(nulla) ≡ tabulator()
     }
     proba "delimiter scalar cycles by separator index" {
         adfirma delim_scala("", 0) ≡ ""

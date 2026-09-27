@@ -192,7 +192,7 @@ functio seq_iuncta(lista<textus> operands, bivalens width_flag, textus separator
 functio seq_parse(lista<textus> args) → SeqOptiones {
     varia lista<textus> operands ← vacua
     varia numerus width_seen ← 0
-    varia textus ∪ nihil separator ← nihil
+    varia textus ∪ nihil separator ← nulla
     varia numerus i ← 0
 
     dum i < args.longitudo() {
