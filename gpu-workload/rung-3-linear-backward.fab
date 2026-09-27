@@ -52,6 +52,6 @@ functio rung3_gradient_kernel(f32 x, f32 weight, f32 target) → f32 {
 
 incipit {
     fixum f32 loss ← rung3_loss(2.0, 3.0, 4.0)
-    fixum vacuum _launch ← ad 'cuda:launch' ("rung3_gradient_kernel") ↦ vacuum
+    fixum vacuum launch ← ad 'cuda:launch' ("rung3_gradient_kernel") ↦ vacuum
     nota loss
 }

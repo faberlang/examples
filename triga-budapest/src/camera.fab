@@ -26,19 +26,19 @@ functio spawn_camera() → OrbitCamera {
     redde OrbitCamera { target = math.vector3(0.0, 4.0, 0.0), yaw_degrees = -28.0 ∷ f32, pitch_degrees = -17.0 ∷ f32, distance = 62.0, input = CameraInput { } }
 }
 
-functio _clamp_distance(f32 distance) → f32 {
+functio clamp_distance(f32 distance) → f32 {
     si distance < 12.0 ergo redde 12.0
     si distance > 95.0 ergo redde 95.0
     redde distance
 }
 
-functio _clamp_delta(f32 delta_seconds) → f32 {
+functio clamp_delta(f32 delta_seconds) → f32 {
     si delta_seconds < 0.0 ergo redde 0.0
     si delta_seconds > 0.050 ergo redde 0.050
     redde delta_seconds
 }
 
-functio _input_axis(bivalens negative, bivalens positive) → f32 {
+functio input_axis(bivalens negative, bivalens positive) → f32 {
     si negative et positive ergo redde 0.0
     si negative ergo redde 0.0 - 1.0
     si positive ergo redde 1.0
@@ -63,16 +63,16 @@ functio set_key_by_code(de CameraInput input, textus code, bivalens pressed) →
 }
 
 functio step_camera(de OrbitCamera camera, f32 delta_seconds) → OrbitCamera {
-    fixum f32 safe_delta ← _clamp_delta(delta_seconds)
-    fixum f32 yaw_axis ← _input_axis(camera.input.yaw_left, camera.input.yaw_right)
-    fixum f32 pitch_axis ← _input_axis(camera.input.pitch_down, camera.input.pitch_up)
-    fixum f32 dolly_axis ← _input_axis(camera.input.dolly_in, camera.input.dolly_out)
-    fixum f32 pan_right_axis ← _input_axis(camera.input.pan_left, camera.input.pan_right)
-    fixum f32 pan_forward_axis ← _input_axis(camera.input.pan_back, camera.input.pan_forward)
+    fixum f32 safe_delta ← clamp_delta(delta_seconds)
+    fixum f32 yaw_axis ← input_axis(camera.input.yaw_left, camera.input.yaw_right)
+    fixum f32 pitch_axis ← input_axis(camera.input.pitch_down, camera.input.pitch_up)
+    fixum f32 dolly_axis ← input_axis(camera.input.dolly_in, camera.input.dolly_out)
+    fixum f32 pan_right_axis ← input_axis(camera.input.pan_left, camera.input.pan_right)
+    fixum f32 pan_forward_axis ← input_axis(camera.input.pan_back, camera.input.pan_forward)
 
     fixum f32 next_yaw ← camera.yaw_degrees + yaw_axis * 55.0 * safe_delta
     fixum f32 next_pitch ← math.camera_pitch_coercita(camera.pitch_degrees + pitch_axis * 38.0 * safe_delta)
-    fixum f32 next_distance ← _clamp_distance(camera.distance + dolly_axis * 32.0 * safe_delta)
+    fixum f32 next_distance ← clamp_distance(camera.distance + dolly_axis * 32.0 * safe_delta)
     fixum math.Vector3 pan ← math.camera_motus_planus_ex_yaw(next_yaw, pan_forward_axis, pan_right_axis, 13.0, safe_delta)
 
     redde OrbitCamera { target = camera.target.addita(pan), yaw_degrees = next_yaw, pitch_degrees = next_pitch, distance = next_distance, input = camera.input }

@@ -786,9 +786,9 @@ functio step_application(
 functio select_range() → f32 { redde 6.0 ∷ f32 }
 
 # Large sentinel for zero direction components in Amanatides–Woo traversal.
-functio _dda_inf() → f32 { redde 1.0e30 ∷ f32 }
+functio dda_inf() → f32 { redde 1.0e30 ∷ f32 }
 
-functio _dda_eps() → f32 { redde 1.0e-8 ∷ f32 }
+functio dda_eps() → f32 { redde 1.0e-8 ∷ f32 }
 
 functio voxel_cell_box(numerus x, numerus y, numerus z) → math.Box3 {
     redde math.Box3 {
@@ -811,28 +811,28 @@ functio placement_intersects_player(
     redde (player_box(player)).intersecat(voxel_cell_box(x, y, z))
 }
 
-functio _dda_step(f32 component) → numerus {
-    si component > _dda_eps() {
+functio dda_step(f32 component) → numerus {
+    si component > dda_eps() {
         redde 1
     }
-    si component < 0.0 ∷ f32 - _dda_eps() {
+    si component < 0.0 ∷ f32 - dda_eps() {
         redde 0 - 1
     }
     redde 0
 }
 
-functio _dda_t_delta(f32 component) → f32 {
-    si component.abs() ≤ _dda_eps() {
-        redde _dda_inf()
+functio dda_t_delta(f32 component) → f32 {
+    si component.abs() ≤ dda_eps() {
+        redde dda_inf()
     }
     redde 1.0 ∷ f32 / component.abs()
 }
 
 # Distance along the ray to the first boundary crossed when leaving the current
 # cell along one axis. Zero-component axes never win the min-t race.
-functio _dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
-    si component.abs() ≤ _dda_eps() {
-        redde _dda_inf()
+functio dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
+    si component.abs() ≤ dda_eps() {
+        redde dda_inf()
     }
     si component > 0.0 {
         redde ((cell ↦ f32) + 1.0 ∷ f32 - origin) / component
@@ -855,7 +855,7 @@ functio voxel_dda(
     fixum f32 len_sq ← direction.x * direction.x
         + direction.y * direction.y
         + direction.z * direction.z
-    si len_sq ≤ _dda_eps() {
+    si len_sq ≤ dda_eps() {
         redde nihil
     }
 
@@ -863,17 +863,17 @@ functio voxel_dda(
     varia numerus y ← floor_cell(origin.y)
     varia numerus z ← floor_cell(origin.z)
 
-    fixum numerus step_x ← _dda_step(direction.x)
-    fixum numerus step_y ← _dda_step(direction.y)
-    fixum numerus step_z ← _dda_step(direction.z)
+    fixum numerus step_x ← dda_step(direction.x)
+    fixum numerus step_y ← dda_step(direction.y)
+    fixum numerus step_z ← dda_step(direction.z)
 
-    fixum f32 t_delta_x ← _dda_t_delta(direction.x)
-    fixum f32 t_delta_y ← _dda_t_delta(direction.y)
-    fixum f32 t_delta_z ← _dda_t_delta(direction.z)
+    fixum f32 t_delta_x ← dda_t_delta(direction.x)
+    fixum f32 t_delta_y ← dda_t_delta(direction.y)
+    fixum f32 t_delta_z ← dda_t_delta(direction.z)
 
-    varia f32 t_max_x ← _dda_t_max(origin.x, direction.x, x)
-    varia f32 t_max_y ← _dda_t_max(origin.y, direction.y, y)
-    varia f32 t_max_z ← _dda_t_max(origin.z, direction.z, z)
+    varia f32 t_max_x ← dda_t_max(origin.x, direction.x, x)
+    varia f32 t_max_y ← dda_t_max(origin.y, direction.y, y)
+    varia f32 t_max_z ← dda_t_max(origin.z, direction.z, z)
 
     # Starting cell solid → hit with no legal placement face.
     si world_cell_is_solid(world, x, y, z) {
@@ -1258,7 +1258,7 @@ functio empty_selection_outline() → SelectionOutline {
 # hit cell center. Shape matches primitives.box_wire_geometry(1,1,1); we call
 # box_wire_geometry + box_wire_draw_batch_facts for admission evidence and emit
 # the deterministic translated payload for the browser proof path.
-functio _box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z) → lista<f32> ∪ nihil {
+functio box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z) → lista<f32> ∪ nihil {
     fixum geometry.BufferGeometry ∪ nihil wire_result ← primitives.box_wire_geometry(
         1.0 ∷ f32,
         1.0 ∷ f32,
@@ -1288,7 +1288,7 @@ functio _box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z
 }
 
 functio selection_outline_from_hit(de VoxelHit hit) → SelectionOutline {
-    fixum lista<f32> ∪ nihil positions_result ← _box_wire_world_positions(
+    fixum lista<f32> ∪ nihil positions_result ← box_wire_world_positions(
         hit.hit_x,
         hit.hit_y,
         hit.hit_z

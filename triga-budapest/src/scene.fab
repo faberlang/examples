@@ -18,7 +18,7 @@ genus SceneGeometryManifest {
     varia lista<SceneObjectGeometry> objects
 }
 
-functio _add_object(lista<SceneObjectGeometry> objects, de bridge.ScenePart part) → lista<SceneObjectGeometry> {
+functio add_object(lista<SceneObjectGeometry> objects, de bridge.ScenePart part) → lista<SceneObjectGeometry> {
     fixum lista<f32> ∪ nihil vp_result ← box_geom.box_vertex_payload(part.bounds, part.red, part.green, part.blue)
     si vp_result est nihil ergo redde objects
 
@@ -35,7 +35,7 @@ functio budapest_scene_geometry() → SceneGeometryManifest {
 
     varia numerus i ← 0
     dum i < parts.length() {
-        objects ← _add_object(objects, parts[i])
+        objects ← add_object(objects, parts[i])
         i ← i + 1
     }
 

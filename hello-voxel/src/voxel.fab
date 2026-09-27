@@ -359,7 +359,7 @@ functio world_get(de World world, numerus x, numerus y, numerus z) → numerus �
     redde value
 }
 
-functio _chunk_with_block(de Chunk chunk, numerus local_index, numerus block_id) → Chunk ∪ nihil {
+functio chunk_with_block(de Chunk chunk, numerus local_index, numerus block_id) → Chunk ∪ nihil {
     si local_index < 0 aut local_index ≥ chunk.blocks.length() {
         redde nihil
     }
@@ -401,7 +401,7 @@ functio world_set(
         redde nihil
     }
     fixum Chunk chunk ← world.chunks[address_result!.chunk_index]
-    fixum Chunk ∪ nihil updated_chunk ← _chunk_with_block(
+    fixum Chunk ∪ nihil updated_chunk ← chunk_with_block(
         chunk,
         address_result!.local_index,
         block_id
@@ -452,7 +452,7 @@ functio fixture_pillar_y_max() → numerus { redde 10 }
 
 functio fixture_cross_y() → numerus { redde 1 }
 
-functio _fixture_fill_ground(de World world) → World {
+functio fixture_fill_ground(de World world) → World {
     varia World next ← World { chunks = world.chunks }
     varia numerus z ← 0
     dum z < world_size_z() {
@@ -469,7 +469,7 @@ functio _fixture_fill_ground(de World world) → World {
     redde next
 }
 
-functio _fixture_cut_cavity(de World world) → World {
+functio fixture_cut_cavity(de World world) → World {
     fixum World ∪ nihil set_result ← world_set(
         world,
         fixture_cavity_x(),
@@ -483,7 +483,7 @@ functio _fixture_cut_cavity(de World world) → World {
     redde world
 }
 
-functio _fixture_fill_wall(de World world) → World {
+functio fixture_fill_wall(de World world) → World {
     varia World next ← World { chunks = world.chunks }
     varia numerus y ← fixture_wall_y_min()
     dum y ≤ fixture_wall_y_max() {
@@ -506,7 +506,7 @@ functio _fixture_fill_wall(de World world) → World {
     redde next
 }
 
-functio _fixture_fill_pillar(de World world) → World {
+functio fixture_fill_pillar(de World world) → World {
     varia World next ← World { chunks = world.chunks }
     varia numerus y ← fixture_pillar_y_min()
     dum y ≤ fixture_pillar_y_max() {
@@ -525,7 +525,7 @@ functio _fixture_fill_pillar(de World world) → World {
     redde next
 }
 
-functio _fixture_fill_cross_boundary(de World world) → World {
+functio fixture_fill_cross_boundary(de World world) → World {
     varia World next ← World { chunks = world.chunks }
     # 2×2 solids centered on the X=15|16 and Z=15|16 chunk seams.
     fixum lista<numerus> xs ← [15, 16]
@@ -553,11 +553,11 @@ functio _fixture_fill_cross_boundary(de World world) → World {
 
 functio fixture_world() → World {
     fixum World empty ← empty_world()
-    fixum World with_ground ← _fixture_fill_ground(empty)
-    fixum World with_cavity ← _fixture_cut_cavity(with_ground)
-    fixum World with_wall ← _fixture_fill_wall(with_cavity)
-    fixum World with_pillar ← _fixture_fill_pillar(with_wall)
-    redde _fixture_fill_cross_boundary(with_pillar)
+    fixum World with_ground ← fixture_fill_ground(empty)
+    fixum World with_cavity ← fixture_cut_cavity(with_ground)
+    fixum World with_wall ← fixture_fill_wall(with_cavity)
+    fixum World with_pillar ← fixture_fill_pillar(with_wall)
+    redde fixture_fill_cross_boundary(with_pillar)
 }
 
 # =========================================================================

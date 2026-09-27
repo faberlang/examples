@@ -2,7 +2,7 @@ importa ex "triga:geometry" geometry
 importa ex "triga:math" math
 
 # ---------------------------------------------------------------------------
-# _box_corner_positions — shared private helper that returns the 8 corner
+# box_corner_positions — shared private helper that returns the 8 corner
 # positions of a Box3 as a flat [x,y,z, x,y,z, …] array of length 24.
 #
 # Corner order (CCW winding):
@@ -10,7 +10,7 @@ importa ex "triga:math" math
 #   4 (x1,y1,z2)  5 (x2,y1,z2)  6 (x2,y2,z2)  7 (x1,y2,z2)  back
 # ---------------------------------------------------------------------------
 @ privata
-functio _box_corner_positions(f32 x1, f32 y1, f32 z1, f32 x2, f32 y2, f32 z2) → lista<f32> {
+functio box_corner_positions(f32 x1, f32 y1, f32 z1, f32 x2, f32 y2, f32 z2) → lista<f32> {
     varia lista<f32> p ← vacua
     p.append(x1)
     p.append(y1)
@@ -40,10 +40,10 @@ functio _box_corner_positions(f32 x1, f32 y1, f32 z1, f32 x2, f32 y2, f32 z2) �
 }
 
 # ---------------------------------------------------------------------------
-# _box_indices — 36 index values (12 triangles, CCW winding).
+# box_indices — 36 index values (12 triangles, CCW winding).
 # ---------------------------------------------------------------------------
 @ privata
-functio _box_indices() → lista<u32> {
+functio box_indices() → lista<u32> {
     varia lista<u32> idx ← vacua
     # Front (z=z1): 0-1-2, 0-2-3
     idx.append(0)
@@ -91,10 +91,10 @@ functio _box_indices() → lista<u32> {
 }
 
 # ---------------------------------------------------------------------------
-# _box_color_array — a flat [r,g,b, …] of length 24 (one per corner × 8).
+# box_color_array — a flat [r,g,b, …] of length 24 (one per corner × 8).
 # ---------------------------------------------------------------------------
 @ privata
-functio _box_color_array(f32 r, f32 g, f32 b) → lista<f32> {
+functio box_color_array(f32 r, f32 g, f32 b) → lista<f32> {
     varia lista<f32> c ← vacua
     varia numerus i ← 0
     dum i < 8 {
@@ -117,9 +117,9 @@ functio _box_color_array(f32 r, f32 g, f32 b) → lista<f32> {
 functio box_geometry(de math.Box3 bounds, f32 r, f32 g, f32 b) → geometry.BufferGeometry ∪ nihil {
     si (bounds).validum() ≡ falsum ergo redde nihil
 
-    fixum lista<f32> positions ← _box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
-    fixum lista<f32> colors ← _box_color_array(r, g, b)
-    fixum lista<u32> indices ← _box_indices()
+    fixum lista<f32> positions ← box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
+    fixum lista<f32> colors ← box_color_array(r, g, b)
+    fixum lista<u32> indices ← box_indices()
 
     redde geometry.colored_indexed_geometry(8, positions, colors, indices)
 }
@@ -134,7 +134,7 @@ functio box_geometry(de math.Box3 bounds, f32 r, f32 g, f32 b) → geometry.Buff
 functio box_vertex_payload(de math.Box3 bounds, f32 r, f32 g, f32 b) → lista<f32> ∪ nihil {
     si (bounds).validum() ≡ falsum ergo redde nihil
 
-    fixum lista<f32> positions ← _box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
+    fixum lista<f32> positions ← box_corner_positions(bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z)
 
     # Interleave: [px,py,pz, cr,cg,cb, …] for each vertex
     varia lista<f32> payload ← vacua

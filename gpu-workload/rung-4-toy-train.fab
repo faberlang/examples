@@ -44,9 +44,9 @@ incipit {
     fixum f32 rate ← 0.25
 
     weight ← rung4_step_kernel(weight, x, y, rate)
-    fixum vacuum _launch0 ← ad 'cuda:launch' ("rung4_step_kernel") ↦ vacuum
+    fixum vacuum launch0 ← ad 'cuda:launch' ("rung4_step_kernel") ↦ vacuum
     weight ← rung4_step_kernel(weight, x, y, rate)
-    fixum vacuum _launch1 ← ad 'cuda:launch' ("rung4_step_kernel") ↦ vacuum
+    fixum vacuum launch1 ← ad 'cuda:launch' ("rung4_step_kernel") ↦ vacuum
 
     nota weight
 }

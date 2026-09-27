@@ -49,7 +49,7 @@ incipit {
     fixum tf32[3, 2] b ← seed.strue(flat_b, [3, 2])
 
     fixum tf32[2, 2] reference ← rung0_cpu_reference(a, b)
-    fixum vacuum _launch ← ad 'cuda:launch' ("rung0_matmul_kernel") ↦ vacuum
+    fixum vacuum launch ← ad 'cuda:launch' ("rung0_matmul_kernel") ↦ vacuum
 
     nota reference.planata()
 }

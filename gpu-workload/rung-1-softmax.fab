@@ -60,7 +60,7 @@ incipit {
     fixum lista<f32> flat_exp ← [0.13533528, 0.36787944, 1.0, 0.01831564, 0.13533528, 1.0]
     fixum tf32[] seed ← vacua
     fixum tf32[2, 3] exp_logits ← seed.strue(flat_exp, [2, 3])
-    fixum vacuum _launch ← ad 'cuda:launch' ("rung1_softmax_kernel") ↦ vacuum
+    fixum vacuum launch ← ad 'cuda:launch' ("rung1_softmax_kernel") ↦ vacuum
 
     nota rung1_softmax_kernel(exp_logits).planata()
 }

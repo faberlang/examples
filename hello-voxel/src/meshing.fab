@@ -632,7 +632,7 @@ functio apply_chunk_mesh_resource(
     }
 }
 
-functio _table_with_state(
+functio table_with_state(
     de ChunkResourceTable table,
     numerus chunk_index,
     de ChunkResourceState state
@@ -722,7 +722,7 @@ functio remesh_dirty_chunks(
         si applied est nihil {
             redde nihil
         }
-        fixum ChunkResourceTable ∪ nihil next_table ← _table_with_state(
+        fixum ChunkResourceTable ∪ nihil next_table ← table_with_state(
             table,
             chunk_index,
             applied!.state
