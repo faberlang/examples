@@ -43,7 +43,7 @@ functio greet(textus name) → textus {
 }
 
 # A constant value
-fixum numerus ANSWER ← 42
+generis numerus ANSWER = 42
 
 # A genus for testing
 genus Point {

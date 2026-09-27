@@ -22,7 +22,7 @@ locale = "en"
 
 import from "./claim_gates" private claim_gates
 
-const list<string> CLAIM_GATED_METADATA_STATUSES ← ["oracle-backed", "router-backed"]
+static list<string> CLAIM_GATED_METADATA_STATUSES = ["oracle-backed", "router-backed"]
 
 fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool> ∪ null> claims, string label) → list<string> {
     var list<string> failures ← empty

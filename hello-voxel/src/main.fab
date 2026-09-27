@@ -51,7 +51,7 @@ importa ex "triga:math" math
 importa ex "triga:resource" resource
 
 # Default canvas aspect (960×540). Mount seeds live aspect; resize updates it.
-fixum f32 DEFAULT_ASPECT ← 1.778 ∷ f32
+generis f32 DEFAULT_ASPECT = 1.778 ∷ f32
 
 # Admitted host residual path after HV-07B/C (not concatenated single-buffer).
 functio residual_path_multi_draw() → textus { redde "per-chunk-multi-draw" }

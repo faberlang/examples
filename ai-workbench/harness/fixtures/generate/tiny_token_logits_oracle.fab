@@ -25,7 +25,7 @@ import from "faber:solum" private solum
 import from "faber:processus" private processus
 import from "faber:consolum" private consolum
 
-const list<string> FORBIDDEN_INFERENCE_CLAIMS ← [
+static list<string> FORBIDDEN_INFERENCE_CLAIMS = [
     "faber_owned_inference",
     "owned_model_runtime",
     "general_inference",
