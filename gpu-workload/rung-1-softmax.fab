@@ -33,6 +33,7 @@ locale = "la"
 # reductions and elementwise division that this rung is meant to expose.
 
 @ nucleum
+@ publica
 functio rung1_softmax_kernel(tf32[2, 3] exp_logits) → tf32[2, 3] {
     fixum tf32[] seed ← vacua
     varia tf32[2, 3] out ← seed.crea(0.0, [2, 3])

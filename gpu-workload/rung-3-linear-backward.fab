@@ -47,7 +47,9 @@ functio rung3_loss(f32 x, f32 weight, f32 target) → f32 {
 
 @ nucleum
 functio rung3_gradient_kernel(f32 x, f32 weight, f32 target) → f32 {
-    redde rung3_loss(x, weight, target)
+    fixum f32 prediction ← x * weight
+    fixum f32 err ← prediction - target
+    redde err * err
 }
 
 incipit {

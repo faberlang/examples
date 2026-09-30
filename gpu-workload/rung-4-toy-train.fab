@@ -31,6 +31,7 @@ locale = "la"
 # placement producer gate must satisfy.
 
 @ nucleum
+@ publica
 functio rung4_step_kernel(f32 weight, f32 x, f32 y, f32 rate) → f32 {
     fixum f32 prediction ← weight * x
     fixum f32 err ← prediction - y
