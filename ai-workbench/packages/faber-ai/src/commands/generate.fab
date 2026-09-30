@@ -7,41 +7,41 @@ importa ex "norma:process" privata processus
 @ json
 @ privata
 genus GenerateEventMetadata {
-    textus event
-    textus model
-    textus source
-    textus status
-    textus runtime
+    varia textus event
+    varia textus model
+    varia textus source
+    varia textus status
+    varia textus runtime
     @ json { nomen = "max_new_tokens" }
-    numerus max_new_tokens
-    textus temperature
-    numerus seed
+    varia numerus max_new_tokens
+    varia textus temperature
+    varia numerus seed
 }
 
 @ json
 @ privata
 genus DiagnosticEvent {
-    textus event
-    textus message
+    varia textus event
+    varia textus message
 }
 
 @ json
 @ privata
 genus GenerateSummary {
-    textus model
-    textus source
-    textus status
+    varia textus model
+    varia textus source
+    varia textus status
     @ json { nomen = "prompt_path" }
-    textus prompt_path
+    varia textus prompt_path
     @ json { nomen = "output_path" }
-    textus output_path
-    bivalens streaming
-    textus oracle
+    varia textus output_path
+    varia bivalens streaming
+    varia textus oracle
     @ json { nomen = "max_new_tokens" }
-    numerus max_new_tokens
-    textus temperature
-    numerus seed
-    lista<textus> diagnostics
+    varia numerus max_new_tokens
+    varia textus temperature
+    varia numerus seed
+    varia lista<textus> diagnostics
 }
 
 functio format_jsonne(textus formatum) → bivalens {

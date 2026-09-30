@@ -6,59 +6,59 @@ importa ex "norma:fs" privata solum
 @ json
 @ privata
 genus VectorRecord {
-    textus id
-    textus text
-    lista<fractus> values
+    varia textus id
+    varia textus text
+    varia lista<fractus> values
 }
 
 @ json
 @ privata
 genus Stage2Document {
     @ json { nomen = "format" }
-    textus formatum
-    textus model
-    textus source
-    textus status
+    varia textus formatum
+    varia textus model
+    varia textus source
+    varia textus status
     @ json { nomen = "input_count" }
-    numerus input_count
-    numerus dimensions
-    textus normalization
-    textus oracle sponte
-    lista<VectorRecord> vectors
-    lista<textus> diagnostics
+    varia numerus input_count
+    varia numerus dimensions
+    varia textus normalization
+    varia textus oracle sponte
+    varia lista<VectorRecord> vectors
+    varia lista<textus> diagnostics
 }
 
 @ json
 @ privata
 genus Stage3Index {
     @ json { nomen = "format" }
-    textus formatum
+    varia textus formatum
     @ json { nomen = "source_format" }
-    textus source_format
-    textus model
-    textus source
+    varia textus source_format
+    varia textus model
+    varia textus source
     @ json { nomen = "input_vectors" }
-    numerus input_vectors
-    numerus dimensions
-    textus metric
-    textus normalization
-    lista<VectorRecord> vectors
-    lista<textus> diagnostics
+    varia numerus input_vectors
+    varia numerus dimensions
+    varia textus metric
+    varia textus normalization
+    varia lista<VectorRecord> vectors
+    varia lista<textus> diagnostics
 }
 
 @ json
 @ privata
 genus IndexCommandResponse {
-    textus status
-    textus model
-    textus source
+    varia textus status
+    varia textus model
+    varia textus source
     @ json { nomen = "input_vectors" }
-    numerus input_vectors
-    numerus dimensions
-    textus metric
+    varia numerus input_vectors
+    varia numerus dimensions
+    varia textus metric
     @ json { nomen = "index_path" }
-    textus index_path
-    lista<textus> diagnostics
+    varia textus index_path
+    varia lista<textus> diagnostics
 }
 
 @ privata

@@ -114,15 +114,15 @@ functio bivalens_textus(bivalens value) → textus {
 # =========================================================================
 
 genus WorldChunkBatch {
-    numerus chunk_count
-    numerus non_empty_count
-    numerus total_face_count
-    numerus total_vertex_count
-    numerus total_index_count
-    lista<meshing.ChunkMesh> meshes
-    lista<f32> positions
-    lista<f32> colors
-    lista<u32> indices
+    varia numerus chunk_count
+    varia numerus non_empty_count
+    varia numerus total_face_count
+    varia numerus total_vertex_count
+    varia numerus total_index_count
+    varia lista<meshing.ChunkMesh> meshes
+    varia lista<f32> positions
+    varia lista<f32> colors
+    varia lista<u32> indices
 }
 
 functio append_f32(lista<f32> dest, lista<f32> src) → lista<f32> {

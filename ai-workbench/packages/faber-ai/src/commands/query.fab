@@ -6,60 +6,60 @@ importa ex "norma:fs" privata solum
 @ json
 @ privata
 genus VectorRecord {
-    textus id
-    textus text
-    lista<fractus> values
+    varia textus id
+    varia textus text
+    varia lista<fractus> values
 }
 
 @ json
 @ privata
 genus Stage3Index {
     @ json { nomen = "format" }
-    textus formatum
+    varia textus formatum
     @ json { nomen = "source_format" }
-    textus source_format
-    textus model
-    textus source
+    varia textus source_format
+    varia textus model
+    varia textus source
     @ json { nomen = "input_vectors" }
-    numerus input_vectors
-    numerus dimensions
-    textus metric
-    textus normalization
-    lista<VectorRecord> vectors
-    lista<textus> diagnostics
+    varia numerus input_vectors
+    varia numerus dimensions
+    varia textus metric
+    varia textus normalization
+    varia lista<VectorRecord> vectors
+    varia lista<textus> diagnostics
 }
 
 @ json
 @ privata
 genus QueryVector {
     @ json { nomen = "format" }
-    textus formatum
-    textus model
-    numerus dimensions
-    textus normalization
-    textus query
-    lista<fractus> values
-    lista<textus> diagnostics
+    varia textus formatum
+    varia textus model
+    varia numerus dimensions
+    varia textus normalization
+    varia textus query
+    varia lista<fractus> values
+    varia lista<textus> diagnostics
 }
 
 @ json
 @ privata
 genus ScoredRecord {
-    numerus rank
-    textus id
-    textus text
-    fractus score
+    varia numerus rank
+    varia textus id
+    varia textus text
+    varia fractus score
 }
 
 @ json
 @ privata
 genus QueryCommandResponse {
-    textus status
-    textus query
-    numerus top
-    textus metric
-    lista<ScoredRecord> results
-    lista<textus> diagnostics
+    varia textus status
+    varia textus query
+    varia numerus top
+    varia textus metric
+    varia lista<ScoredRecord> results
+    varia lista<textus> diagnostics
 }
 
 @ privata

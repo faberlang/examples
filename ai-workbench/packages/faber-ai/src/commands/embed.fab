@@ -7,41 +7,41 @@ importa ex "norma:process" privata processus
 @ json
 @ privata
 genus VectorRecord {
-    textus id
-    textus text
-    lista<fractus> values
+    varia textus id
+    varia textus text
+    varia lista<fractus> values
 }
 
 @ json
 @ privata
 genus Stage2Artifact {
     @ json { nomen = "format" }
-    textus formatum
-    textus model
-    textus source
-    textus status
+    varia textus formatum
+    varia textus model
+    varia textus source
+    varia textus status
     @ json { nomen = "input_count" }
-    numerus input_count
-    numerus dimensions
-    textus normalization
-    lista<VectorRecord> vectors
-    lista<textus> diagnostics
+    varia numerus input_count
+    varia numerus dimensions
+    varia textus normalization
+    varia lista<VectorRecord> vectors
+    varia lista<textus> diagnostics
 }
 
 @ json
 @ privata
 genus EmbedResponse {
-    textus model
-    textus source
-    textus status
+    varia textus model
+    varia textus source
+    varia textus status
     @ json { nomen = "input_count" }
-    numerus input_count
-    numerus dimensions
-    textus normalization
+    varia numerus input_count
+    varia numerus dimensions
+    varia textus normalization
     @ json { nomen = "vectors_path" }
-    textus vectors_path
-    textus oracle
-    lista<textus> diagnostics
+    varia textus vectors_path
+    varia textus oracle
+    varia lista<textus> diagnostics
 }
 
 @ privata

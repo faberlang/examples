@@ -7,40 +7,40 @@ importa ex "norma:process" privata processus
 @ json
 @ privata
 genus ChatEventMetadata {
-    textus event
-    textus model
-    textus source
-    textus status
+    varia textus event
+    varia textus model
+    varia textus source
+    varia textus status
     @ json { nomen = "router_model_id" }
-    textus router_model_id
-    textus runtime
+    varia textus router_model_id
+    varia textus runtime
     @ json { nomen = "router_url" }
-    textus router_url
+    varia textus router_url
 }
 
 @ json
 @ privata
 genus DiagnosticEvent {
-    textus event
-    textus message
+    varia textus event
+    varia textus message
 }
 
 @ json
 @ privata
 genus ChatSummary {
-    textus model
-    textus source
-    textus status
+    varia textus model
+    varia textus source
+    varia textus status
     @ json { nomen = "prompt_path" }
-    textus prompt_path
+    varia textus prompt_path
     @ json { nomen = "output_path" }
-    textus output_path
+    varia textus output_path
     @ json { nomen = "router_model_id" }
-    textus router_model_id
-    textus runtime
+    varia textus router_model_id
+    varia textus runtime
     @ json { nomen = "router_url" }
-    textus router_url
-    lista<textus> diagnostics
+    varia textus router_url
+    varia lista<textus> diagnostics
 }
 
 functio format_jsonne(textus formatum) → bivalens {

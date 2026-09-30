@@ -8,35 +8,35 @@ importa ex "norma:model" privata model
 @ privata
 genus ModelTensorRecord {
     @ json { nomen = "name" }
-    textus nomen
-    textus dtype
+    varia textus nomen
+    varia textus dtype
     @ json { nomen = "shape" }
-    lista<numerus> figura
+    varia lista<numerus> figura
     @ json { nomen = "parameter_count" }
-    numerus parameter_count
+    varia numerus parameter_count
 }
 
 @ json
 @ privata
 genus ModelInspectResponse {
-    textus alias
-    textus source
-    textus status
+    varia textus alias
+    varia textus source
+    varia textus status
     @ json { nomen = "format" }
-    textus formatum
+    varia textus formatum
     @ json { nomen = "local_path" }
-    textus local_path
+    varia textus local_path
     @ json { nomen = "router_model_id" }
-    textus router_model_id
-    lista<textus> files
-    lista<ModelTensorRecord> tensors
+    varia textus router_model_id
+    varia lista<textus> files
+    varia lista<ModelTensorRecord> tensors
     @ json { nomen = "tensor_count" }
-    numerus tensor_count
-    lista<textus> shards
-    textus quantization
+    varia numerus tensor_count
+    varia lista<textus> shards
+    varia textus quantization
     @ json { nomen = "estimated_bytes" }
-    numerus estimated_bytes
-    lista<textus> diagnostics
+    varia numerus estimated_bytes
+    varia lista<textus> diagnostics
 }
 
 functio format_jsonne(textus formatum) → bivalens {

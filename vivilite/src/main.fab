@@ -67,96 +67,96 @@ importa ex "norma:fs" privata solum
 importa ex "sqlite:sqlite" privata sqlite
 
 genus Store {
-    textus root
-    textus dir
-    textus identities
-    textus mail
-    textus work
+    varia textus root
+    varia textus dir
+    varia textus identities
+    varia textus mail
+    varia textus work
 }
 
 genus WorkItem {
-    textus handle
-    textus kind
-    textus status
-    textus from
-    textus to
-    textus subject
-    textus body
+    varia textus handle
+    varia textus kind
+    varia textus status
+    varia textus from
+    varia textus to
+    varia textus subject
+    varia textus body
 }
 
 @ privata
 genus SQLiteStatement {
-    textus sql
-    lista<valor> params
+    varia textus sql
+    varia lista<valor> params
 }
 
 @ json
 @ privata
 genus StatusJson {
-    textus status
-    textus lane
-    numerus identities
+    varia textus status
+    varia textus lane
+    varia numerus identities
 }
 
 @ json
 @ privata
 genus ViviIdentityStatusJson {
-    textus identity
-    textus address
-    numerus actionable_open
-    numerus inbox_unread
-    numerus tasks_open
-    numerus needs_open
-    numerus wants_open
-    numerus done
+    varia textus identity
+    varia textus address
+    varia numerus actionable_open
+    varia numerus inbox_unread
+    varia numerus tasks_open
+    varia numerus needs_open
+    varia numerus wants_open
+    varia numerus done
 }
 
 @ json
 @ privata
 genus ViviStatusTotalsJson {
-    numerus actionable_open
-    numerus inbox_unread
-    numerus tasks_open
-    numerus needs_open
-    numerus wants_open
+    varia numerus actionable_open
+    varia numerus inbox_unread
+    varia numerus tasks_open
+    varia numerus needs_open
+    varia numerus wants_open
 }
 
 @ json
 @ privata
 genus ViviMailspaceStatusJson {
-    bivalens found
-    textus name
-    textus root
-    textus store
-    lista<ViviIdentityStatusJson> identities
-    ViviStatusTotalsJson totals
+    varia bivalens found
+    varia textus name
+    varia textus root
+    varia textus store
+    varia lista<ViviIdentityStatusJson> identities
+    varia ViviStatusTotalsJson totals
 }
 
 @ json
 @ privata
 genus BoardItemJson {
-    textus handle
-    textus subject
-    textus from
+    varia textus handle
+    varia textus subject
+    varia textus from
 }
 
 @ json
 @ privata
 genus BoardJson {
-    textus mailspace
-    textus lane
+    varia textus mailspace
+    varia textus lane
     @ json {nomen = "for" }
-    textus who
-    numerus actionable
-    numerus tasks
-    numerus needs
-    numerus wants
+    varia textus who
+    varia numerus actionable
+    varia numerus tasks
+    varia numerus needs
+    varia numerus wants
     @ json {nomen = "task_items" }
-    lista<BoardItemJson> task_items
+    varia lista<BoardItemJson> task_items
     @ json {nomen = "need_items" }
-    lista<BoardItemJson> need_items
+    varia lista<BoardItemJson> need_items
     @ json {nomen = "want_items" }
-    lista<BoardItemJson> want_items
+    varia lista<BoardItemJson> want_items
 }
 
 functio store(de textus root) → Store {
