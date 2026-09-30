@@ -26,7 +26,7 @@ locale = "la"
 #   • ∪ — union type (line 78)
 #   • nota — print
 #   • valor — dynamic/any type
-#   • .length — member access on a converted result
+#   • .length() — method call on a converted result
 #   • () — parenthesized expression for conversion chaining
 #
 # Alternate approaches (not shown):
@@ -92,6 +92,6 @@ incipit {
     nota result
 
     # Convert in a parenthesized expression for chaining
-    fixum _ len ← (data ↦ textus).length
+    fixum _ len ← (data ↦ textus).length()
     nota len
 }
