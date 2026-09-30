@@ -1,7 +1,7 @@
 # Stage 3 vector index command contract.
 
-importa ex "norma:json" privata json
-importa ex "norma:fs" privata solum
+importa ex "norma:json" json
+importa ex "norma:fs" solum
 
 @ json
 @ privata
