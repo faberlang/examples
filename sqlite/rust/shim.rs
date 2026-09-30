@@ -209,6 +209,7 @@ fn bind_value(value: Valor) -> Result<Value, String> {
         Valor::Fractus(value) => Ok(Value::Real(value)),
         Valor::Textus(value) | Valor::Instans(value) => Ok(Value::Text(value)),
         Valor::Octeti(value) => Ok(Value::Blob(value)),
+        Valor::Magnus(_) => Err("SQLite integers are limited to 64 bits".to_owned()),
         Valor::Lista(_) | Valor::Tabula(_) => {
             Err("SQLite parameters must be scalar valor values".to_owned())
         }
