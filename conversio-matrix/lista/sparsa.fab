@@ -13,5 +13,5 @@ locale = "la"
 # =============================================================================
 incipit {
     fixum lista<numerus> src ← [1, 2, 3]
-    fixum _ r ← src ↦ sparsa<fractus<f32>, [2, 3]>
+    fixum _ r ← src ↦ sparsa<f32, [2, 3]>
 }

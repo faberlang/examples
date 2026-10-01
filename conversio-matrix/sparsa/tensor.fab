@@ -35,6 +35,6 @@ locale = "la"
 # Backend: Rust ✓, wasm-text —
 # =============================================================================
 incipit {
-    fixum sparsa<fractus<f32>, [2, 3]> s ← vacua
-    fixum _ r ← s ↦ tensor<fractus<f32>, [2, 3]>
+    fixum sparsa<f32, [2, 3]> s ← vacua
+    fixum _ r ← s ↦ tensor<f32, [2, 3]>
 }

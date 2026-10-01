@@ -14,5 +14,5 @@ locale = "la"
 incipit {
     fixum valor raw ← "1979-05-27T07:32:00Z"
     fixum instans src ← raw ↦ instans
-    fixum _ r ← src ↦ sparsa<fractus<f32>, [2, 3]>
+    fixum _ r ← src ↦ sparsa<f32, [2, 3]>
 }

@@ -13,5 +13,5 @@ locale = "la"
 # =============================================================================
 incipit {
     fixum matrix<f64, [2, 2]> src ← [[1.0, 2.0], [3.0, 4.0]] ↦ matrix<f64, [2, 2]>
-    fixum _ r ← src ↦ sparsa<fractus<f32>, [2, 3]>
+    fixum _ r ← src ↦ sparsa<f32, [2, 3]>
 }
