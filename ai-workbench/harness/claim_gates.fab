@@ -16,7 +16,7 @@ locale = "en"
 # keys/ordina/conditional-var pattern, so the validator is decomposed into
 # narrow helper functions using only operations verified on the released binary.
 
-static list<string> FORBIDDEN_INFERENCE_CLAIMS = [
+const list<string> FORBIDDEN_INFERENCE_CLAIMS = [
     "faber_owned_inference",
     "owned_model_runtime",
     "general_inference",

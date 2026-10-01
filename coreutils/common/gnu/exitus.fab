@@ -37,5 +37,5 @@ locale = "la"
 
 # GNU-style exit status constants for coreutils packages.
 
-generis numerus EXITUS_OK = 0
-generis numerus EXITUS_FAIL = 1
+fixum numerus EXITUS_OK = 0
+fixum numerus EXITUS_FAIL = 1
