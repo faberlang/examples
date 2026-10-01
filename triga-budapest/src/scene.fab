@@ -11,7 +11,7 @@ genus SceneObjectGeometry {
     varia lista<f32> vertex_payload
     varia lista<u32> index_payload
     varia math.Color color
-    varia math.Box3 bounds
+    varia math.Box<3> bounds
 }
 
 genus SceneGeometryManifest {

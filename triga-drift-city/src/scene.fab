@@ -1,4 +1,6 @@
-importa ex "triga:geometry" geometry
+importa ex "triga:geometry/data" data
+importa ex "triga:geometry/batch" batch
+importa ex "triga:geometry/bounds" bounds
 importa ex "./box_geom" box_geom
 importa ex "./city" city
 importa ex "triga:math" math
@@ -15,7 +17,7 @@ genus SceneObjectGeometry {
     varia lista<f32> vertex_payload
     varia lista<u32> index_payload
     varia math.Color color
-    varia math.Box3 bounds
+    varia math.Box<3> bounds
 }
 
 # ---------------------------------------------------------------------------
@@ -29,19 +31,19 @@ genus SceneGeometryManifest {
 # add_object — appends one SceneObjectGeometry to the list.
 # Skips on geometry/payload failure (defensive; valid inputs never fail).
 # ---------------------------------------------------------------------------
-functio add_object(lista<SceneObjectGeometry> objects, textus name, de math.Box3 bounds, f32 red, f32 green, f32 blue) → lista<SceneObjectGeometry> {
-    fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(bounds, red, green, blue)
+functio add_object(lista<SceneObjectGeometry> objects, textus name, de math.Box<3> bounds, f32 red, f32 green, f32 blue) → lista<SceneObjectGeometry> {
+    fixum data.Geometry ∪ nihil geo_result ← box_geom.box_geometry(bounds, red, green, blue)
     si geo_result est nihil ergo redde objects
 
     fixum lista<f32> ∪ nihil vp_result ← box_geom.box_vertex_payload(bounds, red, green, blue)
     si vp_result est nihil ergo redde objects
 
-    fixum geometry.BufferGeometry gg ← geometry.BufferGeometry { topology = geo_result!.topology, vertex_count = geo_result!.vertex_count, attributes = geo_result!.attributes, indexed = geo_result!.indexed, indices = geo_result!.indices, draw_range = geo_result!.draw_range, groups = geo_result!.groups }
+    fixum data.Geometry gg ← data.Geometry { topology = geo_result!.topology, vertex_count = geo_result!.vertex_count, attributes = geo_result!.attributes, indexed = geo_result!.indexed, indices = geo_result!.indices, draw_range = geo_result!.draw_range, groups = geo_result!.groups }
 
-    fixum numerus ∪ nihil vbc ← geometry.geometry_vertex_payload_byte_count(gg)
+    fixum numerus ∪ nihil vbc ← gg.vertex_payload_byte_count()
     si vbc est nihil ergo redde objects
 
-    fixum numerus ∪ nihil ibc ← geometry.geometry_index_payload_byte_count(gg)
+    fixum numerus ∪ nihil ibc ← gg.index_payload_byte_count()
     si ibc est nihil ergo redde objects
 
     # Copy payload values through indexed access on the union type
@@ -65,7 +67,7 @@ functio add_object(lista<SceneObjectGeometry> objects, textus name, de math.Box3
 #   - 5 buildings       (dark gray 0.2, 0.2, 0.25)
 #   - 1 car             (red       0.8, 0.1, 0.1)
 # ---------------------------------------------------------------------------
-functio greybox_scene_geometry(de city.City c, de math.Box3 car_box) → SceneGeometryManifest {
+functio greybox_scene_geometry(de city.City c, de math.Box<3> car_box) → SceneGeometryManifest {
     varia lista<SceneObjectGeometry> objects ← vacua
 
     # Roads: mid-gray (0.4, 0.4, 0.4)

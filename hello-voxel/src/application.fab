@@ -25,7 +25,7 @@
 #
 # Alternate approaches (not shown):
 #   • continuous collision detection (CCD) — sweeps AABB instead of discrete steps
-#   • triga matrix math — math.matrix4_perspectiva / conspectus vs manual vector algebra
+#   • triga matrix math — math.matrix_perspectiva / conspectus vs manual vector algebra
 #
 # Anti-patterns (avoid these):
 #   • unordered collision axes — X→Y→Z order is a contract; changing it breaks edge cases
@@ -40,8 +40,10 @@
 # =========================================================================
 
 importa ex "./voxel" voxel
-importa ex "triga:geometry" geometry
-importa ex "triga:primitives" primitives
+importa ex "triga:geometry/data" data
+importa ex "triga:geometry/batch" batch
+importa ex "triga:geometry/bounds" bounds
+importa ex "triga:primitives/basic" primitives
 importa ex "triga:math" math
 
 # =========================================================================
@@ -183,12 +185,12 @@ functio apply_yaw_pitch(de Camera camera, f32 delta_yaw, f32 delta_pitch) → Ca
     }
 }
 
-functio camera_eye(de Player player) → math.Vector3 {
-    redde math.vector3(
+functio camera_eye(de Player player) → vector<f32, 3> {
+    redde [
         player.x,
         player.y + player_eye_height(),
         player.z
-    )
+    ] ↦ vector<f32, 3>
 }
 
 functio camera_view_facts(de Camera camera, de Player player) → math.CameraYawPitchFacts {
@@ -370,23 +372,23 @@ functio right_amount(de InputState input) → f32 {
 # =========================================================================
 
 # Feet-centered horizontal extents; feet bottom at player.y; height player_height().
-functio player_box(de Player player) → math.Box3 {
+functio player_box(de Player player) → math.Box<3> {
     fixum f32 half ← player_half_width()
-    redde math.Box3 {
-        min = math.vector3(player.x - half, player.y, player.z - half),
-        max = math.vector3(
+    redde math.Box<3> {
+        minima = [player.x - half, player.y, player.z - half] ↦ vector<f32, 3>,
+        maxima = [
             player.x + half,
             player.y + player_height(),
             player.z + half
-        )
+        ] ↦ vector<f32, 3>
     }
 }
 
-functio player_box_at(f32 x, f32 y, f32 z) → math.Box3 {
+functio player_box_at(f32 x, f32 y, f32 z) → math.Box<3> {
     fixum f32 half ← player_half_width()
-    redde math.Box3 {
-        min = math.vector3(x - half, y, z - half),
-        max = math.vector3(x + half, y + player_height(), z + half)
+    redde math.Box<3> {
+        minima = [x - half, y, z - half] ↦ vector<f32, 3>,
+        maxima = [x + half, y + player_height(), z + half] ↦ vector<f32, 3>
     }
 }
 
@@ -421,13 +423,13 @@ functio cell_max(f32 value) → numerus {
 }
 
 functio player_overlaps_solid(de voxel.World world, de Player player) → bivalens {
-    fixum math.Box3 bounds ← player_box(player)
-    fixum numerus x0 ← cell_min(bounds.min.x)
-    fixum numerus x1 ← cell_max(bounds.max.x)
-    fixum numerus y0 ← cell_min(bounds.min.y)
-    fixum numerus y1 ← cell_max(bounds.max.y)
-    fixum numerus z0 ← cell_min(bounds.min.z)
-    fixum numerus z1 ← cell_max(bounds.max.z)
+    fixum math.Box<3> bounds ← player_box(player)
+    fixum numerus x0 ← cell_min(math.x(bounds.minima))
+    fixum numerus x1 ← cell_max(math.x(bounds.maxima))
+    fixum numerus y0 ← cell_min(math.y(bounds.minima))
+    fixum numerus y1 ← cell_max(math.y(bounds.maxima))
+    fixum numerus z0 ← cell_min(math.z(bounds.minima))
+    fixum numerus z1 ← cell_max(math.z(bounds.maxima))
     varia numerus y ← y0
     dum y ≤ y1 {
         varia numerus z ← z0
@@ -461,13 +463,13 @@ functio resolve_x(
         redde x
     }
     fixum f32 proposed ← x + dx
-    fixum math.Box3 bounds ← player_box_at(proposed, y, z)
-    fixum numerus x0 ← cell_min(bounds.min.x)
-    fixum numerus x1 ← cell_max(bounds.max.x)
-    fixum numerus y0 ← cell_min(bounds.min.y)
-    fixum numerus y1 ← cell_max(bounds.max.y)
-    fixum numerus z0 ← cell_min(bounds.min.z)
-    fixum numerus z1 ← cell_max(bounds.max.z)
+    fixum math.Box<3> bounds ← player_box_at(proposed, y, z)
+    fixum numerus x0 ← cell_min(math.x(bounds.minima))
+    fixum numerus x1 ← cell_max(math.x(bounds.maxima))
+    fixum numerus y0 ← cell_min(math.y(bounds.minima))
+    fixum numerus y1 ← cell_max(math.y(bounds.maxima))
+    fixum numerus z0 ← cell_min(math.z(bounds.minima))
+    fixum numerus z1 ← cell_max(math.z(bounds.maxima))
     varia f32 result ← proposed
     fixum f32 half ← player_half_width()
     varia numerus iy ← y0
@@ -516,13 +518,13 @@ functio resolve_y(
         }
     }
     fixum f32 proposed ← y + dy
-    fixum math.Box3 bounds ← player_box_at(x, proposed, z)
-    fixum numerus x0 ← cell_min(bounds.min.x)
-    fixum numerus x1 ← cell_max(bounds.max.x)
-    fixum numerus y0 ← cell_min(bounds.min.y)
-    fixum numerus y1 ← cell_max(bounds.max.y)
-    fixum numerus z0 ← cell_min(bounds.min.z)
-    fixum numerus z1 ← cell_max(bounds.max.z)
+    fixum math.Box<3> bounds ← player_box_at(x, proposed, z)
+    fixum numerus x0 ← cell_min(math.x(bounds.minima))
+    fixum numerus x1 ← cell_max(math.x(bounds.maxima))
+    fixum numerus y0 ← cell_min(math.y(bounds.minima))
+    fixum numerus y1 ← cell_max(math.y(bounds.maxima))
+    fixum numerus z0 ← cell_min(math.z(bounds.minima))
+    fixum numerus z1 ← cell_max(math.z(bounds.maxima))
     varia f32 result ← proposed
     varia bivalens hit_ground ← falsum
     varia bivalens hit_ceiling ← falsum
@@ -587,13 +589,13 @@ functio resolve_z(
         redde z
     }
     fixum f32 proposed ← z + dz
-    fixum math.Box3 bounds ← player_box_at(x, y, proposed)
-    fixum numerus x0 ← cell_min(bounds.min.x)
-    fixum numerus x1 ← cell_max(bounds.max.x)
-    fixum numerus y0 ← cell_min(bounds.min.y)
-    fixum numerus y1 ← cell_max(bounds.max.y)
-    fixum numerus z0 ← cell_min(bounds.min.z)
-    fixum numerus z1 ← cell_max(bounds.max.z)
+    fixum math.Box<3> bounds ← player_box_at(x, y, proposed)
+    fixum numerus x0 ← cell_min(math.x(bounds.minima))
+    fixum numerus x1 ← cell_max(math.x(bounds.maxima))
+    fixum numerus y0 ← cell_min(math.y(bounds.minima))
+    fixum numerus y1 ← cell_max(math.y(bounds.maxima))
+    fixum numerus z0 ← cell_min(math.z(bounds.minima))
+    fixum numerus z1 ← cell_max(math.z(bounds.maxima))
     varia f32 result ← proposed
     fixum f32 half ← player_half_width()
     varia numerus iy ← y0
@@ -633,13 +635,13 @@ functio player_is_grounded(
     f32 z
 ) → bivalens {
     fixum f32 probe_y ← y - collision_epsilon()
-    fixum math.Box3 bounds ← player_box_at(x, probe_y, z)
+    fixum math.Box<3> bounds ← player_box_at(x, probe_y, z)
     # Only sample the bottom slab just under the feet.
-    fixum numerus x0 ← cell_min(bounds.min.x)
-    fixum numerus x1 ← cell_max(bounds.max.x)
+    fixum numerus x0 ← cell_min(math.x(bounds.minima))
+    fixum numerus x1 ← cell_max(math.x(bounds.maxima))
     fixum numerus y_cell ← cell_min(probe_y)
-    fixum numerus z0 ← cell_min(bounds.min.z)
-    fixum numerus z1 ← cell_max(bounds.max.z)
+    fixum numerus z0 ← cell_min(math.z(bounds.minima))
+    fixum numerus z1 ← cell_max(math.z(bounds.maxima))
     varia numerus iz ← z0
     dum iz ≤ z1 {
         varia numerus ix ← x0
@@ -713,7 +715,7 @@ functio planar_displacement(
     de Camera camera,
     de InputState input,
     f32 delta_seconds
-) → math.Vector3 {
+) → vector<f32, 3> {
     redde math.camera_motus_planus_ex_yaw(
         camera.yaw_degrees,
         forward_amount(input),
@@ -732,7 +734,7 @@ functio step_player(
     f32 delta_seconds
 ) → Player {
     fixum f32 dt ← clamp_delta_seconds(delta_seconds)
-    fixum math.Vector3 planar ← planar_displacement(camera, input, dt)
+    fixum vector<f32, 3> planar ← planar_displacement(camera, input, dt)
     fixum f32 velocity_y ← player.velocity_y - gravity() * dt
     fixum f32 dy ← velocity_y * dt
     redde move_player_collided(
@@ -790,14 +792,14 @@ functio dda_inf() → f32 { redde 1.0e30 ∷ f32 }
 
 functio dda_eps() → f32 { redde 1.0e-8 ∷ f32 }
 
-functio voxel_cell_box(numerus x, numerus y, numerus z) → math.Box3 {
-    redde math.Box3 {
-        min = math.vector3(x ↦ f32, y ↦ f32, z ↦ f32),
-        max = math.vector3(
+functio voxel_cell_box(numerus x, numerus y, numerus z) → math.Box<3> {
+    redde math.Box<3> {
+        minima = [x ↦ f32, y ↦ f32, z ↦ f32] ↦ vector<f32, 3>,
+        maxima = [
             (x ↦ f32) + 1.0 ∷ f32,
             (y ↦ f32) + 1.0 ∷ f32,
             (z ↦ f32) + 1.0 ∷ f32
-        )
+        ] ↦ vector<f32, 3>
     }
 }
 
@@ -808,7 +810,7 @@ functio placement_intersects_player(
     numerus y,
     numerus z
 ) → bivalens {
-    redde (player_box(player)).intersecat(voxel_cell_box(x, y, z))
+    redde math.box_intersecat(player_box(player), voxel_cell_box(x, y, z))
 }
 
 functio dda_step(f32 component) → numerus {
@@ -845,35 +847,35 @@ functio dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
 # cells are air. Starting inside a solid yields a hit with has_preceding=false.
 functio voxel_dda(
     de voxel.World world,
-    de math.Vector3 origin,
-    de math.Vector3 direction,
+    de vector<f32, 3> origin,
+    de vector<f32, 3> direction,
     f32 max_distance
 ) → VoxelHit ∪ nihil {
     si max_distance < 0.0 {
         redde nulla
     }
-    fixum f32 len_sq ← direction.x * direction.x
-        + direction.y * direction.y
-        + direction.z * direction.z
+    fixum f32 len_sq ← math.x(direction) * math.x(direction)
+        + math.y(direction) * math.y(direction)
+        + math.z(direction) * math.z(direction)
     si len_sq ≤ dda_eps() {
         redde nulla
     }
 
-    varia numerus x ← floor_cell(origin.x)
-    varia numerus y ← floor_cell(origin.y)
-    varia numerus z ← floor_cell(origin.z)
+    varia numerus x ← floor_cell(math.x(origin))
+    varia numerus y ← floor_cell(math.y(origin))
+    varia numerus z ← floor_cell(math.z(origin))
 
-    fixum numerus step_x ← dda_step(direction.x)
-    fixum numerus step_y ← dda_step(direction.y)
-    fixum numerus step_z ← dda_step(direction.z)
+    fixum numerus step_x ← dda_step(math.x(direction))
+    fixum numerus step_y ← dda_step(math.y(direction))
+    fixum numerus step_z ← dda_step(math.z(direction))
 
-    fixum f32 t_delta_x ← dda_t_delta(direction.x)
-    fixum f32 t_delta_y ← dda_t_delta(direction.y)
-    fixum f32 t_delta_z ← dda_t_delta(direction.z)
+    fixum f32 t_delta_x ← dda_t_delta(math.x(direction))
+    fixum f32 t_delta_y ← dda_t_delta(math.y(direction))
+    fixum f32 t_delta_z ← dda_t_delta(math.z(direction))
 
-    varia f32 t_max_x ← dda_t_max(origin.x, direction.x, x)
-    varia f32 t_max_y ← dda_t_max(origin.y, direction.y, y)
-    varia f32 t_max_z ← dda_t_max(origin.z, direction.z, z)
+    varia f32 t_max_x ← dda_t_max(math.x(origin), math.x(direction), x)
+    varia f32 t_max_y ← dda_t_max(math.y(origin), math.y(direction), y)
+    varia f32 t_max_z ← dda_t_max(math.z(origin), math.z(direction), z)
 
     # Starting cell solid → hit with no legal placement face.
     si world_cell_is_solid(world, x, y, z) {
@@ -1255,11 +1257,11 @@ functio empty_selection_outline() → SelectionOutline {
 }
 
 # Unit box_wire corners (origin-centered, half-extent 0.5) translated to the
-# hit cell center. Shape matches primitives.box_wire_geometry(1,1,1); we call
+# hit cell center. Shape matches primitives.box_wire(1,1,1); we call
 # box_wire_geometry + box_wire_draw_batch_facts for admission evidence and emit
 # the deterministic translated payload for the browser proof path.
 functio box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z) → lista<f32> ∪ nihil {
-    fixum geometry.BufferGeometry ∪ nihil wire_result ← primitives.box_wire_geometry(
+    fixum data.Geometry ∪ nihil wire_result ← primitives.box_wire(
         1.0 ∷ f32,
         1.0 ∷ f32,
         1.0 ∷ f32
@@ -1274,7 +1276,7 @@ functio box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z)
     fixum f32 oy ← (cell_y ↦ f32) + 0.5 ∷ f32
     fixum f32 oz ← (cell_z ↦ f32) + 0.5 ∷ f32
     fixum f32 h ← 0.5 ∷ f32
-    # Corner order matches primitives.box_wire_geometry (min/max X/Y/Z of unit box).
+    # Corner order matches primitives.box_wire (min/max X/Y/Z of unit box).
     redde [
         ox - h, oy - h, oz - h,
         ox + h, oy - h, oz - h,
@@ -1296,7 +1298,7 @@ functio selection_outline_from_hit(de VoxelHit hit) → SelectionOutline {
     si positions_result est nihil {
         redde empty_selection_outline()
     }
-    fixum geometry.LineGeometryDrawBatchFacts ∪ nihil batch_result ←
+    fixum batch.LineGeometryDrawBatchFacts ∪ nihil batch_result ←
         primitives.box_wire_draw_batch_facts(1.0 ∷ f32, 1.0 ∷ f32, 1.0 ∷ f32, 1)
     si batch_result est nihil {
         redde empty_selection_outline()

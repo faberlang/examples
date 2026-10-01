@@ -85,15 +85,15 @@ functio box_indices() → lista<u32> {
 # box_vertex_payload — interleaved [px,py,pz, nx,ny,nz, cr,cg,cb, …]
 # for 24 lit vertices.  This is the only payload the host needs.
 # ---------------------------------------------------------------------------
-functio box_vertex_payload(de math.Box3 bounds, f32 r, f32 g, f32 b) → lista<f32> ∪ nihil {
-    si bounds.validum() ≡ falsum ergo redde nulla
+functio box_vertex_payload(de math.Box<3> bounds, f32 r, f32 g, f32 b) → lista<f32> ∪ nihil {
+    si math.box_validum(bounds) ≡ falsum ergo redde nulla
 
-    fixum f32 x1 ← bounds.min.x
-    fixum f32 y1 ← bounds.min.y
-    fixum f32 z1 ← bounds.min.z
-    fixum f32 x2 ← bounds.max.x
-    fixum f32 y2 ← bounds.max.y
-    fixum f32 z2 ← bounds.max.z
+    fixum f32 x1 ← math.x(bounds.minima)
+    fixum f32 y1 ← math.y(bounds.minima)
+    fixum f32 z1 ← math.z(bounds.minima)
+    fixum f32 x2 ← math.x(bounds.maxima)
+    fixum f32 y2 ← math.y(bounds.maxima)
+    fixum f32 z2 ← math.z(bounds.maxima)
 
     varia lista<f32> p ← vacua
 

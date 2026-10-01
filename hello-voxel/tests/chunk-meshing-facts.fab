@@ -34,7 +34,9 @@
 
 importa ex "§src/voxel" privata voxel
 importa ex "§src/meshing" privata meshing
-importa ex "triga:geometry" privata geometry
+importa ex "triga:geometry/data" privata data
+importa ex "triga:geometry/batch" privata batch
+importa ex "triga:geometry/bounds" privata bounds
 importa ex "triga:math" privata math
 
 functio world_with_solid(
@@ -144,7 +146,7 @@ incipit {
         et single_mesh.colors[2] ≡ neg_x_color!.b,
         "first face vertices use -X face color"
 
-    fixum geometry.BoundingBox ∪ nihil single_bounds ←
+    fixum bounds.BoundingBox ∪ nihil single_bounds ←
         meshing.chunk_mesh_bounding_box(single_mesh)
     adfirma single_bounds non est nihil secus
         "single solid produces mesh bounds"

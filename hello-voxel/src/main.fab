@@ -406,46 +406,46 @@ functio clear_host_replace_queue(dom.Element canvas) → vacuum {
 # TRANSFORMS — first-person eye + yaw/pitch view-projection
 # =========================================================================
 
-functio identity_matrix() → math.Matrix4 {
-    redde math.matrix4_identitas()
+functio identity_matrix() → matrix<f32, [4, 4]> {
+    redde math.matrix_identitas()
 }
 
 functio first_person_view_projection(
     de application.Camera camera,
     de application.Player player,
     f32 aspect
-) → math.Matrix4 {
+) → matrix<f32, [4, 4]> {
     varia f32 safe_aspect ← 1.0 ∷ f32
     si aspect > 0.0 {
         safe_aspect ← aspect
     }
     fixum math.CameraYawPitchFacts facts ← application.camera_view_facts(camera, player)
-    fixum math.Vector3 eye ← facts.ray.origin
-    fixum math.Vector3 target ← math.vector3(
-        eye.x + facts.direction.x,
-        eye.y + facts.direction.y,
-        eye.z + facts.direction.z
-    )
-    fixum math.Matrix4 ∪ nihil projection_result ← math.matrix4_perspectiva(
+    fixum vector<f32, 3> eye ← facts.ray.origin
+    fixum vector<f32, 3> target ← [
+        math.x(eye) + math.x(facts.direction),
+        math.y(eye) + math.y(facts.direction),
+        math.z(eye) + math.z(facts.direction)
+    ] ↦ vector<f32, 3>
+    fixum matrix<f32, [4, 4]> ∪ nihil projection_result ← math.matrix_perspectiva(
         50.0 ∷ f32,
         safe_aspect,
         0.1 ∷ f32,
         200.0 ∷ f32
     )
-    fixum math.Matrix4 ∪ nihil view_result ← math.matrix4_conspectus(
+    fixum matrix<f32, [4, 4]> ∪ nihil view_result ← math.matrix_conspectus(
         eye,
         target,
-        math.vector3(0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32)
+        [0.0 ∷ f32, 1.0 ∷ f32, 0.0 ∷ f32] ↦ vector<f32, 3>
     )
-    varia math.Matrix4 projection ← identity_matrix()
-    varia math.Matrix4 view ← identity_matrix()
+    varia matrix<f32, [4, 4]> projection ← identity_matrix()
+    varia matrix<f32, [4, 4]> view ← identity_matrix()
     si projection_result non est nihil {
-        projection ← math.Matrix4 { elements = projection_result!.elements }
+        projection ← projection_result
     }
     si view_result non est nihil {
-        view ← math.Matrix4 { elements = view_result!.elements }
+        view ← view_result
     }
-    redde (projection).multiplicata(view)
+    redde projection · view
 }
 
 functio first_person_transform_payload(
@@ -453,8 +453,8 @@ functio first_person_transform_payload(
     de application.Player player,
     f32 aspect
 ) → math.TransformPayload {
-    fixum math.Matrix4 model ← identity_matrix()
-    fixum math.Matrix4 view_projection ← first_person_view_projection(camera, player, aspect)
+    fixum matrix<f32, [4, 4]> model ← identity_matrix()
+    fixum matrix<f32, [4, 4]> view_projection ← first_person_view_projection(camera, player, aspect)
     fixum math.TransformPayload ∪ nihil packed ← math.transform_payload(model, view_projection)
     si packed non est nihil {
         redde math.TransformPayload { values = packed!.values }
@@ -496,19 +496,19 @@ functio emit_transform(
         vp_values.append(values[i])
         i ← i + 1
     }
-    fixum math.Vector3 eye ← application.camera_eye(player)
+    fixum vector<f32, 3> eye ← application.camera_eye(player)
     dom.attr_set(canvas, "data-hv-transform", lista_f32_textus(values))
     dom.attr_set(canvas, "data-hv-model-matrix", lista_f32_textus(model_values))
     dom.attr_set(canvas, "data-hv-view-projection", lista_f32_textus(vp_values))
     dom.attr_set(canvas, "data-hv-aspect", aspect ↦ textus)
-    dom.attr_set(canvas, "data-hv-eye-x", eye.x ↦ textus)
-    dom.attr_set(canvas, "data-hv-eye-y", eye.y ↦ textus)
-    dom.attr_set(canvas, "data-hv-eye-z", eye.z ↦ textus)
+    dom.attr_set(canvas, "data-hv-eye-x", math.x(eye) ↦ textus)
+    dom.attr_set(canvas, "data-hv-eye-y", math.y(eye) ↦ textus)
+    dom.attr_set(canvas, "data-hv-eye-z", math.z(eye) ↦ textus)
     dom.attr_set(canvas, "data-hv-yaw", camera.yaw_degrees ↦ textus)
     dom.attr_set(canvas, "data-hv-pitch", camera.pitch_degrees ↦ textus)
-    dom.attr_set(canvas, "data-hv-target-x", (eye.x + application.camera_view_facts(camera, player).direction.x) ↦ textus)
-    dom.attr_set(canvas, "data-hv-target-y", (eye.y + application.camera_view_facts(camera, player).direction.y) ↦ textus)
-    dom.attr_set(canvas, "data-hv-target-z", (eye.z + application.camera_view_facts(camera, player).direction.z) ↦ textus)
+    dom.attr_set(canvas, "data-hv-target-x", (math.x(eye) + math.x(application.camera_view_facts(camera, player).direction)) ↦ textus)
+    dom.attr_set(canvas, "data-hv-target-y", (math.y(eye) + math.y(application.camera_view_facts(camera, player).direction)) ↦ textus)
+    dom.attr_set(canvas, "data-hv-target-z", (math.z(eye) + math.z(application.camera_view_facts(camera, player).direction)) ↦ textus)
 }
 
 # =========================================================================

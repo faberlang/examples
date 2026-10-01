@@ -37,7 +37,9 @@
 # =========================================================================
 
 importa ex "./voxel" voxel
-importa ex "triga:geometry" geometry
+importa ex "triga:geometry/data" data
+importa ex "triga:geometry/batch" batch
+importa ex "triga:geometry/bounds" bounds
 importa ex "triga:math" math
 importa ex "triga:face" face
 importa ex "triga:resource" resource
@@ -140,7 +142,7 @@ functio append_visible_face(
     numerus x,
     numerus y,
     numerus z
-) → geometry.ColoredQuadMesh ∪ nihil {
+) → data.ColoredQuadMesh ∪ nihil {
     redde face.face_code_colored_quad_mesh_append(
         positions,
         colors,
@@ -189,7 +191,7 @@ functio mesh_chunk(
                         varia numerus face_code ← 1
                         dum face_code ≤ 6 {
                             si face_is_visible(world, wx, wy, wz, face_code) {
-                                fixum geometry.ColoredQuadMesh ∪ nihil appended ←
+                                fixum data.ColoredQuadMesh ∪ nihil appended ←
                                     append_visible_face(
                                         positions,
                                         colors,
@@ -236,8 +238,8 @@ functio mesh_chunk(
 # FACTS / BOUNDS HELPERS
 # =========================================================================
 
-functio chunk_mesh_colored(de ChunkMesh mesh) → geometry.ColoredQuadMesh {
-    redde geometry.ColoredQuadMesh {
+functio chunk_mesh_colored(de ChunkMesh mesh) → data.ColoredQuadMesh {
+    redde data.ColoredQuadMesh {
         positions = mesh.positions,
         colors = mesh.colors,
         indices = mesh.indices
@@ -246,7 +248,7 @@ functio chunk_mesh_colored(de ChunkMesh mesh) → geometry.ColoredQuadMesh {
 
 functio chunk_mesh_facts(
     de ChunkMesh mesh
-) → geometry.VisibleFaceMeshFacts ∪ nihil {
+) → batch.VisibleFaceMeshFacts ∪ nihil {
     si mesh.face_count ≡ 0 {
         redde nulla
     }
@@ -255,7 +257,7 @@ functio chunk_mesh_facts(
 
 functio chunk_mesh_bounding_box(
     de ChunkMesh mesh
-) → geometry.BoundingBox ∪ nihil {
+) → bounds.BoundingBox ∪ nihil {
     si mesh.face_count ≡ 0 {
         redde nulla
     }
@@ -268,7 +270,7 @@ functio chunk_mesh_matches_face_count(de ChunkMesh mesh) → bivalens {
             et mesh.colors.length() ≡ 0
             et mesh.indices.length() ≡ 0
     }
-    fixum geometry.VisibleFaceMeshFacts ∪ nihil facts ← chunk_mesh_facts(mesh)
+    fixum batch.VisibleFaceMeshFacts ∪ nihil facts ← chunk_mesh_facts(mesh)
     si facts est nihil {
         redde falsum
     }
@@ -318,7 +320,7 @@ functio chunk_mesh_face_winding_matches(
     si face_index < 0 aut face_index ≥ mesh.face_count {
         redde falsum
     }
-    fixum math.Vector3 ∪ nihil expected_normal ← math.face_code_normal(face_code)
+    fixum vector<f32, 3> ∪ nihil expected_normal ← math.face_code_normal(face_code)
     si expected_normal est nihil {
         redde falsum
     }
@@ -329,29 +331,29 @@ functio chunk_mesh_face_winding_matches(
     fixum numerus p0 ← i0 * 3
     fixum numerus p1 ← i1 * 3
     fixum numerus p2 ← i2 * 3
-    fixum math.Vector3 a ← math.vector3(
+    fixum vector<f32, 3> a ← [
         mesh.positions[p0],
         mesh.positions[p0 + 1],
         mesh.positions[p0 + 2]
-    )
-    fixum math.Vector3 b ← math.vector3(
+    ] ↦ vector<f32, 3>
+    fixum vector<f32, 3> b ← [
         mesh.positions[p1],
         mesh.positions[p1 + 1],
         mesh.positions[p1 + 2]
-    )
-    fixum math.Vector3 c ← math.vector3(
+    ] ↦ vector<f32, 3>
+    fixum vector<f32, 3> c ← [
         mesh.positions[p2],
         mesh.positions[p2 + 1],
         mesh.positions[p2 + 2]
-    )
-    fixum math.Vector3 edge_ab ← (b).subtracta(a)
-    fixum math.Vector3 edge_ac ← (c).subtracta(a)
-    fixum math.Vector3 winding ← (
+    ] ↦ vector<f32, 3>
+    fixum vector<f32, 3> edge_ab ← (b).subtracta(a)
+    fixum vector<f32, 3> edge_ac ← (c).subtracta(a)
+    fixum vector<f32, 3> winding ← (
         (edge_ab).normata().transversum(edge_ac)
     )
-    redde winding.x ≡ expected_normal!.x
-        et winding.y ≡ expected_normal!.y
-        et winding.z ≡ expected_normal!.z
+    redde math.x(winding) ≡ math.x(expected_normal)
+        et math.y(winding) ≡ math.y(expected_normal)
+        et math.z(winding) ≡ math.z(expected_normal)
 }
 
 # =========================================================================

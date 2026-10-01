@@ -1,4 +1,6 @@
-importa ex "triga:geometry" privata geometry
+importa ex "triga:geometry/data" privata data
+importa ex "triga:geometry/batch" privata batch
+importa ex "triga:geometry/bounds" privata bounds
 importa ex "./box_geom" privata box_geom
 importa ex "./scene" privata scene
 importa ex "./city" privata city
@@ -7,11 +9,11 @@ importa ex "triga:math" privata math
 
 incipit {
     # ---- box_geometry produces valid indexed geometry -----------------------
-    fixum math.Box3 test_box ← math.Box3 { min = math.vector3(0.0, 0.0, 0.0), max = math.vector3(2.0, 2.0, 2.0) }
-    fixum geometry.BufferGeometry ∪ nihil geo_result ← box_geom.box_geometry(test_box, 0.5, 0.5, 0.5)
+    fixum math.Box<3> test_box ← math.Box<3> { minima = [0.0, 0.0, 0.0] ↦ vector<f32, 3>, maxima = [2.0, 2.0, 2.0] ↦ vector<f32, 3> }
+    fixum data.Geometry ∪ nihil geo_result ← box_geom.box_geometry(test_box, 0.5, 0.5, 0.5)
     adfirma (geo_result est nihil) ≡ falsum secus "box_geometry must return a BufferGeometry for valid Box3 input"
 
-    fixum geometry.BufferGeometry bg ← geometry.BufferGeometry { topology = geo_result!.topology, vertex_count = geo_result!.vertex_count, attributes = geo_result!.attributes, indexed = geo_result!.indexed, indices = geo_result!.indices, draw_range = geo_result!.draw_range, groups = geo_result!.groups }
+    fixum data.Geometry bg ← data.Geometry { topology = geo_result!.topology, vertex_count = geo_result!.vertex_count, attributes = geo_result!.attributes, indexed = geo_result!.indexed, indices = geo_result!.indices, draw_range = geo_result!.draw_range, groups = geo_result!.groups }
     adfirma bg.vertex_count ≡ 8 secus "box_geometry must produce 8 unique corner vertices"
     adfirma bg.indexed secus "box_geometry must produce indexed geometry"
     adfirma bg.indices.longitudo() ≡ 36 secus "box_geometry must produce 36 indices (12 triangles, 2 per face × 6 faces)"
@@ -31,18 +33,18 @@ incipit {
     adfirma vp_values.longitudo() ≡ expected_floats secus "vertex payload must have 8 vertices × 6 floats (pos+col)"
 
     # ---- payload byte counts ------------------------------------------------
-    fixum numerus ∪ nihil vbc ← geometry.geometry_vertex_payload_byte_count(bg)
-    adfirma (vbc est nihil) ≡ falsum secus "geometry_vertex_payload_byte_count must succeed"
+    fixum numerus ∪ nihil vbc ← bg.vertex_payload_byte_count()
+    adfirma (vbc est nihil) ≡ falsum secus "vertex_payload_byte_count must succeed"
     fixum numerus vertex_bytes ← vbc vel 0
     adfirma vertex_bytes ≡ (8 * 6) * 4 secus "vertex byte count: 8 verts × 6 floats × 4 bytes = 192"
-    fixum numerus ∪ nihil ibc ← geometry.geometry_index_payload_byte_count(bg)
-    adfirma (ibc est nihil) ≡ falsum secus "geometry_index_payload_byte_count must succeed"
+    fixum numerus ∪ nihil ibc ← bg.index_payload_byte_count()
+    adfirma (ibc est nihil) ≡ falsum secus "index_payload_byte_count must succeed"
     fixum numerus index_bytes ← ibc vel 0
     adfirma index_bytes ≡ 36 * 4 secus "index byte count: 36 indices × 4 bytes = 144"
 
     # ---- greybox scene manifest: 10 objects ---------------------------------
     fixum city.City map ← city.drift_city()
-    fixum math.Box3 car_box ← vehicle.vehicle_box(vehicle.spawn_vehicle())
+    fixum math.Box<3> car_box ← vehicle.vehicle_box(vehicle.spawn_vehicle())
     fixum scene.SceneGeometryManifest manifest ← scene.greybox_scene_geometry(map, car_box)
 
     adfirma manifest.objects.longitudo() ≡ 10 secus "greybox_scene_geometry: 4 roads + 5 buildings + 1 car = 10 objects"
@@ -57,7 +59,7 @@ incipit {
         adfirma obj.index_byte_count > 0 secus "every object: positive index byte count"
         adfirma obj.vertex_payload.longitudo() > 0 secus "every object: non-empty vertex payload"
         adfirma obj.index_payload.longitudo() ≡ 36 secus "every object: 36 index entries"
-        adfirma (obj.bounds).validum() secus "every object: valid bounds"
+        adfirma math.box_validum(obj.bounds) secus "every object: valid bounds"
         i ← i + 1
     }
 

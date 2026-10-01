@@ -4,7 +4,8 @@ importa ex "./city" city
 importa ex "./vehicle" vehicle
 importa ex "./scene" scene
 importa ex "triga:math" math
-importa ex "triga:graph" graph
+importa ex "triga:graph/object" object
+importa ex "triga:graph/camera" camera
 
 # ---------------------------------------------------------------------------
 # Text helpers for host bridge (transform payload + one-shot geometry).
@@ -82,7 +83,7 @@ functio scene_geometry_blob(de scene.SceneGeometryManifest manifest) → textus 
 # Transform: car model (16) + chase view-projection (16) → 32 f32 payload.
 # ---------------------------------------------------------------------------
 
-functio compute_model_matrix(de vehicle.Vehicle v) → math.Matrix4 ∪ nihil {
+functio compute_model_matrix(de vehicle.Vehicle v) → matrix<f32, [4, 4]> ∪ nihil {
     # Heading feeds math.camera_prorsum_planus_ex_yaw, where +yaw swings the
     # travel direction from -Z toward +X. A right-handed rotation about +Y
     # carries the car's -Z nose the other way, toward -X, so the mesh rotation
@@ -92,21 +93,21 @@ functio compute_model_matrix(de vehicle.Vehicle v) → math.Matrix4 ∪ nihil {
     fixum math.Quaternion ∪ nihil rotation_result ← yaw_rotation.ad_quaternionem()
     si rotation_result est nihil ergo redde nulla
     fixum math.Quaternion rotation ← math.Quaternion { x = rotation_result!.x, y = rotation_result!.y, z = rotation_result!.z, w = rotation_result!.w }
-    redde math.matrix4_composita(math.vector3(v.x, v.y, v.z), rotation, math.vector3(1.0, 1.0, 1.0))
+    redde math.matrix_composita([v.x, v.y, v.z] ↦ vector<f32, 3>, rotation, [1.0, 1.0, 1.0] ↦ vector<f32, 3>)
 }
 
-functio compute_view_projection(de vehicle.ChaseCamera camera, f32 aspect) → math.Matrix4 ∪ nihil {
-    fixum graph.PerspectiveCamera perspective ← graph.PerspectiveCamera { base = graph.Object3D { position = math.vector3(0.0, 0.0, 0.0), rotation = math.euler(0.0, 0.0, 0.0), quaternion = math.quaternion(0.0, 0.0, 0.0, 1.0), scale = math.vector3(1.0, 1.0, 1.0), matrix = math.matrix4_identitas(), children = vacua, visible = verum, name = "chase" }, fov = 50.0, aspect = aspect, near = 0.1, far = 2000.0 }
-    redde perspective.visus_projectio(camera.position, camera.target, math.vector3(0.0, 1.0, 0.0))
+functio compute_view_projection(de vehicle.ChaseCamera camera, f32 aspect) → matrix<f32, [4, 4]> ∪ nihil {
+    fixum camera.PerspectiveCamera perspective ← camera.PerspectiveCamera { base = object.Object { position = [0.0, 0.0, 0.0] ↦ vector<f32, 3>, rotation = math.euler(0.0, 0.0, 0.0), quaternion = math.quaternion(0.0, 0.0, 0.0, 1.0), scale = [1.0, 1.0, 1.0] ↦ vector<f32, 3>, matrix = math.matrix_identitas(), children = vacua, visible = verum, name = "chase" }, fov = 50.0, aspect = aspect, near = 0.1, far = 2000.0 }
+    redde perspective.visus_projectio(camera.position, camera.target, [0.0, 1.0, 0.0] ↦ vector<f32, 3>)
 }
 
 functio compute_frame_transform(de vehicle.Vehicle v, de vehicle.ChaseCamera camera, f32 aspect) → math.TransformPayload ∪ nihil {
-    fixum math.Matrix4 ∪ nihil model_result ← compute_model_matrix(v)
+    fixum matrix<f32, [4, 4]> ∪ nihil model_result ← compute_model_matrix(v)
     si model_result est nihil ergo redde nulla
-    fixum math.Matrix4 ∪ nihil view_proj_result ← compute_view_projection(camera, aspect)
+    fixum matrix<f32, [4, 4]> ∪ nihil view_proj_result ← compute_view_projection(camera, aspect)
     si view_proj_result est nihil ergo redde nulla
-    fixum math.Matrix4 model ← math.Matrix4 { elements = model_result!.elements }
-    fixum math.Matrix4 view_proj ← math.Matrix4 { elements = view_proj_result!.elements }
+    fixum matrix<f32, [4, 4]> model ← model_result
+    fixum matrix<f32, [4, 4]> view_proj ← view_proj_result
     redde math.transform_payload(model, view_proj)
 }
 
