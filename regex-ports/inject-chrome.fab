@@ -1,0 +1,151 @@
+# inject-chrome — port of `replace_in_text_nodes` and `apply_replacements_to_chrome`
+# from faberlang.dev/generator/scripts/inject-chrome.py
+#
+#   inject-chrome.fab <mode> <table.tsv> <page.html>
+#
+# mode `nodes`   applies the table to the whole page outside tags
+#                (`replace_in_text_nodes`)
+# mode `chrome`  applies it only inside the chrome regions
+#                (`apply_replacements_to_chrome`)
+#
+# The table file is one `key<TAB>value` pair per line (a later line for the same
+# key wins, as in a Python dict). Output: the rewritten page, a newline, then
+# `replacements: N`.
+#
+# What the port re-expresses (the dialect has no capturing split and no capture
+# group callback state):
+#   • `re.split(r"(<[^>]+>)", html)` is `find_all` over the tags, taking the text
+#     between and around the matches as the other parts; a part that starts with
+#     `<` is kept untouched, exactly as in the original (an unclosed `<` in text
+#     right after a tag is also kept)
+#   • `re.escape(k)` is `k.escape()`
+#   • `pattern.sub(_one, part)` is a closure replace; the replacement count is the
+#     number of matches of the same pattern (`sub` replaces every match once)
+#   • `_CHROME_REGIONS.sub(_sub, html)` is a closure replace calling the node
+#     function on each region; the total is summed over the same regions
+
+import from "norma:fs" charta
+import from "norma:process" processus
+
+# the table keys, longest first (the original sorts by `len`, reversed)
+fn keys_longest_first(map<string, string> table) → list<string> {
+    var list<string> keys ← empty
+    for from table.keys() const key {
+        keys.append(key)
+    }
+    # insertion sort, descending by length; equal lengths cannot both match
+    # at one position, so their relative order never changes the output
+    var list<string> ordered ← empty
+    for from keys const key {
+        var int at ← ordered.length()
+        var int i ← 0
+        while i ≺ ordered.length() {
+            if ordered[i].length() ≺ key.length() {
+                at ← i
+                break
+            }
+            i ← i + 1
+        }
+        var list<string> next ← empty
+        var int j ← 0
+        for from ordered const existing {
+            if j ≡ at {
+                next.append(key)
+            }
+            next.append(existing)
+            j ← j + 1
+        }
+        if at ≡ ordered.length() {
+            next.append(key)
+        }
+        ordered ← next
+    }
+    return ordered
+}
+
+fn alternation(map<string, string> table) → regex ⇥ string {
+    var string source ← ""
+    var bool first ← true
+    for from keys_longest_first(table) const key {
+        if first {
+            source ← key.escape()
+            first ← false
+        } else {
+            source ← "§|§"(source, key.escape())
+        }
+    }
+    return source ↦ regex
+}
+
+# the text parts of `html`, in order, tags excluded from rewriting
+fn node_parts(string html) → list<string> ⇥ string {
+    const regex tag ← "<[^>]+>" ↦ regex
+    var list<string> parts ← empty
+    var int at ← 0
+    for from tag.find_all(html) const t {
+        parts.append(html.slice(at, t.start()))
+        parts.append(t.text())
+        at ← t.end()
+    }
+    parts.append(html.slice(at, html.length()))
+    return parts
+}
+
+fn replace_in_text_nodes(string html, map<string, string> table) → tuple<string, int> ⇥ string {
+    if table.is_empty() {
+        return tuple<string, int> [html, 0]
+    }
+    const regex pattern ← alternation(table)
+    var int count ← 0
+    var string out ← ""
+    for from node_parts(html) const part {
+        if part.starts_with("<") {
+            out ← out + part
+        } else {
+            count ← count + pattern.find_all(part).length()
+            out ← out + pattern.replace(part, _ m ∴ table[m.text()] coalesce "")
+        }
+    }
+    return tuple<string, int> [out, count]
+}
+
+fn apply_replacements_to_chrome(string html, map<string, string> table) → tuple<string, int> ⇥ string {
+    const regex regions ← "(?is)(<aside\\b[^>]*>.*?</aside>|<div class=\"renderbar\"[^>]*>.*?</div>\\s*</div>|<span class=\"agent-notice-label\"[^>]*>.*?</span>|<footer\\b[^>]*>.*?</footer>)" ↦ regex
+    var int total ← 0
+    var string out ← ""
+    var int at ← 0
+    for from regions.find_all(html) const region {
+        const tuple<string, int> done ← replace_in_text_nodes(region.text(), table)
+        total ← total + done[1]
+        out ← out + html.slice(at, region.start()) + done[0]
+        at ← region.end()
+    }
+    out ← out + html.slice(at, html.length())
+    return tuple<string, int> [out, total]
+}
+
+fn load_table(string path) → map<string, string> {
+    var map<string, string> table ← empty
+    for from charta.read_file<string>(path).split("\n") const line {
+        if line.is_empty() {
+            continue
+        }
+        const list<string> cells ← line.split("\t")
+        table[cells[0]] ← cells[1]
+    }
+    return table
+}
+
+main {
+    const list<string> args ← processus.argv()
+    const map<string, string> table ← load_table(args[1])
+    const string html ← charta.read_file<string>(args[2])
+    var tuple<string, int> result ← tuple<string, int> [html, 0]
+    if args[0] ≡ "nodes" {
+        result ← replace_in_text_nodes(html, table)
+    } else {
+        result ← apply_replacements_to_chrome(html, table)
+    }
+    print result[0]
+    print "replacements: §"(result[1])
+}

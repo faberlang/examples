@@ -1,0 +1,42 @@
+# status-clauses — port of `status_clauses` from radix/scripta/audit-factory-goal-status.py
+#
+# Python original:
+#     cleaned = re.sub(r"\*+", "", raw)
+#     [part.strip().lower() for part in re.split(r"\s*(?:[—;])\s*", cleaned) if part.strip()]
+#
+# Reads a fixture file (argv[0]) holding one status line per fixture line and
+# prints, for each, the clause count and each clause in brackets.
+
+import from "norma:fs" charta
+import from "norma:process" processus
+
+fn status_clauses(string raw) → list<string> ⇥ string {
+    const regex stars ← "\\*+" ↦ regex
+    const regex seps ← "\\s*(?:[—;])\\s*" ↦ regex
+    const string cleaned ← stars.replace(raw, "")
+    var list<string> out ← empty
+    for from seps.split(cleaned) const part {
+        const string trimmed ← part.trim()
+        if not trimmed.is_empty() {
+            out.append(trimmed.lowercase())
+        }
+    }
+    return out
+}
+
+main {
+    const list<string> args ← processus.argv()
+    const string body ← charta.read_file<string>(args[0])
+    const list<string> lines ← body.split("\n")
+    var int index ← 0
+    for from lines const line {
+        if index ≺ lines.length() - 1 {
+            const list<string> clauses ← status_clauses(line)
+            print "§: §"(index, clauses.length())
+            for from clauses const clause {
+                print "  [§]"(clause)
+            }
+        }
+        index ← index + 1
+    }
+}

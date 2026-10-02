@@ -1,0 +1,17 @@
+a — b
+x ; y
+en–dash stays – one clause
+long—run—dash;semi;colon
+ÀÉÎ — ÕÜ ; ǅ ß ﬁ
+İstanbul — I
+a　;　b
+a​;b
+tabs	—	more
+**;**
+— leading
+trailing —
+a ;; b
+a —— b
+
+Σίσυφος — ΣΑΣ
+İ Ⅰ — Ⅱ

@@ -1,0 +1,22 @@
+/* Findings: ad-hoc caps on layout children.
+   A comment spanning lines must keep the line numbers below intact.
+   Even a "max-width: 1px" inside a comment is blanked out. */
+.prose p { max-width: 42rem; }
+
+.card,
+.tile {
+    color: red;
+    max-width: 480px;
+}
+.mixed, .page { max-width: 30rem; }
+.mixed2 , .other { max-width: 30rem }
+.UPPER { MAX-WIDTH : 10em ; }
+.two { max-width: 10em; max-width: 12em; }
+a   b    c { max-width: 3ch; }
+.cell th, .nope { max-width: 8rem; }
+.emoji-😀-é { max-width: 5rem; }
+/* multibyte before the next rule: 日本語 😀 é */
+.after-multibyte { max-width: 7rem; }
+@media (min-width: 40rem) { .inner { max-width: 20rem; } }
+.td-ish td.x { max-width: 4rem; }
+.no-width { color: blue; }

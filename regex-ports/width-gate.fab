@@ -1,0 +1,117 @@
+# width-gate — port of faberlang.dev/generator/scripts/check-width-gate.py
+#
+# Same rule, same output streams, same exit code: the CSS file to check is
+# argv[0] (the Python original reads a fixed path next to the script).
+#
+#   exit 0, stdout "  [gate] width gate: no ad-hoc max-width on layout children"
+#   exit 1, stderr the ERROR header, a blank line and one line per finding
+#
+# Offsets are code points. The Python original takes the line number from
+# `m.start(2) + decl.start()`; per-group spans are not in the regex surface, so
+# group 2 starts at `m.start() + group(1).length() + 1` (the `{` is one code point).
+
+import from "norma:fs" charta
+import from "norma:process" processus
+
+const list<string> CONTAINERS = [
+    ".fl-wrap", ".fl-top", ".fl-foot", ".page", "body.has-toc .page",
+    ".porta-wrap", ".porta-note", ".porta-question", ".porta-node",
+    ".renderbar-inner", ".search-panel", ".toc"
+]
+
+# `" ".join(selector.split())`: the whitespace-separated words, one space apart
+fn normalize(string selector) → string ⇥ string {
+    const regex word ← "\\S+" ↦ regex
+    var string out ← ""
+    for from word.find_all(selector) const hit {
+        if out.is_empty() {
+            out ← hit.text()
+        } else {
+            out ← "§ §"(out, hit.text())
+        }
+    }
+    return out
+}
+
+# the number of line feeds before code point `offset`
+fn newlines_before(string css, int offset) → int ⇥ string {
+    const regex feed ← "\n" ↦ regex
+    return feed.find_all(css.slice(0, offset)).length()
+}
+
+fn is_cap(string value) → bool ⇥ string {
+    const regex viewport ← "\\d\\s*(vw|vh|dvw|dvh)\\b" ↦ regex
+    if value ≡ "100%" or value ≡ "none" or value.starts_with("var(") {
+        return true
+    }
+    return viewport.find(value) ≢ null
+}
+
+fn is_container(list<string> sels) → bool {
+    for from sels const s {
+        if CONTAINERS.contains(s) {
+            return true
+        }
+    }
+    return false
+}
+
+fn is_table_cell(list<string> sels) → bool ⇥ string {
+    const regex cell ← "\\b(th|td)\\b[^ ]*$" ↦ regex
+    for from sels const s {
+        if cell.find(s) ≡ null {
+            return false
+        }
+    }
+    return true
+}
+
+fn findings_in(string css) → list<string> ⇥ string {
+    const regex rule ← "([^{}]+)\\{([^{}]*)\\}" ↦ regex
+    const regex maxw ← "(?i)max-width\\s*:\\s*([^;]+)" ↦ regex
+    var list<string> findings ← empty
+    for from rule.find_all(css) const m {
+        const string selector ← normalize(m.group(1) coalesce "")
+        const string body ← m.group(2) coalesce ""
+        if selector.starts_with("@") {
+            continue
+        }
+        const int body_start ← m.start() + (m.group(1) coalesce "").length() + 1
+        for from maxw.find_all(body) const decl {
+            const string value ← (decl.group(1) coalesce "").trim()
+            if is_cap(value) {
+                continue
+            }
+            var list<string> sels ← empty
+            for from selector.split(",") const s {
+                sels.append(s.trim())
+            }
+            if is_container(sels) or is_table_cell(sels) {
+                continue
+            }
+            const int line ← newlines_before(css, body_start + decl.start()) + 1
+            findings.append("  speculum.css:§  § → max-width: §"(line, selector, value))
+        }
+    }
+    return findings
+}
+
+main {
+    const list<string> args ← processus.argv()
+    const string raw ← charta.read_file<string>(args[0])
+    # Blank comments out rather than deleting them, so line numbers match the file.
+    const regex comment ← "(?s)/\\*.*?\\*/" ↦ regex
+    const regex nonfeed ← "[^\n]" ↦ regex
+    const string css ← comment.replace(raw, _ m ∴ nonfeed.replace(m.text(), " "))
+    const list<string> findings ← findings_in(css)
+    if findings.length() ≻ 0 {
+        warn "ERROR: layout children must not set their own max-width."
+        warn "Use the content/wide column tracks (see §15) or --measure."
+        warn ""
+        for from findings const f {
+            warn f
+        }
+        processus.exit_process(1)
+    }
+    print "  [gate] width gate: no ad-hoc max-width on layout children"
+}

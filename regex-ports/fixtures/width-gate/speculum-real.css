@@ -1,0 +1,1958 @@
+/* ==========================================================================
+   Speculum — shared stylesheet for faberlang.dev
+   ==========================================================================
+   This is the ONE stylesheet. The generator cannot write CSS.
+   Design tokens are extracted from the homepage :root block (formerly
+   forked across 18 HTML files). See CONTENT-PLAN.md Decision 14.
+
+   Sections
+     1. Tokens          — colour, type, space, elevation
+     2. Reset + base    — document defaults, links, selection
+     3. Renderbar       — top rendering/locale/search bar
+     4. Layout          — page grid: sidebar · content · contents rail
+     5. Sidebar         — brand, nav, meta
+     6. Contents rail   — per-page heading list (injected post-build)
+     7. Prose           — headings, paragraphs, lists, quotes
+     8. Tables          — default tables and wide scannable matrices
+     9. Code            — fenced blocks, inline chips, syntax tokens
+    10. Diagrams        — mermaid figures rendered to inline SVG
+    11. Components      — agent notice, infobox, topic cards, demo tabs
+    12. Footer
+    13. Portal          — locale-less language gate (body.porta)
+    14. Responsive + print
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Tokens
+   ========================================================================== */
+
+:root {
+    --paper: #faf9f6;
+    --paper-alt: #f3f1eb;
+    --paper-deep: #eae7df;
+    --ink: #1a1a18;
+    --ink-dim: #5a5954;
+    --ink-faint: #8a8880;
+    --rule: #d8d5cb;
+    --rule-strong: #c4c0b4;
+    --glyph: #2a4a9e;
+    --on-glyph: #ffffff;
+    --glyph-soft: #e6ebf8;
+    --glyph-hover: #1e3a82;
+    --fallback: #a8a49a;
+    --support: #2f6b4c;
+    --limited: #9a7420;
+    --reject: #a33f30;
+    --defer: #6b6a64;
+
+    /* Code surface — a shade apart from the page so blocks read as objects. */
+    --code-bg: #f5f3ed;
+    --code-border: #dedbd1;
+
+    /* Syntax tokens. Bookish, low-saturation; keywords carry the accent. */
+    --syn-keyword: #2a4a9e;
+    --syn-type: #2f6b4c;
+    --syn-string: #8a5320;
+    --syn-number: #7a4a86;
+    --syn-comment: #86847c;
+    --syn-annotation: #9a7420;
+    --syn-operator: #6b6a64;
+    --syn-punct: #8a8880;
+
+    --serif: 'Noto Serif', Georgia, 'Times New Roman', serif;
+    --sans: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'Noto Sans Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    /* Spacing scale — every margin/padding below picks from this. */
+    --s1: 0.25rem;
+    --s2: 0.5rem;
+    --s3: 0.75rem;
+    --s4: 1rem;
+    --s5: 1.5rem;
+    --s6: 2rem;
+    --s7: 3rem;
+    --s8: 4.5rem;
+
+    /* Layout */
+    /* Landing content width. The container IS the measure: every child
+       fills it edge to edge. ~768px keeps the text edge aligned with the
+       docs grid (758px), so moving between / and /en-US/ does not shift
+       the column. Change this one value to change the page width. */
+    --measure: 48rem;
+
+    --sidebar-w: 254px;
+    --rail-w: 196px;
+    --gutter: 44px;
+    --page-max: 1120px;
+    --page-max-rail: 1360px;
+
+    --radius: 4px;
+    --radius-lg: 8px;
+    --shadow-soft: 0 1px 2px rgba(26, 26, 24, 0.04);
+    --shadow-lift: 0 4px 14px rgba(26, 26, 24, 0.06);
+}
+
+/* Dark scheme: same paper-and-ink identity, lamplight instead of daylight. */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --paper: #1c1b19;
+        --paper-alt: #242320;
+        --paper-deep: #2c2b27;
+        --ink: #e8e6df;
+        --ink-dim: #aeaba1;
+        --ink-faint: #817e75;
+        --rule: #3a3833;
+        --rule-strong: #4c4a43;
+        --glyph: #93a9e8;
+        --on-glyph: #161513;
+        --glyph-soft: #262c40;
+        --glyph-hover: #b0c1f2;
+        --fallback: #6f6c63;
+        --support: #7fbe9b;
+        --limited: #d3a94f;
+        --reject: #d47f70;
+        --defer: #8e8d83;
+
+        --code-bg: #21201d;
+        --code-border: #35332e;
+
+        --syn-keyword: #93a9e8;
+        --syn-type: #7fbe9b;
+        --syn-string: #d0a26a;
+        --syn-number: #c39ad4;
+        --syn-comment: #7d7a72;
+        --syn-annotation: #d3a94f;
+        --syn-operator: #a09d94;
+        --syn-punct: #817e75;
+
+        --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35);
+        --shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.45);
+    }
+}
+
+/* ==========================================================================
+   2. Reset + base
+   ========================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; color-scheme: light dark; }
+::selection { background: var(--glyph); color: var(--paper); }
+
+body {
+    /* Layered ambient ground: two off-center glyph-tint glows over the paper,
+       so even the no-JS baseline has depth instead of a flat fill. When
+       faber-ambient.js runs it animates a canvas field on top of this. */
+    background:
+        radial-gradient(1100px 750px at 82% -12%, color-mix(in srgb, var(--glyph) 9%, transparent), transparent 62%),
+        radial-gradient(900px 650px at -12% 108%, color-mix(in srgb, var(--glyph) 6%, transparent), transparent 58%),
+        var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* No-JS texture: a faint static lattice so JS-off pages are not bare. The
+   enhancer adds .has-ambient, swapping this for the live canvas field. */
+body:not(.has-ambient) {
+    background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--rule-strong) 85%, transparent) 1.2px, transparent 1.8px),
+        radial-gradient(1100px 750px at 82% -12%, color-mix(in srgb, var(--glyph) 9%, transparent), transparent 62%),
+        radial-gradient(900px 650px at -12% 108%, color-mix(in srgb, var(--glyph) 6%, transparent), transparent 58%);
+    background-size: 88px 88px, auto, auto;
+}
+
+/* The live ambient canvas (faber-ambient.js). Fixed behind all content:
+   above the body background, below every positioned or in-flow child. */
+.ambient-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--paper-alt);
+    color: var(--glyph);
+    padding: var(--s2) var(--s4);
+    border-bottom: 1px solid var(--rule);
+    z-index: 100;
+    transition: top 0.15s ease;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+}
+.skip-link:focus { top: 0; }
+
+/* ---------- links ---------- */
+a {
+    color: var(--glyph);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+a:hover {
+    color: var(--glyph-hover);
+    border-bottom-color: var(--glyph);
+}
+a:focus-visible {
+    outline: 2px solid var(--glyph);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+.content a {
+    border-bottom: 1px solid color-mix(in srgb, var(--glyph) 32%, transparent);
+}
+.content a:hover {
+    border-bottom-color: var(--glyph);
+    background: var(--glyph-soft);
+}
+a.section-link { border: none; font-weight: 700; color: var(--ink); }
+a.section-link:hover { border-bottom: 1px solid var(--glyph); color: var(--glyph); }
+
+/* Scrollbars inside scrolling panes (sidebar, wide tables, code). */
+.table-scroll,
+pre.faber-code,
+aside,
+.toc-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+}
+
+/* ==========================================================================
+   3. Renderbar
+   ========================================================================== */
+
+.renderbar {
+    border-top: 3px solid var(--glyph);
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(180deg, var(--paper-alt) 0%, var(--paper) 100%);
+}
+.renderbar .in {
+    max-width: var(--page-max-rail);
+    margin: 0 auto;
+    padding: var(--s2) 32px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    font-family: var(--sans); font-size: 12px;
+}
+.renderbar .lbl {
+    color: var(--ink-faint); letter-spacing: 0.12em;
+    text-transform: uppercase; font-size: 10.5px; font-weight: 600;
+}
+/* Portal wayfinding: script-neutral route back to the language portal.
+   The mark is identity; the locale pill reads "this rendering — change it". */
+.renderbar .portal-home { border: none; display: grid; place-items: center; }
+.renderbar .portal-home:hover { border: none; background: none; }
+.renderbar .portal-mark {
+    width: 18px; height: 18px; display: grid; place-items: center;
+    background: var(--glyph); color: #faf9f6;
+    font-family: var(--serif); font-style: italic; font-size: 12px;
+    line-height: 1; padding-bottom: 1px; border-radius: var(--radius);
+}
+.renderbar .portal-home:hover .portal-mark { background: var(--glyph-hover); }
+.renderbar .loclink {
+    font-family: var(--sans); font-size: 12px;
+    color: var(--ink-dim);
+    border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 3px 9px;
+}
+.renderbar .loclink:hover { color: var(--glyph); border-color: var(--glyph); background: none; }
+
+/* Keyword search (hidden until faber-search.js enhances it) */
+.renderbar .searchbox { position: relative; }
+.renderbar .searchbox input {
+    font-family: var(--sans); font-size: 12px;
+    color: var(--ink); background: var(--paper);
+    border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 3px 9px; width: 15ch;
+    transition: width 0.15s ease, border-color 0.12s ease;
+}
+.renderbar .searchbox input:focus {
+    outline: none; border-color: var(--glyph); width: 22ch;
+}
+.renderbar .searchbox input::placeholder { color: var(--ink-faint); }
+.searchdrop {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 120;
+    min-width: 340px; max-width: 90vw;
+    list-style: none; margin: 0; padding: var(--s1);
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: var(--radius); box-shadow: var(--shadow-lift);
+}
+.searchdrop li a {
+    display: flex; align-items: baseline; gap: var(--s2); flex-wrap: wrap;
+    padding: 6px 10px; border: none; border-radius: 3px;
+    color: var(--ink);
+}
+.searchdrop li a:hover { background: none; border: none; }
+.searchdrop li.active a,
+.searchdrop li a:hover { background: var(--glyph-soft); }
+.searchdrop code { font-size: 12.5px; color: var(--glyph); background: none; border: none; padding: 0; }
+.searchdrop .lat { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+.searchdrop .via { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+.searchdrop .kind {
+    font-family: var(--sans); font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint);
+}
+.searchdrop .sum {
+    font-family: var(--sans); font-size: 11.5px; color: var(--ink-dim);
+    flex-basis: 100%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.renderbar .canon { margin-left: auto; color: var(--ink-faint); font-size: 11.5px; }
+.renderbar .machine-links {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    align-items: center;
+}
+.renderbar .machine-links a {
+    border: none;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    padding: 2px 0;
+}
+.renderbar .machine-links a:hover {
+    color: var(--glyph);
+    border: none;
+    background: none;
+}
+
+/* ==========================================================================
+   4. Layout
+   ==========================================================================
+   One page frame, two grid shapes. The frame is the same width whether or
+   not a page has a contents rail (body.has-toc, added by inject-toc.py);
+   without one, the content track simply absorbs the rail's column.
+
+   The frame used to narrow when the rail was absent, which set a tighter
+   measure but made the whole layout visibly shrink when moving between, say,
+   a cheat sheet page and an examples page. A reader reads that as the site
+   losing width, not as a measure decision — and pages that lack a rail lack
+   it because they are short or code-heavy, exactly the pages that want the
+   room.
+   ========================================================================== */
+
+.page {
+    max-width: var(--page-max-rail);
+    margin: 0 auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    column-gap: var(--gutter);
+}
+body.has-toc .page {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--rail-w);
+}
+
+aside  { grid-column: 1; grid-row: 1; }
+main   { grid-column: 2; grid-row: 1; }
+.toc   { grid-column: 3; grid-row: 1; }
+footer { grid-column: 2; grid-row: 2; }
+
+aside {
+    padding: var(--s5) var(--s5) var(--s8) 0;
+    border-right: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+main {
+    padding: var(--s6) 0 var(--s7);
+    min-width: 0;
+    max-width: none;
+}
+
+/* ==========================================================================
+   5. Sidebar
+   ========================================================================== */
+
+aside .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    border: none;
+    margin: 0 0 var(--s5);
+    padding: var(--s1) 0 var(--s3);
+    border-bottom: 1px solid var(--rule);
+}
+aside .brand:hover { border-bottom-color: var(--glyph); background: none; }
+aside .brand-mark {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    background: var(--glyph);
+    color: #faf9f6;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1;
+    padding-bottom: 3px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+}
+aside .brand:hover .brand-mark { background: var(--glyph-hover); }
+aside .brand-text { display: block; min-width: 0; }
+aside .brand-name {
+    display: block;
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1.15;
+    color: var(--ink);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+aside .brand-tag {
+    display: block;
+    margin-top: 3px;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+}
+aside .side-h {
+    font-family: var(--sans); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 600;
+    padding-bottom: 5px; margin: 0 0 var(--s2);
+    border-bottom: 1px solid var(--rule);
+}
+aside ul.nav { list-style: none; margin: 0 0 var(--s5); }
+aside ul.nav li { font-size: 13.5px; line-height: 1.35; }
+aside ul.nav li a {
+    border: none;
+    display: block;
+    padding: 5px 9px;
+    margin: 0 -9px;
+    border-radius: var(--radius);
+    color: var(--ink-dim);
+    font-family: var(--sans);
+}
+aside ul.nav li a:hover {
+    border: none;
+    color: var(--ink);
+    background: var(--paper-alt);
+}
+aside ul.nav li a.active {
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--glyph-soft);
+}
+aside ul.nav-compact li { font-size: 12.5px; }
+aside ul.nav-compact li a {
+    padding: 4px 9px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+}
+aside .side-meta {
+    margin-top: var(--s1);
+    padding: var(--s3) 0 0;
+    border-top: 1px solid var(--rule);
+    font-family: var(--sans);
+    font-size: 11.5px;
+}
+aside .side-meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding: 3px 0;
+    color: var(--ink-dim);
+}
+aside .side-meta-row .k { color: var(--ink-faint); }
+aside .side-meta-row .v { color: var(--ink); text-align: right; }
+aside .sidelist { list-style: none; margin-bottom: var(--s6); }
+aside .sidelist li {
+    font-size: 14px; line-height: 25px;
+    display: flex; justify-content: space-between; gap: var(--s2);
+}
+aside .sidelist .v { font-family: var(--sans); font-size: 10.5px; }
+
+/* ==========================================================================
+   6. Contents rail
+   ==========================================================================
+   Injected after render by inject-toc.py. Present only when a page has
+   enough headings to be worth a map.
+   ========================================================================== */
+
+.toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: var(--s6) 0 var(--s6);
+    font-family: var(--sans);
+}
+.toc-h {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding-bottom: 5px;
+    margin-bottom: var(--s2);
+    border-bottom: 1px solid var(--rule);
+}
+.toc-body { overflow-y: auto; overscroll-behavior: contain; }
+.toc ul { list-style: none; margin: 0; }
+.toc li { line-height: 1.35; }
+.toc a {
+    display: block;
+    border: none;
+    padding: 4px 9px;
+    margin: 0 -9px;
+    border-radius: var(--radius);
+    font-size: 12.5px;
+    color: var(--ink-dim);
+}
+.toc a:hover { border: none; color: var(--ink); background: var(--paper-alt); }
+.toc .toc-3 a { padding-left: 21px; font-size: 12px; color: var(--ink-faint); }
+
+/* ==========================================================================
+   7. Prose
+   ==========================================================================
+   No element here carries its own max-width: the grid track is the measure.
+   ========================================================================== */
+
+h1 {
+    font-family: var(--serif); font-size: 2.15rem; line-height: 1.2; font-weight: 400;
+    border-bottom: 1px solid var(--rule); padding-bottom: var(--s3);
+    letter-spacing: -0.015em;
+}
+/* Homepage hero: larger masthead, lead opening paragraph. */
+body.home h1 { font-size: 2.9rem; padding-bottom: var(--s4); }
+body.home .content > p:first-of-type {
+    font-size: 1.16rem;
+    line-height: 1.72;
+    color: var(--ink-dim);
+}
+.sub { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); margin: var(--s2) 0 var(--s5); }
+h2 {
+    font-family: var(--serif); font-size: 1.45rem; font-weight: 400;
+    margin: var(--s7) 0 var(--s3);
+    border-bottom: 1px solid var(--rule); padding-bottom: 7px;
+    scroll-margin-top: var(--s5);
+    letter-spacing: -0.01em;
+}
+h3 {
+    font-family: var(--serif); font-size: 1.12rem; font-weight: 700;
+    margin: var(--s5) 0 var(--s2); scroll-margin-top: var(--s5);
+}
+h4 { font-family: var(--serif); font-size: 1rem; font-weight: 700; margin: var(--s4) 0 var(--s1); scroll-margin-top: var(--s5); }
+h5 { font-family: var(--serif); font-size: 0.95rem; font-weight: 700; margin: var(--s4) 0 var(--s1); }
+h6 {
+    font-family: var(--sans); font-size: 0.76rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint);
+    margin: var(--s4) 0 var(--s1);
+}
+/* First heading in a section needs no extra air above it. */
+.content > h2:first-child,
+.content > h3:first-child { margin-top: var(--s4); }
+
+/* Self-links on headings (added post-build). Quiet until hover. */
+.content h2 .anchor,
+.content h3 .anchor,
+.content h4 .anchor {
+    border: none;
+    margin-left: var(--s2);
+    font-family: var(--mono);
+    font-size: 0.7em;
+    color: var(--ink-faint);
+    opacity: 0;
+    transition: opacity 0.12s ease, color 0.12s ease;
+}
+.content h2:hover .anchor,
+.content h3:hover .anchor,
+.content h4:hover .anchor,
+.content .anchor:focus-visible { opacity: 1; }
+.content .anchor:hover { color: var(--glyph); background: none; border: none; }
+
+p { margin-bottom: var(--s4); }
+.lead { font-size: 1.1rem; line-height: 1.7; color: var(--ink-dim); }
+.dim { color: var(--ink-dim); }
+strong { font-weight: 700; }
+
+.content ul, .content ol { margin: 0 0 var(--s4) 1.35rem; }
+.content li { margin-bottom: var(--s1); padding-left: 0.15rem; }
+.content li > ul, .content li > ol { margin-top: var(--s1); margin-bottom: var(--s2); }
+.content li::marker { color: var(--ink-faint); }
+.content ol > li::marker { font-family: var(--sans); font-size: 0.85em; }
+
+/* Quotes read as a quieter voice, not as a flagged callout. */
+.content blockquote {
+    margin: var(--s5) 0 var(--s5) var(--s3);
+    padding-left: var(--s5);
+    color: var(--ink-dim);
+    font-style: italic;
+    position: relative;
+}
+.content blockquote::before {
+    content: '\201C';
+    position: absolute;
+    left: -0.05em;
+    top: -0.12em;
+    font-family: var(--serif);
+    font-size: 2.6rem;
+    line-height: 1;
+    color: var(--rule-strong);
+    font-style: normal;
+}
+.content blockquote p:last-child { margin-bottom: 0; }
+.content blockquote code { font-style: normal; }
+
+.content hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: var(--s6) 0;
+}
+
+/* Vertical rhythm: blocks that follow a heading sit closer to it. */
+.content h2 + *, .content h3 + *, .content h4 + * { margin-top: 0; }
+
+/* ==========================================================================
+   8. Tables
+   ==========================================================================
+   Every table is wrapped in .table-scroll by the generator. Ordinary tables
+   read as documents (left-aligned, no sticky column). Only genuinely wide
+   matrices — 6+ columns, i.e. the target compatibility grids — get the
+   scannable treatment: centred glyph cells and a pinned first column.
+   ========================================================================== */
+
+.content .table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+    margin: var(--s5) 0;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    -webkit-overflow-scrolling: touch;
+}
+.content .table-scroll table {
+    width: 100%;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+.content table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: var(--s5) 0;
+    font-family: var(--sans);
+    font-size: 0.885rem;
+    line-height: 1.5;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.content thead { background: var(--paper-alt); }
+.content th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--rule-strong);
+    vertical-align: bottom;
+    white-space: nowrap;
+}
+.content td {
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    color: var(--ink);
+}
+.content tbody tr:last-child td { border-bottom: none; }
+.content tbody tr { transition: background 0.1s ease; }
+.content tbody tr:hover { background: color-mix(in srgb, var(--paper-alt) 60%, transparent); }
+.content table code { font-size: 0.85em; }
+.content table p { margin: 0; }
+
+/* Key-value tables (empty header row) hide the empty strip. */
+.content thead:empty,
+.content thead tr:has(th:empty):not(:has(th:not(:empty))) {
+    display: none;
+}
+
+/* ---------- wide matrices only ---------- */
+.content .table-scroll:has(thead th:nth-child(6)) table {
+    width: max-content;
+    min-width: 100%;
+}
+.content .table-scroll:has(thead th:nth-child(6)) td:not(:first-child),
+.content .table-scroll:has(thead th:nth-child(6)) th:not(:first-child) {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    min-width: 3.25rem;
+}
+.content .table-scroll:has(thead th:nth-child(6)) th:first-child,
+.content .table-scroll:has(thead th:nth-child(6)) td:first-child {
+    min-width: 7rem;
+    max-width: 16rem;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--paper);
+    box-shadow: 1px 0 0 var(--rule);
+}
+.content .table-scroll:has(thead th:nth-child(6)) thead th:first-child {
+    background: var(--paper-alt);
+    z-index: 2;
+}
+.content .table-scroll:has(thead th:nth-child(6)) tbody tr:nth-child(even),
+.content .table-scroll:has(thead th:nth-child(6)) tbody tr:nth-child(even) td:first-child {
+    background: color-mix(in srgb, var(--paper-alt) 55%, var(--paper));
+}
+.content .table-scroll:has(thead th:nth-child(6)) tbody tr:hover td:first-child {
+    background: var(--paper-alt);
+}
+
+/* ==========================================================================
+   9. Code
+   ========================================================================== */
+
+code { font-family: var(--mono); font-size: 0.88em; }
+
+/* Inline code chips in prose (fenced blocks reset below) */
+.content code {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.08em 0.35em;
+    overflow-wrap: break-word;
+}
+.content a code {
+    background: var(--glyph-soft);
+    border-color: color-mix(in srgb, var(--glyph) 25%, var(--rule));
+    color: inherit;
+}
+.content pre code {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: 100%;
+}
+
+/* ---------- inline span classes ---------- */
+code.kw { color: var(--glyph); font-weight: 700; }
+code.typ { color: var(--support); }
+
+/* ---------- fenced blocks ---------- */
+pre.faber-code {
+    position: relative;
+    font-family: var(--mono); font-size: 12.75px; line-height: 1.7;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    padding: var(--s4) var(--s4) var(--s4);
+    margin: var(--s5) 0;
+    overflow-x: auto; white-space: pre;
+    border-radius: var(--radius);
+    tab-size: 4;
+}
+/* Language chip. Derived from the class the generator already emits, so no
+   extra markup is needed. */
+pre.faber-code::before {
+    position: absolute;
+    top: 0; right: 0;
+    padding: 3px 9px 4px;
+    font-family: var(--sans);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: color-mix(in srgb, var(--paper-deep) 70%, transparent);
+    border-left: 1px solid var(--code-border);
+    border-bottom: 1px solid var(--code-border);
+    border-radius: 0 var(--radius) 0 var(--radius);
+    pointer-events: none;
+}
+pre.faber-code:has(code.lang-faber)::before { content: 'faber'; color: var(--glyph); }
+pre.faber-code:has(code.lang-bash)::before { content: 'shell'; }
+pre.faber-code:has(code.lang-toml)::before { content: 'toml'; }
+pre.faber-code:has(code.lang-ebnf)::before { content: 'ebnf'; }
+pre.faber-code:has(code.lang-json)::before { content: 'json'; }
+pre.faber-code:has(code.lang-rust)::before { content: 'rust'; }
+pre.faber-code:has(code.lang-mermaid)::before { content: 'diagram'; }
+/* Plain `text` fences are output/trees — no chip, they are not source. */
+pre.faber-code:has(code.lang-text)::before,
+pre.faber-code:not(:has(code[class*='lang-']))::before { content: none; }
+pre.faber-code:has(code.lang-text) {
+    background: var(--paper-alt);
+    border-style: dashed;
+    color: var(--ink-dim);
+}
+
+/* ---------- syntax tokens (added post-build by highlight-code.py) ---------- */
+.tok-kw { color: var(--syn-keyword); font-weight: 600; }
+.tok-ty { color: var(--syn-type); }
+.tok-st { color: var(--syn-string); }
+.tok-nu { color: var(--syn-number); }
+.tok-co { color: var(--syn-comment); font-style: italic; }
+.tok-an { color: var(--syn-annotation); }
+.tok-op { color: var(--syn-operator); }
+.tok-fn { color: var(--ink); font-weight: 600; }
+
+/* ==========================================================================
+   10. Diagrams
+   ==========================================================================
+   ```mermaid fences are rendered to inline SVG at build time (see
+   render-diagrams / inject-diagrams). The SVG carries var() colours, so it
+   follows the page theme without a second asset.
+   ========================================================================== */
+
+.content figure.diagram {
+    /* --dw is the diagram's own width, written per figure by diagrams.py. */
+    --diagram-floor: 0.62;
+    margin: var(--s5) 0;
+    padding: var(--s5) var(--s4);
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow-x: auto;
+    text-align: center;
+}
+/* Scale down to the column, but stop at the point where labels stop being
+   readable and scroll from there. Never scale up past the natural size. */
+.content figure.diagram svg {
+    width: max(calc(var(--dw, 100%) * var(--diagram-floor)), 100%);
+    max-width: var(--dw, 100%);
+    height: auto;
+    display: inline-block;
+    vertical-align: top;
+}
+.content figure.diagram text { fill: var(--ink); }
+.content figure.diagram figcaption {
+    margin-top: var(--s3);
+    font-family: var(--sans);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: center;
+}
+
+/* ==========================================================================
+   11. Components
+   ========================================================================== */
+
+/* ---------- agent notice (homepage) ---------- */
+.agent-notice {
+    display: flex;
+    gap: var(--s3);
+    align-items: flex-start;
+    margin: var(--s5) 0 var(--s6);
+    padding: var(--s3) var(--s4);
+    border: 1px solid color-mix(in srgb, var(--glyph) 22%, var(--rule));
+    background: var(--glyph-soft);
+    border-radius: var(--radius);
+}
+.agent-notice-label {
+    flex: 0 0 auto;
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--glyph);
+    padding-top: 4px;
+}
+.agent-notice-body {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+}
+.agent-notice-body p { margin: 0; }
+.agent-notice-body code {
+    font-size: 0.92em;
+    color: var(--glyph);
+}
+.agent-notice-body a { border-bottom-color: color-mix(in srgb, var(--glyph) 40%, transparent); }
+
+/* ---------- infobox ---------- */
+.infobox {
+    float: right; width: 300px; margin: var(--s1) 0 var(--s5) var(--s6);
+    border: 1px solid var(--rule); background: var(--paper-alt);
+    font-family: var(--sans); font-size: 12.5px; line-height: 20px;
+    border-radius: var(--radius); box-shadow: var(--shadow-soft);
+    overflow: hidden;
+}
+.infobox .ib-h {
+    background: var(--ink); color: var(--paper); padding: var(--s2) var(--s3);
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; text-align: center;
+}
+.infobox .ib-g { padding: 5px var(--s3); border-top: 1px solid var(--rule); display: grid; grid-template-columns: 96px 1fr; gap: var(--s3); }
+.infobox .k { color: var(--ink-faint); }
+.infobox .glyphs { color: var(--glyph); font-family: var(--mono); letter-spacing: 0.16em; }
+
+/* ---------- section cards ---------- */
+.topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--s4); margin: var(--s5) 0 var(--s3); }
+.topic-card {
+    border: 1px solid var(--rule); background: var(--paper-alt);
+    padding: var(--s4) var(--s5); border-radius: var(--radius);
+    transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+.topic-card:hover {
+    border-color: var(--rule-strong);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-1px);
+}
+.topic-card h3 { margin: 0 0 var(--s1); }
+.topic-card h3 a { border: none; color: var(--ink); }
+.topic-card h3 a:hover { border-bottom: 1px solid var(--glyph); color: var(--glyph); background: none; }
+.topic-card p { font-size: 14px; line-height: 1.5; margin: 0; color: var(--ink-dim); }
+.topic-card .tag-row { margin-top: var(--s2); font-family: var(--sans); font-size: 11px; color: var(--ink-faint); }
+
+.platform-row { display: flex; gap: var(--s5); flex-wrap: wrap; margin: var(--s4) 0 var(--s3); }
+.platform-row .plat { font-family: var(--sans); font-size: 12.5px; color: var(--ink-dim); }
+.platform-row .plat b { color: var(--ink); }
+
+/* Download section emphasis on homepage */
+.content h2#download { border-bottom-color: var(--glyph); }
+.content h2#download + p {
+    padding: var(--s3) var(--s4);
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+}
+
+/* ==========================================================================
+   12. Footer
+   ========================================================================== */
+
+footer {
+    border-top: 1px solid var(--rule);
+    margin-top: var(--s6);
+    padding: var(--s5) 0 var(--s8);
+    font-family: var(--sans); font-size: 12px; color: var(--ink-faint);
+    display: flex; justify-content: space-between; gap: var(--s3); flex-wrap: wrap;
+}
+footer a { border-bottom: 1px solid var(--rule); color: var(--ink-dim); }
+footer a:hover { color: var(--glyph); border-bottom-color: var(--glyph); }
+footer .source-list ul { list-style: none; margin: 0; }
+footer .side-h {
+    display: block;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600; margin-bottom: 2px;
+}
+
+/* ==========================================================================
+   13. Demo tabs (.faber-demo-tabs) — tabbed code card
+   ==========================================================================
+   One component, two data axes (reader locales or examples). No-JS fallback
+   is a labeled vertical stack of real <pre> text; static/faber-demo-tabs.js
+   enhances to connected tabs. See docs/factory/code-sample-tabs/GOAL.md.
+   ========================================================================== */
+
+.faber-demo-tabs {
+    margin: var(--s4) 0 var(--s5);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    transition: box-shadow 0.15s ease;
+}
+.faber-demo-tabs:hover,
+.faber-demo-tabs:focus-within {
+    box-shadow: var(--shadow-lift);
+}
+/* Hero variant (portal): the object on the page — stays lifted */
+.faber-demo-tabs.fdt-hero,
+.faber-demo-tabs.fdt-hero:hover,
+.faber-demo-tabs.fdt-hero:focus-within {
+    box-shadow: var(--shadow-lift);
+}
+
+/* Window chrome bar */
+.fdt-bar {
+    display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap;
+    padding: var(--s2) var(--s3);
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--rule);
+}
+.fdt-mark {
+    flex: 0 0 auto;
+    width: 20px; height: 20px;
+    display: grid; place-items: center;
+    background: var(--glyph); color: #faf9f6;
+    font-family: var(--serif); font-style: italic; font-size: 14px;
+    line-height: 1; padding-bottom: 2px;
+    border-radius: 5px;
+}
+.fdt-file { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+.fdt-copy {
+    margin-left: auto; font-family: var(--sans); font-size: 11px;
+    color: var(--ink-dim); background: transparent;
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 3px 9px; cursor: pointer;
+}
+.fdt-copy:hover { color: var(--glyph); border-color: var(--glyph); }
+.fdt-copy:focus-visible { outline: 2px solid var(--glyph); outline-offset: 1px; }
+
+/* Tab strip */
+.fdt-tabs {
+    display: flex; gap: 2px; flex-wrap: wrap;
+    padding: 6px 10px 0;
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--rule);
+}
+.fdt-tab {
+    font-family: var(--sans); font-size: 12.5px;
+    color: var(--ink-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 5px 12px 7px; cursor: pointer;
+    display: inline-flex; align-items: baseline; justify-content: center; gap: 7px;
+    white-space: nowrap;
+    flex: 1 1 0;
+    min-width: max-content;
+    margin-bottom: -1px;
+}
+.fdt-tab:hover { color: var(--ink); }
+.fdt-tab:focus-visible { outline: 2px solid var(--glyph); outline-offset: -2px; }
+.fdt-tab[aria-selected="true"] {
+    color: var(--ink); font-weight: 600;
+    background: var(--paper-alt);
+    border-color: var(--rule);
+    border-top: 2px solid var(--glyph);
+    padding-top: 4px;
+}
+.fdt-tab .code { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+.fdt-tab[aria-selected="true"] .code { color: var(--ink-dim); }
+.fdt-tab .th { font-family: 'Noto Sans Thai', var(--sans); }
+.fdt-tab .ar { font-family: 'Noto Sans Arabic', var(--sans); }
+.fdt-tab .hi { font-family: 'Noto Sans Devanagari', var(--sans); }
+.fdt-tab .zh { font-family: 'Noto Sans SC', var(--sans); }
+
+/* Code panels need the same script coverage the tab labels get. --mono is
+   listed FIRST so the ASCII skeleton (braces, digits, Latin identifiers)
+   renders identically in every panel — one program, many scripts — while
+   native-script keywords fall through per-glyph to the script face. There
+   is no widely installed monospace for Thai, Arabic or Devanagari, so those
+   keywords are proportional; the platform faces follow the web font.
+   Font sizes compensate for optical size: Thai/Arabic/Devanagari are
+   designed small on the em, so 13px reads tiny next to 13px Latin; CJK is
+   full-width and already reads large, so it keeps the base size. */
+.fdt-panel pre.th {
+    font-family: var(--mono), 'Noto Sans Thai', 'Noto Sans Thai UI', 'Thonburi', 'Leelawadee UI', sans-serif;
+    font-size: 15px; line-height: 1.8;
+}
+.fdt-panel pre.ar {
+    font-family: var(--mono), 'Noto Sans Arabic', 'Geeza Pro', 'Segoe UI', sans-serif;
+    font-size: 14.5px; line-height: 1.75;
+}
+.fdt-panel pre.hi {
+    font-family: var(--mono), 'Noto Sans Devanagari', 'Devanagari Sangam MN', 'Nirmala UI', sans-serif;
+    font-size: 14px; line-height: 1.75;
+}
+.fdt-panel pre.zh {
+    font-family: var(--mono), 'Noto Sans Mono CJK SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* Panels */
+.fdt-panel { display: block; }
+.fdt-panel-label {
+    font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint);
+    padding: var(--s3) var(--s4) 0;
+}
+.fdt-panel-label a {
+    color: var(--glyph);
+    border-bottom: 1px solid color-mix(in srgb, var(--glyph) 35%, transparent);
+}
+.fdt-panel-label a:hover { border-bottom-color: var(--glyph); }
+.fdt-panel pre {
+    font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    margin: 0; padding: var(--s4); overflow-x: auto; white-space: pre;
+    background: transparent; color: var(--ink);
+}
+
+/* Continue button — the card's primary action, lives in the chrome bar
+   and follows the active tab when enhanced */
+.fdt-goto {
+    margin-left: auto;
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    color: var(--paper); background: var(--glyph);
+    border: 1px solid var(--glyph); border-radius: var(--radius);
+    padding: 4px 12px;
+    white-space: nowrap;
+}
+.fdt-goto:hover {
+    color: var(--paper);
+    background: var(--glyph-hover); border-color: var(--glyph-hover);
+}
+.fdt-goto:focus-visible { outline: 2px solid var(--glyph); outline-offset: 2px; }
+.fdt-goto + .fdt-copy { margin-left: 0; }
+
+/* JS-enhanced state: hide labels, one panel visible */
+.faber-demo-tabs.js .fdt-panel { display: none; }
+.faber-demo-tabs.js .fdt-panel.active { display: block; }
+.faber-demo-tabs.js .fdt-panel-label { display: none; }
+
+/* Typing caret (only used on the animated hero variant) */
+.fdt-caret {
+    display: inline-block; width: 7px; height: 1.05em;
+    background: var(--glyph); margin-left: 1px;
+    transform: translateY(2px);
+    animation: fdt-blink 1s steps(1) infinite;
+}
+@keyframes fdt-blink { 50% { opacity: 0; } }
+
+/* Panel fade on tab switch */
+.faber-demo-tabs.js .fdt-panel.active { animation: fdt-fade 0.22s ease; }
+@keyframes fdt-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .fdt-caret { animation: none; }
+    .faber-demo-tabs.js .fdt-panel.active { animation: none; }
+    .faber-demo-tabs { transition: none; }
+    .topic-card:hover { transform: none; }
+}
+
+/* ==========================================================================
+   14. Locale-less language portal (body.porta) — Speculum porta layout
+   ==========================================================================
+   Gate + glyph ring of locale nodes + question + agent links + tabbed
+   demo hero (.faber-demo-tabs) + full index. No sidebar. Uses :root
+   tokens above (Decision 14).
+   ========================================================================== */
+
+body.porta {
+    font-size: 16.5px;
+    line-height: 1.7;
+}
+
+.porta-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 var(--s5);
+}
+
+/* ---- gate ---- */
+.porta-gate {
+    padding: var(--s8) 0 var(--s5);
+    text-align: center;
+}
+.porta-kicker {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 40px;
+}
+
+/* ---- glyph ring ---- */
+.porta-ring {
+    position: relative;
+    width: 560px;
+    max-width: 100%;
+    height: 520px;
+    margin: 0 auto;
+}
+
+.porta-mark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 210px;
+    text-align: center;
+    z-index: 1;
+}
+.porta-glyphgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px 10px;
+    font-family: var(--mono);
+    font-size: 30px;
+    line-height: 40px;
+    color: var(--glyph);
+    background: var(--glyph-soft);
+    border: 1px solid var(--rule-strong);
+    padding: 14px 10px;
+}
+.porta-name {
+    font-family: var(--serif);
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    margin-top: var(--s4);
+}
+.porta-gloss {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+    margin-top: var(--s1);
+}
+
+/* ---- locale nodes ---- */
+.porta-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 150px;
+    text-align: center;
+    z-index: 2;
+}
+/* Kill the global anchor border here: on the ring it paints a full-width
+   band that clips neighbouring nodes. Hover binds to the name text only. */
+.porta-node a,
+.porta-node a:hover {
+    display: block;
+    padding: var(--s2) var(--s1);
+    border-bottom: none;
+    color: var(--ink);
+    text-decoration: none;
+    background: none;
+}
+.porta-node a:hover .porta-native {
+    color: var(--glyph);
+    text-decoration: underline;
+    text-decoration-color: var(--glyph);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
+}
+.porta-native {
+    font-size: 21px;
+    line-height: 30px;
+    display: block;
+    font-family: var(--serif);
+}
+.porta-native.th { font-family: 'Noto Sans Thai', var(--serif); }
+.porta-native.ar { font-family: 'Noto Sans Arabic', var(--serif); }
+.porta-native.hi { font-family: 'Noto Sans Devanagari', var(--serif); }
+.porta-native.zh { font-family: 'Noto Sans SC', var(--serif); }
+.porta-tag {
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-top: 2px;
+}
+.porta-st {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    display: block;
+    margin-top: 3px;
+}
+.porta-st-complete { color: var(--support); }
+.porta-st-pilot { color: var(--glyph); }
+.porta-st-partial { color: var(--limited); }
+
+/* ---- question ---- */
+.porta-question {
+    font-size: 19px;
+    line-height: 32px;
+    color: var(--ink-dim);
+    max-width: 46ch;
+    margin: var(--s3) auto 0;
+    text-align: center;
+}
+.porta-question .porta-alt {
+    color: var(--ink);
+}
+
+/* ---- agent links (slimmed note: quiet line, no box) ---- */
+.porta-note {
+    margin: var(--s6) auto 0;
+    max-width: 720px;
+    text-align: center;
+}
+.porta-note p {
+    margin: 0;
+}
+.porta-agent-links {
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    color: var(--ink-faint);
+}
+.porta-agent-links a {
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+    text-decoration: none;
+}
+.porta-agent-links a:hover {
+    border-bottom-color: var(--glyph);
+    color: var(--glyph);
+}
+
+/* ---- demo hero ---- */
+.porta-samples-section {
+    padding: var(--s7) 0 var(--s5);
+    margin-top: 40px;
+    text-align: left;
+}
+.porta-samples-section h2,
+.porta-index h2 {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: var(--s2);
+    margin: 0 0 var(--s1);
+}
+.porta-lede {
+    color: var(--ink-dim);
+    font-size: 15px;
+    line-height: 26px;
+    margin: var(--s3) 0 var(--s6);
+}
+
+/* ---- full index ---- */
+.porta-index {
+    padding: var(--s7) 0 var(--s5);
+    margin-top: var(--s4);
+    text-align: left;
+}
+.porta-group {
+    margin-bottom: var(--s6);
+}
+.porta-group-head {
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 6px;
+    margin-bottom: var(--s3);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s3);
+    flex-wrap: wrap;
+}
+.porta-verb {
+    letter-spacing: 0.06em;
+}
+.porta-verb-support { color: var(--support); }
+.porta-verb-limited { color: var(--limited); }
+.porta-verb-defer { color: var(--defer); }
+.porta-locs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--s1) var(--s5);
+}
+.porta-loc {
+    font-size: 15px;
+    line-height: 26px;
+    display: flex;
+    gap: var(--s2);
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+.porta-loc a {
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+    text-decoration: none;
+}
+.porta-loc a:hover {
+    border-bottom-color: var(--glyph);
+}
+.porta-code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+}
+.porta-stress {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-faint);
+}
+
+/* ---- footer ---- */
+.porta-footer {
+    border-top: 1px solid var(--rule);
+    margin-top: var(--s6);
+    padding: var(--s5) 0 var(--s8);
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s3);
+    flex-wrap: wrap;
+}
+.porta-footer a {
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-dim);
+    text-decoration: none;
+}
+.porta-footer a:hover {
+    color: var(--glyph);
+    border-bottom-color: var(--glyph);
+}
+
+/* ==========================================================================
+   15. Responsive + print
+   ========================================================================== */
+
+/* Contents rail is the first thing to go: below this the content track
+   would be squeezed below a readable measure. */
+@media (max-width: 1180px) {
+    .page, body.has-toc .page {
+        max-width: var(--page-max);
+        grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    }
+    .toc { display: none; }
+}
+
+@media (max-width: 900px) {
+    .page, body.has-toc .page {
+        grid-template-columns: 1fr;
+        column-gap: 0;
+        padding: 0 20px;
+    }
+    aside, main, footer { grid-column: 1; }
+    aside { grid-row: 1; }
+    main { grid-row: 2; }
+    footer { grid-row: 3; }
+    aside {
+        border-right: none;
+        border-bottom: 1px solid var(--rule);
+        padding: var(--s4) 0 var(--s4);
+        position: static; max-height: none; overflow: visible;
+    }
+    aside ul.nav {
+        display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: var(--s3);
+    }
+    aside ul.nav li a { padding: 6px 10px; margin: 0; }
+    aside .side-meta { display: none; }
+    .renderbar .in { padding: var(--s2) 20px; }
+    .renderbar .machine-links { margin-left: 0; width: 100%; }
+    .agent-notice { flex-direction: column; gap: var(--s2); }
+    .infobox { float: none; width: 100%; margin: var(--s4) 0; }
+    main { padding-top: var(--s5); }
+    h1 { font-size: 1.75rem; }
+    body.home h1 { font-size: 2.2rem; }
+    .porta-gate { padding-top: var(--s6); }
+}
+
+@media (max-width: 760px) {
+    .porta-ring {
+        width: 100%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--s1);
+    }
+    .porta-mark,
+    .porta-node {
+        position: static;
+        transform: none;
+    }
+    .porta-mark { margin-bottom: var(--s6); }
+    .porta-node { width: 100%; max-width: 280px; }
+    .porta-question { font-size: 17px; line-height: 28px; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   15. Landing page (body.landing) — the claim-and-proof front door.
+
+   Reuses .faber-demo-tabs for both proof panels. Everything below is
+   layout + rhythm only; all colour comes from the :root token set, so the
+   page follows light/dark with the rest of the site.
+   --------------------------------------------------------------------------- */
+
+/* Column system — the one place a width is decided.
+
+   There is exactly one content width on this page: the .fl-wrap container.
+   Every child fills it edge to edge, so a paragraph, a code card and an image
+   grid all stop at the same right edge. This is the rule §7 states for docs
+   prose, applied here.
+
+   Do not add max-width to a landing child, and do not reintroduce a narrower
+   "readable measure" track — a prose column narrower than the cards is the
+   ragged-right-edge bug this section exists to prevent. check-width-gate.py
+   fails the build if a child sets its own width. */
+
+body.landing {
+    color: var(--ink);
+    font-family: var(--sans);
+}
+
+/* -- top bar -- */
+.fl-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s5);
+    flex-wrap: wrap;
+    max-width: calc(var(--measure) + var(--gutter) * 2);
+    margin: 0 auto;
+    padding: var(--s5) var(--gutter);
+}
+.fl-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s3);
+    font-family: var(--serif);
+    font-size: 21px;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+}
+.fl-brand-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius);
+    background: var(--glyph-soft);
+    color: var(--glyph);
+    font-family: var(--serif);
+    font-size: 17px;
+    font-style: italic;
+}
+.fl-topnav {
+    display: flex;
+    align-items: center;
+    gap: var(--s5);
+    flex-wrap: wrap;
+    font-size: 14px;
+}
+.fl-topnav a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+}
+.fl-topnav a:hover { color: var(--glyph); border-bottom-color: var(--glyph); }
+.fl-locale { color: var(--ink-faint) !important; }
+
+.fl-banner {
+    background: var(--glyph);
+    color: var(--on-glyph);
+    padding: var(--s4) var(--gutter);
+    font-size: 15px;
+    line-height: 1.55;
+    text-align: center;
+    /* The banner is an <aside>; opt out of the docs-sidebar `aside` rule. */
+    position: static;
+    border-right: 0;
+    max-height: none;
+    overflow: visible;
+}
+.fl-banner strong {
+    display: block;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--s1);
+}
+
+.fl-wrap {
+    max-width: calc(var(--measure) + var(--gutter) * 2);
+    margin: 0 auto;
+    padding: 0 var(--gutter) var(--s8);
+}
+
+/* -- hero -- */
+.fl-hero { padding: var(--s6) 0 var(--s5); }
+.fl-kicker {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 var(--s5);
+}
+.fl-hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 6vw, 58px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--s5);
+    color: var(--ink);
+}
+.fl-lede {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    margin: 0 0 var(--s4);
+}
+.fl-lede em { color: var(--ink); font-style: italic; }
+.fl-thesis {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    margin: var(--s5) 0 0;
+}
+.fl-thesis strong { color: var(--ink); font-weight: 600; }
+.fl-open-source {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-faint);
+    margin: var(--s4) 0 0;
+}
+.fl-open-source strong { color: var(--ink-dim); font-weight: 600; }
+
+.fl-cta { display: flex; gap: var(--s3); flex-wrap: wrap; margin: var(--s6) 0 var(--s6); }
+
+.fl-first-doors {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: var(--s4);
+    margin: var(--s6) 0 0;
+}
+.fl-door-see {
+    grid-row: 1 / span 2;
+}
+.fl-door-see a { color: var(--glyph); text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+.fl-door-see a:hover { border-bottom-color: var(--glyph); }
+.fl-door-see pre.fl-src { margin: var(--s4) 0 0; }
+@media (max-width: 720px) {
+    .fl-first-doors {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+    }
+    .fl-door-see { grid-row: auto; }
+}
+.fl-btn {
+    display: inline-block;
+    padding: var(--s3) var(--s5);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+    color: var(--ink);
+    font-size: 15px;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.fl-btn:hover { background: var(--paper-deep); border-color: var(--ink-faint); }
+.fl-btn-primary {
+    background: var(--glyph);
+    border-color: var(--glyph);
+    color: var(--on-glyph);
+    font-weight: 500;
+}
+.fl-btn-primary:hover { background: var(--glyph-hover); border-color: var(--glyph-hover); }
+
+/* -- compiler lanes -- */
+.fl-lanes { padding: var(--s7) 0; border-top: 1px solid var(--rule); }
+.fl-lanes h2 {
+    font-family: var(--serif);
+    font-size: 26px;
+    margin: 0 0 var(--s5);
+    color: var(--ink);
+}
+.fl-lanes table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+}
+.fl-lanes th, .fl-lanes td {
+    text-align: left;
+    padding: var(--s3) var(--s4) var(--s3) 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-dim);
+}
+.fl-lanes th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 500;
+}
+.fl-lanes td strong { color: var(--ink); }
+
+/* -- first look: code + its output, side by side -- */
+/* Program then its output, stacked. Side by side left a tall code block
+   next to a two-line result and a large hole beside it. */
+.fl-first {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    margin: var(--s6) 0 var(--s3);
+}
+pre.fl-run {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: var(--s4);
+    margin: 0;
+    color: var(--ink-dim);
+    overflow-x: auto;
+}
+/* -- proof sections -- */
+.fl-proof { padding: var(--s7) 0; border-top: 1px solid var(--rule); }
+.fl-proof-head { margin-bottom: var(--s6); }
+.fl-proof-sub { margin-top: var(--s7); }
+.fl-proof-n {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--glyph);
+    margin-bottom: var(--s3);
+}
+.fl-proof h2 {
+    font-family: var(--serif);
+    font-size: clamp(24px, 3.4vw, 34px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--s4);
+    color: var(--ink);
+}
+.fl-proof h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    margin: 0 0 var(--s3);
+    color: var(--ink);
+}
+.fl-proof p { font-size: 16px; line-height: 1.7; color: var(--ink-dim); margin: 0 0 var(--s4); }
+.fl-proof a { color: var(--glyph); text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+.fl-proof a:hover { border-bottom-color: var(--glyph); }
+.fl-note { font-size: 13px; color: var(--ink-faint); }
+.fdt-note { color: var(--ink-faint); font-weight: normal; }
+
+pre.fl-src {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius);
+    padding: var(--s4);
+    margin: 0 0 var(--s4);
+    overflow-x: auto;
+    color: var(--ink);
+}
+
+/* -- proof 3 frames -- */
+.fl-frames {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: var(--s5);
+    margin-bottom: var(--s6);
+}
+.fl-frame { margin: 0; }
+.fl-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+}
+.fl-frame figcaption {
+    margin-top: var(--s2);
+    font-size: 12px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+}
+.fl-frame code { font-family: var(--mono); font-size: 11px; }
+
+/* -- benchmark table -- */
+.fl-bench table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+    margin-bottom: var(--s3);
+}
+.fl-bench caption {
+    text-align: left;
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding-bottom: var(--s3);
+}
+.fl-bench th, .fl-bench td {
+    text-align: left;
+    padding: var(--s3) var(--s4) var(--s3) 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-dim);
+}
+.fl-bench th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 500; }
+.fl-bench td strong { color: var(--support); font-size: 16px; }
+.fl-bench code { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+
+/* -- doors -- */
+.fl-doors { padding: var(--s7) 0; border-top: 1px solid var(--rule); }
+.fl-doors h2 {
+    font-family: var(--serif);
+    font-size: 26px;
+    margin: 0 0 var(--s5);
+    color: var(--ink);
+}
+.fl-door-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: var(--s4);
+}
+.fl-door {
+    display: block;
+    padding: var(--s4) var(--s5);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.fl-door:hover { border-color: var(--glyph); background: var(--paper-deep); }
+.fl-door strong { display: block; color: var(--ink); font-size: 15px; margin-bottom: var(--s1); }
+.fl-door > span { display: block; color: var(--ink-faint); font-size: 13px; line-height: 1.5; }
+.fl-door code { font-family: var(--mono); font-size: 12px; }
+
+/* -- agent note + footer -- */
+.fl-agents { padding: var(--s7) 0 0; border-top: 1px solid var(--rule); }
+.fl-agents h2 { font-family: var(--serif); font-size: 20px; margin: 0 0 var(--s3); color: var(--ink); }
+.fl-agents p { font-size: 14px; line-height: 1.7; color: var(--ink-dim); margin: 0; }
+.fl-agents a { color: var(--glyph); text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+.fl-agents a:hover { border-bottom-color: var(--glyph); }
+.fl-agents code { font-family: var(--mono); font-size: 13px; }
+
+/* -- hero run output (sits directly under the locale demo) -- */
+.fl-hero .fl-run { margin-top: 0; }
+
+/* -- locale strip: a door into each language's own docs home -- */
+.fl-locs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: var(--s3);
+    margin: 0 0 var(--s4);
+}
+.fl-proof a.fl-loc, .fl-loc {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding: var(--s4) var(--s4);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.fl-proof a.fl-loc:hover, .fl-loc:hover { border-color: var(--glyph); background: var(--paper-deep); }
+.fl-loc-name { font-size: 20px; line-height: 1.3; color: var(--ink); }
+.fl-loc-code { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* -- why it suits models: four plain points -- */
+.fl-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: var(--s5);
+}
+.fl-point {
+    padding: var(--s5);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+}
+.fl-point strong { display: block; font-family: var(--serif); font-size: 18px; color: var(--ink); margin-bottom: var(--s2); font-weight: 600; }
+.fl-point span { display: block; font-size: 14px; line-height: 1.65; color: var(--ink-dim); }
+.fl-point code { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+.fl-point a { color: var(--glyph); text-decoration: none; border-bottom: 1px solid var(--rule-strong); white-space: nowrap; }
+.fl-point a:hover { border-bottom-color: var(--glyph); }
+
+/* -- libraries -- */
+.fl-libs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: var(--s4);
+    margin-bottom: var(--s6);
+}
+.fl-proof a.fl-lib, .fl-lib {
+    display: block;
+    padding: var(--s4) var(--s5);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-alt);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.fl-proof a.fl-lib:hover, .fl-lib:hover { border-color: var(--glyph); background: var(--paper-deep); }
+.fl-lib strong { display: inline; font-family: var(--serif); font-size: 18px; color: var(--ink); font-weight: 600; }
+.fl-lib em { display: inline; margin-left: var(--s2); font-style: normal; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--glyph); }
+.fl-lib > span { display: block; margin-top: var(--s2); font-size: 13.5px; line-height: 1.6; color: var(--ink-dim); }
+.fl-lib code { font-family: var(--mono); font-size: 12px; }
+
+/* -- target capability table (cells come from `faber targets`) -- */
+.fl-cap {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+    margin-top: var(--s5);
+}
+.fl-cap caption { text-align: left; font-size: 13px; color: var(--ink-faint); padding-bottom: var(--s3); }
+.fl-cap th, .fl-cap td {
+    text-align: left;
+    padding: var(--s3) var(--s4) var(--s3) 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-dim);
+    vertical-align: top;
+}
+.fl-cap thead th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 500; }
+.fl-cap tr.fl-cap-group th {
+    padding-top: var(--s5);
+    font-family: var(--serif);
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+    font-weight: 600;
+}
+.fl-cap td strong { color: var(--ink); white-space: nowrap; }
+.fl-cap td:nth-child(2), .fl-cap td:nth-child(3), .fl-cap td:nth-child(4) { white-space: nowrap; }
+@media (max-width: 720px) {
+    /* The sentence column drops under narrow widths; the three measured cells stay. */
+    .fl-cap th:nth-child(5), .fl-cap td:nth-child(5) { display: none; }
+    .fl-cap tr.fl-cap-group th { display: table-cell; }
+}
+
+.fl-foot {
+    max-width: calc(var(--measure) + var(--gutter) * 2);
+    margin: 0 auto;
+    padding: var(--s6) var(--gutter) var(--s7);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s4);
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ink-faint);
+}
+.fl-foot a { color: var(--ink-dim); text-decoration: none; }
+.fl-foot a:hover { color: var(--glyph); }
+.fl-foot strong { color: var(--ink); font-family: var(--serif); font-weight: normal; }
+
+@media (max-width: 720px) {
+    .fl-top, .fl-wrap, .fl-foot { padding-left: var(--s5); padding-right: var(--s5); }
+    .fl-hero { padding-top: var(--s6); }
+    .fl-topnav { gap: var(--s4); font-size: 13px; }
+}
+
+@media print {
+    .renderbar, aside, .toc, .skip-link, .fdt-copy, .fdt-goto, .ambient-canvas { display: none; }
+    .page, body.has-toc .page { display: block; max-width: none; padding: 0; }
+    body { font-size: 11pt; background: #fff; color: #000; }
+    pre.faber-code, .content .table-scroll { break-inside: avoid; }
+    .content a { border-bottom: none; }
+}
