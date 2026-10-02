@@ -1,0 +1,16 @@
+nodes nodes-basic.html translated.tsv
+nodes nodes-unclosed.html translated.tsv
+nodes nodes-attrs-only.html translated.tsv
+nodes nodes-metachar.html metachar.tsv
+nodes nodes-empty-table.html empty.tsv
+nodes nodes-no-text.html translated.tsv
+nodes nodes-empty.html translated.tsv
+nodes nodes-duplicate.html duplicate.tsv
+nodes nodes-multiline.html translated.tsv
+chrome chrome-basic.html translated.tsv
+chrome chrome-uppercase.html translated.tsv
+chrome chrome-none.html translated.tsv
+chrome chrome-aside-lookalike.html translated.tsv
+chrome chrome-multibyte.html metachar.tsv
+chrome chrome-empty-table.html empty.tsv
+chrome chrome-duplicate.html duplicate.tsv
