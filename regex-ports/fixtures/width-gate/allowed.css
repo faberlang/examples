@@ -1,0 +1,14 @@
+/* Allowed forms: containers, 100% / none, var(), viewport units, table cells, @media. */
+.fl-wrap { max-width: 72rem; margin: 0 auto; }
+.page, .toc { max-width: 60ch; }
+body.has-toc .page { max-width: 80ch; }
+.card img { max-width: 100%; }
+.figure { max-width: none; }
+.prose p { max-width: var(--measure); }
+.hero { max-width: 90vw; }
+.hero-tall { max-width: 80 dvh; }
+table th { max-width: 12rem; }
+td.num, tr td { max-width: 6rem; }
+@media (max-width: 600px) {
+  .card { max-width: 100%; }
+}

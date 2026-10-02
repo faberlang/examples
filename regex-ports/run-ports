@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""run-ports — feed the same fixtures to the Python originals and the Faber ports.
+
+For each of the three picks the Python original is imported (never modified) and
+called on every fixture; the Faber port is run with `faber run` on the same
+fixture; stdout, stderr and the exit code are compared byte for byte. Prints one
+line per port and `3/3 identical` when every port agrees on every fixture.
+
+  regex-ports/run-ports
+
+Environment:
+  FABER                faber binary (default: the sibling radix/target/debug/faber,
+                       then `faber` on PATH)
+  FABER_LIBRARY_HOME   library home (default: the faberlang container root)
+
+The originals are read from the sibling checkouts of the container:
+  faberlang.dev/generator/scripts/check-width-gate.py
+  faberlang.dev/generator/scripts/inject-chrome.py
+  radix/scripta/audit-factory-goal-status.py
+"""
+
+import contextlib
+import importlib.util
+import io
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+FIXTURES = HERE / "fixtures"
+
+
+def load(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module  # dataclasses resolve their module through sys.modules
+    spec.loader.exec_module(module)
+    return module
+
+
+def faber_binary() -> str:
+    if os.environ.get("FABER"):
+        return os.environ["FABER"]
+    local = ROOT / "radix" / "target" / "debug" / "faber"
+    return str(local) if local.is_file() else "faber"
+
+
+def run_faber(program: str, args: list[str]) -> tuple[str, str, int]:
+    env = dict(os.environ)
+    env.setdefault("FABER_LIBRARY_HOME", str(ROOT))
+    proc = subprocess.run(
+        [faber_binary(), "run", str(HERE / program), "--", *args],
+        capture_output=True,
+        env=env,
+        timeout=120,
+    )
+    return proc.stdout.decode("utf-8"), proc.stderr.decode("utf-8"), proc.returncode
+
+
+# --- pick (c): status_clauses -------------------------------------------------
+
+def python_status_clauses(path: Path, audit) -> tuple[str, str, int]:
+    lines = path.read_text(encoding="utf-8", newline="").split("\n")
+    out = io.StringIO()
+    for index, line in enumerate(lines[:-1]):
+        clauses = audit.status_clauses(line)
+        out.write(f"{index}: {len(clauses)}\n")
+        for clause in clauses:
+            out.write(f"  [{clause}]\n")
+    return out.getvalue(), "", 0
+
+
+# --- pick (a): check-width-gate.py --------------------------------------------
+
+def python_width_gate(path: Path, gate) -> tuple[str, str, int]:
+    gate.CSS = path
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = gate.main()
+    return out.getvalue(), err.getvalue(), code
+
+
+# --- pick (b): inject-chrome.py -----------------------------------------------
+
+def read_table(path: Path) -> dict[str, str]:
+    table: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8", newline="").split("\n"):
+        if line:
+            key, value = line.split("\t")
+            table[key] = value
+    return table
+
+
+def python_chrome(mode: str, page: Path, table_path: Path, chrome) -> tuple[str, str, int]:
+    table = read_table(table_path)
+    html = page.read_text(encoding="utf-8", newline="")
+    if mode == "nodes":
+        result, count = chrome.replace_in_text_nodes(html, table)
+    else:
+        result, count = chrome.apply_replacements_to_chrome(html, table)
+    return f"{result}\nreplacements: {count}\n", "", 0
+
+
+# --- driver ---------------------------------------------------------------------
+
+def compare(label: str, python: tuple[str, str, int], faber: tuple[str, str, int]) -> bool:
+    if python == faber:
+        return True
+    print(f"  DIFFER {label}")
+    for name, left, right in zip(("stdout", "stderr", "exit"), python, faber):
+        if left != right:
+            print(f"    {name} python: {left!r}")
+            print(f"    {name} faber:  {right!r}")
+    return False
+
+
+def check_port(name: str, cases) -> bool:
+    total = same = 0
+    for label, python, faber in cases:
+        total += 1
+        if compare(label, python(), faber()):
+            same += 1
+    ok = same == total
+    print(f"{'identical' if ok else 'DIFFERENT'}: {name} ({same}/{total} fixtures)")
+    return ok
+
+
+def main() -> int:
+    scripts = ROOT / "faberlang.dev" / "generator" / "scripts"
+    audit = load("audit_factory_goal_status", ROOT / "radix" / "scripta" / "audit-factory-goal-status.py")
+    gate = load("check_width_gate", scripts / "check-width-gate.py")
+    chrome = load("inject_chrome", scripts / "inject-chrome.py")
+
+    status = [
+        (
+            f"status-clauses/{p.name}",
+            lambda p=p: python_status_clauses(p, audit),
+            lambda p=p: run_faber("status-clauses.fab", [str(p)]),
+        )
+        for p in sorted((FIXTURES / "status-clauses").glob("*.txt"))
+    ]
+    width = [
+        (
+            f"width-gate/{p.name}",
+            lambda p=p: python_width_gate(p, gate),
+            lambda p=p: run_faber("width-gate.fab", [str(p)]),
+        )
+        for p in sorted((FIXTURES / "width-gate").glob("*.css"))
+    ]
+    chrome_dir = FIXTURES / "chrome"
+    chrome_cases = []
+    for line in (chrome_dir / "cases.txt").read_text(encoding="utf-8").splitlines():
+        mode, page, table = line.split()
+        page_path, table_path = chrome_dir / page, chrome_dir / table
+        chrome_cases.append(
+            (
+                f"chrome/{page} + {table}",
+                lambda m=mode, a=page_path, b=table_path: python_chrome(m, a, b, chrome),
+                lambda m=mode, a=page_path, b=table_path: run_faber("inject-chrome.fab", [m, str(b), str(a)]),
+            )
+        )
+
+    results = [
+        check_port("width-gate        (a) capture extraction, code-point offsets", width),
+        check_port("inject-chrome     (b) closure replace with escape", chrome_cases),
+        check_port("status-clauses    (c) split", status),
+    ]
+    identical = sum(results)
+    print(f"{identical}/{len(results)} identical")
+    return 0 if identical == len(results) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
