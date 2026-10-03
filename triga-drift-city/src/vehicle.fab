@@ -2,34 +2,34 @@ importa ex "./city" city
 importa ex "triga:math" math
 
 genus InputState {
-    bivalens forward
-    bivalens reverse
-    bivalens left
-    bivalens right
-    bivalens handbrake
-    bivalens focused
+    varia bivalens forward
+    varia bivalens reverse
+    varia bivalens left
+    varia bivalens right
+    varia bivalens handbrake
+    varia bivalens focused
 }
 
 genus Vehicle {
-    f32 x
-    f32 y
-    f32 z
-    f32 heading_degrees
-    f32 velocity_x
-    f32 velocity_z
-    f32 drift_amount
-    bivalens collided
+    varia f32 x
+    varia f32 y
+    varia f32 z
+    varia f32 heading_degrees
+    varia f32 velocity_x
+    varia f32 velocity_z
+    varia f32 drift_amount
+    varia bivalens collided
 }
 
 genus ChaseCamera {
-    vector<f32, 3> position
-    vector<f32, 3> target
+    varia vector<f32, 3> position
+    varia vector<f32, 3> target
 }
 
 genus Application {
-    InputState input
-    Vehicle vehicle
-    ChaseCamera camera
+    varia InputState input
+    varia Vehicle vehicle
+    varia ChaseCamera camera
 }
 
 functio max_delta_seconds() → f32 {
@@ -220,9 +220,9 @@ functio spawn_application() → Application {
 
 # Where the body ends up once this step's turn is resolved.
 genus Turn {
-    f32 heading_degrees
-    f32 x
-    f32 z
+    varia f32 heading_degrees
+    varia f32 x
+    varia f32 z
 }
 
 functio turn_clearance_attempts() → numerus {
