@@ -47,7 +47,7 @@ functio model_loss(
 ) → fractus {
     # Forward: prediction = input · weight + bias
     fixum tensor<f32, [2,2]> prediction ← input · weight
-    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
+    fixum tensor<f32, [2,2]> shifted    ← prediction + bias
 
     # Cross-entropy loss: crux_entropia(shifted, target)
     redde shifted.crux_entropia(target)
@@ -113,7 +113,7 @@ incipit {
         # ── FORWARD ───────────────────────────────────────────────────────
         # model_loss(input, weight, bias, target) inlined due to SEM010.
         fixum tensor<f32, [2,2]> pred ← input · weight
-        fixum tensor<f32, [2,2]> shft ← pred.addita(bias)
+        fixum tensor<f32, [2,2]> shft ← pred + bias
         fixum f32 loss ← shft.crux_entropia(target)
         loss_trace.appende(loss)
 
@@ -132,11 +132,11 @@ incipit {
         # Concrete overloads exist in norma:optimizer for [4], [2,2], [1,2], [].
         fixum tensor<f32, [2,2]> lr_fill_w ← seed.crea(lr, shape_w)
         fixum tensor<f32, [2,2]> scaled_w  ← gw ⊙ lr_fill_w
-        weight ← weight.subtrahe(scaled_w)
+        weight ← weight - scaled_w
 
         fixum tensor<f32, [2,2]> lr_fill_b ← seed.crea(lr, shape_b)
         fixum tensor<f32, [2,2]> scaled_b  ← gb ⊙ lr_fill_b
-        bias ← bias.subtrahe(scaled_b)
+        bias ← bias - scaled_b
     }
 
     # ── Output ────────────────────────────────────────────────────────────

@@ -77,15 +77,15 @@ functio mlp_loss(
 ) → f32 {
     # Layer 1: linear → GELU
     fixum tensor<f32, [4,4]> h1  ← input · weight1
-    fixum tensor<f32, [4,4]> h1b ← h1.addita(bias1)
+    fixum tensor<f32, [4,4]> h1b ← h1 + bias1
     fixum tensor<f32, [4,4]> a1  ← h1b.gelu()
 
     # Layer 2: linear
     fixum tensor<f32, [4,4]> h2  ← a1 · weight2
-    fixum tensor<f32, [4,4]> h2b ← h2.addita(bias2)
+    fixum tensor<f32, [4,4]> h2b ← h2 + bias2
 
     # MSE loss
-    fixum tensor<f32, [4,4]> residual ← h2b.subtrahe(target)
+    fixum tensor<f32, [4,4]> residual ← h2b - target
     fixum tensor<f32, [4,4]> squared  ← residual ⊙ residual
     redde squared.media()
 }
