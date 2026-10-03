@@ -40,8 +40,8 @@ locale = "la"
 @ radix lane "air"
 @ radix backward "multiplica_backward"
 functio multiplica_pair(tf32[2, 2] a, tf32[2, 2] b) → tf32[2, 2] {
-    fixum tf32[2, 2] added ← a.addita(b)
-    fixum tf32[2, 2] interm ← added.subtrahe(b)
+    fixum tf32[2, 2] added ← a + b
+    fixum tf32[2, 2] interm ← added - b
     redde interm ⊙ a
 }
 

@@ -39,8 +39,8 @@ functio linear_loss(
     tensor<f32, [2,2]> target
 ) → fractus {
     fixum tensor<f32, [2,2]> prediction ← input · weight
-    fixum tensor<f32, [2,2]> shifted    ← prediction.addita(bias)
-    fixum tensor<f32, [2,2]> residual   ← shifted.subtrahe(target)
+    fixum tensor<f32, [2,2]> shifted    ← prediction + bias
+    fixum tensor<f32, [2,2]> residual   ← shifted - target
     fixum tensor<f32, [2,2]> squared    ← residual ⊙ residual
     redde squared.media()
 }

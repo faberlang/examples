@@ -99,7 +99,7 @@ functio bert_tiny_loss(
 
     fixum tensor<f32, [2, 8]> ao   ← context · wo
     fixum tensor<f32, [2, 8]> aob  ← ao.addita_bias(bo)
-    fixum tensor<f32, [2, 8]> r1   ← input.addita(aob)
+    fixum tensor<f32, [2, 8]> r1   ← input + aob
 
     fixum tensor<f32, [2, 8]> ln2 ← r1.laminatio(1, 1.0e-5, ln2_s, ln2_o)
 
@@ -108,11 +108,11 @@ functio bert_tiny_loss(
     fixum tensor<f32, [2, 8]> a1   ← h1b.gelu()
     fixum tensor<f32, [2, 8]> h2   ← a1 · wf2
     fixum tensor<f32, [2, 8]> h2b  ← h2.addita_bias(bf2)
-    fixum tensor<f32, [2, 8]> r2   ← ln2.addita(h2b)
+    fixum tensor<f32, [2, 8]> r2   ← ln2 + h2b
 
     fixum tensor<f32, [2, 8]> ln3 ← r2.laminatio(1, 1.0e-5, ln3_s, ln3_o)
 
-    fixum tensor<f32, [2, 8]> resd ← ln3.subtrahe(target)
+    fixum tensor<f32, [2, 8]> resd ← ln3 - target
     fixum tensor<f32, [2, 8]> sqrd ← resd ⊙ resd
     redde sqrd.media()
 }
@@ -367,12 +367,12 @@ incipit {
         fixum tensor<f32, [2, 8]> vb  ← nn.linear_channel(ln1, wv, bv)
         fixum tensor<f32, [2, 8]> ctx ← attention.scaled_dot_product_static(qb, kb, vb, dk_scale)
         fixum tensor<f32, [2, 8]> aob ← nn.linear_channel(ctx, wo, bo)
-        fixum tensor<f32, [2, 8]> r1  ← input.addita(aob)
+        fixum tensor<f32, [2, 8]> r1  ← input + aob
         fixum tensor<f32, [2, 8]> ln2 ← nn.layernorm(r1, ln2_s, ln2_o, 0.00001 ∷ f32)
         fixum tensor<f32, [2, 8]> h1b ← nn.linear_channel(ln2, wf1, bf1)
         fixum tensor<f32, [2, 8]> a1  ← nn.gelu(h1b)
         fixum tensor<f32, [2, 8]> h2b ← nn.linear_channel(a1, wf2, bf2)
-        fixum tensor<f32, [2, 8]> r2  ← ln2.addita(h2b)
+        fixum tensor<f32, [2, 8]> r2  ← ln2 + h2b
         fixum tensor<f32, [2, 8]> ln3 ← nn.layernorm(r2, ln3_s, ln3_o, 0.00001 ∷ f32)
         fixum f32 loss_val ← loss.mse(ln3, target)
         loss_trace.appende(loss_val)
