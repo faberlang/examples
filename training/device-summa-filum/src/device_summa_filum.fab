@@ -4,7 +4,8 @@
 # =============================================================================
 #
 # What this proves:
-#   • The declared distributed sum (`summa ex … filum …`, SFR-5 plan entry)
+#   • The declared distributed sum (`reducta via summa ex … filum …`,
+#     SFR-5 plan entry)
 #     lowers through the Metal native collective arm (SFR-6): cyclic
 #     per-lane term-body inline with private register accumulation, exactly
 #     one simd_sum at group exit, broadcast result — via the SAME ordinary
@@ -27,7 +28,7 @@
 
 @ nucleum
 functio column_dot(tf32[32] a, tf32[1] out, u32 id) → vacuum {
-    fixum f32 total ← summa ex a apud [i] filum f fixum s {
+    fixum f32 total ← reducta via summa ex a apud [i] filum f fixum s {
         varia f32 t ← s * 1.4140625
         redde t
     }

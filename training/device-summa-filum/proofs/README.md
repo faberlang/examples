@@ -1,11 +1,16 @@
 # device-summa-filum — SFR-6 Metal native-collective receipt
 
-Real-device receipt for the declared distributed sum (`summa ex … filum …`),
-recorded 2026-08-23 (summa-filum-reduction SFR-6). The kernel lowers through
+Real-device receipt for the declared distributed sum
+(`reducta via summa ex … filum …`), recorded 2026-08-23
+(summa-filum-reduction SFR-6). The kernel lowers through
 `CollectionKernelPlan::DistributedSum` to the Metal native collective: cyclic
 per-lane term-body inline with private register accumulation, exactly ONE
 `simd_sum` at group exit, broadcast result — never the portable shared-memory
 tree floor.
+
+The source now uses the additive spelling `reducta via summa ex`. The MSL,
+device readback, and CPU oracle below are the existing 2026-08-23 evidence;
+this syntax update did not rerun the GPU or change the recorded receipt.
 
 ## Emitted MSL (from `target/faber-mir/image.fmir`, kernel `column_dot`)
 
@@ -41,7 +46,8 @@ the CUDA/NVVM native arm is SFR-7, not in this unit.)
 | burgus (Metal) | 62.21875 | 62.21875 | 0 | 6.222e-5 | yes | **PASS** |
 
 The comparison applies the tolerance row and never asserts bit-exactness
-(the two spellings sum in different orders by construction). This fixture's
+(the distributed `filum` reduction and sequential oracle fold sum in
+different orders by construction). This fixture's
 inputs, weight, and per-term products all sit exactly on the binary16 grid,
 so the f32 lane accumulations are also exact — the tolerance row is the
 contract, not a coincidence being relied on.
