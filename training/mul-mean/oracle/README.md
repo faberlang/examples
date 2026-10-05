@@ -32,7 +32,7 @@ capturing **twice**; both captures are byte-identical (same
 | forward | `simple_loss(x, w) = mean(x · w)` — elementwise mul + reduction over `tf32[1000]` |
 | backward | `loss_backward(x, w, nil(), upstream) → iuncta(grad_x, grad_w)` — scalar 1/N division, fill/broadcast, elementwise gradient accumulation, tuple outputs |
 | inputs | `x[i] = (10·(i+1)+3)/100`, `w[i] = (10·(i+1)+7)/100`, `i in 0..1000` (declared in `faber.toml` `[device] inputs`) |
-| run (device) | `faber run --backend metal .` / `faber run --backend cuda .` (device observation is S3-A5/S3-A8's gate, NOT this unit) |
+| run (device) | `faber run --device metal .` / `faber run --device cuda .` (device observation is S3-A5/S3-A8's gate, NOT this unit) |
 | run (CPU oracle) | `faber run -t fmir oracle/capture.fab` (pinned binary, from the package directory) |
 
 ## Non-exactness argument (representability)

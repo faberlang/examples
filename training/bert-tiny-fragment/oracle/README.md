@@ -24,7 +24,7 @@ broadcasting (`stage-6-delivery.md` §S6-U8):
 - biases are per-channel `[8]` via the S6-C2 `addita_bias` rank-extension add —
   the fragment's `[2,8]` duplicated-row workaround is gone (18 trainable
   tensors, 480 floats);
-- `faber.toml` declares the `[device]` section (`backend = "auto"`,
+- `faber.toml` declares the `[device]` section (`device = "auto"`,
   `steps = 8` validated against the source loop bound, host inputs for all 21
   tensors with the new `[8]` bias shapes, plus the `lr` scalar).
 
@@ -53,7 +53,7 @@ reference.
 | frozen | `input` [2,8], `dk_scale` [2,2], `target` [2,8] |
 | lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "bert_tiny_backward"` (S6-U8 device marking; the SEM059 shape) |
 | companion | `@ radix backward "bert_tiny_backward"` (AIR-generated, CPU FMIR stepper), 21-slot gradient tuple (18 trainable + input, dk_scale, target) |
-| manifest | `[device] backend = "auto"`, `steps = 8`, host inputs for all 21 tensors + `lr` (faber.toml) |
+| manifest | `[device] device = "auto"`, `steps = 8`, host inputs for all 21 tensors + `lr` (faber.toml) |
 | run (CPU oracle) | `faber run -t fmir oracle/capture.fab` from the package directory |
 
 ## File inventory

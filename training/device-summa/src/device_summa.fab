@@ -9,8 +9,8 @@
 #     image's `device` section (S1-2), the composite host (S1-4), and real
 #     Metal/CUDA sessions (S1-6) via the SAME ordinary command:
 #
-#       faber run --backend metal <package>    # Apple M5 Max (burgus)
-#       faber run --backend cuda  <package>    # NVIDIA RTX 5070 (pharos)
+#       faber run --device metal <package>    # Apple M5 Max (burgus)
+#       faber run --device cuda  <package>    # NVIDIA RTX 5070 (pharos)
 #
 #   • The kernel body is the proven `summa` proof shape (input buffer + output
 #     buffer + u32 id → `workgroup_id.x`); the reduction recipe is the shared

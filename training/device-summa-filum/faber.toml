@@ -14,9 +14,9 @@ kind = "bin"
 
 # The device surface opt-in (same convention as device-summa): `auto`
 # resolves against the machine's admitted backends at run time;
-# `--backend metal` on the command line overrides this.
+# `--device metal` on the command line overrides this.
 [device]
-backend = "auto"
+device = "auto"
 inputs = { a = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25] }
 
 [reader]

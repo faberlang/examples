@@ -23,10 +23,10 @@ kind = "bin"
 
 # The device surface opt-in: the image carries a `device` section (device
 # program + MSL/PTX artifacts + canonical payload). `auto` resolves against
-# the machine's admitted backends at run time; `--backend metal|cuda` on the
+# the machine's admitted backends at run time; `--device metal|cuda` on the
 # command line overrides this.
 [device]
-backend = "auto"
+device = "auto"
 inputs = { x = [
     1.0, 2.0, 3.0, 4.0
 ], w = [

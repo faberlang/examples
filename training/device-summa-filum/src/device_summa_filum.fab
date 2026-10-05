@@ -11,7 +11,7 @@
 #     one simd_sum at group exit, broadcast result — via the SAME ordinary
 #     command:
 #
-#       faber run --backend metal <package>    # Apple M5 Max (burgus)
+#       faber run --device metal <package>    # Apple M5 Max (burgus)
 #
 #   • The kernel is an F16 column-dot: every input value, the F16-grid
 #     weight, and every per-term product sit exactly on the binary16 grid,

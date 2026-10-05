@@ -13,10 +13,10 @@ demonstrated, exactly, per the TR7 receipts
 
 | Level | Command | Machine / backend | Receipt |
 | --- | --- | --- | --- |
-| E6 — RC binary | `faber run --backend metal .` | burgus / Metal (Apple M5 Max, Metal 4) | `stage-7-evidence-burgus-metal-e6.md` (TR7-U2) |
-| E6 — RC binary | `faber run --backend cuda .` | pharos / CUDA (NVIDIA RTX 5070, driver 595.71.05, CUDA 13.2) | `stage-7-evidence-pharos-cuda-e6.md` (TR7-U3) |
-| E7 — clean-room extracted archive | `__fmir-run image.fmir --backend metal` | burgus / Metal | `stage-7-evidence-burgus-metal-e7.md` (TR7-U4) |
-| E7 — clean-room extracted archive | `__fmir-run image.fmir --backend cuda` | pharos / CUDA | `stage-7-evidence-pharos-cuda-e7.md` (TR7-U5) |
+| E6 — RC binary | `faber run --device metal .` | burgus / Metal (Apple M5 Max, Metal 4) | `stage-7-evidence-burgus-metal-e6.md` (TR7-U2) |
+| E6 — RC binary | `faber run --device cuda .` | pharos / CUDA (NVIDIA RTX 5070, driver 595.71.05, CUDA 13.2) | `stage-7-evidence-pharos-cuda-e6.md` (TR7-U3) |
+| E7 — clean-room extracted archive | `__fmir-run image.fmir --device metal` | burgus / Metal | `stage-7-evidence-burgus-metal-e7.md` (TR7-U4) |
+| E7 — clean-room extracted archive | `__fmir-run image.fmir --device cuda` | pharos / CUDA | `stage-7-evidence-pharos-cuda-e7.md` (TR7-U5) |
 
 All runs exited 0 on one session each; every numeric-policy v1.0.0 row PASS vs
 the pinned CPU/FMIR oracle (`oracle/`, S6-U8): loss trace worst delta
@@ -36,9 +36,9 @@ readback (per-step readback is only the loss scalar).
   `[2,2]` softmax-weights buffer in that set. The frozen-slot gradients
   (`input` / `dk_scale` / `target`) are excluded from the declared EndOfRun
   readback (18 of 21 gradient slots device-observed).
-- **Command routes**: `faber run --backend <metal|cuda> .` is the source
+- **Command routes**: `faber run --device <metal|cuda> .` is the source
   package route (dev-container posture, `FABER_LIBRARY_HOME` per E6); the
-  archive image runner `__fmir-run image.fmir --backend <metal|cuda>` runs the
+  archive image runner `__fmir-run image.fmir --device <metal|cuda>` runs the
   compiled self-contained package from the RC archive (E7).
 - **PTX delta (CUDA, recorded honestly)**: the RC archive's compiled image
   embeds the Stage 0 contract `ptx87` payload; E6's source route recompiled to

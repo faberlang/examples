@@ -35,7 +35,7 @@ this fixture's values happen to land exactly.
 | term | `t = s * 1.4140625` — every input value, the F16-grid weight, and every per-term product sit exactly on the binary16 grid (f16 column-dot semantics); lane accumulation is f32 |
 | inputs | `a[i] = (i % 8) * 0.25 + 0.5` for `i in 0..32` (declared in `faber.toml` `[device] inputs`) |
 | expected sum | **62.21875** |
-| run (device) | `faber run --backend metal .` |
+| run (device) | `faber run --device metal .` |
 | run (CPU oracle) | `faber run oracle/capture.fab` |
 
 ## File inventory

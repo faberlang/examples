@@ -29,8 +29,8 @@ How each combo runs (capture convention — oracle/README.md):
      the examples repo (hard constraint: the committed acceptance fixture must
      not drift).
 
-Reusability seam (done_when 4): pass `--route device --backend <metal|cuda>`
-to run `faber run --backend <backend> .` on the package entry instead of the
+Reusability seam (done_when 4): pass `--route device --device <metal|cuda>`
+to run `faber run --device <device> .` on the package entry instead of the
 fmir capture route; the device route parses the fixture's trailing loss_trace
 aggregate. NOTE: as of this sweep the MLP device image fails closed at the
 device-program signature stage (scalar-return lane — see oracle/README.md
@@ -42,7 +42,7 @@ Usage:
   sweep_hyperparams.py --report              # regenerate oracle/sweep-report.md from the embedded data (idempotency check)
   sweep_hyperparams.py --combo 500,0.05      # run a single combo (debug)
   sweep_hyperparams.py --faber /path/faber   # faber binary (default: $FABER, else 'faber' on PATH)
-  sweep_hyperparams.py --route device --backend metal   # future device-side route (untested — image builds fail closed)
+  sweep_hyperparams.py --route device --device metal   # future device-side route (untested — image builds fail closed)
 
 Environment: FABER_LIBRARY_HOME (default: the faberlang container root, the
 parent of the examples repo containing this fixture).
@@ -133,7 +133,7 @@ def assert_fixture_clean() -> None:
 # capture run + parsing
 # ---------------------------------------------------------------------------
 
-def run_one_combo(faber: str, route: str, backend: str | None,
+def run_one_combo(faber: str, route: str, device: str | None,
                   steps: int, lr: str, workdir: Path) -> dict:
     originals = {spec["path"]: spec["path"].read_bytes() for spec in PATCH_FILES}
     try:
@@ -141,7 +141,7 @@ def run_one_combo(faber: str, route: str, backend: str | None,
         if route == "fmir":
             cmd = [faber, "run", "-t", "fmir", "oracle/capture.fab"]
         else:
-            cmd = [faber, "run", "--backend", backend, "."]
+            cmd = [faber, "run", "--device", device, "."]
         env = dict(os.environ)
         env.setdefault("FABER_LIBRARY_HOME", str(FABERLANG_ROOT))
         out_path = workdir / f"capture_s{steps}_lr{lr}.txt"
@@ -226,7 +226,7 @@ def render_report(data: dict) -> str:
     if data["route"] == "fmir":
         route_desc = "CPU/FMIR oracle capture (`faber run -t fmir oracle/capture.fab`)"
     else:
-        route_desc = f"device route (`faber run --backend {data['backend']} .`)"
+        route_desc = f"device route (`faber run --device {data['device']} .`)"
     a("# mlp — CPU hyperparameter sweep (steps × lr grid)")
     a("")
     a(f"**Date:** {data['date']} · **Host:** {data['host']} · **Route:** {route_desc} · "
@@ -334,15 +334,15 @@ def run_sweep(args: argparse.Namespace) -> int:
         for steps in GRID_STEPS:
             for lr in GRID_LR:
                 print(f"[sweep] steps={steps} lr={lr} …", flush=True)
-                st = run_one_combo(faber, args.route, args.backend, steps, lr, workdir)
+                st = run_one_combo(faber, args.route, args.device, steps, lr, workdir)
                 combos.append(st)
                 print(f"[sweep]   loss0={st['loss0']} loss_final={st['loss_final']} "
                       f"conv={st['convergence_step']} finite={st['all_finite']} "
                       f"wall={st['wall_clock_s']}s", flush=True)
         print("[sweep] determinism spot-check (1000/0.01 twice) …", flush=True)
-        d1 = run_one_combo(faber, args.route, args.backend,
+        d1 = run_one_combo(faber, args.route, args.device,
                            DETERMINISM_COMBO[0], DETERMINISM_COMBO[1], workdir)
-        d2 = run_one_combo(faber, args.route, args.backend,
+        d2 = run_one_combo(faber, args.route, args.device,
                            DETERMINISM_COMBO[0], DETERMINISM_COMBO[1], workdir)
         traces_identical = d1["losses"] == d2["losses"]
         captures_identical = d1["capture_sha256"] == d2["capture_sha256"]
@@ -383,7 +383,7 @@ def build_data(args: argparse.Namespace, faber: str, combos: list[dict],
         "date": datetime.date.today().isoformat(),
         "host": platform.node(),
         "route": args.route,
-        "backend": args.backend if args.route != "fmir" else None,
+        "device": args.device if args.route != "fmir" else None,
         "faber_binary": str(Path(faber).resolve()),
         "faber_version": ver,
         "faber_sha256": binary_sha,
@@ -421,7 +421,7 @@ def cmd_report() -> int:
     return 1
 
 
-def cmd_combo(faber: str, route: str, backend: str | None, combo: str) -> int:
+def cmd_combo(faber: str, route: str, device: str | None, combo: str) -> int:
     steps_s, _, lr = combo.partition(",")
     steps = int(steps_s.strip())
     lr = lr.strip()
@@ -429,7 +429,7 @@ def cmd_combo(faber: str, route: str, backend: str | None, combo: str) -> int:
         raise SystemExit(f"error: lr {lr} not in grid {GRID_LR}")
     workdir = Path(tempfile.mkdtemp(prefix="mlp_sweep_"))
     try:
-        st = run_one_combo(faber, route, backend, steps, lr, workdir)
+        st = run_one_combo(faber, route, device, steps, lr, workdir)
         st.pop("losses", None)
         print(json.dumps(st, indent=2))
     finally:
@@ -450,17 +450,17 @@ def main(argv: list[str] | None = None) -> int:
                    help="faber binary (default: $FABER, else 'faber' on PATH)")
     p.add_argument("--route", choices=["fmir", "device"], default="fmir",
                    help="capture route ('device' is the future device-side seam)")
-    p.add_argument("--backend", default=None,
-                   help="device backend for --route device (metal|cuda)")
+    p.add_argument("--device", default=None,
+                   help="device for --route device (metal|cuda)")
     args = p.parse_args(argv)
     if args.report and args.combo:
         p.error("--report and --combo are mutually exclusive")
-    if args.route == "device" and not args.backend:
-        p.error("--route device requires --backend")
+    if args.route == "device" and not args.device:
+        p.error("--route device requires --device")
     if args.report:
         return cmd_report()
     if args.combo:
-        return cmd_combo(resolve_faber(args.faber), args.route, args.backend,
+        return cmd_combo(resolve_faber(args.faber), args.route, args.device,
                          args.combo)
     return run_sweep(args)
 

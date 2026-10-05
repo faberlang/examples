@@ -6,7 +6,7 @@ vertical-slice proof (stage-0-delivery.md §10.4). The fixture carries one
 already-proven collection kernel (a tree reduction, the `summa` recipe floor
 R2) from Faber source through the common device program, the packaged FMIR
 image, the composite host, and real Metal/CUDA sessions via the ordinary
-`faber run --backend <metal|cuda>` command.
+`faber run --device <metal|cuda>` command.
 
 The fixture `src/device_summa.fab` is **read-only**; it is the pinned oracle
 input. All oracle content was captured by running the same `a.summa()`
@@ -29,7 +29,7 @@ numeric policy (numeric-policy v1.0.0, §3.1 reduction-sum row).
 | recipe | `CollectionKernelPlan::TreeReduction`, 256-lane workgroup → 1 workgroup, 1 output element |
 | inputs | `a[i] = i * 0.5 + 1.0` for `i in 0..256` (declared in `faber.toml` `[device] inputs`) |
 | expected sum | **16576.0** (exact; every value and every partial is exactly representable in f32) |
-| run (device) | `faber run --backend metal .` / `faber run --backend cuda .` |
+| run (device) | `faber run --device metal .` / `faber run --device cuda .` |
 | run (CPU oracle) | `faber script oracle/capture.fab` |
 
 ## File inventory

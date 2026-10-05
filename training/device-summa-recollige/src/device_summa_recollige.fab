@@ -13,8 +13,8 @@
 #     undeclared readback).
 #   • The ordinary command on both backends:
 #
-#       faber run --backend metal <package>    # Apple M5 Max (burgus)
-#       faber run --backend cuda  <package>    # NVIDIA RTX 5070 (pharos)
+#       faber run --device metal <package>    # Apple M5 Max (burgus)
+#       faber run --device cuda  <package>    # NVIDIA RTX 5070 (pharos)
 #
 #   • The Stage 3 `E_DEVICE_DESCRIPTOR` contradiction is gone (3R U4/U5):
 #     compiler construction and host admission agree on the result/lifetime

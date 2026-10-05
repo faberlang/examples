@@ -28,7 +28,7 @@ files are that reference.
 | frozen | `input` [4,4], `target` [4,4] |
 | lane | `@ nucleum` + `@ radix lane "air"` + `@ radix backward "mlp_backward"` (S5-U7 device marking; SEM059 shape) |
 | companion | `@ radix backward "mlp_backward"` (AIR-generated, CPU FMIR stepper) |
-| manifest | `[device] backend = "auto"`, `steps = 100`, host inputs for all six buffers (faber.toml) |
+| manifest | `[device] device = "auto"`, `steps = 100`, host inputs for all six buffers (faber.toml) |
 | run (CPU oracle) | `faber run -t fmir oracle/capture.fab` from the package directory |
 
 S4-B (Stage 4, `stage-4-delivery.md` unit S4-B) migrated this fixture from
@@ -39,7 +39,7 @@ inline learning-rate fill, gradient scaling, or parameter subtraction.
 
 S5-U7 (Stage 5, `stage-5-delivery.md` unit S5-U7) evolved the fixture to the
 device product shape: the lane gained the `@ nucleum` device marking, the loop
-grew to 100 steps, and `faber.toml` gained the `[device]` section (backend
+grew to 100 steps, and `faber.toml` gained the `[device]` section (device
 `auto`, declared step count `100` — validated against the source loop bound —
 and the pinned host inputs). The initial params and all arithmetic are
 **unchanged**; only the step count and the device surface changed. See

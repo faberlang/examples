@@ -39,7 +39,7 @@
 # 21 gradient slots/step. The loop owns no inline learning-rate fill,
 # gradient scaling, or parameter subtraction (the Stage 5 MLP route).
 #
-# [device] manifest: faber.toml declares backend = "auto", steps = 8
+# [device] manifest: faber.toml declares device = "auto", steps = 8
 # (validated against the source loop bound below), and host inputs for all
 # 21 tensors with the new [8] bias shapes.
 #

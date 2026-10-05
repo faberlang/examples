@@ -7,7 +7,7 @@ dependent ordinary collection kernels** (two tree reductions, the proven
 `summa` recipe) sharing a **device-resident intermediate**, from Faber source
 through the common device program, the packaged FMIR image, the composite
 host, and real Metal/CUDA sessions via the ordinary
-`faber run --backend <metal|cuda>` command.
+`faber run --device <metal|cuda>` command.
 
 The fixture `src/device_summa_recollige.fab` is **read-only**; it is the
 pinned oracle input. All oracle content was captured by running the two-kernel
@@ -33,7 +33,7 @@ the frozen numeric policy (numeric-policy v1.0.0, §3.1 reduction-sum row).
 | inputs | `a[i] = i * 0.5 + 1.0` for `i in 0..1024` (declared in `faber.toml` `[device] inputs`) |
 | expected medius | `[16576.0, 49344.0, 82112.0, 114880.0]` (each = sum of one 256-element segment; exact in f32) |
 | expected exitus | `262912.0` (sum of the 4 partials = sum of all 1024 elements; exact in f32) |
-| run (device) | `faber run --backend metal .` / `faber run --backend cuda .` |
+| run (device) | `faber run --device metal .` / `faber run --device cuda .` |
 | run (CPU oracle) | `faber script oracle/capture.fab` (from the package directory, dev faber) |
 
 Kernel 2 is a reduction rather than an elementwise kernel because the Metal

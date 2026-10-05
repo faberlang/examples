@@ -7,7 +7,7 @@ the AIR-generated companion `hetero_backward(x, w, nil(), upstream)` returns
 `iuncta(grad_x, grad_w)` with genuinely unequal extents `tf32[4]` and
 `tf32[2]`, from Faber source through the common device program, the packaged
 FMIR image, the composite host, and real Metal/CUDA sessions via the ordinary
-`faber run --backend <metal|cuda>` command.
+`faber run --device <metal|cuda>` command.
 
 The fixture `src/hetero_backward.fab` is **read-only**; it is the pinned
 oracle input. All oracle content was captured by running the loss + companion
@@ -35,7 +35,7 @@ with per-output bounds evidence (G3).
 | expected loss | `10.0` (sum of x; exact in f32) |
 | expected grad_x | `[1.0, 1.0, 1.0, 1.0]` (`d sum(x)/dx_i = 1`; exact) |
 | expected grad_w | `[0.0, 0.0]` (w is a selected-but-unused parameter; `d loss/d w = 0`; exact) |
-| run (device) | `faber run --backend metal .` / `faber run --backend cuda .` |
+| run (device) | `faber run --device metal .` / `faber run --device cuda .` |
 | run (CPU oracle) | `faber run -t fmir oracle/capture.fab` (from the package directory, pinned binary) |
 
 ## Why an unused second parameter?
