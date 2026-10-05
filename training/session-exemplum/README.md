@@ -104,7 +104,7 @@ The current best practice is **inline SGD**:
 
 ```faber
 # For each trainable parameter:
-fixum tensor<f32, [M,K]> lr_fill ← seed.crea(lr, param.magnitudines())
+fixum tensor<f32, [M,K]> lr_fill ← seed.crea(lr, param.magnitudines() ↦ lista<numerus>)
 fixum tensor<f32, [M,K]> scaled  ← grad.multiplica(lr_fill)
 param ← param.subtrahe(scaled)
 ```

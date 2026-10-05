@@ -102,8 +102,8 @@ incipit {
 
     # ── Hyperparameters ───────────────────────────────────────────────────
     fixum f32 lr ← 0.01
-    fixum lista<numerus> shape_w ← weight.magnitudines()
-    fixum lista<numerus> shape_b ← bias.magnitudines()
+    fixum lista<numerus> shape_w ← weight.magnitudines() ↦ lista<numerus>
+    fixum lista<numerus> shape_b ← bias.magnitudines() ↦ lista<numerus>
 
     # ── Loop ──────────────────────────────────────────────────────────────
     fixum numerus steps ← 8

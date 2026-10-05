@@ -54,7 +54,7 @@ functio nil() → vacuum {
 
 incipit {
     fixum tensor<f32, []> seed ← vacua
-    fixum lista<numerus> shape_0d ← seed.magnitudines()
+    fixum lista<numerus> shape_0d ← seed.magnitudines() ↦ lista<numerus>
     varia tensor<f32, []> weight ← seed.crea(0.0, shape_0d)
     fixum tensor<f32, []> x ← seed.crea(2.0, shape_0d)
     fixum tensor<f32, []> y ← seed.crea(4.0, shape_0d)
