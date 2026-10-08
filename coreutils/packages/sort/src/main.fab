@@ -70,7 +70,7 @@ functio lege_omnes_lineas() → lista<textus> {
 # Pure helper for parity fixtures. The built-in lista sort uses the compiler's
 # default textus ordering; the declared Stage 4 input contract is ASCII only.
 functio lineae_ordinatae(lista<textus> lineae) → lista<textus> {
-    varia lista<textus> out ← lineae
+    varia copy lista<textus> out ← lineae
     out.ordina()
     redde out
 }
