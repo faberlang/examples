@@ -304,29 +304,28 @@ incipit {
     ]
 
     # Tensor construction
-    fixum tensor<f32, []> seed ← vacua
 
-    fixum tensor<f32, [2, 8]> input  ← seed.strue(data_input,   [2, 8])
-    varia tensor<f32, [8, 8]> wq     ← seed.strue(data_wq,      [8, 8])
-    varia tensor<f32, [8]>    bq     ← seed.strue(data_bq,      [8])
-    varia tensor<f32, [8, 8]> wk     ← seed.strue(data_wk,      [8, 8])
-    varia tensor<f32, [8]>    bk     ← seed.strue(data_bk,      [8])
-    varia tensor<f32, [8, 8]> wv     ← seed.strue(data_wv,      [8, 8])
-    varia tensor<f32, [8]>    bv     ← seed.strue(data_bv,      [8])
-    varia tensor<f32, [8, 8]> wo     ← seed.strue(data_wo,      [8, 8])
-    varia tensor<f32, [8]>    bo     ← seed.strue(data_bo,      [8])
-    varia tensor<f32, [8, 8]> wf1    ← seed.strue(data_wf1,     [8, 8])
-    varia tensor<f32, [8]>    bf1    ← seed.strue(data_bf1,     [8])
-    varia tensor<f32, [8, 8]> wf2    ← seed.strue(data_wf2,     [8, 8])
-    varia tensor<f32, [8]>    bf2    ← seed.strue(data_bf2,     [8])
-    varia tensor<f32, [8]>    ln1_s  ← seed.strue(data_ln1_s,   [8])
-    varia tensor<f32, [8]>    ln1_o  ← seed.strue(data_ln1_o,   [8])
-    varia tensor<f32, [8]>    ln2_s  ← seed.strue(data_ln2_s,   [8])
-    varia tensor<f32, [8]>    ln2_o  ← seed.strue(data_ln2_o,   [8])
-    varia tensor<f32, [8]>    ln3_s  ← seed.strue(data_ln3_s,   [8])
-    varia tensor<f32, [8]>    ln3_o  ← seed.strue(data_ln3_o,   [8])
-    fixum tensor<f32, [2, 2]> dk_scale ← seed.strue(data_scale, [2, 2])
-    fixum tensor<f32, [2, 8]> target  ← seed.strue(data_target,  [2, 8])
+    fixum tensor<f32, [2, 8]> input  ← data_input ↦ tensor<f32, [2, 8]>
+    varia tensor<f32, [8, 8]> wq     ← data_wq ↦ tensor<f32, [8, 8]>
+    varia tensor<f32, [8]>    bq     ← data_bq ↦ tensor<f32, [8]>
+    varia tensor<f32, [8, 8]> wk     ← data_wk ↦ tensor<f32, [8, 8]>
+    varia tensor<f32, [8]>    bk     ← data_bk ↦ tensor<f32, [8]>
+    varia tensor<f32, [8, 8]> wv     ← data_wv ↦ tensor<f32, [8, 8]>
+    varia tensor<f32, [8]>    bv     ← data_bv ↦ tensor<f32, [8]>
+    varia tensor<f32, [8, 8]> wo     ← data_wo ↦ tensor<f32, [8, 8]>
+    varia tensor<f32, [8]>    bo     ← data_bo ↦ tensor<f32, [8]>
+    varia tensor<f32, [8, 8]> wf1    ← data_wf1 ↦ tensor<f32, [8, 8]>
+    varia tensor<f32, [8]>    bf1    ← data_bf1 ↦ tensor<f32, [8]>
+    varia tensor<f32, [8, 8]> wf2    ← data_wf2 ↦ tensor<f32, [8, 8]>
+    varia tensor<f32, [8]>    bf2    ← data_bf2 ↦ tensor<f32, [8]>
+    varia tensor<f32, [8]>    ln1_s  ← data_ln1_s ↦ tensor<f32, [8]>
+    varia tensor<f32, [8]>    ln1_o  ← data_ln1_o ↦ tensor<f32, [8]>
+    varia tensor<f32, [8]>    ln2_s  ← data_ln2_s ↦ tensor<f32, [8]>
+    varia tensor<f32, [8]>    ln2_o  ← data_ln2_o ↦ tensor<f32, [8]>
+    varia tensor<f32, [8]>    ln3_s  ← data_ln3_s ↦ tensor<f32, [8]>
+    varia tensor<f32, [8]>    ln3_o  ← data_ln3_o ↦ tensor<f32, [8]>
+    fixum tensor<f32, [2, 2]> dk_scale ← data_scale ↦ tensor<f32, [2, 2]>
+    fixum tensor<f32, [2, 8]> target  ← data_target ↦ tensor<f32, [2, 8]>
 
     # Training constants
     fixum f32 upstream ← 1.0
