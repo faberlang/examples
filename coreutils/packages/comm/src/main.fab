@@ -62,7 +62,7 @@ functio comm_parse(lista<textus> args) → CommOptiones {
     varia lista<textus> paths ← vacua
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         fixum textus arg ← args.accipe(i) vel ""
         si comm_optio_flag(arg, "1") {
             suppress1 ← 1
@@ -82,7 +82,7 @@ functio comm_parse(lista<textus> args) → CommOptiones {
         }
     }
 
-    redde CommOptiones { suppress1 = suppress1 > 0, suppress2 = suppress2 > 0, suppress3 = suppress3 > 0, paths = paths }
+    redde CommOptiones { suppress1 = suppress1 ≻ 0, suppress2 = suppress2 ≻ 0, suppress3 = suppress3 ≻ 0, paths = paths }
 }
 
 functio compara_textus(textus a, textus b) → numerus {
@@ -114,7 +114,7 @@ functio comm_lineae(lista<textus> left, lista<textus> right, CommOptiones opts) 
         }
     }
 
-    dum i < left.longitudo() aut j < right.longitudo() {
+    dum i ≺ left.longitudo() aut j ≺ right.longitudo() {
         si j ≥ right.longitudo() {
             si opts.suppress1 ≡ falsum {
                 nota left.accipe(i) vel ""
@@ -130,13 +130,13 @@ functio comm_lineae(lista<textus> left, lista<textus> right, CommOptiones opts) 
         secus {
             fixum textus a ← left.accipe(i) vel ""
             fixum textus b ← right.accipe(j) vel ""
-            si compara_textus(a, b) < 0 {
+            si compara_textus(a, b) ≺ 0 {
                 si opts.suppress1 ≡ falsum {
                     nota a
                 }
                 i ← i + 1
             }
-            sin compara_textus(b, a) < 0 {
+            sin compara_textus(b, a) ≺ 0 {
                 si opts.suppress2 ≡ falsum {
                     nota col2_prefix + b
                 }

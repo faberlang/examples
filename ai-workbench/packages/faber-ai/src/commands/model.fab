@@ -47,9 +47,9 @@ functio quoted_value(textus line) → textus {
     varia numerus initium ← -1
     varia numerus finis ← -1
     varia numerus i ← 0
-    dum i < line.longitudo() {
+    dum i ≺ line.longitudo() {
         si line.sectio(i, i + 1) ≡ "\"" {
-            si initium < 0 {
+            si initium ≺ 0 {
                 initium ← i + 1
             } secus {
                 finis ← i
@@ -112,19 +112,19 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
 
 functio status_for(lista<textus> aliases, textus target) → textus {
     fixum textus status ← map_value(aliases, target, "status")
-    si status.longitudo() > 0 ergo redde status
+    si status.longitudo() ≻ 0 ergo redde status
     redde "unknown"
 }
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde source
+    si source.longitudo() ≻ 0 ergo redde source
     redde target
 }
 
 functio local_path_for(lista<textus> aliases, textus target) → textus {
     fixum textus localis ← raw_local_path_for(aliases, target)
-    si localis.longitudo() > 0 ergo redde ""
+    si localis.longitudo() ≻ 0 ergo redde ""
     redde ""
 }
 
@@ -230,10 +230,10 @@ functio inspect_text(lista<textus> aliases, textus target) → vacuum {
     nota "source: §"(source_for(aliases, target))
     nota "status: §"(status_for(aliases, target))
     nota "format: §"(format_for(aliases, target))
-    si local_path_for(aliases, target).longitudo() > 0 {
+    si local_path_for(aliases, target).longitudo() ≻ 0 {
         nota "local_path: §"(local_path_for(aliases, target))
     }
-    si router_id_for(aliases, target).longitudo() > 0 {
+    si router_id_for(aliases, target).longitudo() ≻ 0 {
         nota "router_model_id: §"(router_id_for(aliases, target))
     }
     nota "diagnostic: §"(diagnostic_for(aliases, target))
@@ -243,7 +243,7 @@ functio figura_textus(lista<numerus> items) → textus {
     varia textus out ← "["
     varia numerus i ← 0
     itera ex items fixum item {
-        si i > 0 {
+        si i ≻ 0 {
             out ← "§,"(out)
         }
         out ← "§§"(out, item ↦ textus)
@@ -296,7 +296,7 @@ functio gguf_quantization_for(textus read_path, textus router_model_id, textus s
     si summary_quantization ≠ "FILE_TYPE_-1" ergo redde summary_quantization
     si router_model_id.longitudo() ≡ 0 ergo redde summary_quantization
     fixum numerus offset ← solum.inveni(read_path, "general.file_type", 0, 12000000)
-    si offset < 0 ergo redde summary_quantization
+    si offset ≺ 0 ergo redde summary_quantization
     fixum octeti fragment ← solum.partem(read_path, offset, 64)
     redde model.gguf_quantization_fragmentum(fragment)
 }
@@ -369,7 +369,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
     fixum textus router_id_output ← "§"(router_model_id)
     fac {
         varia numerus prefix_bytes ← 16777216
-        si router_id_output.longitudo() > 0 et display_path.longitudo() ≡ 0 {
+        si router_id_output.longitudo() ≻ 0 et display_path.longitudo() ≡ 0 {
             prefix_bytes ← 65536
         }
         fixum octeti data ← solum.partem(read_path, 0, prefix_bytes)
@@ -412,7 +412,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
             nota "status: §"(summary.status)
             nota "format: §"(summary.formatum)
             nota "local_path: §"(summary.local_path)
-            si router_id_output.longitudo() > 0 {
+            si router_id_output.longitudo() ≻ 0 {
                 nota "router_model_id: §"(router_id_output)
             }
             nota "tensor_count: §"(summary.tensor_count)
@@ -435,7 +435,7 @@ functio inspect_local_gguf(textus alias, textus source, textus read_path, textus
             nota "status: error"
             nota "format: gguf"
             nota "local_path: §"(display_path)
-            si router_id_output.longitudo() > 0 {
+            si router_id_output.longitudo() ≻ 0 {
                 nota "router_model_id: §"(router_id_output)
             }
             nota "diagnostic: gguf metadata error: §"(err.nuntius)
@@ -533,7 +533,7 @@ functio inspect() argumenta args → vacuum {
             redde
         }
     }
-    si status_for(aliases, target) ≡ "router-backed" et format_for(aliases, target) ≡ "gguf" et raw_local_path.longitudo() > 0 {
+    si status_for(aliases, target) ≡ "router-backed" et format_for(aliases, target) ≡ "gguf" et raw_local_path.longitudo() ≻ 0 {
         si solum.exstat(raw_local_path) et solum.regularene(raw_local_path) et solum.legibilene(raw_local_path) {
             inspect_local_gguf(target, source_for(aliases, target), raw_local_path, "", router_id_for(aliases, target), output_format)
             redde

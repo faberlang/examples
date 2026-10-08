@@ -127,7 +127,7 @@ incipit {
     )
     adfirma facts.clamped_pitch_degrees ≡ (89.0 ∷ f32) secus
         "camera view facts expose clamped pitch"
-    adfirma math.y(facts.direction) > 0.99 secus
+    adfirma math.y(facts.direction) ≻ 0.99 secus
         "clamped up look has near-+Y view direction"
 
     # Mouse deltas ignored without pointer lock.
@@ -322,9 +322,9 @@ incipit {
         application.empty_input(),
         0.05 ∷ f32
     )
-    adfirma falling.y < airborne.y secus
+    adfirma falling.y ≺ airborne.y secus
         "gravity lowers airborne player"
-    adfirma falling.velocity_y < 0.0 secus
+    adfirma falling.velocity_y ≺ 0.0 secus
         "falling accumulates negative vertical velocity"
     adfirma falling.grounded ≡ falsum secus
         "still airborne after one short fall frame"
@@ -334,7 +334,7 @@ incipit {
     # Drop until grounded on the fixture floor.
     varia application.Player drop ← airborne
     varia numerus drop_steps ← 0
-    dum drop.grounded ≡ falsum et drop_steps < 200 {
+    dum drop.grounded ≡ falsum et drop_steps ≺ 200 {
         drop ← application.step_player(
             fixture,
             drop,
@@ -367,7 +367,7 @@ incipit {
     # Face -Z (yaw 0) and hold W for many frames → collide into wall z=8.
     varia application.Player against_wall ← wall_runner
     varia numerus wall_steps ← 0
-    dum wall_steps < 80 {
+    dum wall_steps ≺ 80 {
         against_wall ← application.step_player(
             fixture,
             against_wall,
@@ -401,7 +401,7 @@ incipit {
     fixum application.Camera face_neg_x ← camera_yaw(0.0 ∷ f32 - 90.0 ∷ f32)
     varia application.Player against_pillar ← pillar_runner
     varia numerus pillar_steps ← 0
-    dum pillar_steps < 80 {
+    dum pillar_steps ≺ 80 {
         against_pillar ← application.step_player(
             fixture,
             against_pillar,

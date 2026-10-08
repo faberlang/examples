@@ -61,11 +61,11 @@ functio modus_lnne(textus modus_numeri) → bivalens {
 }
 
 functio numeranda_linea(textus linea, bivalens omnes) → bivalens {
-    redde omnes aut linea.longitudo() > 0
+    redde omnes aut linea.longitudo() ≻ 0
 }
 
 functio latitudo_activa(numerus petitus) → numerus {
-    si petitus > 0 ergo redde petitus
+    si petitus ≻ 0 ergo redde petitus
     redde 6
 }
 
@@ -73,7 +73,7 @@ functio spatia(numerus copia) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < copia {
+    dum i ≺ copia {
         out ← out + " "
         i ← i + 1
     }

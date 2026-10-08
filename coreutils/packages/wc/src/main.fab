@@ -61,7 +61,7 @@ functio verba_lineae(textus linea) → numerus {
     varia bivalens in_verbo ← falsum
     varia numerus i ← 0
 
-    dum i < linea.longitudo() {
+    dum i ≺ linea.longitudo() {
         fixum textus c ← linea.sectio(i, i + 1)
         si spatiumne(c) {
             in_verbo ← falsum
@@ -86,9 +86,9 @@ functio octeti_lineae(textus linea) → numerus {
 }
 
 functio forma_comitis(numerus n) → textus {
-    si n < 10 ergo redde "      §"(n)
-    si n < 100 ergo redde "     §"(n)
-    si n < 1000 ergo redde "    §"(n)
+    si n ≺ 10 ergo redde "      §"(n)
+    si n ≺ 100 ergo redde "     §"(n)
+    si n ≺ 1000 ergo redde "    §"(n)
     redde "§"(n)
 }
 

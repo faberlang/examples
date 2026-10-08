@@ -45,7 +45,7 @@ functio linea_operandorum(lista<textus> verba) → textus {
     si verba.longitudo() ≡ 0 ergo redde ""
     varia textus linea ← verba[0]
     varia numerus i ← 1
-    dum i < verba.longitudo() {
+    dum i ≺ verba.longitudo() {
         linea ← linea + " " + verba[i]
         i ← i + 1
     }

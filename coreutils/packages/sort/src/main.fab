@@ -80,7 +80,7 @@ functio ascii_minuscula(textus c) → textus {
     fixum textus lower ← "abcdefghijklmnopqrstuvwxyz"
     varia numerus i ← 0
 
-    dum i < upper.longitudo() {
+    dum i ≺ upper.longitudo() {
         si upper.sectio(i, i + 1) ≡ c ergo redde lower.sectio(i, i + 1)
         i ← i + 1
     }
@@ -92,7 +92,7 @@ functio clavis_fold_ascii(textus linea) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < linea.longitudo() {
+    dum i ≺ linea.longitudo() {
         out ← out + ascii_minuscula(linea.sectio(i, i + 1))
         i ← i + 1
     }
@@ -127,9 +127,9 @@ functio inserta_ordinata(lista<textus> lineae, textus nova, bivalens fold_case) 
     varia bivalens inserta ← falsum
     varia numerus i ← 0
 
-    dum i < lineae.longitudo() {
+    dum i ≺ lineae.longitudo() {
         fixum textus current ← lineae.accipe(i) vel ""
-        si inserta ≡ falsum et compara_lineas(nova, current, fold_case) < 0 {
+        si inserta ≡ falsum et compara_lineas(nova, current, fold_case) ≺ 0 {
             out.appende("" + nova)
             inserta ← verum
         }
@@ -186,7 +186,7 @@ functio lineae_unicae_ordinatae(lista<textus> lineae, bivalens fold_case) → li
     out.appende(lineae.accipe(0) vel "")
     varia numerus i ← 1
 
-    dum i < lineae.longitudo() {
+    dum i ≺ lineae.longitudo() {
         fixum textus prior ← lineae.accipe(i - 1) vel ""
         fixum textus linea ← lineae.accipe(i) vel ""
         si compara_lineas(linea, prior, fold_case) ≠ 0 {

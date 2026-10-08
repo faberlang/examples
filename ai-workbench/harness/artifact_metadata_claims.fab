@@ -28,7 +28,7 @@ fn metadata_claim_failures(list<map<string, any>> events, list<map<string, bool>
     var list<string> failures ← empty
     const int n ← events.length()
     var int i ← 0
-    while i < n {
+    while i ≺ n {
         const map<string, any> event ← events[i]
         if event["event"] is none {
             i ← i + 1

@@ -71,7 +71,7 @@ incipit {
     fac {
         counter ← counter + 1
         nota "Iteration §"(counter)
-    } dum counter < 3
+    } dum counter ≺ 3
 
     # Fac with error handling
     fac {
@@ -92,5 +92,5 @@ incipit {
         }
     } cape err {
         nota "Failed on attempt §: §"(attempts, err.nuntius)
-    } dum attempts < 5
+    } dum attempts ≺ 5
 }

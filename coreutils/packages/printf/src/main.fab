@@ -63,9 +63,9 @@ functio printf_escape(textus s) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < s.longitudo() {
+    dum i ≺ s.longitudo() {
         fixum textus ch ← s.sectio(i, i + 1)
-        si ch ≡ "\\" et i + 1 < s.longitudo() {
+        si ch ≡ "\\" et i + 1 ≺ s.longitudo() {
             fixum textus next ← s.sectio(i + 1, i + 2)
             si next ≡ "n" {
                 out ← out + "\n"
@@ -110,7 +110,7 @@ functio speciesne(textus ch) → bivalens {
 functio spatia(numerus count) → textus {
     varia textus out ← ""
     varia numerus i ← 0
-    dum i < count {
+    dum i ≺ count {
         out ← out + " "
         i ← i + 1
     }
@@ -120,7 +120,7 @@ functio spatia(numerus count) → textus {
 functio zeroes(numerus count) → textus {
     varia textus out ← ""
     varia numerus i ← 0
-    dum i < count {
+    dum i ≺ count {
         out ← out + "0"
         i ← i + 1
     }
@@ -129,7 +129,7 @@ functio zeroes(numerus count) → textus {
 
 functio format_species_index(textus formatum, numerus initium) → numerus {
     varia numerus i ← initium
-    dum i < formatum.longitudo() {
+    dum i ≺ formatum.longitudo() {
         fixum textus ch ← formatum.sectio(i, i + 1)
         si speciesne(ch) ergo redde i
         si (digitne(ch) aut ch ≡ ".") aut ch ≡ "*" {
@@ -143,10 +143,10 @@ functio format_species_index(textus formatum, numerus initium) → numerus {
 }
 
 functio format_width(textus formatum, numerus initium, numerus species_index) → numerus {
-    si initium < species_index et formatum.sectio(initium, initium + 1) ≡ "*" ergo redde 0
+    si initium ≺ species_index et formatum.sectio(initium, initium + 1) ≡ "*" ergo redde 0
 
     varia numerus i ← initium
-    dum i < species_index et digitne(formatum.sectio(i, i + 1)) {
+    dum i ≺ species_index et digitne(formatum.sectio(i, i + 1)) {
         i ← i + 1
     }
     si i ≡ initium ergo redde 0
@@ -155,9 +155,9 @@ functio format_width(textus formatum, numerus initium, numerus species_index) �
 
 functio format_precision(textus formatum, numerus initium, numerus species_index) → numerus {
     varia numerus i ← initium
-    dum i < species_index {
+    dum i ≺ species_index {
         si formatum.sectio(i, i + 1) ≡ "." {
-            si i + 1 < species_index et formatum.sectio(i + 1, i + 2) ≡ "*" ergo redde -1
+            si i + 1 ≺ species_index et formatum.sectio(i + 1, i + 2) ≡ "*" ergo redde -1
             redde formatum.sectio(i + 1, species_index) ↦ numerus ⊥ 0
         }
         i ← i + 1
@@ -166,14 +166,14 @@ functio format_precision(textus formatum, numerus initium, numerus species_index
 }
 
 functio format_dynamic_widthne(textus formatum, numerus initium, numerus species_index) → bivalens {
-    redde initium < species_index et formatum.sectio(initium, initium + 1) ≡ "*"
+    redde initium ≺ species_index et formatum.sectio(initium, initium + 1) ≡ "*"
 }
 
 functio format_dynamic_precisionne(textus formatum, numerus initium, numerus species_index) → bivalens {
     varia numerus i ← initium
-    dum i < species_index {
+    dum i ≺ species_index {
         si formatum.sectio(i, i + 1) ≡ "." {
-            redde i + 1 < species_index et formatum.sectio(i + 1, i + 2) ≡ "*"
+            redde i + 1 ≺ species_index et formatum.sectio(i + 1, i + 2) ≡ "*"
         }
         i ← i + 1
     }
@@ -181,13 +181,13 @@ functio format_dynamic_precisionne(textus formatum, numerus initium, numerus spe
 }
 
 functio trunc_precision(textus value, numerus precision) → textus {
-    si precision < 0 ergo redde value
+    si precision ≺ 0 ergo redde value
     si value.longitudo() ≤ precision ergo redde value
     redde value.sectio(0, precision)
 }
 
 functio pad_width(textus value, numerus width) → textus {
-    si width < 0 {
+    si width ≺ 0 {
         fixum numerus magnitude ← 0 - width
         si value.longitudo() ≥ magnitude ergo redde value
         redde value + spatia(magnitude - value.longitudo())
@@ -200,9 +200,9 @@ functio numerus_specierum(textus formatum) → numerus {
     varia numerus n ← 0
     varia numerus i ← 0
 
-    dum i < formatum.longitudo() {
+    dum i ≺ formatum.longitudo() {
         fixum textus ch ← formatum.sectio(i, i + 1)
-        si ch ≡ "%" et i + 1 < formatum.longitudo() {
+        si ch ≡ "%" et i + 1 ≺ formatum.longitudo() {
             fixum textus next ← formatum.sectio(i + 1, i + 2)
             si next ≡ "%" {
                 i ← i + 2
@@ -234,17 +234,17 @@ functio numerus_specierum(textus formatum) → numerus {
 }
 
 functio argumentum(lista<textus> args, numerus index) → textus {
-    si index < args.longitudo() ergo redde args[index]
+    si index ≺ args.longitudo() ergo redde args[index]
     redde ""
 }
 
 functio argumentum_exstatne(lista<textus> args, numerus index) → bivalens {
-    redde index < args.longitudo()
+    redde index ≺ args.longitudo()
 }
 
 functio textus_index_in(textus haystack, textus needle) → numerus {
     varia numerus i ← 0
-    dum i < haystack.longitudo() {
+    dum i ≺ haystack.longitudo() {
         si haystack.sectio(i, i + 1) ≡ needle ergo redde i
         i ← i + 1
     }
@@ -290,7 +290,7 @@ functio quoted_numericne(textus raw) → bivalens {
 }
 
 functio signum_offset(textus raw) → numerus {
-    si raw.longitudo() > 0 et (raw.sectio(0, 1) ≡ "-" aut raw.sectio(0, 1) ≡ "+") ergo redde 1
+    si raw.longitudo() ≻ 0 et (raw.sectio(0, 1) ≡ "-" aut raw.sectio(0, 1) ≡ "+") ergo redde 1
     redde 0
 }
 
@@ -299,7 +299,7 @@ functio integer_textusne(textus raw) → bivalens {
     si initium ≥ raw.longitudo() ergo redde falsum
 
     varia numerus i ← initium
-    dum i < raw.longitudo() {
+    dum i ≺ raw.longitudo() {
         si non digitne(raw.sectio(i, i + 1)) {
             redde falsum
         }
@@ -315,7 +315,7 @@ functio float_textusne(textus raw) → bivalens {
     varia numerus i ← initium
     varia bivalens vidit_digitum ← falsum
     varia bivalens vidit_punctum ← falsum
-    dum i < raw.longitudo() {
+    dum i ≺ raw.longitudo() {
         fixum textus ch ← raw.sectio(i, i + 1)
         si digitne(ch) {
             vidit_digitum ← verum
@@ -523,7 +523,7 @@ functio hex_textus(numerus n, bivalens uppercase) → textus {
     varia numerus value ← n
     si value ≡ 0 ergo redde "0"
 
-    dum value > 0 {
+    dum value ≻ 0 {
         si uppercase {
             out ← hex_digit_upper(value ∧ 15) + out
         }
@@ -541,7 +541,7 @@ functio octal_textus(numerus n) → textus {
     varia numerus value ← n
     si value ≡ 0 ergo redde "0"
 
-    dum value > 0 {
+    dum value ≻ 0 {
         out ← octal_digit(value ∧ 7) + out
         value ← value ⇒ 3
     }
@@ -551,7 +551,7 @@ functio octal_textus(numerus n) → textus {
 
 functio punctum_index(textus raw) → numerus {
     varia numerus i ← 0
-    dum i < raw.longitudo() {
+    dum i ≺ raw.longitudo() {
         si raw.sectio(i, i + 1) ≡ "." ergo redde i
         i ← i + 1
     }
@@ -578,7 +578,7 @@ functio decimal_value(textus digit) → numerus {
 }
 
 functio round_fractionne(textus fraction, numerus precision) → bivalens {
-    si precision < 0 ergo redde falsum
+    si precision ≺ 0 ergo redde falsum
     si fraction.longitudo() ≤ precision ergo redde falsum
     redde decimal_value(fraction.sectio(precision, precision + 1)) ≥ 5
 }
@@ -589,7 +589,7 @@ functio round_carries(textus fraction, numerus precision) → bivalens {
 
     fixum textus kept ← fraction_precision(fraction, precision)
     varia numerus i ← 0
-    dum i < kept.longitudo() {
+    dum i ≺ kept.longitudo() {
         si kept.sectio(i, i + 1) ≡ "9" {
             i ← i + 1
         }
@@ -610,7 +610,7 @@ functio rounded_fraction(textus fraction, numerus precision) → textus {
     varia bivalens carry ← verum
     dum i ≥ 0 et carry {
         fixum numerus value ← decimal_value(out.sectio(i, i + 1))
-        si value < 9 {
+        si value ≺ 9 {
             out ← (out.sectio(0, i) + hex_digit(value + 1)) + out.sectio(i + 1, out.longitudo())
             carry ← falsum
         }
@@ -628,7 +628,7 @@ functio increment_integer_text(textus integer) → textus {
 
 functio float_textus(textus raw, numerus precision) → textus {
     varia numerus active_precision ← precision
-    si active_precision < 0 {
+    si active_precision ≺ 0 {
         active_precision ← 6
     }
 
@@ -651,7 +651,7 @@ functio float_textus(textus raw, numerus precision) → textus {
 
 functio trim_leading_zeroes(textus value) → textus {
     varia numerus i ← 0
-    dum i < value.longitudo() et value.sectio(i, i + 1) ≡ "0" {
+    dum i ≺ value.longitudo() et value.sectio(i, i + 1) ≡ "0" {
         i ← i + 1
     }
     si i ≥ value.longitudo() ergo redde ""
@@ -660,7 +660,7 @@ functio trim_leading_zeroes(textus value) → textus {
 
 functio first_nonzero_index(textus value) → numerus {
     varia numerus i ← 0
-    dum i < value.longitudo() {
+    dum i ≺ value.longitudo() {
         si value.sectio(i, i + 1) ≠ "0" ergo redde i
         i ← i + 1
     }
@@ -677,10 +677,10 @@ functio unsigned_decimal_parts(textus raw) → lista<textus> {
 
 functio exponent_digits(numerus exponent) → textus {
     varia numerus value ← exponent
-    si value < 0 {
+    si value ≺ 0 {
         value ← 0 - value
     }
-    si value < 10 ergo redde "0§"(value)
+    si value ≺ 10 ergo redde "0§"(value)
     redde "§"(value)
 }
 
@@ -696,14 +696,14 @@ functio float_sign(textus raw) → textus {
 
 functio exponent_suffix(numerus exponent, bivalens uppercase) → textus {
     fixum textus littera ← exponent_letter(uppercase)
-    si exponent < 0 ergo redde "§-§"(littera, exponent_digits(exponent))
+    si exponent ≺ 0 ergo redde "§-§"(littera, exponent_digits(exponent))
     redde "§+§"(littera, exponent_digits(exponent))
 }
 
 functio normalize_rounded_mantissa(textus mantissa, numerus exponent, numerus precision) → lista<textus> {
     si mantissa.initium("10") {
         varia numerus active_precision ← precision
-        si active_precision < 0 {
+        si active_precision ≺ 0 {
             active_precision ← 6
         }
         si active_precision ≡ 0 ergo redde ["1", "§"(exponent + 1)]
@@ -720,7 +720,7 @@ functio exponent_textus(textus raw, numerus precision, bivalens uppercase) → t
     varia numerus exponent ← 0
     varia textus mantissa_raw ← "0"
 
-    si integer.longitudo() > 0 {
+    si integer.longitudo() ≻ 0 {
         exponent ← integer.longitudo() - 1
         mantissa_raw ← integer.sectio(0, 1) + "." + (integer.sectio(1, integer.longitudo()) + fraction)
     }
@@ -742,9 +742,9 @@ functio printf_unum(textus formatum, lista<textus> args, numerus initium) → te
     varia numerus i ← 0
     varia numerus arg_index ← initium
 
-    dum i < formatum.longitudo() {
+    dum i ≺ formatum.longitudo() {
         fixum textus ch ← formatum.sectio(i, i + 1)
-        si ch ≡ "%" et i + 1 < formatum.longitudo() {
+        si ch ≡ "%" et i + 1 ≺ formatum.longitudo() {
             fixum textus immediate ← formatum.sectio(i + 1, i + 2)
             fixum numerus species_index ← format_species_index(formatum, i + 1)
             fixum textus next ← formatum.sectio(species_index, species_index + 1)
@@ -845,9 +845,9 @@ functio printf_nuntia_malum_unum(textus formatum, lista<textus> args, numerus in
     varia numerus i ← 0
     varia numerus arg_index ← initium
 
-    dum i < formatum.longitudo() {
+    dum i ≺ formatum.longitudo() {
         fixum textus ch ← formatum.sectio(i, i + 1)
-        si ch ≡ "%" et i + 1 < formatum.longitudo() {
+        si ch ≡ "%" et i + 1 ≺ formatum.longitudo() {
             fixum numerus species_index ← format_species_index(formatum, i + 1)
             fixum textus next ← formatum.sectio(species_index, species_index + 1)
             si next ≡ "%" {
@@ -912,7 +912,7 @@ functio printf_textus(lista<textus> operands) → textus {
     fixum textus formatum ← operands[0]
     varia lista<textus> args ← vacua
     varia numerus i ← 1
-    dum i < operands.longitudo() {
+    dum i ≺ operands.longitudo() {
         args.appende(operands.accipe(i) vel "")
         i ← i + 1
     }
@@ -923,7 +923,7 @@ functio printf_textus(lista<textus> operands) → textus {
 
     varia textus out ← ""
     varia numerus initium ← 0
-    dum initium < args.longitudo() {
+    dum initium ≺ args.longitudo() {
         out ← out + printf_unum(formatum, args, initium)
         initium ← initium + species
     }
@@ -937,7 +937,7 @@ functio printf_nuntia_malum_numericum(lista<textus> operands) → bivalens {
     fixum textus formatum ← operands[0]
     varia lista<textus> args ← vacua
     varia numerus i ← 1
-    dum i < operands.longitudo() {
+    dum i ≺ operands.longitudo() {
         args.appende(operands.accipe(i) vel "")
         i ← i + 1
     }
@@ -948,7 +948,7 @@ functio printf_nuntia_malum_numericum(lista<textus> operands) → bivalens {
 
     varia bivalens malum ← falsum
     varia numerus initium ← 0
-    dum initium < args.longitudo() {
+    dum initium ≺ args.longitudo() {
         si printf_nuntia_malum_unum(formatum, args, initium) {
             malum ← verum
         }
@@ -959,7 +959,7 @@ functio printf_nuntia_malum_numericum(lista<textus> operands) → bivalens {
 }
 
 functio scribe_printf(textus out) → vacuum {
-    si out.longitudo() > 0 {
+    si out.longitudo() ≻ 0 {
         consolum.dic(out)
     }
 }

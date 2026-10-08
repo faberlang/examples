@@ -54,10 +54,10 @@ const list<string> FORBIDDEN_INFERENCE_CLAIMS = [
 fn value_for(list<string> args, string flag, string fallback) → string {
     const numerus n ← args.longitudo()
     var numerus i ← 0
-    dum i < n {
+    dum i ≺ n {
         const string tok ↤ args[i]
         if tok ≡ flag {
-            if i + 1 < n {
+            if i + 1 ≺ n {
                 return args[i + 1] ↦ string
             }
             return fallback
@@ -70,7 +70,7 @@ fn value_for(list<string> args, string flag, string fallback) → string {
 fn trim(string s) → string {
     var numerus start ← 0
     var numerus end ← s.longitudo()
-    dum start < end {
+    dum start ≺ end {
         const string ch ← s.sectio(start, start + 1)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
             start ← start + 1
@@ -78,7 +78,7 @@ fn trim(string s) → string {
             break
         }
     }
-    dum end > start {
+    dum end ≻ start {
         const string ch ← s.sectio(end - 1, end)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
             end ← end - 1
@@ -93,8 +93,8 @@ fn split_words(string text) → list<string> {
     var list<string> words ← empty
     const numerus n ← text.longitudo()
     var numerus i ← 0
-    dum i < n {
-        dum i < n {
+    dum i ≺ n {
+        dum i ≺ n {
             const string ch ← text.sectio(i, i + 1)
             if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
                 i ← i + 1
@@ -106,7 +106,7 @@ fn split_words(string text) → list<string> {
             break
         }
         const numerus start ← i
-        dum i < n {
+        dum i ≺ n {
             const string ch ← text.sectio(i, i + 1)
             if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
                 break
@@ -121,8 +121,8 @@ fn split_words(string text) → list<string> {
 fn all_false_claims(list<string> forbidden) → string {
     var string out ← ""
     var numerus i ← 0
-    dum i < forbidden.longitudo() {
-        if i > 0 {
+    dum i ≺ forbidden.longitudo() {
+        if i ≻ 0 {
             out ← out + ","
         }
         out ← out + "\"" + forbidden[i] + "\":false"
@@ -161,7 +161,7 @@ main {
     const list<string> words ← split_words(prompt)
     var list<numerus> token_ids ← empty
     var numerus w ← 0
-    dum w < words.longitudo() {
+    dum w ≺ words.longitudo() {
         if vocab[words[w]] is none {
             token_ids.appende(unknown_id)
         } else {
@@ -179,15 +179,15 @@ main {
     const list<fractus> logits ← [-4.0, -3.0, -2.0, -1.0, 0.0, 4.0, 2.0]
     var numerus selected ← 0
     var numerus j ← 1
-    dum j < logits.longitudo() {
-        if logits[j] > logits[selected] {
+    dum j ≺ logits.longitudo() {
+        if logits[j] ≻ logits[selected] {
             selected ← j
         }
         j ← j + 1
     }
     var string selected_text ← ""
     var numerus k ← 0
-    dum k < vocab_keys.longitudo() {
+    dum k ≺ vocab_keys.longitudo() {
         if vocab[vocab_keys[k]] ↦ numerus ≡ selected {
             selected_text ← vocab_keys[k]
         }

@@ -66,7 +66,7 @@ functio dimidium(fractus x) → fractus {
 
 # Return the greater floating-point value.
 functio maximus(fractus a, fractus b) → fractus {
-    si a > b {
+    si a ≻ b {
         redde a
     }
     redde b
@@ -74,7 +74,7 @@ functio maximus(fractus a, fractus b) → fractus {
 
 # Return the smaller floating-point value.
 functio minimus(fractus a, fractus b) → fractus {
-    si a < b {
+    si a ≺ b {
         redde a
     }
     redde b

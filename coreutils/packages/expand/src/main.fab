@@ -77,7 +77,7 @@ functio tabulae_default() → Tabulae {
 
 functio tabstop_activa(textus petitus) → numerus {
     fixum numerus n ↤ petitus ⊥ 0
-    si n > 0 ergo redde n
+    si n ≻ 0 ergo redde n
     redde 8
 }
 
@@ -92,7 +92,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
         redde partes
     }
 
-    dum i < s.longitudo() {
+    dum i ≺ s.longitudo() {
         si s.sectio(i, i + sep_len) ≡ separator {
             partes.appende(s.sectio(initium, i))
             i ← i + sep_len
@@ -111,7 +111,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
 # single numeric `-t N` remains the repeating every-N-columns mode.
 functio tabulae_ex_spec(textus spec) → Tabulae {
     fixum lista<textus> partes ← discinde(spec, ",")
-    fixum bivalens finita ← partes.longitudo() > 1
+    fixum bivalens finita ← partes.longitudo() ≻ 1
     varia numerus count ← 0
     varia numerus stop1 ← 0
     varia numerus stop2 ← 0
@@ -124,7 +124,7 @@ functio tabulae_ex_spec(textus spec) → Tabulae {
 
     itera ex partes fixum pars {
         fixum numerus stop ↤ pars ⊥ 0
-        si stop > 0 {
+        si stop ≻ 0 {
             count ← count + 1
             si count ≡ 1 {
                 stop1 ← stop
@@ -167,7 +167,7 @@ functio spatia(numerus copia) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < copia {
+    dum i ≺ copia {
         out ← out + " "
         i ← i + 1
     }
@@ -177,14 +177,14 @@ functio spatia(numerus copia) → textus {
 
 functio spatia_ad_tabstop(numerus columna, bivalens finita, numerus amplitudo, numerus count, numerus stop1, numerus stop2, numerus stop3, numerus stop4, numerus stop5, numerus stop6, numerus stop7, numerus stop8) → numerus {
     si finita {
-        si count ≥ 1 et stop1 > columna ergo redde stop1 - columna
-        si count ≥ 2 et stop2 > columna ergo redde stop2 - columna
-        si count ≥ 3 et stop3 > columna ergo redde stop3 - columna
-        si count ≥ 4 et stop4 > columna ergo redde stop4 - columna
-        si count ≥ 5 et stop5 > columna ergo redde stop5 - columna
-        si count ≥ 6 et stop6 > columna ergo redde stop6 - columna
-        si count ≥ 7 et stop7 > columna ergo redde stop7 - columna
-        si count ≥ 8 et stop8 > columna ergo redde stop8 - columna
+        si count ≥ 1 et stop1 ≻ columna ergo redde stop1 - columna
+        si count ≥ 2 et stop2 ≻ columna ergo redde stop2 - columna
+        si count ≥ 3 et stop3 ≻ columna ergo redde stop3 - columna
+        si count ≥ 4 et stop4 ≻ columna ergo redde stop4 - columna
+        si count ≥ 5 et stop5 ≻ columna ergo redde stop5 - columna
+        si count ≥ 6 et stop6 ≻ columna ergo redde stop6 - columna
+        si count ≥ 7 et stop7 ≻ columna ergo redde stop7 - columna
+        si count ≥ 8 et stop8 ≻ columna ergo redde stop8 - columna
 
         redde 1
     }
@@ -202,7 +202,7 @@ functio expande_lineam_cum(textus linea, bivalens finita, numerus amplitudo, num
     varia numerus i ← 0
     varia bivalens in_principio ← verum
 
-    dum i < linea.longitudo() {
+    dum i ≺ linea.longitudo() {
         fixum textus c ← linea.sectio(i, i + 1)
         si c ≡ "\t" et (non solum_initio aut in_principio) {
             fixum numerus copia ← spatia_ad_tabstop(columna, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8)
@@ -253,7 +253,7 @@ functio expand_parse(lista<textus> args) → ExpandOptiones {
     varia numerus initial_seen ← 0
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         fixum textus arg ← args.accipe(i) vel ""
         si arg ≡ flag_initiale_breve() {
             initial_seen ← 1
@@ -271,11 +271,11 @@ functio expand_parse(lista<textus> args) → ExpandOptiones {
             tabulae ← tabulae_ex_spec(args.accipe(i + 1) vel "8")
             i ← i + 2
         }
-        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-t" {
+        sin arg.longitudo() ≻ 2 et arg.sectio(0, 2) ≡ "-t" {
             tabulae ← tabulae_ex_spec(arg.sectio(2, arg.longitudo()))
             i ← i + 1
         }
-        sin arg.longitudo() > 7 et arg.sectio(0, 7) ≡ "--tabs=" {
+        sin arg.longitudo() ≻ 7 et arg.sectio(0, 7) ≡ "--tabs=" {
             tabulae ← tabulae_ex_spec(arg.sectio(7, arg.longitudo()))
             i ← i + 1
         }
@@ -284,7 +284,7 @@ functio expand_parse(lista<textus> args) → ExpandOptiones {
         }
     }
 
-    redde ExpandOptiones { tabulae = tabulae, solum_initio = initial_seen > 0 }
+    redde ExpandOptiones { tabulae = tabulae, solum_initio = initial_seen ≻ 0 }
 }
 
 probandum "expand tab expansion helper" tag "coreutils" {

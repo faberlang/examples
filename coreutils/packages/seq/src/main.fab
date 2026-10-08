@@ -69,7 +69,7 @@ functio seq_numeri(numerus primus, numerus incrementum, numerus ultimus) → lis
     si incrementum ≡ 0 ergo redde numeri
 
     varia numerus n ← primus
-    si incrementum > 0 {
+    si incrementum ≻ 0 {
         dum n ≤ ultimus {
             numeri.appende(n)
             n ← n + incrementum
@@ -133,7 +133,7 @@ functio zeroes(numerus count) → textus {
     varia textus out ← ""
     varia numerus i ← 0
 
-    dum i < count {
+    dum i ≺ count {
         out ← out + "0"
         i ← i + 1
     }
@@ -145,7 +145,7 @@ functio latitudo_maxima(lista<textus> lineae) → numerus {
     varia numerus maxima ← 0
 
     itera ex lineae fixum linea {
-        si linea.longitudo() > maxima {
+        si linea.longitudo() ≻ maxima {
             maxima ← linea.longitudo()
         }
     }
@@ -157,7 +157,7 @@ functio aequa_latitudine(textus linea, numerus latitudo) → textus {
     si linea.longitudo() ≥ latitudo ergo redde "" + linea
 
     fixum numerus addenda ← latitudo - linea.longitudo()
-    si linea.longitudo() > 0 et linea.sectio(0, 1) ≡ "-" {
+    si linea.longitudo() ≻ 0 et linea.sectio(0, 1) ≡ "-" {
         redde ("-" + zeroes(addenda)) + linea.sectio(1, linea.longitudo())
     }
 
@@ -171,7 +171,7 @@ functio seq_iunge(lista<textus> lineae, textus separator) → textus {
     varia numerus index ← 0
 
     itera ex lineae fixum linea {
-        si index > 0 {
+        si index ≻ 0 {
             out ← out + separator
         }
 
@@ -195,7 +195,7 @@ functio seq_parse(lista<textus> args) → SeqOptiones {
     varia textus ∪ nihil separator ← nulla
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         fixum textus arg ← args.accipe(i) vel ""
         si arg ≡ "-w" {
             width_seen ← 1
@@ -211,7 +211,7 @@ functio seq_parse(lista<textus> args) → SeqOptiones {
         }
     }
 
-    redde SeqOptiones { operands = operands, width_flag = width_seen > 0, separator = separator }
+    redde SeqOptiones { operands = operands, width_flag = width_seen ≻ 0, separator = separator }
 }
 
 probandum "seq integer ranges" tag "coreutils" {
@@ -269,7 +269,7 @@ incipit argumenta args {
     fixum lista<textus> lineae ← seq_lineae(opts.operands, width_flag)
 
     si separator non est nihil {
-        si lineae.longitudo() > 0 {
+        si lineae.longitudo() ≻ 0 {
             gnu_stdio.scribe_linea(seq_iunge(lineae, separator vel ""))
         }
     }

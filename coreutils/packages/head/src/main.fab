@@ -52,12 +52,12 @@ functio capita_linearum(lista<textus> lineae, numerus petitus) → lista<textus>
     fixum numerus copia ← lineae.longitudo()
     varia numerus i ← 0
 
-    si petitus < 0 {
+    si petitus ≺ 0 {
         finis ← copia + petitus
-        si finis < 0 ergo redde caput
+        si finis ≺ 0 ergo redde caput
     }
 
-    dum i < lineae.longitudo() et i < finis {
+    dum i ≺ lineae.longitudo() et i ≺ finis {
         caput.appende(lineae.accipe(i) vel "")
         i ← i + 1
     }
@@ -85,7 +85,7 @@ functio lege_caput_positivum(numerus petitus) → lista<textus> {
     varia lista<textus> caput ← vacua
     varia numerus i ← 0
 
-    dum i < petitus {
+    dum i ≺ petitus {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil ergo redde caput
         caput.appende(linea vel "")
@@ -96,7 +96,7 @@ functio lege_caput_positivum(numerus petitus) → lista<textus> {
 }
 
 functio lege_caput(numerus petitus) → lista<textus> {
-    si petitus < 0 ergo redde capita_linearum(lege_omnes_lineas(), petitus)
+    si petitus ≺ 0 ergo redde capita_linearum(lege_omnes_lineas(), petitus)
     redde lege_caput_positivum(petitus)
 }
 

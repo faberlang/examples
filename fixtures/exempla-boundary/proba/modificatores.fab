@@ -82,5 +82,5 @@ proba "api integration" omitte "external service down" {
 # Todo test with setup
 proba "user creation flow" futurum "needs database fixtures" {
     varia _ userId ← 0
-    adfirma userId > 0
+    adfirma userId ≻ 0
 }

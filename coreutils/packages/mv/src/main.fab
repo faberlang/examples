@@ -35,7 +35,7 @@
 importa ex "norma:fs" solum
 
 functio move_simplex(lista<textus> paths) → vacuum {
-    si paths.longitudo() > 1 {
+    si paths.longitudo() ≻ 1 {
         solum.renomina(paths.accipe(0) vel "", paths.accipe(1) vel "")
     }
 }

@@ -44,7 +44,7 @@ functio sine_slash_finali(textus via) → textus {
     si via.longitudo() ≡ 0 ergo redde ""
 
     varia numerus finis ← via.longitudo()
-    dum finis > 1 et via.sectio(finis - 1, finis) ≡ "/" {
+    dum finis ≻ 1 et via.sectio(finis - 1, finis) ≡ "/" {
         finis ← finis - 1
     }
 
@@ -60,7 +60,7 @@ functio nomen_directorii(textus iter) → textus {
 
     si munda ≡ "/" ergo redde "/"
 
-    dum i > 0 {
+    dum i ≻ 0 {
         i ← i - 1
         si munda.sectio(i, i + 1) ≡ "/" {
             novissimus_separans ← i
@@ -68,10 +68,10 @@ functio nomen_directorii(textus iter) → textus {
         }
     }
 
-    si novissimus_separans < 0 ergo redde "."
+    si novissimus_separans ≺ 0 ergo redde "."
 
     varia numerus finis ← novissimus_separans
-    dum finis > 0 et munda.sectio(finis - 1, finis) ≡ "/" {
+    dum finis ≻ 0 et munda.sectio(finis - 1, finis) ≡ "/" {
         finis ← finis - 1
     }
 

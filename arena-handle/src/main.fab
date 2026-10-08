@@ -93,7 +93,7 @@ functio area_inserit(Area area, textus valor) → AreaCumManus {
     # old handle generation remains invalid; reuse is optional for this proof.
     varia lista<Loculus> out ← vacua
     varia numerus i ← 0
-    dum i < area.loculi.longitudo() {
+    dum i ≺ area.loculi.longitudo() {
         out.appende(area.loculi[i])
         i ← i + 1
     }
@@ -128,7 +128,7 @@ functio area_continet(de Area area, de Manus manus) → bivalens {
 functio area_tollit(Area area, de Manus manus) → Area {
     varia lista<Loculus> out ← vacua
     varia numerus i ← 0
-    dum i < area.loculi.longitudo() {
+    dum i ≺ area.loculi.longitudo() {
         fixum Loculus slot ← area.loculi[i]
         si i ≡ manus.index et slot.vivus ≡ verum et slot.generatio ≡ manus.generatio {
             out.appende(Loculus {

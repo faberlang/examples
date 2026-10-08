@@ -25,10 +25,10 @@ import from "faber:consolum" private consolum
 fn value_for(list<string> args, string flag, string fallback) → string {
     const int n ← args.length()
     var int i ← 0
-    while i < n {
+    while i ≺ n {
         const string tok ↤ args[i]
         if tok ≡ flag {
-            if i + 1 < n {
+            if i + 1 ≺ n {
                 return args[i + 1] ↦ string
             }
             return fallback
@@ -41,7 +41,7 @@ fn value_for(list<string> args, string flag, string fallback) → string {
 fn trim(string s) → string {
     var int start ← 0
     var int end ← s.length()
-    while start < end {
+    while start ≺ end {
         const string ch ← s.slice(start, start + 1)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
             start ← start + 1
@@ -49,7 +49,7 @@ fn trim(string s) → string {
             break
         }
     }
-    while end > start {
+    while end ≻ start {
         const string ch ← s.slice(end - 1, end)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
             end ← end - 1

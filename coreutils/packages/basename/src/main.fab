@@ -47,7 +47,7 @@ functio sine_slash_finali(textus via) → textus {
     si via.longitudo() ≡ 0 ergo redde ""
 
     varia numerus finis ← via.longitudo()
-    dum finis > 1 et via.sectio(finis - 1, finis) ≡ "/" {
+    dum finis ≻ 1 et via.sectio(finis - 1, finis) ≡ "/" {
         finis ← finis - 1
     }
 
@@ -60,7 +60,7 @@ functio nomen_base(textus via) → textus {
     si munda ≡ "/" ergo redde "/"
 
     varia numerus initium ← munda.longitudo()
-    dum initium > 0 {
+    dum initium ≻ 0 {
         initium ← initium - 1
         si munda.sectio(initium, initium + 1) ≡ "/" {
             redde munda.sectio(initium + 1, munda.longitudo())
@@ -103,7 +103,7 @@ functio basename(lista<textus> operands) → textus {
 
     si numerus_operandorum ≡ 0 ergo redde ""
 
-    si numerus_operandorum > 1 {
+    si numerus_operandorum ≻ 1 {
         redde basename_unum(via, suffixum)
     }
 

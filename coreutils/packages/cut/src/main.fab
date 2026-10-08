@@ -65,7 +65,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
         redde partes
     }
 
-    dum i < s.longitudo() {
+    dum i ≺ s.longitudo() {
         si s.sectio(i, i + sep_len) ≡ separator {
             partes.appende(s.sectio(initium, i))
             i ← i + sep_len
@@ -84,7 +84,7 @@ functio habet_finitorem(textus linea, textus finitor) → bivalens {
     si finitor.longitudo() ≠ 1 ergo redde falsum
 
     varia numerus i ← 0
-    dum i < linea.longitudo() {
+    dum i ≺ linea.longitudo() {
         si linea.sectio(i, i + 1) ≡ finitor {
             redde verum
         }
@@ -96,7 +96,7 @@ functio habet_finitorem(textus linea, textus finitor) → bivalens {
 
 functio dash_pos(textus spec) → numerus {
     varia numerus i ← 0
-    dum i < spec.longitudo() {
+    dum i ≺ spec.longitudo() {
         si spec.sectio(i, i + 1) ≡ "-" ergo redde i
         i ← i + 1
     }
@@ -107,9 +107,9 @@ functio dash_pos(textus spec) → numerus {
 functio selectum_specne(textus spec, numerus index) → bivalens {
     fixum numerus dash ← dash_pos(spec)
 
-    si dash < 0 {
+    si dash ≺ 0 {
         fixum numerus unum ↤ spec ⊥ 0
-        redde unum > 0 et index ≡ unum
+        redde unum ≻ 0 et index ≡ unum
     }
 
     fixum textus initium_textus ← spec.sectio(0, dash)
@@ -142,7 +142,7 @@ functio iunge_finitore(lista<textus> partes, textus finitor) → textus {
     varia numerus i ← 0
 
     itera ex partes fixum pars {
-        si i > 0 {
+        si i ≻ 0 {
             out ← out + finitor
         }
 

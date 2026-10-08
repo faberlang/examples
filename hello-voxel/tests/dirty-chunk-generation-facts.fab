@@ -525,7 +525,7 @@ incipit {
     fixum lista<numerus> seed_x ← [14, 16, 4, 20]
     fixum lista<numerus> seed_z ← [8, 8, 20, 20]
     varia numerus seed_i ← 0
-    dum seed_i < 4 {
+    dum seed_i ≺ 4 {
         fixum voxel.WorldEdit ∪ nihil seed ← set_solid(
             world,
             dirty,

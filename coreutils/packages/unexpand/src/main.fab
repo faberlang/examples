@@ -76,7 +76,7 @@ genus UnexpandOptiones {
 }
 
 functio tabulatio_activa(numerus petitus) → numerus {
-    si petitus > 0 ergo redde petitus
+    si petitus ≻ 0 ergo redde petitus
     redde 8
 }
 
@@ -88,7 +88,7 @@ functio tabulatio_periodica(numerus petitus) → Tabulatio {
 functio habet_comma(textus raw) → bivalens {
     varia numerus i ← 0
 
-    dum i < raw.longitudo() {
+    dum i ≺ raw.longitudo() {
         fixum textus ch ← raw.sectio(i, i + 1)
         si ch ≡ "," {
             redde verum
@@ -117,7 +117,7 @@ functio tabulatio_ex_lista(textus raw) → Tabulatio {
     dum i ≤ raw.longitudo() {
         si i ≡ raw.longitudo() aut raw.sectio(i, i + 1) ≡ "," {
             fixum numerus finis ← raw.sectio(initium, i) ↦ numerus ⊥ 0
-            si finis > 0 {
+            si finis ≻ 0 {
                 count ← count + 1
                 si count ≡ 1 {
                     stop1 ← finis
@@ -165,14 +165,14 @@ functio proximum_finem_cum(numerus columna, bivalens finita, numerus amplitudo, 
         redde columna + (stop - (columna % stop))
     }
 
-    si count ≥ 1 et stop1 > columna ergo redde stop1
-    si count ≥ 2 et stop2 > columna ergo redde stop2
-    si count ≥ 3 et stop3 > columna ergo redde stop3
-    si count ≥ 4 et stop4 > columna ergo redde stop4
-    si count ≥ 5 et stop5 > columna ergo redde stop5
-    si count ≥ 6 et stop6 > columna ergo redde stop6
-    si count ≥ 7 et stop7 > columna ergo redde stop7
-    si count ≥ 8 et stop8 > columna ergo redde stop8
+    si count ≥ 1 et stop1 ≻ columna ergo redde stop1
+    si count ≥ 2 et stop2 ≻ columna ergo redde stop2
+    si count ≥ 3 et stop3 ≻ columna ergo redde stop3
+    si count ≥ 4 et stop4 ≻ columna ergo redde stop4
+    si count ≥ 5 et stop5 ≻ columna ergo redde stop5
+    si count ≥ 6 et stop6 ≻ columna ergo redde stop6
+    si count ≥ 7 et stop7 ≻ columna ergo redde stop7
+    si count ≥ 8 et stop8 ≻ columna ergo redde stop8
 
     redde 0
 }
@@ -182,10 +182,10 @@ functio comprime_spatia_cum(numerus initium, numerus copia, bivalens finita, num
     varia numerus restant ← copia
     varia textus out ← ""
 
-    dum restant > 0 {
+    dum restant ≻ 0 {
         fixum numerus proximum ← proximum_finem_cum(columna, finita, amplitudo, count, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8)
         fixum numerus ad_tab ← proximum - columna
-        si (proximum > 0 et ad_tab > 1) et ad_tab ≤ restant {
+        si (proximum ≻ 0 et ad_tab ≻ 1) et ad_tab ≤ restant {
             out ← out + "\t"
             columna ← proximum
             restant ← restant - ad_tab
@@ -212,11 +212,11 @@ functio unexpand_linea_cum(textus linea, bivalens convertit_plene, bivalens fini
     varia numerus columna ← 0
     varia bivalens in_principio ← verum
 
-    dum i < linea.longitudo() {
+    dum i ≺ linea.longitudo() {
         fixum textus ch ← linea.sectio(i, i + 1)
         si ch ≡ " " et (convertit_plene aut in_principio) {
             varia numerus finis ← i
-            dum finis < linea.longitudo() et linea.sectio(finis, finis + 1) ≡ " " {
+            dum finis ≺ linea.longitudo() et linea.sectio(finis, finis + 1) ≡ " " {
                 finis ← finis + 1
             }
 
@@ -256,7 +256,7 @@ functio unexpand_parse(lista<textus> args) → UnexpandOptiones {
     varia Tabulatio tabs ← tabulatio_periodica(8)
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         fixum textus arg ← args.accipe(i) vel ""
         si arg ≡ "-a" aut arg ≡ "--all" {
             plene_visum ← 1
@@ -266,11 +266,11 @@ functio unexpand_parse(lista<textus> args) → UnexpandOptiones {
             tabs ← tabulatio_spec(args.accipe(i + 1) vel "8")
             i ← i + 2
         }
-        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-t" {
+        sin arg.longitudo() ≻ 2 et arg.sectio(0, 2) ≡ "-t" {
             tabs ← tabulatio_spec(arg.sectio(2, arg.longitudo()))
             i ← i + 1
         }
-        sin arg.longitudo() > 7 et arg.sectio(0, 7) ≡ "--tabs=" {
+        sin arg.longitudo() ≻ 7 et arg.sectio(0, 7) ≡ "--tabs=" {
             tabs ← tabulatio_spec(arg.sectio(7, arg.longitudo()))
             i ← i + 1
         }
@@ -279,7 +279,7 @@ functio unexpand_parse(lista<textus> args) → UnexpandOptiones {
         }
     }
 
-    redde UnexpandOptiones { convertit_plene = plene_visum > 0, tabs = tabs }
+    redde UnexpandOptiones { convertit_plene = plene_visum ≻ 0, tabs = tabs }
 }
 
 probandum "unexpand space compression" tag "coreutils" {

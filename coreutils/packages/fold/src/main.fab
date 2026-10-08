@@ -51,7 +51,7 @@
 importa ex "§gnu/stdio" gnu_stdio
 
 functio latitudo_activa(numerus petitus) → numerus {
-    si petitus > 0 ergo redde petitus
+    si petitus ≻ 0 ergo redde petitus
     redde 80
 }
 
@@ -67,9 +67,9 @@ functio plica_lineam(textus linea, numerus latitudo) → lista<textus> {
     }
 
     varia numerus initium ← 0
-    dum initium < linea.longitudo() {
+    dum initium ≺ linea.longitudo() {
         varia numerus terminus ← initium + finis
-        si terminus > linea.longitudo() {
+        si terminus ≻ linea.longitudo() {
             terminus ← linea.longitudo()
         }
 
@@ -84,7 +84,7 @@ functio spatium_fractus(textus linea, numerus initium, numerus terminus) → num
     varia numerus i ← initium
     varia numerus fractus ← -1
 
-    dum i < terminus {
+    dum i ≺ terminus {
         si linea.sectio(i, i + 1) ≡ " " {
             fractus ← i + 1
         }
@@ -104,9 +104,9 @@ functio plica_lineam_spatiis(textus linea, numerus latitudo) → lista<textus> {
     }
 
     varia numerus initium ← 0
-    dum initium < linea.longitudo() {
+    dum initium ≺ linea.longitudo() {
         varia numerus terminus ← initium + finis
-        si terminus > linea.longitudo() {
+        si terminus ≻ linea.longitudo() {
             terminus ← linea.longitudo()
         }
 
@@ -116,7 +116,7 @@ functio plica_lineam_spatiis(textus linea, numerus latitudo) → lista<textus> {
         }
         secus {
             fixum numerus fractus ← spatium_fractus(linea, initium, terminus)
-            si fractus > initium {
+            si fractus ≻ initium {
                 lineae.appende(linea.sectio(initium, fractus))
                 initium ← fractus
             }

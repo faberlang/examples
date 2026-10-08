@@ -103,7 +103,7 @@ functio dot(de lista<fractus> left, de lista<fractus> right) → fractus ⇥ tex
     }
     varia fractus total ← 0.0
     varia numerus i ← 0
-    dum i < left.longitudo() {
+    dum i ≺ left.longitudo() {
         fixum fractus a ← left.accipe(i) vel 0.0
         fixum fractus b ← right.accipe(i) vel 0.0
         total ← total + (a * b)
@@ -126,8 +126,8 @@ functio compara_textus(textus a, textus b) → numerus {
 @ privata
 functio better_ne(fractus score, textus id, fractus best_score, textus best_id, bivalens found) → bivalens {
     si found ≠ verum ergo redde verum
-    si score > best_score ergo redde verum
-    si score ≡ best_score et compara_textus(id, best_id) < 0 ergo redde verum
+    si score ≻ best_score ergo redde verum
+    si score ≡ best_score et compara_textus(id, best_id) ≺ 0 ergo redde verum
     redde falsum
 }
 
@@ -136,11 +136,11 @@ functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus 
     varia lista<ScoredRecord> out ← vacua
     varia lista<textus> selected ← vacua
     varia numerus limit ← top
-    si limit > records.longitudo() {
+    si limit ≻ records.longitudo() {
         limit ← records.longitudo()
     }
 
-    dum out.longitudo() < limit {
+    dum out.longitudo() ≺ limit {
         varia bivalens found ← falsum
         varia textus best_id ← ""
         varia textus best_text ← ""

@@ -161,20 +161,20 @@ functio block_id_valid(numerus id) → bivalens {
 }
 
 functio world_in_bounds(numerus x, numerus y, numerus z) → bivalens {
-    redde x ≥ 0 et x < world_size_x()
-        et y ≥ 0 et y < world_size_y()
-        et z ≥ 0 et z < world_size_z()
+    redde x ≥ 0 et x ≺ world_size_x()
+        et y ≥ 0 et y ≺ world_size_y()
+        et z ≥ 0 et z ≺ world_size_z()
 }
 
 functio chunk_coord_valid(numerus cx, numerus cz) → bivalens {
-    redde cx ≥ 0 et cx < chunk_count_x()
-        et cz ≥ 0 et cz < chunk_count_z()
+    redde cx ≥ 0 et cx ≺ chunk_count_x()
+        et cz ≥ 0 et cz ≺ chunk_count_z()
 }
 
 functio local_coord_valid(numerus lx, numerus ly, numerus lz) → bivalens {
-    redde lx ≥ 0 et lx < chunk_size()
-        et ly ≥ 0 et ly < chunk_size()
-        et lz ≥ 0 et lz < chunk_size()
+    redde lx ≥ 0 et lx ≺ chunk_size()
+        et ly ≥ 0 et ly ≺ chunk_size()
+        et lz ≥ 0 et lz ≺ chunk_size()
 }
 
 # =========================================================================
@@ -281,7 +281,7 @@ functio address_to_world(de ChunkAddress address) → WorldCoord ∪ nihil {
 functio empty_chunk_blocks() → lista<numerus> {
     varia lista<numerus> blocks ← vacua
     varia numerus i ← 0
-    dum i < cells_per_chunk() {
+    dum i ≺ cells_per_chunk() {
         blocks.append(block_air())
         i ← i + 1
     }
@@ -302,9 +302,9 @@ functio empty_chunk(numerus cx, numerus cz) → Chunk ∪ nihil {
 functio empty_world() → World {
     varia lista<Chunk> chunks ← vacua
     varia numerus cz ← 0
-    dum cz < chunk_count_z() {
+    dum cz ≺ chunk_count_z() {
         varia numerus cx ← 0
-        dum cx < chunk_count_x() {
+        dum cx ≺ chunk_count_x() {
             fixum Chunk ∪ nihil chunk_result ← empty_chunk(cx, cz)
             si chunk_result non est nihil {
                 chunks.append(Chunk {
@@ -325,7 +325,7 @@ functio world_valid(de World world) → bivalens {
         redde falsum
     }
     varia numerus i ← 0
-    dum i < world.chunks.length() {
+    dum i ≺ world.chunks.length() {
         fixum Chunk chunk ← world.chunks[i]
         si chunk.blocks.length() ≠ cells_per_chunk() {
             redde falsum
@@ -360,7 +360,7 @@ functio world_get(de World world, numerus x, numerus y, numerus z) → numerus �
 }
 
 functio chunk_with_block(de Chunk chunk, numerus local_index, numerus block_id) → Chunk ∪ nihil {
-    si local_index < 0 aut local_index ≥ chunk.blocks.length() {
+    si local_index ≺ 0 aut local_index ≥ chunk.blocks.length() {
         redde nulla
     }
     si block_id_valid(block_id) ≡ falsum {
@@ -368,7 +368,7 @@ functio chunk_with_block(de Chunk chunk, numerus local_index, numerus block_id) 
     }
     varia lista<numerus> blocks ← vacua
     varia numerus i ← 0
-    dum i < chunk.blocks.length() {
+    dum i ≺ chunk.blocks.length() {
         si i ≡ local_index {
             blocks.append(block_id)
         } secus {
@@ -411,7 +411,7 @@ functio world_set(
     }
     varia lista<Chunk> chunks ← vacua
     varia numerus i ← 0
-    dum i < world.chunks.length() {
+    dum i ≺ world.chunks.length() {
         si i ≡ address_result!.chunk_index {
             chunks.append(Chunk {
                 cx = updated_chunk!.cx,
@@ -455,9 +455,9 @@ functio fixture_cross_y() → numerus { redde 1 }
 functio fixture_fill_ground(de World world) → World {
     varia World next ← World { chunks = world.chunks }
     varia numerus z ← 0
-    dum z < world_size_z() {
+    dum z ≺ world_size_z() {
         varia numerus x ← 0
-        dum x < world_size_x() {
+        dum x ≺ world_size_x() {
             fixum World ∪ nihil set_result ← world_set(next, x, 0, z, block_solid())
             si set_result non est nihil {
                 next ← World { chunks = set_result!.chunks }
@@ -488,7 +488,7 @@ functio fixture_fill_wall(de World world) → World {
     varia numerus y ← fixture_wall_y_min()
     dum y ≤ fixture_wall_y_max() {
         varia numerus x ← 0
-        dum x < world_size_x() {
+        dum x ≺ world_size_x() {
             fixum World ∪ nihil set_result ← world_set(
                 next,
                 x,
@@ -531,9 +531,9 @@ functio fixture_fill_cross_boundary(de World world) → World {
     fixum lista<numerus> xs ← [15, 16]
     fixum lista<numerus> zs ← [15, 16]
     varia numerus xi ← 0
-    dum xi < xs.length() {
+    dum xi ≺ xs.length() {
         varia numerus zi ← 0
-        dum zi < zs.length() {
+        dum zi ≺ zs.length() {
             fixum World ∪ nihil set_result ← world_set(
                 next,
                 xs[xi],
@@ -567,7 +567,7 @@ functio fixture_world() → World {
 functio count_world_cells(de World world) → numerus {
     varia numerus total ← 0
     varia numerus i ← 0
-    dum i < world.chunks.length() {
+    dum i ≺ world.chunks.length() {
         total ← total + world.chunks[i].blocks.length()
         i ← i + 1
     }
@@ -579,11 +579,11 @@ functio every_cell_addressable(de World world) → bivalens {
         redde falsum
     }
     varia numerus y ← 0
-    dum y < world_size_y() {
+    dum y ≺ world_size_y() {
         varia numerus z ← 0
-        dum z < world_size_z() {
+        dum z ≺ world_size_z() {
             varia numerus x ← 0
-            dum x < world_size_x() {
+            dum x ≺ world_size_x() {
                 fixum numerus ∪ nihil value ← world_get(world, x, y, z)
                 si value est nihil {
                     redde falsum
@@ -602,11 +602,11 @@ functio empty_world_is_all_air(de World world) → bivalens {
         redde falsum
     }
     varia numerus y ← 0
-    dum y < world_size_y() {
+    dum y ≺ world_size_y() {
         varia numerus z ← 0
-        dum z < world_size_z() {
+        dum z ≺ world_size_z() {
             varia numerus x ← 0
-            dum x < world_size_x() {
+            dum x ≺ world_size_x() {
                 fixum numerus ∪ nihil value ← world_get(world, x, y, z)
                 si value est nihil {
                     redde falsum
@@ -653,7 +653,7 @@ genus WorldEdit {
 functio dirty_empty() → DirtySet {
     varia lista<bivalens> flags ← vacua
     varia numerus i ← 0
-    dum i < chunk_count() {
+    dum i ≺ chunk_count() {
         flags.append(falsum)
         i ← i + 1
     }
@@ -670,7 +670,7 @@ functio dirty_count(de DirtySet dirty) → numerus {
     }
     varia numerus count ← 0
     varia numerus i ← 0
-    dum i < dirty.flags.length() {
+    dum i ≺ dirty.flags.length() {
         si dirty.flags[i] {
             count ← count + 1
         }
@@ -683,7 +683,7 @@ functio dirty_contains(de DirtySet dirty, numerus chunk_index) → bivalens {
     si dirty_valid(dirty) ≡ falsum {
         redde falsum
     }
-    si chunk_index < 0 aut chunk_index ≥ dirty.flags.length() {
+    si chunk_index ≺ 0 aut chunk_index ≥ dirty.flags.length() {
         redde falsum
     }
     redde dirty.flags[chunk_index]
@@ -693,12 +693,12 @@ functio dirty_mark(de DirtySet dirty, numerus chunk_index) → DirtySet ∪ nihi
     si dirty_valid(dirty) ≡ falsum {
         redde nulla
     }
-    si chunk_index < 0 aut chunk_index ≥ dirty.flags.length() {
+    si chunk_index ≺ 0 aut chunk_index ≥ dirty.flags.length() {
         redde nulla
     }
     varia lista<bivalens> flags ← vacua
     varia numerus i ← 0
-    dum i < dirty.flags.length() {
+    dum i ≺ dirty.flags.length() {
         si i ≡ chunk_index {
             flags.append(verum)
         } secus {
@@ -718,7 +718,7 @@ functio dirty_mark_many(
     }
     varia DirtySet next ← DirtySet { flags = dirty.flags }
     varia numerus i ← 0
-    dum i < chunk_indices.length() {
+    dum i ≺ chunk_indices.length() {
         fixum DirtySet ∪ nihil marked ← dirty_mark(next, chunk_indices[i])
         si marked est nihil {
             redde nulla
@@ -736,7 +736,7 @@ functio dirty_drain(de DirtySet dirty) → DirtyDrain ∪ nihil {
     }
     varia lista<numerus> chunks ← vacua
     varia numerus i ← 0
-    dum i < dirty.flags.length() {
+    dum i ≺ dirty.flags.length() {
         si dirty.flags[i] {
             chunks.append(i)
         }
@@ -778,7 +778,7 @@ functio affected_chunk_indices(
     }
     mask ← DirtySet { flags = own_marked!.flags }
 
-    si lx ≡ 0 et cx > 0 {
+    si lx ≡ 0 et cx ≻ 0 {
         fixum numerus ∪ nihil west ← chunk_index(cx - 1, cz)
         si west non est nihil {
             fixum DirtySet ∪ nihil marked ← dirty_mark(mask, west vel 0)
@@ -787,7 +787,7 @@ functio affected_chunk_indices(
             }
         }
     }
-    si lx ≡ edge et cx + 1 < chunk_count_x() {
+    si lx ≡ edge et cx + 1 ≺ chunk_count_x() {
         fixum numerus ∪ nihil east ← chunk_index(cx + 1, cz)
         si east non est nihil {
             fixum DirtySet ∪ nihil marked ← dirty_mark(mask, east vel 0)
@@ -796,7 +796,7 @@ functio affected_chunk_indices(
             }
         }
     }
-    si lz ≡ 0 et cz > 0 {
+    si lz ≡ 0 et cz ≻ 0 {
         fixum numerus ∪ nihil north ← chunk_index(cx, cz - 1)
         si north non est nihil {
             fixum DirtySet ∪ nihil marked ← dirty_mark(mask, north vel 0)
@@ -805,7 +805,7 @@ functio affected_chunk_indices(
             }
         }
     }
-    si lz ≡ edge et cz + 1 < chunk_count_z() {
+    si lz ≡ edge et cz + 1 ≺ chunk_count_z() {
         fixum numerus ∪ nihil south ← chunk_index(cx, cz + 1)
         si south non est nihil {
             fixum DirtySet ∪ nihil marked ← dirty_mark(mask, south vel 0)
@@ -884,7 +884,7 @@ functio dirty_indices(de DirtySet dirty) → lista<numerus> ∪ nihil {
     }
     varia lista<numerus> chunks ← vacua
     varia numerus i ← 0
-    dum i < dirty.flags.length() {
+    dum i ≺ dirty.flags.length() {
         si dirty.flags[i] {
             chunks.append(i)
         }
@@ -914,7 +914,7 @@ functio indices_equal(
         redde falsum
     }
     varia numerus i ← 0
-    dum i < a.length() {
+    dum i ≺ a.length() {
         si a[i] ≠ b[i] {
             redde falsum
         }

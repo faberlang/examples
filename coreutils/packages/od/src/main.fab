@@ -68,7 +68,7 @@ functio lege_octeti_stdin() → lista<numerus> {
 functio zeroes(numerus count) → textus {
     varia textus out ← ""
     varia numerus i ← 0
-    dum i < count {
+    dum i ≺ count {
         out ← out + "0"
         i ← i + 1
     }
@@ -94,7 +94,7 @@ functio octal_padded(numerus n, numerus width) → textus {
     varia numerus value ← n
     si value ≡ 0 ergo raw ← "0"
 
-    dum value > 0 {
+    dum value ≻ 0 {
         raw ← octal_digit(value ∧ 7) + raw
         value ← value ⇒ 3
     }
@@ -130,7 +130,7 @@ functio hex_padded(numerus n, numerus width) → textus {
     varia numerus value ← n
     si value ≡ 0 ergo raw ← "0"
 
-    dum value > 0 {
+    dum value ≻ 0 {
         raw ← hex_digit(value ∧ 15) + raw
         value ← value ⇒ 4
     }
@@ -142,7 +142,7 @@ functio hex_padded(numerus n, numerus width) → textus {
 functio word_le(lista<numerus> bytes, numerus index) → numerus {
     fixum numerus b0 ← bytes.accipe(index) vel 0
     varia numerus b1 ← 0
-    si index + 1 < bytes.longitudo() {
+    si index + 1 ≺ bytes.longitudo() {
         b1 ← bytes.accipe(index + 1) vel 0
     }
     redde b0 ∨ (b1 ⇐ 8)
@@ -153,13 +153,13 @@ functio od_linea_o2(numerus address, lista<numerus> bytes, numerus start) → te
     varia numerus i ← start
     varia numerus groups ← 0
 
-    dum i + 1 < bytes.longitudo() et groups < 8 {
+    dum i + 1 ≺ bytes.longitudo() et groups ≺ 8 {
         linea ← linea + " " + octal_padded(word_le(bytes, i), 6)
         i ← i + 2
         groups ← groups + 1
     }
 
-    si i < bytes.longitudo() {
+    si i ≺ bytes.longitudo() {
         linea ← linea + " " + octal_padded(bytes.accipe(i) vel 0, 6)
     }
 
@@ -171,7 +171,7 @@ functio od_linea_x1(numerus address, lista<numerus> bytes, numerus start) → te
     varia numerus i ← start
     varia numerus groups ← 0
 
-    dum i < bytes.longitudo() et groups < 16 {
+    dum i ≺ bytes.longitudo() et groups ≺ 16 {
         linea ← linea + " " + hex_padded(bytes.accipe(i) vel 0, 2)
         i ← i + 1
         groups ← groups + 1
@@ -190,7 +190,7 @@ functio od_stdin(lista<numerus> bytes, textus forma) → lista<textus> {
         redde lineae
     }
 
-    dum i < bytes.longitudo() {
+    dum i ≺ bytes.longitudo() {
         si forma ≡ "x1" {
             lineae.appende(od_linea_x1(address, bytes, i))
         } secus {

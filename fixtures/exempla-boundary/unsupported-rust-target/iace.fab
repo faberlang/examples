@@ -63,7 +63,7 @@ incipit {
     # Throw from conditional
     fixum _ value ← -5
     fac {
-        si value < 0 {
+        si value ≺ 0 {
             iace "Value must be non-negative"
         }
         nota "Value is valid"

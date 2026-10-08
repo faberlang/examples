@@ -60,7 +60,7 @@ functio safeDivide(numerus a, numerus b) → numerus {
 
 functio validatePositive(numerus value) → numerus {
     fac {
-        si value < 0 {
+        si value ≺ 0 {
             iace "Negative value not allowed"
         }
         redde value * 2

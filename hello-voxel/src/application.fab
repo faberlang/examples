@@ -479,15 +479,15 @@ functio resolve_x(
             varia numerus ix ← x0
             dum ix ≤ x1 {
                 si world_cell_is_solid(world, ix, iy, iz) {
-                    si dx > 0.0 {
+                    si dx ≻ 0.0 {
                         fixum f32 face ← (ix ↦ f32) - half
-                        si face < result {
+                        si face ≺ result {
                             result ← face
                         }
                     }
-                    si dx < 0.0 {
+                    si dx ≺ 0.0 {
                         fixum f32 face ← (ix ↦ f32) + 1.0 ∷ f32 + half
-                        si face > result {
+                        si face ≻ result {
                             result ← face
                         }
                     }
@@ -535,16 +535,16 @@ functio resolve_y(
             varia numerus ix ← x0
             dum ix ≤ x1 {
                 si world_cell_is_solid(world, ix, iy, iz) {
-                    si dy < 0.0 {
+                    si dy ≺ 0.0 {
                         fixum f32 face ← (iy ↦ f32) + 1.0 ∷ f32
-                        si face > result {
+                        si face ≻ result {
                             result ← face
                             hit_ground ← verum
                         }
                     }
-                    si dy > 0.0 {
+                    si dy ≻ 0.0 {
                         fixum f32 face ← (iy ↦ f32) - player_height()
-                        si face < result {
+                        si face ≺ result {
                             result ← face
                             hit_ceiling ← verum
                         }
@@ -605,15 +605,15 @@ functio resolve_z(
             varia numerus ix ← x0
             dum ix ≤ x1 {
                 si world_cell_is_solid(world, ix, iy, iz) {
-                    si dz > 0.0 {
+                    si dz ≻ 0.0 {
                         fixum f32 face ← (iz ↦ f32) - half
-                        si face < result {
+                        si face ≺ result {
                             result ← face
                         }
                     }
-                    si dz < 0.0 {
+                    si dz ≺ 0.0 {
                         fixum f32 face ← (iz ↦ f32) + 1.0 ∷ f32 + half
-                        si face > result {
+                        si face ≻ result {
                             result ← face
                         }
                     }
@@ -671,11 +671,11 @@ functio move_player_collided(
     si after_y.grounded {
         velocity_y ← 0.0 ∷ f32
     }
-    si dy > 0.0 et after_y.y < player.y + dy - collision_epsilon() {
+    si dy ≻ 0.0 et after_y.y ≺ player.y + dy - collision_epsilon() {
         # Ceiling hit zeroes upward velocity.
         velocity_y ← 0.0 ∷ f32
     }
-    si dy < 0.0 et after_y.y > player.y + dy + collision_epsilon() {
+    si dy ≺ 0.0 et after_y.y ≻ player.y + dy + collision_epsilon() {
         # Floor hit zeroes downward velocity.
         velocity_y ← 0.0 ∷ f32
     }
@@ -705,7 +705,7 @@ functio clamp_delta_seconds(f32 delta_seconds) → f32 {
     si delta_seconds ≤ 0.0 {
         redde 0.0 ∷ f32
     }
-    si delta_seconds > max_delta_seconds() {
+    si delta_seconds ≻ max_delta_seconds() {
         redde max_delta_seconds()
     }
     redde delta_seconds
@@ -814,10 +814,10 @@ functio placement_intersects_player(
 }
 
 functio dda_step(f32 component) → numerus {
-    si component > dda_eps() {
+    si component ≻ dda_eps() {
         redde 1
     }
-    si component < 0.0 ∷ f32 - dda_eps() {
+    si component ≺ 0.0 ∷ f32 - dda_eps() {
         redde 0 - 1
     }
     redde 0
@@ -836,7 +836,7 @@ functio dda_t_max(f32 origin, f32 component, numerus cell) → f32 {
     si component.abs() ≤ dda_eps() {
         redde dda_inf()
     }
-    si component > 0.0 {
+    si component ≻ 0.0 {
         redde ((cell ↦ f32) + 1.0 ∷ f32 - origin) / component
     }
     redde ((cell ↦ f32) - origin) / component
@@ -851,7 +851,7 @@ functio voxel_dda(
     de vector<f32, 3> direction,
     f32 max_distance
 ) → VoxelHit ∪ nihil {
-    si max_distance < 0.0 {
+    si max_distance ≺ 0.0 {
         redde nulla
     }
     fixum f32 len_sq ← math.x(direction) * math.x(direction)
@@ -899,12 +899,12 @@ functio voxel_dda(
     # World diagonal upper bound (~55) plus margin; range 6 needs far fewer.
     fixum numerus max_steps ← 128
 
-    dum steps < max_steps {
+    dum steps ≺ max_steps {
         # Advance along the nearest voxel face.
-        si t_max_x < t_max_y {
-            si t_max_x < t_max_z {
+        si t_max_x ≺ t_max_y {
+            si t_max_x ≺ t_max_z {
                 distance ← t_max_x
-                si distance > max_distance {
+                si distance ≻ max_distance {
                     redde nulla
                 }
                 prev_x ← x
@@ -914,7 +914,7 @@ functio voxel_dda(
                 t_max_x ← t_max_x + t_delta_x
             } secus {
                 distance ← t_max_z
-                si distance > max_distance {
+                si distance ≻ max_distance {
                     redde nulla
                 }
                 prev_x ← x
@@ -924,9 +924,9 @@ functio voxel_dda(
                 t_max_z ← t_max_z + t_delta_z
             }
         } secus {
-            si t_max_y < t_max_z {
+            si t_max_y ≺ t_max_z {
                 distance ← t_max_y
-                si distance > max_distance {
+                si distance ≻ max_distance {
                     redde nulla
                 }
                 prev_x ← x
@@ -936,7 +936,7 @@ functio voxel_dda(
                 t_max_y ← t_max_y + t_delta_y
             } secus {
                 distance ← t_max_z
-                si distance > max_distance {
+                si distance ≻ max_distance {
                     redde nulla
                 }
                 prev_x ← x

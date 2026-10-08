@@ -46,9 +46,9 @@ incipit {
     varia numerus total_indices ← 0
     varia numerus slot ← 0
     varia numerus cz ← 0
-    dum cz < voxel.chunk_count_z() {
+    dum cz ≺ voxel.chunk_count_z() {
         varia numerus cx ← 0
-        dum cx < voxel.chunk_count_x() {
+        dum cx ≺ voxel.chunk_count_x() {
             fixum meshing.ChunkMesh ∪ nihil mesh_result ← meshing.mesh_chunk(world, cx, cz)
             adfirma mesh_result non est nihil secus
                 "mesh_chunk succeeds for every logical chunk"
@@ -67,7 +67,7 @@ incipit {
             adfirma mesh.cz ≡ cz secus
                 "chunk mesh records cz"
             # Fixture ground/wall/pillar/cross make every logical chunk non-empty.
-            adfirma mesh.face_count > 0 secus
+            adfirma mesh.face_count ≻ 0 secus
                 "fixture chunk is non-empty"
             non_empty ← non_empty + 1
             total_faces ← total_faces + mesh.face_count
@@ -85,13 +85,13 @@ incipit {
     # Resource pairs and draws follow non-empty effectively-visible chunks.
     adfirma non_empty ≡ voxel.chunk_count() secus
         "resource_pair_count and draw_count equal non-empty count"
-    adfirma total_faces > 0 secus
+    adfirma total_faces ≻ 0 secus
         "world emits visible faces"
     adfirma total_indices ≡ total_faces * 6 secus
         "index total is 6 per face"
     # Not residual cube (6 faces / 36 indices).
-    adfirma total_faces > 6 secus
+    adfirma total_faces ≻ 6 secus
         "world face count exceeds single cube"
-    adfirma total_indices > 36 secus
+    adfirma total_indices ≻ 36 secus
         "world index count exceeds residual cube 36"
 }

@@ -73,7 +73,7 @@ functio suffix_alpha(numerus index, numerus width) → textus {
     varia lista<textus> digits ← vacua
     varia numerus i ← 0
 
-    dum i < width {
+    dum i ≺ width {
         digits.appende(char_alpha(n % 26))
         n ← n / 26
         i ← i + 1
@@ -81,7 +81,7 @@ functio suffix_alpha(numerus index, numerus width) → textus {
 
     varia textus out ← ""
     varia numerus j ← digits.longitudo()
-    dum j > 0 {
+    dum j ≻ 0 {
         j ← j - 1
         out ← out + (digits.accipe(j) vel "")
     }
@@ -90,12 +90,12 @@ functio suffix_alpha(numerus index, numerus width) → textus {
 }
 
 functio prefixus_defectus(lista<textus> operands) → textus {
-    si operands.longitudo() > 0 ergo redde operands[operands.longitudo() - 1]
+    si operands.longitudo() ≻ 0 ergo redde operands[operands.longitudo() - 1]
     redde "x"
 }
 
 functio lineae_per_file(numerus line_count) → numerus {
-    si line_count > 0 ergo redde line_count
+    si line_count ≻ 0 ergo redde line_count
     redde 1000
 }
 
@@ -104,15 +104,15 @@ functio corpus_chunk(lista<textus> lineae, numerus start, numerus count) → tex
     varia numerus i ← start
     varia numerus finis ← start + count
 
-    dum i < finis et i < lineae.longitudo() {
-        si i > start {
+    dum i ≺ finis et i ≺ lineae.longitudo() {
+        si i ≻ start {
             out ← out + "\n"
         }
         out ← out + (lineae.accipe(i) vel "")
         i ← i + 1
     }
 
-    si out.longitudo() > 0 {
+    si out.longitudo() ≻ 0 {
         out ← out + "\n"
     }
 
@@ -127,7 +127,7 @@ functio split_stdin(lista<textus> lineae, numerus chunk_lines, textus prefix) �
     varia numerus start ← 0
     varia numerus part ← 0
 
-    dum start < lineae.longitudo() {
+    dum start ≺ lineae.longitudo() {
         fixum textus suffix ← suffix_alpha(part, 2)
         fixum textus corpus ← corpus_chunk(lineae, start, chunk_lines)
         scribe_chunk(prefix, suffix, corpus)

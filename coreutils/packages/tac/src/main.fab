@@ -50,7 +50,7 @@ functio verte_lineas(lista<textus> lineae) → lista<textus> {
     varia lista<textus> reversae ← vacua
     varia numerus i ← lineae.longitudo()
 
-    dum i > 0 {
+    dum i ≻ 0 {
         i ← i - 1
         reversae.appende(lineae.accipe(i) vel "")
     }

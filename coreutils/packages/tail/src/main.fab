@@ -59,12 +59,12 @@ genus TailOptiones {
 }
 
 functio numerus_caudae(numerus petitus) → numerus {
-    si petitus < 0 ergo redde 0
+    si petitus ≺ 0 ergo redde 0
     redde petitus
 }
 
 functio abs_numerus(numerus n) → numerus {
-    si n < 0 ergo redde 0 - n
+    si n ≺ 0 ergo redde 0 - n
     redde n
 }
 
@@ -77,12 +77,12 @@ functio cauda_linearum(lista<textus> lineae, numerus petitus) → lista<textus> 
     varia numerus initium ← 0
 
     si finis ≡ 0 ergo redde cauda
-    si copia > finis {
+    si copia ≻ finis {
         initium ← copia - finis
     }
 
     varia numerus i ← initium
-    dum i < copia {
+    dum i ≺ copia {
         cauda.appende(lineae.accipe(i) vel "")
         i ← i + 1
     }
@@ -96,12 +96,12 @@ functio cauda_ab_linea(lista<textus> lineae, numerus initium_unum) → lista<tex
     varia lista<textus> cauda ← vacua
     varia numerus initium ← initium_unum - 1
 
-    si initium < 0 {
+    si initium ≺ 0 {
         initium ← 0
     }
 
     varia numerus i ← initium
-    dum i < lineae.longitudo() {
+    dum i ≺ lineae.longitudo() {
         cauda.appende(lineae.accipe(i) vel "")
         i ← i + 1
     }
@@ -133,7 +133,7 @@ functio lege_caudam(TailOptiones opts) → lista<textus> {
 }
 
 functio tail_spec(textus raw) → TailOptiones {
-    si raw.longitudo() > 0 et raw.sectio(0, 1) ≡ "+" {
+    si raw.longitudo() ≻ 0 et raw.sectio(0, 1) ≡ "+" {
         redde TailOptiones { lineae = raw.sectio(1, raw.longitudo()) ↦ numerus ⊥ 1, ab_initio = verum }
     }
 
@@ -146,13 +146,13 @@ functio tail_parse(lista<textus> args) → TailOptiones {
     varia TailOptiones opts ← TailOptiones { lineae = 10, ab_initio = falsum }
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         fixum textus arg ← args.accipe(i) vel ""
         si arg ≡ "-n" {
             opts ← tail_spec(args.accipe(i + 1) vel "10")
             i ← i + 2
         }
-        sin arg.longitudo() > 2 et arg.sectio(0, 2) ≡ "-n" {
+        sin arg.longitudo() ≻ 2 et arg.sectio(0, 2) ≡ "-n" {
             opts ← tail_spec(arg.sectio(2, arg.longitudo()))
             i ← i + 1
         }

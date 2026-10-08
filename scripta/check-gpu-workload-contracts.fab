@@ -47,7 +47,7 @@ fn check_rung4(string repo_root) → list<string> {
     const float tolerance ↤ tolerance_value
     # The JSON parser rejects NaN/Infinity literals, so the self-inequality
     # arm is defensive parity for math.isfinite.
-    if tolerance < 0.0 or tolerance ≠ tolerance {
+    if tolerance ≺ 0.0 or tolerance ≠ tolerance {
         failures.append("rung4 tolerance must be a finite non-negative number")
         return failures
     }
@@ -65,7 +65,7 @@ fn check_rung4(string repo_root) → list<string> {
     var float weight ↤ inputs["initial_weight"]
 
     var int index ← 0
-    while index < events.length() {
+    while index ≺ events.length() {
         const map<string, value> event ↤ events[index]
         const int step ↤ event["step"]
         if step ≠ index {
@@ -116,14 +116,14 @@ fn check_rung4(string repo_root) → list<string> {
         failures.append("rung4 reference weight count does not match session event count")
     }
     var int k ← 0
-    while k < reference_losses.length() and k < losses.length() {
+    while k ≺ reference_losses.length() and k ≺ losses.length() {
         if not close(reference_losses[k] ↦ float, losses[k], tolerance) {
             failures.append("rung4 reference losses do not match derived oracle")
         }
         k ← k + 1
     }
     var int j ← 0
-    while j < reference_weights.length() and j < weights.length() {
+    while j ≺ reference_weights.length() and j ≺ weights.length() {
         if not close(reference_weights[j] ↦ float, weights[j], tolerance) {
             failures.append("rung4 reference weights do not match derived oracle")
         }

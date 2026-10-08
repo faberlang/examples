@@ -51,9 +51,9 @@ functio quoted_value(textus line) → textus {
     varia numerus initium ← -1
     varia numerus finis ← -1
     varia numerus i ← 0
-    dum i < line.longitudo() {
+    dum i ≺ line.longitudo() {
         si line.sectio(i, i + 1) ≡ "\"" {
-            si initium < 0 {
+            si initium ≺ 0 {
                 initium ← i + 1
             } secus {
                 finis ← i
@@ -116,13 +116,13 @@ functio map_value(lista<textus> aliases, textus target, textus field) → textus
 
 functio status_for(lista<textus> aliases, textus target) → textus {
     fixum textus status ← map_value(aliases, target, "status")
-    si status.longitudo() > 0 ergo redde status
+    si status.longitudo() ≻ 0 ergo redde status
     redde "unknown"
 }
 
 functio source_for(lista<textus> aliases, textus target) → textus {
     fixum textus source ← map_value(aliases, target, "source")
-    si source.longitudo() > 0 ergo redde "§"(source)
+    si source.longitudo() ≻ 0 ergo redde "§"(source)
     redde target
 }
 
@@ -244,7 +244,7 @@ functio emit_summary_text(
     nota "status: §"(status)
     nota "output_path: §"(out_path)
     nota "router_model_id: §"(router_id)
-    si router_label.longitudo() > 0 {
+    si router_label.longitudo() ≻ 0 {
         nota "runtime: §"(router_label)
     }
     nota "diagnostic: §"(diagnosticum)
@@ -320,7 +320,7 @@ functio result_stderr(tabula<textus, valor> result) → textus {
 
 functio runner_failure(tabula<textus, valor> result) → textus {
     fixum textus stderr ← result_stderr(result).recide()
-    si stderr.longitudo() > 0 ergo redde stderr
+    si stderr.longitudo() ≻ 0 ergo redde stderr
     redde result_stdout(result).recide()
 }
 
@@ -335,7 +335,7 @@ functio runner_artifact_gate_args(textus out_path, textus expected_status) → l
 
 functio runner_artifact_gate_failure(tabula<textus, valor> result) → textus {
     fixum textus stderr ← result_stderr(result).recide()
-    si stderr.longitudo() > 0 ergo redde stderr
+    si stderr.longitudo() ≻ 0 ergo redde stderr
     redde result_stdout(result).recide()
 }
 

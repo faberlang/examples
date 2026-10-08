@@ -24,10 +24,10 @@ import from "faber:consolum" private consolum
 fn value_for(list<string> args, string flag, string fallback) → string {
     const int n ← args.length()
     var int i ← 0
-    while i < n {
+    while i ≺ n {
         const string tok ↤ args[i]
         if tok ≡ flag {
-            if i + 1 < n {
+            if i + 1 ≺ n {
                 return args[i + 1] ↦ string
             }
             return fallback
@@ -53,11 +53,11 @@ main {
     const int input_count ← texts.length()
     var list<map<string, any>> vectors ← empty
     var int i ← 0
-    while i < texts.length() {
+    while i ≺ texts.length() {
         var list<float> values ← empty
         const int hot ← i % 1024
         var int d ← 0
-        while d < 1024 {
+        while d ≺ 1024 {
             if d ≡ hot {
                 values.append(1.0)
             } else {

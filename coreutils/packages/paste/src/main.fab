@@ -69,7 +69,7 @@ functio iunge_serialiter(lista<textus> lineae, textus delimiters) → textus {
     varia numerus index ← 0
 
     itera ex lineae fixum linea {
-        si index > 0 {
+        si index ≻ 0 {
             out ← out + delim_scala(delimiters, index - 1)
         }
 
@@ -97,7 +97,7 @@ functio paste_serial_stdin(textus delimiter) → vacuum {
     dum verum {
         fixum textus ∪ nihil linea ← lege
         si linea est nihil {
-            si lineae.longitudo() > 0 {
+            si lineae.longitudo() ≻ 0 {
                 gnu_stdio.scribe_linea(iunge_serialiter(lineae, delimiter))
             }
             redde

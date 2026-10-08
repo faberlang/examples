@@ -100,7 +100,7 @@ main {
     const list<string> lines ← solum.carpe(artifact) ↦ list<string>
     const int total ← lines.length()
     var int i ← 0
-    while i < total {
+    while i ≺ total {
         const any parsed ← json.tempta(lines[i] ↦ string)
         if parsed is none {
             consolum.mone("line §: invalid JSON"(i + 1))

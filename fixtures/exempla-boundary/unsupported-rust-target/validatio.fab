@@ -50,15 +50,15 @@ locale = "la"
 
 functio processAge(numerus age) → textus {
     custodi {
-        si age < 0 {
+        si age ≺ 0 {
             redde "Invalid: negative age"
         }
-        si age > 150 {
+        si age ≻ 150 {
             redde "Invalid: age too high"
         }
     }
 
-    si age < 18 {
+    si age ≺ 18 {
         redde "Minor"
     }
     secus {
@@ -74,10 +74,10 @@ functio createUser(textus name, textus email, numerus age) → textus {
         si nihil email aut email ≡ "" {
             redde "Error: email required"
         }
-        si age < 13 {
+        si age ≺ 13 {
             redde "Error: must be 13 or older"
         }
-        si age > 120 {
+        si age ≻ 120 {
             redde "Error: invalid age"
         }
     }
@@ -88,7 +88,7 @@ functio createUser(textus name, textus email, numerus age) → textus {
 # Guards can throw instead of returning
 functio sqrt(numerus n) → numerus {
     custodi {
-        si n < 0 {
+        si n ≺ 0 {
             iace "Cannot compute square root of negative number"
         }
     }

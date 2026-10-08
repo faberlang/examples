@@ -50,7 +50,7 @@ fn claims_of(list<map<string, any>> events) → list<map<string, bool> ∪ none>
     var list<map<string, bool> ∪ none> claims ← empty
     const int n ← events.length()
     var int i ← 0
-    while i < n {
+    while i ≺ n {
         const map<string, any> event ← events[i]
         if event["claims"] is none {
             claims.append(null)

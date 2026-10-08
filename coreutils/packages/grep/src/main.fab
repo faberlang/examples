@@ -68,8 +68,8 @@ genus GrepOptiones {
 functio exemplaria_activa(lista<textus> e_patterns, lista<textus> operands) → lista<textus> {
     varia lista<textus> patterns ← vacua
 
-    si e_patterns.longitudo() > 0 ergo redde e_patterns
-    si operands.longitudo() > 0 {
+    si e_patterns.longitudo() ≻ 0 ergo redde e_patterns
+    si operands.longitudo() ≻ 0 {
         patterns.appende(operands.accipe(0) vel "")
     }
 
@@ -87,7 +87,7 @@ functio grep_parse(lista<textus> args) → GrepOptiones {
     varia numerus lineSeen ← 0
     varia numerus i ← 0
 
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         fixum textus arg ← args.accipe(i) vel ""
         varia numerus handled ← 0
 
@@ -131,7 +131,7 @@ functio grep_parse(lista<textus> args) → GrepOptiones {
         }
     }
 
-    redde GrepOptiones { patterns = exemplaria_activa(e_patterns, operands), operands = operands, ignoreCase = ignoreSeen > 0, invert = invertSeen > 0, countOnly = countSeen > 0, lineNumbers = lineSeen > 0 }
+    redde GrepOptiones { patterns = exemplaria_activa(e_patterns, operands), operands = operands, ignoreCase = ignoreSeen ≻ 0, invert = invertSeen ≻ 0, countOnly = countSeen ≻ 0, lineNumbers = lineSeen ≻ 0 }
 }
 
 functio parat_match(textus s, bivalens ignore_case) → textus {

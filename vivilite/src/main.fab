@@ -169,7 +169,7 @@ functio split(de textus s, de textus separator) → lista<textus> {
     fixum numerus sep_len ← separator.longitudo()
     varia numerus initium ← 0
     varia numerus i ← 0
-    dum i < s.longitudo() {
+    dum i ≺ s.longitudo() {
         si s.sectio(i, i + sep_len) ≡ separator {
             partes.appende(s.sectio(initium, i))
             i ← i + sep_len
@@ -206,7 +206,7 @@ functio ensure_store(de Store s) → vacuum {
 
 functio arg(de lista<textus> args, de textus flag, de textus def) → textus {
     varia numerus i ← 0
-    dum i < args.longitudo() {
+    dum i ≺ args.longitudo() {
         si (args.accipe(i) vel "") ≡ flag ergo redde args.accipe(i + 1) vel (def ↦ textus)
         i ← i + 1
     }
@@ -253,7 +253,7 @@ functio count_identities(de Store s) → numerus {
 functio count_work(de Store s, de textus kind, de textus status, de textus who) → numerus {
     varia numerus count ← 0
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.longitudo() ≻ 0 {
             fixum WorkItem item ← work_from_line(line)
             si (item.kind ≡ kind et item.status ≡ status) et item.to ≡ who {
                 count ← count + 1
@@ -266,7 +266,7 @@ functio count_work(de Store s, de textus kind, de textus status, de textus who) 
 functio list_work_json(de Store s, de textus kind, de textus who) → lista<BoardItemJson> {
     varia lista<BoardItemJson> items ← vacua
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.longitudo() ≻ 0 {
             fixum WorkItem item ← work_from_line(line)
             si (item.kind ≡ kind et item.status ≡ "open") et item.to ≡ who {
                 items.appende(BoardItemJson { handle = item.handle, subject = item.subject, from = item.from })
@@ -346,7 +346,7 @@ functio work_send(de Store s, de textus kind, de textus from, de textus to, de t
 functio work_list(de Store s, de textus kind, de textus who) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.longitudo() ≻ 0 {
             fixum WorkItem item ← work_from_line(line)
             si (item.kind ≡ kind et item.status ≡ "open") et item.to ≡ who {
                 nota "§  §"(item.handle, item.subject)
@@ -358,7 +358,7 @@ functio work_list(de Store s, de textus kind, de textus who) → vacuum {
 functio work_show(de Store s, de textus handle) → vacuum {
     ensure_store(store(s.root))
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.longitudo() ≻ 0 {
             fixum WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
                 nota "From: §"(item.from)
@@ -379,11 +379,11 @@ functio rewrite_work(de Store s, de textus handle, de textus new_status, de text
     ensure_store(store(s.root))
     varia textus out ← ""
     itera ex read_lines(s.work ↦ textus) fixum line {
-        si line.longitudo() > 0 {
+        si line.longitudo() ≻ 0 {
             varia WorkItem item ← work_from_line(line)
             si item.handle ≡ handle {
                 item.status ↤ new_status
-                si new_kind.longitudo() > 0 {
+                si new_kind.longitudo() ≻ 0 {
                     item.kind ↤ new_kind
                 }
             }
@@ -466,7 +466,7 @@ functio compose_vivi_message(de textus mailspace, de textus kind, de textus from
     eml ← cat(eml, vivi_address(to, mailspace))
     eml ← cat(eml, "\r\nSubject: ")
     eml ← cat(eml, subject)
-    si kind.longitudo() > 0 {
+    si kind.longitudo() ≻ 0 {
         eml ← cat(eml, "\r\nX-Vivi-Kind: ")
         eml ← cat(eml, kind)
     }
@@ -491,7 +491,7 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
     fixum textus message_id ← "local-§-§-§"(to, role, content_id)
     fixum textus sent_message_id ← "local-§-sent-§"(from, content_id)
     varia textus command ← "mail send"
-    si kind.longitudo() > 0 {
+    si kind.longitudo() ≻ 0 {
         command ← "§ send"(kind)
     }
     fixum textus blob_relpath ← "blobs/§/§/§.eml"(content_id.sectio(0, 2), content_id.sectio(2, 4), content_id)
@@ -529,7 +529,7 @@ functio sqlite_unread(de textus database, de textus who) → numerus ⇥ textus 
 functio vivi_config_names(de Store s) → lista<textus> {
     varia lista<textus> names ← vacua
     itera ex read_lines("§/.vivi/mailspace.toml"(s.root)) fixum line {
-        si line.longitudo() > 9 et line.sectio(0, 8) ≡ «name = \"» {
+        si line.longitudo() ≻ 9 et line.sectio(0, 8) ≡ «name = \"» {
             names.appende(line.sectio(8, line.longitudo() - 1))
         }
     }
@@ -547,7 +547,7 @@ functio sqlite_status_json(de Store s) → textus ⇥ textus {
     varia numerus needs_total ← 0
     varia numerus wants_total ← 0
     varia numerus i ← 1
-    dum i < names.longitudo() {
+    dum i ≺ names.longitudo() {
         fixum textus identity ← names.accipe(i) vel ""
         fixum numerus tasks ← sqlite_count(database, identity, "tasks")
         fixum numerus needs ← sqlite_count(database, identity, "needs")
@@ -831,11 +831,11 @@ incipit argumenta args {
     fixum textus address ← args.address
     operands.appende("--for")
     operands.appende(forid)
-    si fromid.longitudo() > 0 {
+    si fromid.longitudo() ≻ 0 {
         operands.appende("--from")
         operands.appende(fromid)
     }
-    si toid.longitudo() > 0 {
+    si toid.longitudo() ≻ 0 {
         operands.appende("--to")
         operands.appende(toid)
     }
@@ -843,15 +843,15 @@ incipit argumenta args {
     operands.appende(subject)
     operands.appende("--body")
     operands.appende(body)
-    si note.longitudo() > 0 {
+    si note.longitudo() ≻ 0 {
         operands.appende("--note")
         operands.appende(note)
     }
-    si name.longitudo() > 0 {
+    si name.longitudo() ≻ 0 {
         operands.appende("--name")
         operands.appende(name)
     }
-    si address.longitudo() > 0 {
+    si address.longitudo() ≻ 0 {
         operands.appende("--address")
         operands.appende(address)
     }

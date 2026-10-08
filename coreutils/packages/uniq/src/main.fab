@@ -74,7 +74,7 @@ functio lege_omnes_lineas() → lista<textus> {
 functio clavis_uniqui(textus linea, numerus skip_chars, numerus check_chars, bivalens ignore_case) → textus {
     varia textus clavis ← linea
 
-    si skip_chars > 0 {
+    si skip_chars ≻ 0 {
         si skip_chars ≥ clavis.longitudo() {
             clavis ← ""
         }
@@ -83,8 +83,8 @@ functio clavis_uniqui(textus linea, numerus skip_chars, numerus check_chars, biv
         }
     }
 
-    si check_chars > 0 {
-        si check_chars < clavis.longitudo() {
+    si check_chars ≻ 0 {
+        si check_chars ≺ clavis.longitudo() {
             clavis ← clavis.sectio(0, check_chars)
         }
     }
@@ -105,7 +105,7 @@ functio greges_uniqui(lista<textus> lineae, numerus skip_chars, numerus check_ch
     varia numerus copia ← 1
     varia numerus i ← 1
 
-    dum i < lineae.longitudo() {
+    dum i ≺ lineae.longitudo() {
         fixum textus linea ← lineae.accipe(i) vel ""
         fixum textus clavis ← clavis_uniqui(linea, skip_chars, check_chars, ignore_case)
         si clavis ≡ currens_clavis {
@@ -125,9 +125,9 @@ functio greges_uniqui(lista<textus> lineae, numerus skip_chars, numerus check_ch
 }
 
 functio forma_comitis(numerus n) → textus {
-    si n < 10 ergo redde "      §"(n)
-    si n < 100 ergo redde "     §"(n)
-    si n < 1000 ergo redde "    §"(n)
+    si n ≺ 10 ergo redde "      §"(n)
+    si n ≺ 100 ergo redde "     §"(n)
+    si n ≺ 1000 ergo redde "    §"(n)
     redde "§"(n)
 }
 
@@ -138,7 +138,7 @@ functio lineae_uniquae(lista<textus> lineae, bivalens comites, bivalens duplicat
     itera ex greges_uniqui(lineae, skip_chars, check_chars, ignore_case) fixum grex {
         varia bivalens include ← verum
         si duplicata {
-            include ← grex.copia > 1
+            include ← grex.copia ≻ 1
         }
         si unica {
             include ← grex.copia ≡ 1

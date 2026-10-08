@@ -87,7 +87,7 @@ incipit argumenta args {
     si count ≡ 0 {
         cat_stdin()
     }
-    si count > 0 {
+    si count ≻ 0 {
         cat_files(operands)
     }
 }

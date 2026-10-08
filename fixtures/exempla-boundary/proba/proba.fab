@@ -66,8 +66,8 @@ proba "string concatenation works" {
 # Test boolean conditions
 proba "comparison operators" {
     fixum _ x ← 10
-    adfirma x > 5
-    adfirma x < 20
+    adfirma x ≻ 5
+    adfirma x ≺ 20
     adfirma x ≥ 10
     adfirma x ≤ 10
 }
@@ -81,5 +81,5 @@ proba "negated assertions" {
 # Test with complex logical assertion
 proba "complex assertion" {
     fixum _ x ← 50
-    adfirma x > 0 et x < 100
+    adfirma x ≻ 0 et x ≺ 100
 }
