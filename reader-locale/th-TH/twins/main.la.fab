@@ -59,7 +59,7 @@ functio ผ่าน(numerus score) → bivalens {
     }
 }
 
-functio นับผ่าน(lista≺numerus≻ scores) → numerus {
+functio นับผ่าน(lista<numerus> scores) → numerus {
     varia numerus total ← 0
     itera ex scores fixum score {
         si score ≺ 0 {
@@ -86,7 +86,7 @@ functio นับถอยหลัง(numerus start) → numerus {
 incipit {
     fixum textus message ← ทักทาย("โลก")
     fixum numerus score ← 82
-    fixum lista≺numerus≻ scores ← [-1, 82, 41, 60]
+    fixum lista<numerus> scores ← [-1, 82, 41, 60]
     nota message
     nota ผ่าน(score)
     nota นับผ่าน(scores)
