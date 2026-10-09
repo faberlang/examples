@@ -52,8 +52,8 @@ const list<string> FORBIDDEN_INFERENCE_CLAIMS = [
 ]
 
 fn value_for(list<string> args, string flag, string fallback) → string {
-    const numerus n ← args.longitudo()
-    var numerus i ← 0
+    const int n ← args.longitudo()
+    var int i ← 0
     dum i ≺ n {
         const string tok ↤ args[i]
         if tok ≡ flag {
@@ -68,8 +68,8 @@ fn value_for(list<string> args, string flag, string fallback) → string {
 }
 
 fn trim(string s) → string {
-    var numerus start ← 0
-    var numerus end ← s.longitudo()
+    var int start ← 0
+    var int end ← s.longitudo()
     dum start ≺ end {
         const string ch ← s.sectio(start, start + 1)
         if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
@@ -91,8 +91,8 @@ fn trim(string s) → string {
 
 fn split_words(string text) → list<string> {
     var list<string> words ← empty
-    const numerus n ← text.longitudo()
-    var numerus i ← 0
+    const int n ← text.longitudo()
+    var int i ← 0
     dum i ≺ n {
         dum i ≺ n {
             const string ch ← text.sectio(i, i + 1)
@@ -105,7 +105,7 @@ fn split_words(string text) → list<string> {
         if i ≥ n {
             break
         }
-        const numerus start ← i
+        const int start ← i
         dum i ≺ n {
             const string ch ← text.sectio(i, i + 1)
             if ch ≡ " " or ch ≡ "\t" or ch ≡ "\n" or ch ≡ "\r" {
@@ -120,7 +120,7 @@ fn split_words(string text) → list<string> {
 
 fn all_false_claims(list<string> forbidden) → string {
     var string out ← ""
-    var numerus i ← 0
+    var int i ← 0
     dum i ≺ forbidden.longitudo() {
         if i ≻ 0 {
             out ← out + ","
@@ -146,26 +146,26 @@ main {
         consolum.mone("usage: tiny_token_logits_oracle --prompt <file> --out <file> --model-dir <dir> --model-alias <name> --source <name> --oracle-label <name> --max-new-tokens <n> --temperature <t> --seed <n>")
         processus.exi(2)
     }
-    const numerus max_new_tokens ↤ max_tokens_arg
-    const numerus seed ↤ seed_arg
+    const int max_new_tokens ↤ max_tokens_arg
+    const int seed ↤ seed_arg
 
     const string artifact_path ← model_dir + "/tiny-model.fma.json"
-    const map<string, valor> artifact ← json.solve(solum.lege(artifact_path) ↦ string) ↦ map<string, valor>
-    const map<string, valor> tokenizer ↤ artifact["tokenizer"]
-    const map<string, numerus> vocab ↤ tokenizer["vocab"]
+    const map<string, value> artifact ← json.solve(solum.lege(artifact_path) ↦ string) ↦ map<string, value>
+    const map<string, value> tokenizer ↤ artifact["tokenizer"]
+    const map<string, int> vocab ↤ tokenizer["vocab"]
     const string unknown_token ↤ tokenizer["unknown_token"]
     const string tokenizer_format ↤ tokenizer["format"]
-    const numerus unknown_id ↤ vocab[unknown_token]
+    const int unknown_id ↤ vocab[unknown_token]
 
     const string prompt ← trim("" + (solum.lege(prompt_path) ↦ string))
     const list<string> words ← split_words(prompt)
-    var list<numerus> token_ids ← empty
-    var numerus w ← 0
+    var list<int> token_ids ← empty
+    var int w ← 0
     dum w ≺ words.longitudo() {
         if vocab[words[w]] is none {
             token_ids.appende(unknown_id)
         } else {
-            token_ids.appende(vocab[words[w]] ↦ numerus)
+            token_ids.appende(vocab[words[w]] ↦ int)
         }
         w ← w + 1
     }
@@ -174,11 +174,11 @@ main {
     for ref vocab const key {
         vocab_keys.appende(key)
     }
-    const numerus vocab_size ← vocab_keys.longitudo()
+    const int vocab_size ← vocab_keys.longitudo()
 
-    const list<fractus> logits ← [-4.0, -3.0, -2.0, -1.0, 0.0, 4.0, 2.0]
-    var numerus selected ← 0
-    var numerus j ← 1
+    const list<float> logits ← [-4.0, -3.0, -2.0, -1.0, 0.0, 4.0, 2.0]
+    var int selected ← 0
+    var int j ← 1
     dum j ≺ logits.longitudo() {
         if logits[j] ≻ logits[selected] {
             selected ← j
@@ -186,9 +186,9 @@ main {
         j ← j + 1
     }
     var string selected_text ← ""
-    var numerus k ← 0
+    var int k ← 0
     dum k ≺ vocab_keys.longitudo() {
-        if vocab[vocab_keys[k]] ↦ numerus ≡ selected {
+        if vocab[vocab_keys[k]] ↦ int ≡ selected {
             selected_text ← vocab_keys[k]
         }
         k ← k + 1
