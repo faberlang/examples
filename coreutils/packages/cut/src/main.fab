@@ -60,7 +60,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
     varia numerus initium ← 0
     varia numerus i ← 0
 
-    si sep_len ≠ 1 {
+    si sep_len ≢ 1 {
         partes.appende(s)
         redde partes
     }
@@ -81,7 +81,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
 }
 
 functio habet_finitorem(textus linea, textus finitor) → bivalens {
-    si finitor.longitudo() ≠ 1 ergo redde falsum
+    si finitor.longitudo() ≢ 1 ergo redde falsum
 
     varia numerus i ← 0
     dum i ≺ linea.longitudo() {

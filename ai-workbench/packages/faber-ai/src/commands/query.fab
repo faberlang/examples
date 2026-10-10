@@ -98,7 +98,7 @@ functio selected_ne(de lista<textus> selected, textus id) → bivalens {
 
 @ privata
 functio dot(de lista<fractus> left, de lista<fractus> right) → fractus ⇥ textus {
-    si left.longitudo() ≠ right.longitudo() {
+    si left.longitudo() ≢ right.longitudo() {
         iace "dot product dimension mismatch: expected § got §"(left.longitudo(), right.longitudo())
     }
     varia fractus total ← 0.0
@@ -125,7 +125,7 @@ functio compara_textus(textus a, textus b) → numerus {
 
 @ privata
 functio better_ne(fractus score, textus id, fractus best_score, textus best_id, bivalens found) → bivalens {
-    si found ≠ verum ergo redde verum
+    si found ≢ verum ergo redde verum
     si score ≻ best_score ergo redde verum
     si score ≡ best_score et compara_textus(id, best_id) ≺ 0 ergo redde verum
     redde falsum
@@ -146,7 +146,7 @@ functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus 
         varia textus best_text ← ""
         varia fractus best_score ← 0.0
         itera ex records fixum item {
-            si selected_ne(selected, "§"(item.id)) ≠ verum {
+            si selected_ne(selected, "§"(item.id)) ≢ verum {
                 fixum textus item_id ← "§"(item.id)
                 fixum fractus score ← dot(item.values, query)
                 si better_ne(score, item_id, best_score, best_id, found) {
@@ -157,7 +157,7 @@ functio ranked(de lista<VectorRecord> records, de lista<fractus> query, numerus 
                 }
             }
         }
-        si found ≠ verum ergo redde out
+        si found ≢ verum ergo redde out
         fixum textus selected_id ← "§"(best_id)
         out.appende(ScoredRecord {
             rank = out.longitudo() + 1,
@@ -238,19 +238,19 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
         emit_error("query embedding required: pass --query-vector", formatum)
         redde
     }
-    si solum.exstat(index_path) ≠ verum {
+    si solum.exstat(index_path) ≢ verum {
         emit_error("index artifact not found: §"(index_path), formatum)
         redde
     }
-    si solum.regularene(index_path) ≠ verum aut solum.legibilene(index_path) ≠ verum {
+    si solum.regularene(index_path) ≢ verum aut solum.legibilene(index_path) ≢ verum {
         emit_error("index artifact unreadable: §"(index_path), formatum)
         redde
     }
-    si solum.exstat(query_vector_path) ≠ verum {
+    si solum.exstat(query_vector_path) ≢ verum {
         emit_error("query vector not found: §"(query_vector_path), formatum)
         redde
     }
-    si solum.regularene(query_vector_path) ≠ verum aut solum.legibilene(query_vector_path) ≠ verum {
+    si solum.regularene(query_vector_path) ≢ verum aut solum.legibilene(query_vector_path) ≢ verum {
         emit_error("query vector unreadable: §"(query_vector_path), formatum)
         redde
     }
@@ -260,19 +260,19 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
     fac {
         fixum Stage3Index index ← parse_stage3_index(index_wire)
         fixum QueryVector query_vector ← parse_query_vector(query_wire)
-        si index.formatum ≠ "fvi-stage3-index" {
+        si index.formatum ≢ "fvi-stage3-index" {
             emit_error("unsupported index artifact format: §"(index.formatum), formatum)
             redde
         }
-        si query_vector.formatum ≠ "fvi-stage3-query-vector" {
+        si query_vector.formatum ≢ "fvi-stage3-query-vector" {
             emit_error("unsupported query vector format: §"(query_vector.formatum), formatum)
             redde
         }
-        si index.metric ≠ "cosine" {
+        si index.metric ≢ "cosine" {
             emit_error("unsupported query metric: §"(index.metric), formatum)
             redde
         }
-        si index.normalization ≠ "l2" {
+        si index.normalization ≢ "l2" {
             emit_error("unsupported index normalization: §"(index.normalization), formatum)
             redde
         }
@@ -284,29 +284,29 @@ functio curre(textus index_path, textus query, numerus top, textus formatum, tex
             emit_error("index artifact dimensions must be positive", formatum)
             redde
         }
-        si query_vector.dimensions ≠ index.dimensions {
+        si query_vector.dimensions ≢ index.dimensions {
             emit_error("query vector dimensions mismatch: expected § got §"(index.dimensions, query_vector.dimensions), formatum)
             redde
         }
-        si query_vector.normalization ≠ "l2" {
+        si query_vector.normalization ≢ "l2" {
             emit_error("unsupported query vector normalization: §"(query_vector.normalization), formatum)
             redde
         }
         varia numerus actual_vectors ← 0
         itera ex index.vectors fixum item {
             fixum numerus actual_dimensions ← item.values.longitudo()
-            si actual_dimensions ≠ index.dimensions {
+            si actual_dimensions ≢ index.dimensions {
                 emit_error("index vector dimensions mismatch: expected § got §"(index.dimensions, actual_dimensions), formatum)
                 redde
             }
             actual_vectors ← actual_vectors + 1
         }
-        si actual_vectors ≠ index.input_vectors {
+        si actual_vectors ≢ index.input_vectors {
             emit_error("index vector count mismatch: expected § got §"(index.input_vectors, actual_vectors), formatum)
             redde
         }
         fixum numerus actual_query_dimensions ← query_vector.values.longitudo()
-        si actual_query_dimensions ≠ index.dimensions {
+        si actual_query_dimensions ≢ index.dimensions {
             emit_error("query vector dimensions mismatch: expected § got §"(index.dimensions, actual_query_dimensions), formatum)
             redde
         }

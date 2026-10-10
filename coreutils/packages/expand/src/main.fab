@@ -87,7 +87,7 @@ functio discinde(textus s, textus separator) → lista<textus> {
     varia numerus initium ← 0
     varia numerus i ← 0
 
-    si sep_len ≠ 1 {
+    si sep_len ≢ 1 {
         partes.appende(s)
         redde partes
     }
@@ -212,7 +212,7 @@ functio expande_lineam_cum(textus linea, bivalens finita, numerus amplitudo, num
         secus {
             out ← out + c
             columna ← columna + 1
-            si c ≠ " " et c ≠ "\t" {
+            si c ≢ " " et c ≢ "\t" {
                 in_principio ← falsum
             }
         }

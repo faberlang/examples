@@ -76,7 +76,7 @@ fn claim_failures(map<string, value> claims, string label) → list<string> {
             failures.append("§ claim § must be explicitly false"(label, key))
             continue
         }
-        if claims[key] ↦ bool ≠ false {
+        if claims[key] ↦ bool ≢ false {
             failures.append("§ claim § must remain false"(label, key))
         }
     }
@@ -85,13 +85,13 @@ fn claim_failures(map<string, value> claims, string label) → list<string> {
 
 main {
     const list<string> av ← processus.argumenta() ↦ list<string>
-    if av.length() ≠ 2 {
+    if av.length() ≢ 2 {
         consolum.mone("usage: runner_artifact_claim_gate <artifact> <expected_status>")
         processus.exi(2)
     }
     const string artifact ↤ av[0]
     const string expected_status ↤ av[1]
-    if expected_status ≠ "oracle-backed" and expected_status ≠ "router-backed" {
+    if expected_status ≢ "oracle-backed" and expected_status ≢ "router-backed" {
         consolum.mone("argument expected_status: invalid choice: '§' (choose from 'oracle-backed', 'router-backed')"(expected_status))
         processus.exi(2)
     }
@@ -120,7 +120,7 @@ main {
         processus.exi(1)
     }
     const string kind ↤ first["event"]
-    if kind ≠ "metadata" {
+    if kind ≢ "metadata" {
         consolum.mone("runner artifact first event must be metadata")
         processus.exi(1)
     }
@@ -129,7 +129,7 @@ main {
         failures.append("runner artifact metadata status 'None' does not match '§'"(expected_status))
     } else {
         const string status ↤ first["status"]
-        if status ≠ expected_status {
+        if status ≢ expected_status {
             failures.append("runner artifact metadata status '§' does not match '§'"(status, expected_status))
         }
     }
@@ -142,7 +142,7 @@ main {
             failures.append(item)
         }
     }
-    if failures.length() ≠ 0 {
+    if failures.length() ≢ 0 {
         for from failures const failure {
             consolum.mone(failure)
         }

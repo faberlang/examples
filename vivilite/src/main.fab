@@ -184,22 +184,22 @@ functio split(de textus s, de textus separator) → lista<textus> {
 }
 
 functio read_lines(de textus path) → lista<textus> {
-    si solum.exstat(path) ≠ verum ergo redde []
+    si solum.exstat(path) ≢ verum ergo redde []
     redde solum.carpe(path)
 }
 
 functio ensure_store(de Store s) → vacuum {
     solum.crea(s.dir ↦ textus)
-    si solum.exstat("§/mailspace.txt"(s.dir)) ≠ verum {
+    si solum.exstat("§/mailspace.txt"(s.dir)) ≢ verum {
         solum.scribe("§/mailspace.txt"(s.dir), "name=vivilite\n")
     }
-    si solum.exstat(s.identities ↦ textus) ≠ verum {
+    si solum.exstat(s.identities ↦ textus) ≢ verum {
         solum.scribe(s.identities ↦ textus, "")
     }
-    si solum.exstat(s.mail ↦ textus) ≠ verum {
+    si solum.exstat(s.mail ↦ textus) ≢ verum {
         solum.scribe(s.mail ↦ textus, "")
     }
-    si solum.exstat(s.work ↦ textus) ≠ verum {
+    si solum.exstat(s.work ↦ textus) ≢ verum {
         solum.scribe(s.work ↦ textus, "")
     }
 }
@@ -415,7 +415,7 @@ functio sqlite_count(de textus database, de textus who, de textus role) → nume
 functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus role, de textus kind, de textus note) → vacuum ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = ?3", [who ↦ valor, handle ↦ valor, role ↦ valor])
-    si rows.longitudo() ≠ 1 {
+    si rows.longitudo() ≢ 1 {
         iace "open § not found: §"(kind, handle)
     }
     fixum valor row ← rows.accipe(0)
@@ -432,7 +432,7 @@ functio sqlite_work_done(de Store s, de textus who, de textus handle, de textus 
 functio sqlite_want_promote(de Store s, de textus who, de textus handle, de textus note) → vacuum ⇥ textus {
     fixum textus database ← "§/.vivi/mail.sqlite"(s.root)
     fixum lista<valor> rows ← sqlite.quaere(database, "SELECT m.message_id AS message_id, m.content_id AS content_id, md.subject AS subject FROM messages m JOIN message_metadata md ON md.content_id = m.content_id WHERE m.account = ?1 AND substr(m.message_id, 5, 7) = ?2 AND m.local_role = 'wants'", [who ↦ valor, handle ↦ valor])
-    si rows.longitudo() ≠ 1 {
+    si rows.longitudo() ≢ 1 {
         iace "open want not found: §"(handle)
     }
     fixum valor row ← rows.accipe(0)
@@ -458,7 +458,7 @@ functio vivi_address(de textus identity, de textus mailspace) → textus {
 # stable regardless of platform newline conventions.
 functio compose_vivi_message(de textus mailspace, de textus kind, de textus from, de textus to, de textus subject, de textus body) → textus {
     varia textus normalized_body ↤ body
-    si body.longitudo() ≡ 0 aut body.sectio(body.longitudo() - 1, body.longitudo()) ≠ "\n" {
+    si body.longitudo() ≡ 0 aut body.sectio(body.longitudo() - 1, body.longitudo()) ≢ "\n" {
         normalized_body ← cat(body, "\r\n")
     }
     varia textus eml ← cat("From: ", vivi_address(from, mailspace))
@@ -511,7 +511,7 @@ functio sqlite_send(de Store s, de textus kind, de textus role, de textus from, 
     # Record the delivery event in the recipient's mailspace event log.
     statements.appende(sqlite_statement("INSERT INTO mailspace_events (occurred_at, command, event_type, actor_identity, account, message_id, content_id, from_role, to_role, from_identity, to_identity, subject, note) VALUES (datetime('now'), ?1, 'delivered', ?2, ?3, ?4, ?5, NULL, ?6, ?2, ?3, ?7, NULL)", [command ↦ valor, from ↦ valor, to ↦ valor, message_id ↦ valor, content_id ↦ valor, role ↦ valor, subject ↦ valor]))
     sqlite.exsequi_batch("§/.vivi/mail.sqlite"(s.root), statements)
-    si blob_existed ≠ verum {
+    si blob_existed ≢ verum {
         solum.crea("§/.vivi/blobs/§/§"(s.root, content_id.sectio(0, 2), content_id.sectio(2, 4)))
         solum.scribe(blob_path, eml)
     }

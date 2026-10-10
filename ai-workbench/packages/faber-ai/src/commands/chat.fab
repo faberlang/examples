@@ -91,7 +91,7 @@ functio subset_line_supported(textus line) → bivalens {
 
 functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
     itera ex aliases fixum line {
-        si subset_line_supported(line) ≠ verum ergo redde falsum
+        si subset_line_supported(line) ≢ verum ergo redde falsum
     }
     redde verum
 }
@@ -349,17 +349,17 @@ functio curre(
     textus router_label,
     textus router_url
 ) → vacuum {
-    si solum.exstat(map_path) ≠ verum {
+    si solum.exstat(map_path) ≢ verum {
         emit_error(target, target, "alias map not found: §"(map_path), formatum)
         redde
     }
-    si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
+    si solum.regularene(map_path) ≢ verum aut solum.legibilene(map_path) ≢ verum {
         emit_error(target, target, "alias map unreadable: §"(map_path), formatum)
         redde
     }
 
     fixum lista<textus> aliases ← solum.carpe(map_path)
-    si alias_map_subset_supported(aliases) ≠ verum {
+    si alias_map_subset_supported(aliases) ≢ verum {
         emit_error(target, target, "alias map outside supported subset: §"(map_path), formatum)
         redde
     }
@@ -367,7 +367,7 @@ functio curre(
     fixum textus source ← source_for(aliases, target)
     fixum textus status ← status_for(aliases, target)
     fixum textus router_id ← router_id_for(aliases, target)
-    si status ≠ "router-backed" {
+    si status ≢ "router-backed" {
         emit_error(target, source, "chat requires router-backed model alias: §"(target), formatum)
         redde
     }
@@ -377,16 +377,16 @@ functio curre(
     }
 
     fixum textus local_path ← raw_local_path_for(aliases, target)
-    si local_path.initium("/Users/ianzepp/ai/models/") ≠ verum {
+    si local_path.initium("/Users/ianzepp/ai/models/") ≢ verum {
         emit_error(target, source, "router-backed GGUF must live under /Users/ianzepp/ai/models: §"(target), formatum)
         redde
     }
 
-    si solum.exstat(prompt_path) ≠ verum {
+    si solum.exstat(prompt_path) ≢ verum {
         emit_error(target, source, "prompt file not found: §"(prompt_path), formatum)
         redde
     }
-    si solum.regularene(prompt_path) ≠ verum aut solum.legibilene(prompt_path) ≠ verum {
+    si solum.regularene(prompt_path) ≢ verum aut solum.legibilene(prompt_path) ≢ verum {
         emit_error(target, source, "prompt file unreadable: §"(prompt_path), formatum)
         redde
     }
@@ -397,11 +397,11 @@ functio curre(
         redde
     }
 
-    si solum.exstat(router_runner) ≠ verum {
+    si solum.exstat(router_runner) ≢ verum {
         emit_error(target, source, "router runner not found: §"(router_runner), formatum)
         redde
     }
-    si solum.regularene(router_runner) ≠ verum aut solum.legibilene(router_runner) ≠ verum {
+    si solum.regularene(router_runner) ≢ verum aut solum.legibilene(router_runner) ≢ verum {
         emit_error(target, source, "router runner unreadable: §"(router_runner), formatum)
         redde
     }
@@ -410,20 +410,20 @@ functio curre(
         solum.dele(out_path)
     }
     fixum tabula<textus, valor> runner_result ← processus.captura(router_args(router_runner, prompt_path, out_path, target, source, router_id, local_path, router_label, router_url)) ↦ tabula<textus, valor>
-    si result_status(runner_result) ≠ 0 {
+    si result_status(runner_result) ≢ 0 {
         emit_error(target, source, "router runner failed: §"(runner_failure(runner_result)), formatum)
         redde
     }
-    si solum.exstat(out_path) ≠ verum {
+    si solum.exstat(out_path) ≢ verum {
         emit_error(target, source, "router runner did not produce output: §"(result_stdout(runner_result)), formatum)
         redde
     }
-    si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
+    si solum.regularene(out_path) ≢ verum aut solum.legibilene(out_path) ≢ verum {
         emit_error(target, source, "router runner output unreadable: §"(out_path), formatum)
         redde
     }
     fixum tabula<textus, valor> artifact_gate ← processus.captura(runner_artifact_gate_args(out_path, "router-backed")) ↦ tabula<textus, valor>
-    si result_status(artifact_gate) ≠ 0 {
+    si result_status(artifact_gate) ≢ 0 {
         emit_error(target, source, "router runner artifact rejected: §"(runner_artifact_gate_failure(artifact_gate)), formatum)
         solum.dele(out_path)
         redde

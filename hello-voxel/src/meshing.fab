@@ -449,12 +449,12 @@ functio empty_chunk_resource_table() → ChunkResourceTable {
 }
 
 functio f32_list_equal(de lista<f32> a, de lista<f32> b) → bivalens {
-    si a.length() ≠ b.length() {
+    si a.length() ≢ b.length() {
         redde falsum
     }
     varia numerus i ← 0
     dum i ≺ a.length() {
-        si a[i] ≠ b[i] {
+        si a[i] ≢ b[i] {
             redde falsum
         }
         i ← i + 1
@@ -463,12 +463,12 @@ functio f32_list_equal(de lista<f32> a, de lista<f32> b) → bivalens {
 }
 
 functio u32_list_equal(de lista<u32> a, de lista<u32> b) → bivalens {
-    si a.length() ≠ b.length() {
+    si a.length() ≢ b.length() {
         redde falsum
     }
     varia numerus i ← 0
     dum i ≺ a.length() {
-        si a[i] ≠ b[i] {
+        si a[i] ≢ b[i] {
             redde falsum
         }
         i ← i + 1
@@ -484,7 +484,7 @@ functio chunk_resource_payload_matches(
     si state.live ≡ falsum {
         redde falsum
     }
-    si state.face_count ≠ mesh.face_count {
+    si state.face_count ≢ mesh.face_count {
         redde falsum
     }
     redde f32_list_equal(state.positions, mesh.positions)
@@ -526,29 +526,29 @@ functio empty_state_at(
 }
 
 functio chunk_resource_table_valid(de ChunkResourceTable table) → bivalens {
-    si table.chunks.length() ≠ voxel.chunk_count() {
+    si table.chunks.length() ≢ voxel.chunk_count() {
         redde falsum
     }
     varia numerus i ← 0
     dum i ≺ table.chunks.length() {
         fixum ChunkResourceState state ← table.chunks[i]
-        si state.handle.index ≠ i {
+        si state.handle.index ≢ i {
             redde falsum
         }
         si state.live ≡ falsum {
-            si state.face_count ≠ 0
-                aut state.positions.length() ≠ 0
-                aut state.colors.length() ≠ 0
-                aut state.indices.length() ≠ 0 {
+            si state.face_count ≢ 0
+                aut state.positions.length() ≢ 0
+                aut state.colors.length() ≢ 0
+                aut state.indices.length() ≢ 0 {
                 redde falsum
             }
         } secus {
             si state.face_count ≡ 0 {
                 redde falsum
             }
-            si state.positions.length() ≠ state.face_count * 12
-                aut state.colors.length() ≠ state.face_count * 12
-                aut state.indices.length() ≠ state.face_count * 6 {
+            si state.positions.length() ≢ state.face_count * 12
+                aut state.colors.length() ≢ state.face_count * 12
+                aut state.indices.length() ≢ state.face_count * 6 {
                 redde falsum
             }
         }

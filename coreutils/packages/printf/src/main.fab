@@ -661,7 +661,7 @@ functio trim_leading_zeroes(textus value) → textus {
 functio first_nonzero_index(textus value) → numerus {
     varia numerus i ← 0
     dum i ≺ value.longitudo() {
-        si value.sectio(i, i + 1) ≠ "0" ergo redde i
+        si value.sectio(i, i + 1) ≢ "0" ergo redde i
         i ← i + 1
     }
     redde -1

@@ -166,15 +166,15 @@ functio emit_error(textus diagnosticum, textus formatum) → vacuum {
 }
 
 functio curre(textus vectors_path, textus out_path, textus formatum, textus metric) → vacuum {
-    si metric ≠ "cosine" {
+    si metric ≢ "cosine" {
         emit_error("unsupported index metric: §"(metric), formatum)
         redde
     }
-    si solum.exstat(vectors_path) ≠ verum {
+    si solum.exstat(vectors_path) ≢ verum {
         emit_error("vector artifact not found: §"(vectors_path), formatum)
         redde
     }
-    si solum.regularene(vectors_path) ≠ verum aut solum.legibilene(vectors_path) ≠ verum {
+    si solum.regularene(vectors_path) ≢ verum aut solum.legibilene(vectors_path) ≢ verum {
         emit_error("vector artifact unreadable: §"(vectors_path), formatum)
         redde
     }
@@ -182,15 +182,15 @@ functio curre(textus vectors_path, textus out_path, textus formatum, textus metr
     fixum textus wire ← solum.lege<textus>(vectors_path)
     fac {
         fixum Stage2Document artifact ← parse_stage2(wire)
-        si artifact.formatum ≠ "fvi-stage2" {
+        si artifact.formatum ≢ "fvi-stage2" {
             emit_error("unsupported vector artifact format: §"(artifact.formatum), formatum)
             redde
         }
-        si artifact.status ≠ "oracle-backed" et artifact.status ≠ "ok" {
+        si artifact.status ≢ "oracle-backed" et artifact.status ≢ "ok" {
             emit_error("vector artifact has no embeddings: §"(artifact.status), formatum)
             redde
         }
-        si artifact.normalization ≠ "l2" {
+        si artifact.normalization ≢ "l2" {
             emit_error("unsupported vector normalization: §"(artifact.normalization), formatum)
             redde
         }
@@ -205,13 +205,13 @@ functio curre(textus vectors_path, textus out_path, textus formatum, textus metr
         varia numerus actual_vectors ← 0
         itera ex artifact.vectors fixum item {
             fixum numerus actual_dimensions ← item.values.longitudo()
-            si actual_dimensions ≠ artifact.dimensions {
+            si actual_dimensions ≢ artifact.dimensions {
                 emit_error("vector dimensions mismatch: expected § got §"(artifact.dimensions, actual_dimensions), formatum)
                 redde
             }
             actual_vectors ← actual_vectors + 1
         }
-        si actual_vectors ≠ artifact.input_count {
+        si actual_vectors ≢ artifact.input_count {
             emit_error("vector count mismatch: expected § got §"(artifact.input_count, actual_vectors), formatum)
             redde
         }

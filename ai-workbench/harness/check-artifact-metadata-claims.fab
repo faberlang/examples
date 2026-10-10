@@ -76,7 +76,7 @@ main {
     clean.append(make_event("metadata", "oracle-backed", full_false))
     clean.append(make_event("metadata", "router-backed", full_false))
     clean.append(make_event("token", "oracle-backed", full_false))
-    if check_failures(clean, "artifact").length() ≠ 0 {
+    if check_failures(clean, "artifact").length() ≢ 0 {
         failures.append("clean artifact with gated statuses must pass")
     }
 
@@ -93,7 +93,7 @@ main {
     local_ops_claims.put("public_inference", true)
     var list<map<string, any>> ungated ← empty
     ungated.append(make_event("metadata", "local-ops", local_ops_claims))
-    if check_failures(ungated, "artifact").length() ≠ 0 {
+    if check_failures(ungated, "artifact").length() ≢ 0 {
         failures.append("non-gated metadata status must be skipped")
     }
 
@@ -112,7 +112,7 @@ main {
         failures.append("per-index metadata label must be applied")
     }
 
-    if failures.length() ≠ 0 {
+    if failures.length() ≢ 0 {
         for from failures const failure {
             print "FAIL §"(failure)
         }

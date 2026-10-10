@@ -1269,7 +1269,7 @@ functio box_wire_world_positions(numerus cell_x, numerus cell_y, numerus cell_z)
     si wire_result est nihil {
         redde nulla
     }
-    si wire_result!.vertex_count ≠ 8 aut wire_result!.indices.length() ≠ 24 {
+    si wire_result!.vertex_count ≢ 8 aut wire_result!.indices.length() ≢ 24 {
         redde nulla
     }
     fixum f32 ox ← (cell_x ↦ f32) + 0.5 ∷ f32

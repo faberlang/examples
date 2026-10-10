@@ -696,7 +696,7 @@ functio hello_voxel_controller(dom.Scope scope) → lista<dom.Subscription> {
         indices = batch_result!.indices
     }
 
-    si batch.chunk_count ≠ 4 aut batch.non_empty_count ≠ 4 aut batch.total_index_count ≡ 0 {
+    si batch.chunk_count ≢ 4 aut batch.non_empty_count ≢ 4 aut batch.total_index_count ≡ 0 {
         dom.text_set(status, "package-mesh-invalid")
         dom.class_add(status, "failed")
         dom.attr_set(canvas, "data-hv-resource-pair-count", batch.non_empty_count ↦ textus)

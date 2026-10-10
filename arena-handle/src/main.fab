@@ -115,14 +115,14 @@ functio area_accipe(de Area area, de Manus manus) → textus {
     si slot.vivus ≡ falsum {
         redde ""
     }
-    si slot.generatio ≠ manus.generatio {
+    si slot.generatio ≢ manus.generatio {
         redde ""
     }
     redde slot.valor
 }
 
 functio area_continet(de Area area, de Manus manus) → bivalens {
-    redde area_accipe(area, manus) ≠ ""
+    redde area_accipe(area, manus) ≢ ""
 }
 
 functio area_tollit(Area area, de Manus manus) → Area {

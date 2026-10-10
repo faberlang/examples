@@ -93,7 +93,7 @@ functio subset_line_supported(textus line) → bivalens {
 
 functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
     itera ex aliases fixum line {
-        si subset_line_supported(line) ≠ verum ergo redde falsum
+        si subset_line_supported(line) ≢ verum ergo redde falsum
     }
     redde verum
 }
@@ -332,41 +332,41 @@ functio curre(
     textus oracle_runner,
     textus oracle_label
 ) → vacuum {
-    si solum.exstat(map_path) ≠ verum {
+    si solum.exstat(map_path) ≢ verum {
         emit_error(target, "alias map not found: §"(map_path), formatum)
         redde
     }
-    si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
+    si solum.regularene(map_path) ≢ verum aut solum.legibilene(map_path) ≢ verum {
         emit_error(target, "alias map unreadable: §"(map_path), formatum)
         redde
     }
 
     fixum lista<textus> aliases ← solum.carpe(map_path)
-    si alias_map_subset_supported(aliases) ≠ verum {
+    si alias_map_subset_supported(aliases) ≢ verum {
         emit_error(target, "alias map outside supported subset: §"(map_path), formatum)
         redde
     }
 
     fixum textus status ← status_for(aliases, target)
-    si status ≠ "local" {
+    si status ≢ "local" {
         emit_error(target, "embedding requires local model alias: §"(target), formatum)
         redde
     }
 
     fixum textus local_path ← raw_local_path_for(aliases, target)
-    si local_path.longitudo() ≡ 0 aut solum.exstat(local_path) ≠ verum {
+    si local_path.longitudo() ≡ 0 aut solum.exstat(local_path) ≢ verum {
         emit_error(target, "local model file not found: §"(target), formatum)
         redde
     }
-    si solum.regularene(local_path) ≠ verum aut solum.legibilene(local_path) ≠ verum {
+    si solum.regularene(local_path) ≢ verum aut solum.legibilene(local_path) ≢ verum {
         emit_error(target, "local model file unreadable: §"(target), formatum)
         redde
     }
-    si solum.exstat(input_path) ≠ verum {
+    si solum.exstat(input_path) ≢ verum {
         emit_error(target, "input text file not found: §"(input_path), formatum)
         redde
     }
-    si solum.regularene(input_path) ≠ verum aut solum.legibilene(input_path) ≠ verum {
+    si solum.regularene(input_path) ≢ verum aut solum.legibilene(input_path) ≢ verum {
         emit_error(target, "input text file unreadable: §"(input_path), formatum)
         redde
     }
@@ -374,11 +374,11 @@ functio curre(
     fixum numerus count ← input_count(input_path)
     fixum textus source ← source_for(aliases, target)
     si oracle_runner.longitudo() ≻ 0 {
-        si solum.exstat(oracle_runner) ≠ verum {
+        si solum.exstat(oracle_runner) ≢ verum {
             emit_error(target, "oracle runner not found: §"(oracle_runner), formatum)
             redde
         }
-        si solum.regularene(oracle_runner) ≠ verum aut solum.legibilene(oracle_runner) ≠ verum {
+        si solum.regularene(oracle_runner) ≢ verum aut solum.legibilene(oracle_runner) ≢ verum {
             emit_error(target, "oracle runner unreadable: §"(oracle_runner), formatum)
             redde
         }
@@ -387,19 +387,19 @@ functio curre(
             solum.dele(out_path)
         }
         fixum tabula<textus, valor> runner_result ← processus.captura(oracle_args(oracle_runner, input_path, out_path, model_dir, target, source, oracle_label)) ↦ tabula<textus, valor>
-        si result_status(runner_result) ≠ 0 {
+        si result_status(runner_result) ≢ 0 {
             emit_error(target, "oracle runner failed: §"(runner_failure(runner_result)), formatum)
             redde
         }
-        si solum.exstat(out_path) ≠ verum {
+        si solum.exstat(out_path) ≢ verum {
             emit_error(target, "oracle runner did not produce output: §"(result_stdout(runner_result)), formatum)
             redde
         }
-        si solum.regularene(out_path) ≠ verum aut solum.legibilene(out_path) ≠ verum {
+        si solum.regularene(out_path) ≢ verum aut solum.legibilene(out_path) ≢ verum {
             emit_error(target, "oracle runner output unreadable: §"(out_path), formatum)
             redde
         }
-        si artifact_contains(out_path, "\"status\":\"oracle-backed\"") ≠ verum {
+        si artifact_contains(out_path, "\"status\":\"oracle-backed\"") ≢ verum {
             emit_error(target, "oracle runner output missing oracle-backed status: §"(out_path), formatum)
             redde
         }

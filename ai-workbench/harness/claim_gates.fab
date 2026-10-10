@@ -81,7 +81,7 @@ fn allowed_false_failures(map<string, bool> claims, string label, list<string> a
     const list<string> keys ← sorted_keys(claims)
     for from keys const key {
         if allowed_false.contains(key) {
-            if claims[key] ≠ false {
+            if claims[key] ≢ false {
                 failures.append("§ claim § must remain false"(label, key))
             }
         }
@@ -98,7 +98,7 @@ fn forbidden_failures(map<string, bool> claims, string label, bool require_all) 
             }
             continue
         }
-        if claims[key] ≠ false {
+        if claims[key] ≢ false {
             failures.append("§ claim § must remain false"(label, key))
         }
     }

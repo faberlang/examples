@@ -47,7 +47,7 @@ fn check_rung4(string repo_root) → list<string> {
     const float tolerance ↤ tolerance_value
     # The JSON parser rejects NaN/Infinity literals, so the self-inequality
     # arm is defensive parity for math.isfinite.
-    if tolerance ≺ 0.0 or tolerance ≠ tolerance {
+    if tolerance ≺ 0.0 or tolerance ≢ tolerance {
         failures.append("rung4 tolerance must be a finite non-negative number")
         return failures
     }
@@ -68,7 +68,7 @@ fn check_rung4(string repo_root) → list<string> {
     while index ≺ events.length() {
         const map<string, value> event ↤ events[index]
         const int step ↤ event["step"]
-        if step ≠ index {
+        if step ≢ index {
             failures.append("rung4 event " + (index ↦ string) + ": step=" + (step ↦ string))
         }
         const value launch_value ← event["launch"]
@@ -76,7 +76,7 @@ fn check_rung4(string repo_root) → list<string> {
             failures.append("rung4 event " + (index ↦ string) + ": unexpected launch None")
         } else {
             const string launch ↤ launch_value
-            if launch ≠ "rung4_step_kernel" {
+            if launch ≢ "rung4_step_kernel" {
                 failures.append("rung4 event " + (index ↦ string) + ": unexpected launch '" + launch + "'")
             }
         }
@@ -100,19 +100,19 @@ fn check_rung4(string repo_root) → list<string> {
         index ← index + 1
     }
 
-    if (inputs["steps"] ↦ int) ≠ events.length() {
+    if (inputs["steps"] ↦ int) ≢ events.length() {
         failures.append("rung4 inputs.steps does not match session event count")
     }
     const map<string, value> reference ↤ ref["reference"]
-    if reference ≠ expected {
+    if reference ≢ expected {
         failures.append("rung4 .expected sidecar must mirror reference oracle")
     }
     const list<value> reference_losses ↤ reference["losses"]
-    if reference_losses.length() ≠ losses.length() {
+    if reference_losses.length() ≢ losses.length() {
         failures.append("rung4 reference loss count does not match session event count")
     }
     const list<value> reference_weights ↤ reference["weights"]
-    if reference_weights.length() ≠ weights.length() {
+    if reference_weights.length() ≢ weights.length() {
         failures.append("rung4 reference weight count does not match session event count")
     }
     var int k ← 0
@@ -133,7 +133,7 @@ fn check_rung4(string repo_root) → list<string> {
     const map<string, value> floor ↤ ref["current_output_checked_floor"]
     const list<string> floor_claims ← ["device_training", "session_lifecycle", "optimizer_workflow", "pytorch_equivalence"]
     for from floor_claims const claim {
-        if (floor[claim] ↦ int) ≠ 0 {
+        if (floor[claim] ↦ int) ≢ 0 {
             failures.append("rung4 " + claim + " must remain a non-claim")
         }
     }
@@ -152,7 +152,7 @@ main {
     }
     const string repo_root ↤ av[0]
     const list<string> failures ← check_rung4(repo_root)
-    if failures.length() ≠ 0 {
+    if failures.length() ≢ 0 {
         consolum.mone("gpu workload contract failures:")
         for from failures const failure {
             consolum.mone("  - " + failure)

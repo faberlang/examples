@@ -321,20 +321,20 @@ functio empty_world() → World {
 }
 
 functio world_valid(de World world) → bivalens {
-    si world.chunks.length() ≠ chunk_count() {
+    si world.chunks.length() ≢ chunk_count() {
         redde falsum
     }
     varia numerus i ← 0
     dum i ≺ world.chunks.length() {
         fixum Chunk chunk ← world.chunks[i]
-        si chunk.blocks.length() ≠ cells_per_chunk() {
+        si chunk.blocks.length() ≢ cells_per_chunk() {
             redde falsum
         }
         fixum numerus ∪ nihil expected_index ← chunk_index(chunk.cx, chunk.cz)
         si expected_index est nihil {
             redde falsum
         }
-        si (expected_index vel 0) ≠ i {
+        si (expected_index vel 0) ≢ i {
             redde falsum
         }
         i ← i + 1
@@ -611,7 +611,7 @@ functio empty_world_is_all_air(de World world) → bivalens {
                 si value est nihil {
                     redde falsum
                 }
-                si (value vel 0) ≠ block_air() {
+                si (value vel 0) ≢ block_air() {
                     redde falsum
                 }
                 x ← x + 1
@@ -910,12 +910,12 @@ functio indices_equal(
     de lista<numerus> a,
     de lista<numerus> b
 ) → bivalens {
-    si a.length() ≠ b.length() {
+    si a.length() ≢ b.length() {
         redde falsum
     }
     varia numerus i ← 0
     dum i ≺ a.length() {
-        si a[i] ≠ b[i] {
+        si a[i] ≢ b[i] {
             redde falsum
         }
         i ← i + 1

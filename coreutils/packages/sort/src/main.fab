@@ -116,7 +116,7 @@ functio compara_lineas(textus a, textus b, bivalens fold_case) → numerus {
         fixum textus key_b ← clavis_fold_ascii(b)
         fixum numerus key_order ← compara_textus(key_a, key_b)
 
-        si key_order ≠ 0 ergo redde key_order
+        si key_order ≢ 0 ergo redde key_order
     }
 
     redde compara_textus(a, b)
@@ -189,7 +189,7 @@ functio lineae_unicae_ordinatae(lista<textus> lineae, bivalens fold_case) → li
     dum i ≺ lineae.longitudo() {
         fixum textus prior ← lineae.accipe(i - 1) vel ""
         fixum textus linea ← lineae.accipe(i) vel ""
-        si compara_lineas(linea, prior, fold_case) ≠ 0 {
+        si compara_lineas(linea, prior, fold_case) ≢ 0 {
             out.appende(linea)
         }
         i ← i + 1

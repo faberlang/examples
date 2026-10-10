@@ -87,7 +87,7 @@ functio subset_line_supported(textus line) → bivalens {
 
 functio alias_map_subset_supported(lista<textus> aliases) → bivalens {
     itera ex aliases fixum line {
-        si subset_line_supported(line) ≠ verum ergo redde falsum
+        si subset_line_supported(line) ≢ verum ergo redde falsum
     }
     redde verum
 }
@@ -293,7 +293,7 @@ functio output_diagnostic(textus nuntius, textus display_path) → textus {
 }
 
 functio gguf_quantization_for(textus read_path, textus router_model_id, textus summary_quantization) → textus {
-    si summary_quantization ≠ "FILE_TYPE_-1" ergo redde summary_quantization
+    si summary_quantization ≢ "FILE_TYPE_-1" ergo redde summary_quantization
     si router_model_id.longitudo() ≡ 0 ergo redde summary_quantization
     fixum numerus offset ← solum.inveni(read_path, "general.file_type", 0, 12000000)
     si offset ≺ 0 ergo redde summary_quantization
@@ -499,7 +499,7 @@ functio inspect() argumenta args → vacuum {
         }
     }
 
-    si solum.exstat(map_path) ≠ verum {
+    si solum.exstat(map_path) ≢ verum {
         si format_jsonne(output_format) {
             inspect_map_missing_json(target, map_path)
         } secus {
@@ -507,7 +507,7 @@ functio inspect() argumenta args → vacuum {
         }
         redde
     }
-    si solum.regularene(map_path) ≠ verum aut solum.legibilene(map_path) ≠ verum {
+    si solum.regularene(map_path) ≢ verum aut solum.legibilene(map_path) ≢ verum {
         si format_jsonne(output_format) {
             inspect_map_unreadable_json(target, map_path)
         } secus {
@@ -517,7 +517,7 @@ functio inspect() argumenta args → vacuum {
     }
 
     fixum lista<textus> aliases ← solum.carpe(map_path)
-    si alias_map_subset_supported(aliases) ≠ verum {
+    si alias_map_subset_supported(aliases) ≢ verum {
         si format_jsonne(output_format) {
             inspect_map_invalid_json(target, map_path)
         } secus {

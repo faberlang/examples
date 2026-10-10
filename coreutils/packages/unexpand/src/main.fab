@@ -227,7 +227,7 @@ functio unexpand_linea_cum(textus linea, bivalens convertit_plene, bivalens fini
         }
         secus {
             out ← out + ch
-            si ch ≠ " " {
+            si ch ≢ " " {
                 in_principio ← falsum
             }
             columna ← columna + 1
