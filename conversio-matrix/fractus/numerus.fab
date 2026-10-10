@@ -7,7 +7,7 @@ locale = "la"
 # =============================================================================
 #
 # What this example teaches:
-#   • fractus ↦ numerus — truncate fractional value to integer (as i64)
+#   • fractus ↦ numerus via Trunc — truncate fractional value to integer (as i64)
 #   • Lossy conversion — fractional part is discarded
 #   • Dedicated Rust arm — typechecks clean
 #
@@ -16,12 +16,13 @@ locale = "la"
 #   • incipit (entry point) — line 9
 #
 # Alternate approaches (not shown):
-#   • 3.14 ∷ numerus<i32> — static ascription of float bits as integer; use ↦ for truncation
+#   • 3.14 ∷ numerus<i32> — static ascription of float bits as integer; use ↦ via Trunc for truncation
 #   • fractus<f32> ∷ fractus<f64> — widening ascription is valid; narrowing needs ↦
 
 # Anti-patterns (avoid these):
 #   • numerus ∷ fractus — the reverse needs ↦ (integer→float widening), not ∷
-#   • 3.14 ↦ numerus expecting rounding — ↦ truncates toward zero, not rounds
+#   • 3.14 ↦ numerus via Trunc expecting rounding — Trunc cuts toward zero; use via HalfEven to round
+#   • 3.14 ↦ numerus with no via — a bare float-to-integer conversion is an error (SEM016 float_to_integer_requires_rounding)
 
 # Pitfalls:
 #   • Truncation toward zero — -3.14 → -3, not -4
@@ -35,5 +36,5 @@ locale = "la"
 # Backend: Rust ✓, wasm-text —
 # =============================================================================
 incipit {
-    fixum _ r ← 3.14 ↦ numerus
+    fixum _ r ← 3.14 ↦ numerus via Trunc
 }

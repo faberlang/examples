@@ -13,5 +13,5 @@ locale = "la"
 # =============================================================================
 incipit {
     fixum fractus src ← 3.14
-    fixum _ r ← src ↦ modulus<u32>
+    fixum _ r ← src ↦ modulus<u32> via Trunc
 }

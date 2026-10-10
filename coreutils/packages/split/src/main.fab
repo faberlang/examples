@@ -94,7 +94,8 @@ functio prefixus_defectus(lista<textus> operands) → textus {
     redde "x"
 }
 
-functio lineae_per_file(numerus line_count) → numerus {
+functio lineae_per_file(numerus ∪ nihil line_count) → numerus {
+    si line_count est nihil ergo redde 1000
     si line_count ≻ 0 ergo redde line_count
     redde 1000
 }
